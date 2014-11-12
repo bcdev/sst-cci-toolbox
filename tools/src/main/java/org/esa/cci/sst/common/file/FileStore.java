@@ -19,7 +19,7 @@
 
 package org.esa.cci.sst.common.file;
 
-import org.esa.cci.sst.tool.Tool;
+import org.esa.cci.sst.log.SstLogging;
 import org.esa.cci.sst.util.TimeUtil;
 
 import java.io.File;
@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 /**
@@ -38,8 +37,6 @@ import java.util.regex.Pattern;
  * @author Norman Fomferra
  */
 public class FileStore {
-
-    private static final Logger LOGGER = Tool.LOGGER;
 
     private ProductType productType;
     private String[] inputPaths;
@@ -107,10 +104,10 @@ public class FileStore {
                 if (date != null) {
                     fileTree.add(date, entry);
                 } else {
-                    LOGGER.warning("Ignoring input file with unknown naming convention: " + entry.getPath());
+                    SstLogging.getLogger().warning("Ignoring input file with unknown naming convention: " + entry.getPath());
                 }
             } catch (ParseException e) {
-                LOGGER.warning("Ignoring input file because date can't be parsed from filename: " + entry.getPath());
+                SstLogging.getLogger().warning("Ignoring input file because date can't be parsed from filename: " + entry.getPath());
             }
         }
     }

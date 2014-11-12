@@ -22,9 +22,9 @@ import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.reader.ReaderFactory;
-import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tool.Configuration;
 import org.esa.cci.sst.tool.ToolException;
+import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tools.samplepoint.TimeRange;
 import org.esa.cci.sst.util.ConfigUtil;
 
@@ -32,11 +32,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * Tool to ingest new input files containing records of observations into the MMS database.
@@ -113,7 +109,7 @@ public class IngestionTool extends BasicTool {
      */
     private void ingest(String path, File archiveRoot, String readerSpec, String sensorName, String observationType,
                         long pattern) {
-        getLogger().info(MessageFormat.format("Ingesting file ''{0}''.", path));
+        logger.info(MessageFormat.format("Ingesting file ''{0}''.", path));
         final PersistenceManager persistenceManager = getPersistenceManager();
 
         try (Reader reader = getReader(readerSpec, sensorName)) {
@@ -134,8 +130,8 @@ public class IngestionTool extends BasicTool {
             int recordsInTimeInterval = persistObservations(sensorName, reader);
             // make changes in database
             persistenceManager.commit();
-            getLogger().info(MessageFormat.format("{0} {1} records in time interval.", sensorName,
-                                                  recordsInTimeInterval));
+            logger.info(MessageFormat.format("{0} {1} records in time interval.", sensorName,
+                    recordsInTimeInterval));
         } catch (Exception e) {
             // do not make any change in case of errors
             try {
@@ -185,7 +181,7 @@ public class IngestionTool extends BasicTool {
                 continue;
             }
             final long pattern = config.getPattern(sensor);
-            getLogger().fine("Looking for " + sensor + " files");
+            logger.fine("Looking for " + sensor + " files");
 
             final String filenamePatternKey = String.format("mms.source.%d.filenamePattern", i);
             final String filenamePattern = config.getStringValue(filenamePatternKey, ".*");
@@ -194,8 +190,8 @@ public class IngestionTool extends BasicTool {
             if (inputFileList.isEmpty()) {
                 inputFileList = getInputFiles(filenamePattern + "\\.gz", inputDir);
                 if (inputFileList.isEmpty()) {
-                    getLogger().warning(MessageFormat.format("No matching input files found in directory ''{0}/{1}''.",
-                                                             archiveRootPath, inputDirPath));
+                    logger.warning(MessageFormat.format("No matching input files found in directory ''{0}/{1}''.",
+                            archiveRootPath, inputDirPath));
                 }
             }
             for (final File inputFile : inputFileList) {
@@ -217,9 +213,9 @@ public class IngestionTool extends BasicTool {
                     .append("\tmms.source.<i>.filenamePattern = <filenamePattern> (opt)")
                     .append("\tmms.source.<i>.sensor = <sensor>\n")
                     .append("\tmms.source.<i>.reader = <ReaderClass>").toString();
-            getLogger().warning(message);
+            logger.warning(message);
         }
-        getLogger().info(MessageFormat.format("{0} input set(s) ingested.", directoryCount));
+        logger.info(MessageFormat.format("{0} input set(s) ingested.", directoryCount));
     }
 
     private int persistObservations(final String sensorName, final Reader reader) {
@@ -229,7 +225,7 @@ public class IngestionTool extends BasicTool {
         // loop over records
         for (int recordNo = 0; recordNo < reader.getNumRecords(); ++recordNo) {
             if (recordNo % 65536 == 0 && recordNo > 0) {
-                getLogger().fine(MessageFormat.format("Reading record {0} {1}.", sensorName, recordNo));
+                logger.fine(MessageFormat.format("Reading record {0} {1}.", sensorName, recordNo));
             }
             try {
                 final Observation observation = reader.readObservation(recordNo);
@@ -241,16 +237,16 @@ public class IngestionTool extends BasicTool {
             } catch (IOException e) {
                 throw new ToolException(e.getMessage(), e, ToolException.TOOL_IO_ERROR);
             } catch (IllegalArgumentException e) {
-                getLogger().warning(e.getMessage());
+                logger.warning(e.getMessage());
             } catch (Exception e) {
                 StringBuilder messageBuilder = new StringBuilder();
                 messageBuilder.append(MessageFormat.format("Ignoring observation for record number {0}: {1}.\n",
-                                                           recordNo, e.getMessage()));
+                        recordNo, e.getMessage()));
                 for (StackTraceElement stackTraceElement : e.getStackTrace()) {
                     messageBuilder.append(stackTraceElement.toString());
                     messageBuilder.append('\n');
                 }
-                getLogger().warning(messageBuilder.toString());
+                logger.warning(messageBuilder.toString());
             }
             if (recordNo % 65536 == 65535) {
                 persistenceManager.commit();
@@ -261,7 +257,7 @@ public class IngestionTool extends BasicTool {
     }
 
     private void cleanup() {
-        getLogger().info("Cleaning up database.");
+        logger.info("Cleaning up database.");
 
         final CleanupStatement cleanupStatement = new CleanupStatement(getPersistenceManager());
         cleanupStatement.execute();
@@ -269,11 +265,11 @@ public class IngestionTool extends BasicTool {
 
     private void cleanupInterval() {
         final TimeRange timeRange = ConfigUtil.getTimeRange(Configuration.KEY_MMS_INGESTION_START_TIME,
-                                                            Configuration.KEY_MMS_INGESTION_STOP_TIME,
-                                                            getConfig());
+                Configuration.KEY_MMS_INGESTION_STOP_TIME,
+                getConfig());
         final Date startDate = timeRange.getStartDate();
         final Date stopDate = timeRange.getStopDate();
-        getLogger().info("Cleaning up database for time range: " + startDate.toString() + " - " + stopDate.toString());
+        logger.info("Cleaning up database for time range: " + startDate.toString() + " - " + stopDate.toString());
 
         final CleanupStatement cleanupStatement = new CleanupStatement(getPersistenceManager());
         cleanupStatement.executeForInterval(startDate, stopDate);

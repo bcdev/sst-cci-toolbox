@@ -100,7 +100,7 @@ public class NwpToolPrototype {
             properties.setProperty("SPAM_TIME_SERIES_REMAPPED", createTempFile("spar", ".nc", true).getPath());
             properties.setProperty("AN_TIME_SERIES", createTempFile("analysis", ".nc", true).getPath());
 
-            final ProcessRunner runner = new ProcessRunner("org.esa.cci.sst");
+            final ProcessRunner runner = new ProcessRunner();
             runner.execute(writeCdoScript(CDO_AN_TEMPLATE, properties).getPath());
 
             final String matchupGeoFileLocation = writeGeoFile(sensorMmdFile, FC_NX, FC_NY, 1, 1);

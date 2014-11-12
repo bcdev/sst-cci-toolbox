@@ -24,6 +24,7 @@ import org.esa.cci.sst.common.GridDef;
 import org.esa.cci.sst.common.LUT;
 import org.esa.cci.sst.common.cellgrid.Downscaling;
 import org.esa.cci.sst.common.cellgrid.YFlip;
+import org.esa.cci.sst.log.SstLogging;
 import org.esa.cci.sst.netcdf.NcTools;
 import ucar.nc2.NetcdfFile;
 
@@ -39,7 +40,7 @@ import java.util.logging.Logger;
  */
 final class RegriddingLUT1 implements LUT {
 
-    private static final Logger LOGGER = Logger.getLogger("org.esa.cci.sst");
+    private static final Logger logger = SstLogging.getLogger();
     private static final GridDef SOURCE_GRID_DEF = GridDef.createGlobal(0.05);
 
     private final Grid grid;
@@ -52,9 +53,9 @@ final class RegriddingLUT1 implements LUT {
         Grid grid = readGrid(file);
         if (SOURCE_GRID_DEF.getResolution() != gridDef.getResolution()) {
             long t0 = System.currentTimeMillis();
-            LOGGER.fine("Downscaling regridding LUT1");
+            logger.fine("Downscaling regridding LUT1");
             grid = Downscaling.create(grid, gridDef);
-            LOGGER.fine(String.format("Downscaling regridding LUT1 took %d ms", System.currentTimeMillis() - t0));
+            logger.fine(String.format("Downscaling regridding LUT1 took %d ms", System.currentTimeMillis() - t0));
         }
         return new RegriddingLUT1(YFlip.create(grid));
     }
@@ -65,19 +66,19 @@ final class RegriddingLUT1 implements LUT {
     }
 
     static Grid readGrid(File file) throws IOException {
-        LOGGER.info(String.format("Opening file for regridding LUT1 '%s'", file.getPath()));
+        logger.info(String.format("Opening file for regridding LUT1 '%s'", file.getPath()));
 
         final NetcdfFile gridFile = NetcdfFile.open("file:" + file.getPath());
         try {
             long t0 = System.currentTimeMillis();
-            LOGGER.fine("Reading 'analysed_sst_anomaly'...");
+            logger.fine("Reading 'analysed_sst_anomaly'...");
 
             final Grid grid = NcTools.readGrid(gridFile, "analysed_sst_anomaly", SOURCE_GRID_DEF, 0);
-            LOGGER.fine(String.format("Reading 'analysed_sst_anomaly' took %d ms", System.currentTimeMillis() - t0));
+            logger.fine(String.format("Reading 'analysed_sst_anomaly' took %d ms", System.currentTimeMillis() - t0));
             return grid;
         } finally {
             try {
-                LOGGER.fine("Closing file for regridding LUT1");
+                logger.fine("Closing file for regridding LUT1");
                 gridFile.close();
             } catch (IOException e) {
                 // ignore

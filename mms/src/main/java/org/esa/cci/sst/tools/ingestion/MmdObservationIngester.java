@@ -20,9 +20,10 @@ import org.esa.cci.sst.data.Coincidence;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.Timeable;
+import org.esa.cci.sst.log.SstLogging;
 import org.esa.cci.sst.reader.MmdReader;
-import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tool.ToolException;
+import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.util.TimeUtil;
 
 import java.io.IOException;
@@ -51,7 +52,7 @@ class MmdObservationIngester {
     void ingestObservations() {
         final int numRecords = reader.getNumRecords();
         for (int i = 0; i < numRecords; i++) {
-            tool.getLogger().fine(String.format("ingestion of record '%d/%d\'", (i + 1), numRecords));
+            SstLogging.getLogger().fine(String.format("ingestion of record '%d/%d\'", (i + 1), numRecords));
             persistObservation(reader, i);
         }
     }

@@ -23,13 +23,13 @@ import org.esa.cci.sst.common.AggregationContext;
 import org.esa.cci.sst.common.ArrayGrid;
 import org.esa.cci.sst.common.GridDef;
 import org.esa.cci.sst.common.SstDepth;
+import org.esa.cci.sst.log.SstLogging;
 import org.esa.cci.sst.netcdf.NcTools;
 import ucar.nc2.NetcdfFile;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
  * Represents the SST-CCI L2P file type.
@@ -66,7 +66,7 @@ class CciL2FileType extends CciL3FileType {
             variableNames.add(ADJUSTMENT_UNCERTAINTY);
         }
         final GridDef gridDef = getGridDef();
-        final Projector projector = new Projector(gridDef, Logger.getLogger("org.esa.cci.sst"));
+        final Projector projector = new Projector(gridDef, SstLogging.getLogger());
         final float[][] data = projector.createProjectedData(datafile, variableNames);
 
         context.setSstGrid(ArrayGrid.create(gridDef, data[0]));

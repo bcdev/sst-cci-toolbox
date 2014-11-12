@@ -19,18 +19,15 @@
 
 package org.esa.cci.sst.regrid;
 
-import org.esa.cci.sst.common.Aggregation;
-import org.esa.cci.sst.common.ProcessingLevel;
-import org.esa.cci.sst.common.SstDepth;
-import org.esa.cci.sst.common.TemporalResolution;
+import org.esa.cci.sst.common.*;
 import org.esa.cci.sst.common.calculator.NumberAccumulator;
 import org.esa.cci.sst.common.calculator.UncertaintyAccumulator;
 import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.cellgrid.CellGrid;
-import org.esa.cci.sst.common.GridDef;
 import org.esa.cci.sst.common.cellgrid.RegionMask;
 import org.esa.cci.sst.common.file.FileType;
 import org.esa.cci.sst.common.file.ProductType;
+import org.esa.cci.sst.log.SstLogging;
 import org.esa.cci.sst.util.TimeUtil;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
@@ -44,7 +41,6 @@ import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Date;
-import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -55,7 +51,7 @@ import java.util.logging.Logger;
  */
 final class Writer {
 
-    public static final Logger LOGGER = Logger.getLogger("org.esa.cci.sst.regrid");
+    private static final Logger logger = SstLogging.getLogger();
 
     private final ProductType productType;
     private final String toolName;
@@ -93,12 +89,6 @@ final class Writer {
         this.regionMask = regionMask;
     }
 
-    void writeTargetFiles(List<RegriddingTimeStep> timeSteps) throws IOException {
-        for (final RegriddingTimeStep timeStep : timeSteps) {
-            writeTargetFile(timeStep);
-        }
-    }
-
     void writeTargetFile(RegriddingTimeStep timeStep) throws IOException {
         final CellGrid<? extends AggregationCell> targetCellGrid = timeStep.getCellGrid();
         final GridDef targetGridDef = targetCellGrid.getGridDef();
@@ -120,7 +110,7 @@ final class Writer {
                 regionMask.getName().toUpperCase(),
                 "REGRIDDED_" + targetGridDef.getResolution());
         final File targetFile = new File(targetDir, targetFilename);
-        LOGGER.info("Writing target file '" + targetFile + "'...");
+        logger.info("Writing target file '" + targetFile + "'...");
 
         final int rowCount = targetGridDef.getHeight();
         final int colCount = targetGridDef.getWidth();
@@ -296,7 +286,7 @@ final class Writer {
         try {
             dataFile.write(variable, array);
         } catch (InvalidRangeException cannotHappen) {
-            LOGGER.throwing(getClass().getName(), "writeData", cannotHappen);
+            logger.throwing(getClass().getName(), "writeData", cannotHappen);
         }
     }
 

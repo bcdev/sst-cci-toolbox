@@ -9,8 +9,6 @@ import org.esa.cci.sst.common.cell.CellAggregationCell;
 import org.esa.cci.sst.common.cell.CellFactory;
 import org.esa.cci.sst.common.cell.SpatialAggregationCell;
 import org.esa.cci.sst.common.cellgrid.CellGrid;
-import org.esa.cci.sst.common.Grid;
-import org.esa.cci.sst.common.GridDef;
 import org.esa.cci.sst.common.cellgrid.RegionMask;
 import org.esa.cci.sst.common.file.FileList;
 import org.esa.cci.sst.common.file.FileStore;
@@ -26,7 +24,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
  * Aggregator for the RegionalAveraging Tool.
@@ -37,7 +34,6 @@ import java.util.logging.Logger;
  */
 public class AveragingAggregator extends AbstractAggregator {
 
-    private static final Logger LOGGER = Logger.getLogger("org.esa.cci.sst");
 
     private final AggregationContext context;
     private final RegionMaskList regionMaskList;
@@ -156,7 +152,7 @@ public class AveragingAggregator extends AbstractAggregator {
         final FileType fileType = getFileType();
         final List<FileList> allFiles = getFileStore().getFiles(date1, date2);
 
-        LOGGER.info(String.format("Computing output time step from %s to %s, %d file(s) found.",
+        logger.info(String.format("Computing output time step from %s to %s, %d file(s) found.",
                 TimeUtil.formatIsoUtcFormat(date1), TimeUtil.formatIsoUtcFormat(date2),
                 allFiles.size()));
 
@@ -168,7 +164,7 @@ public class AveragingAggregator extends AbstractAggregator {
 
         for (final FileList filesForOneDay : allFiles) {
             for (final File file : filesForOneDay.getFiles()) {
-                LOGGER.info(String.format("Processing input %s file '%s'", getFileStore().getProductType(), file));
+                logger.info(String.format("Processing input %s file '%s'", getFileStore().getProductType(), file));
 
                 final long t0 = System.currentTimeMillis();
                 final NetcdfFile dataFile = NetcdfFile.open(file.getPath());
@@ -176,22 +172,22 @@ public class AveragingAggregator extends AbstractAggregator {
                 try {
                     final Date date = fileType.readDate(dataFile);
                     final int dayOfYear = TimeUtil.getYear(date);
-                    LOGGER.fine("Day of year is " + dayOfYear);
+                    logger.fine("Day of year is " + dayOfYear);
                     context.setClimatologySstGrid(climatology.getSstGrid(dayOfYear));
                     context.setSeaCoverageGrid(climatology.getSeaCoverageGrid());
                     readSourceGrids(dataFile, context);
-                    LOGGER.fine("Aggregating grid(s)...");
+                    logger.fine("Aggregating grid(s)...");
                     final long t1 = System.currentTimeMillis();
 
                     aggregateSourcePixels(context, combinedRegionMask, targetGrid);
 
-                    LOGGER.fine(String.format("Aggregating grid(s) took %d ms", (System.currentTimeMillis() - t1)));
+                    logger.fine(String.format("Aggregating grid(s) took %d ms", (System.currentTimeMillis() - t1)));
                 } catch (IOException e) {
-                    LOGGER.warning(e.getMessage());
+                    logger.warning(e.getMessage());
                 } finally {
                     dataFile.close();
                 }
-                LOGGER.fine(String.format("Processing input %s file took %d ms", getFileStore().getProductType(),
+                logger.fine(String.format("Processing input %s file took %d ms", getFileStore().getProductType(),
                         System.currentTimeMillis() - t0));
             }
         }

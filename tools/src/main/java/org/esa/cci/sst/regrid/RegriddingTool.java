@@ -264,7 +264,7 @@ public class RegriddingTool extends Tool {
         LUT lut;
         try {
             lut = RegriddingLUT1.create(file, productType.getGridDef());
-            LOGGER.info(String.format("LUT read from '%s'", file));
+            logger.info(String.format("LUT read from '%s'", file));
         } catch (IOException e) {
             throw new ToolException(e, ToolException.TOOL_IO_ERROR);
         }
@@ -275,7 +275,7 @@ public class RegriddingTool extends Tool {
         LUT lut;
         try {
             lut = RegriddingLUT2.create(file, spatialResolution, fillValue);
-            LOGGER.info(String.format("LUT read from '%s'", file));
+            logger.info(String.format("LUT read from '%s'", file));
         } catch (IOException e) {
             throw new ToolException(e, ToolException.TOOL_IO_ERROR);
         }

@@ -221,7 +221,7 @@ public class MatchupTool extends BasicTool {
 
         final String primarySensor = config.getStringValue(Configuration.KEY_MMS_MATCHUP_PRIMARY_SENSOR);
         if (primarySensor != null) {
-            getLogger().info("Primary sensor is " + primarySensor);
+            logger.info("Primary sensor is " + primarySensor);
         }
         findRelatedObservations(primarySensor);
     }
@@ -241,7 +241,7 @@ public class MatchupTool extends BasicTool {
             long time = System.currentTimeMillis();
             query.setParameter(1, ATSR_MD);
             query.executeUpdate();
-            getLogger().info(MessageFormat.format("{0} duplicates determined in {1} ms.", ATSR_MD,
+            logger.info(MessageFormat.format("{0} duplicates determined in {1} ms.", ATSR_MD,
                     System.currentTimeMillis() - time));
 
             getPersistenceManager().commit();
@@ -250,7 +250,7 @@ public class MatchupTool extends BasicTool {
             time = System.currentTimeMillis();
             query.setParameter(1, METOP);
             query.executeUpdate();
-            getLogger().info(MessageFormat.format("{0} duplicates determined in {1} ms.", METOP,
+            logger.info(MessageFormat.format("{0} duplicates determined in {1} ms.", METOP,
                     System.currentTimeMillis() - time));
 
             getPersistenceManager().commit();
@@ -259,7 +259,7 @@ public class MatchupTool extends BasicTool {
             time = System.currentTimeMillis();
             query.setParameter(1, SEVIRI);
             query.executeUpdate();
-            getLogger().info(MessageFormat.format("{0} duplicates determined in {1} ms.", SEVIRI,
+            logger.info(MessageFormat.format("{0} duplicates determined in {1} ms.", SEVIRI,
                     System.currentTimeMillis() - time));
 
             getPersistenceManager().commit();
@@ -268,7 +268,7 @@ public class MatchupTool extends BasicTool {
             time = System.currentTimeMillis();
             query.setParameter(1, AVHRR_MD);
             query.executeUpdate();
-            getLogger().info(MessageFormat.format("{0} duplicates determined in {1} ms.", AVHRR_MD,
+            logger.info(MessageFormat.format("{0} duplicates determined in {1} ms.", AVHRR_MD,
                     System.currentTimeMillis() - time));
 
             getPersistenceManager().commit();
@@ -288,7 +288,7 @@ public class MatchupTool extends BasicTool {
             long time = System.currentTimeMillis();
             query.setParameter(1, ATSR_MD);
             query.executeUpdate();
-            getLogger().info(MessageFormat.format("{0} duplicates dropped in {1} ms.", ATSR_MD,
+            logger.info(MessageFormat.format("{0} duplicates dropped in {1} ms.", ATSR_MD,
                     System.currentTimeMillis() - time));
 
             getPersistenceManager().commit();
@@ -297,7 +297,7 @@ public class MatchupTool extends BasicTool {
             time = System.currentTimeMillis();
             query.setParameter(1, METOP);
             query.executeUpdate();
-            getLogger().info(MessageFormat.format("{0} duplicates dropped in {1} ms.", METOP,
+            logger.info(MessageFormat.format("{0} duplicates dropped in {1} ms.", METOP,
                     System.currentTimeMillis() - time));
 
             getPersistenceManager().commit();
@@ -306,7 +306,7 @@ public class MatchupTool extends BasicTool {
             time = System.currentTimeMillis();
             query.setParameter(1, SEVIRI);
             query.executeUpdate();
-            getLogger().info(MessageFormat.format("{0} duplicates dropped in {1} ms.", SEVIRI,
+            logger.info(MessageFormat.format("{0} duplicates dropped in {1} ms.", SEVIRI,
                     System.currentTimeMillis() - time));
 
             getPersistenceManager().commit();
@@ -315,7 +315,7 @@ public class MatchupTool extends BasicTool {
             time = System.currentTimeMillis();
             query.setParameter(1, AVHRR_MD);
             query.executeUpdate();
-            getLogger().info(MessageFormat.format("{0} duplicates dropped in {1} ms.", AVHRR_MD,
+            logger.info(MessageFormat.format("{0} duplicates dropped in {1} ms.", AVHRR_MD,
                     System.currentTimeMillis() - time));
 
             getPersistenceManager().commit();
@@ -402,7 +402,7 @@ public class MatchupTool extends BasicTool {
                     if (count % 1024 == 0) {
                         getPersistenceManager().commit();
                         getPersistenceManager().transaction();
-                        getLogger().info(MessageFormat.format("{0} {1} processed in {2} ms.",
+                        logger.info(MessageFormat.format("{0} {1} processed in {2} ms.",
                                 count,
                                 atsrSensor.getName(),
                                 System.currentTimeMillis() - time));
@@ -413,7 +413,7 @@ public class MatchupTool extends BasicTool {
 
             getPersistenceManager().commit();
             getPersistenceManager().transaction();
-            getLogger().info(MessageFormat.format("{0} {1} processed in {2} ms.",
+            logger.info(MessageFormat.format("{0} {1} processed in {2} ms.",
                     count,
                     atsrSensor.getName(),
                     System.currentTimeMillis() - time));
@@ -424,7 +424,7 @@ public class MatchupTool extends BasicTool {
             for (Coincidence c : coincidenceAccu) {
                 getPersistenceManager().persist(c);
             }
-            getLogger().info(MessageFormat.format("{0} matchups and {1} coincidences stored in {2} ms.",
+            logger.info(MessageFormat.format("{0} matchups and {1} coincidences stored in {2} ms.",
                     matchupAccu.size(),
                     coincidenceAccu.size(),
                     System.currentTimeMillis() - time));
@@ -476,7 +476,7 @@ public class MatchupTool extends BasicTool {
                     if (count % 1024 == 0) {
                         getPersistenceManager().commit();
                         getPersistenceManager().transaction();
-                        getLogger().info(MessageFormat.format("{0} {1} processed in {2} ms.",
+                        logger.info(MessageFormat.format("{0} {1} processed in {2} ms.",
                                 count,
                                 metopSensor.getName(),
                                 System.currentTimeMillis() - time));
@@ -487,7 +487,7 @@ public class MatchupTool extends BasicTool {
 
             getPersistenceManager().commit();
             getPersistenceManager().transaction();
-            getLogger().info(MessageFormat.format("{0} {1} processed in {2} ms.",
+            logger.info(MessageFormat.format("{0} {1} processed in {2} ms.",
                     count,
                     metopSensor.getName(),
                     System.currentTimeMillis() - time));
@@ -498,7 +498,7 @@ public class MatchupTool extends BasicTool {
             for (Coincidence c : coincidenceAccu) {
                 getPersistenceManager().persist(c);
             }
-            getLogger().info(MessageFormat.format("{0} matchups and {1} coincidences stored in {2} ms.",
+            logger.info(MessageFormat.format("{0} matchups and {1} coincidences stored in {2} ms.",
                     matchupAccu.size(),
                     coincidenceAccu.size(),
                     System.currentTimeMillis() - time));
@@ -532,7 +532,7 @@ public class MatchupTool extends BasicTool {
                     if (count % 1024 == 0) {
                         getPersistenceManager().commit();
                         getPersistenceManager().transaction();
-                        getLogger().info(MessageFormat.format("{0} {1} processed in {2} ms.",
+                        logger.info(MessageFormat.format("{0} {1} processed in {2} ms.",
                                 count,
                                 sensor.getName(),
                                 System.currentTimeMillis() - time));
@@ -543,7 +543,7 @@ public class MatchupTool extends BasicTool {
 
             getPersistenceManager().commit();
             getPersistenceManager().transaction();
-            getLogger().info(MessageFormat.format("{0} {1} processed in {2} ms.",
+            logger.info(MessageFormat.format("{0} {1} processed in {2} ms.",
                     count,
                     sensor.getName(),
                     System.currentTimeMillis() - time));
@@ -551,9 +551,9 @@ public class MatchupTool extends BasicTool {
             for (Matchup m : matchupAccu) {
                 getPersistenceManager().persist(m);
             }
-            getLogger().info(MessageFormat.format("{0} matchups stored in {1} ms.",
-                                                  matchupAccu.size(),
-                                                  System.currentTimeMillis() - time));
+            logger.info(MessageFormat.format("{0} matchups stored in {1} ms.",
+                    matchupAccu.size(),
+                    System.currentTimeMillis() - time));
             matchupAccu.clear();
 
             getPersistenceManager().commit();
@@ -598,7 +598,7 @@ public class MatchupTool extends BasicTool {
                     for (final Matchup matchup : matchups) {
                         addCoincidence(matchup, sensorName, queryString, sensor.getPattern(), observationClass);
                     }
-                    getLogger().info(MessageFormat.format("{0} {1} up to {2} processed in {3} ms.",
+                    logger.info(MessageFormat.format("{0} {1} up to {2} processed in {3} ms.",
                             matchups.size(),
                             sensorName,
                             TimeUtil.formatCcsdsUtcFormat(new Date(chunkStopTime)),
@@ -618,7 +618,7 @@ public class MatchupTool extends BasicTool {
             for (Coincidence c : coincidenceAccu) {
                 getPersistenceManager().persist(c);
             }
-            getLogger().info(MessageFormat.format("{0} coincidences stored in {1} ms.",
+            logger.info(MessageFormat.format("{0} coincidences stored in {1} ms.",
                     coincidenceAccu.size(),
                     System.currentTimeMillis() - time));
             coincidenceAccu.clear();
@@ -760,7 +760,7 @@ public class MatchupTool extends BasicTool {
             }
         } catch (PersistenceException e) {
             if (e.getMessage().startsWith("ERROR: BOOM! Could not generate outside point!")) {
-                getLogger().warning(
+                logger.warning(
                         "skipping chunk up to " + sensorName + " for matchup " + refObs.getId() + ": " + e.getMessage());
                 try {
                     //getPersistenceManager().rollback();

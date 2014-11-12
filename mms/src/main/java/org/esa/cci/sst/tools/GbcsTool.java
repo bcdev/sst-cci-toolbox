@@ -29,8 +29,8 @@ public class GbcsTool extends BasicTool {
     private static final String TEMPLATE =
             String.format(
                     "#!/bin/bash\n" +
-                    "module load intel/${%s}\n" +
-                    "${%s}/${%s}/bin/MMD_SCREEN_Linux ${%s}/${%s}/dat_cci/${%s} ${%s} ${%s} ${%s}\n",
+                            "module load intel/${%s}\n" +
+                            "${%s}/${%s}/bin/MMD_SCREEN_Linux ${%s}/${%s}/dat_cci/${%s} ${%s} ${%s} ${%s}\n",
                     Configuration.KEY_MMS_GBCS_INTELVERSION,
                     Configuration.KEY_MMS_GBCS_HOME,
                     Configuration.KEY_MMS_GBCS_VERSION,
@@ -82,11 +82,11 @@ public class GbcsTool extends BasicTool {
 
         properties = new Properties();
         properties.put(Configuration.KEY_MMS_GBCS_INTELVERSION,
-                       config.getStringValue(Configuration.KEY_MMS_GBCS_INTELVERSION));
+                config.getStringValue(Configuration.KEY_MMS_GBCS_INTELVERSION));
         properties.put(Configuration.KEY_MMS_GBCS_VERSION,
-                       config.getStringValue(Configuration.KEY_MMS_GBCS_VERSION));
+                config.getStringValue(Configuration.KEY_MMS_GBCS_VERSION));
         properties.put(Configuration.KEY_MMS_GBCS_HOME,
-                       config.getStringValue(Configuration.KEY_MMS_GBCS_HOME));
+                config.getStringValue(Configuration.KEY_MMS_GBCS_HOME));
         properties.put(Configuration.KEY_MMS_GBCS_MMD_SOURCE, mmdSource);
         properties.put(Configuration.KEY_MMS_GBCS_NWP_SOURCE, nwpSource);
         properties.put(Configuration.KEY_MMS_GBCS_MMD_TARGET, mmdTarget);
@@ -103,7 +103,7 @@ public class GbcsTool extends BasicTool {
             return;
         }
 
-        final ProcessRunner runner = new ProcessRunner("org.esa.cci.sst");
+        final ProcessRunner runner = new ProcessRunner();
         final String resolvedTemplate = ProcessRunner.resolveTemplate(TEMPLATE, properties);
 
         runner.execute(ProcessRunner.writeExecutableScript(resolvedTemplate, "gbcs", ".sh", deleteOnExit).getPath());
@@ -112,8 +112,8 @@ public class GbcsTool extends BasicTool {
     private boolean doesNotExist(String path) {
         final boolean exists = new File(path).exists();
         if (!exists) {
-            getLogger().warning(MessageFormat.format("missing source file: {0}", path));
-            getLogger().warning(MessageFormat.format("skipping target file: {0}", mmdTarget));
+            logger.warning(MessageFormat.format("missing source file: {0}", path));
+            logger.warning(MessageFormat.format("skipping target file: {0}", mmdTarget));
             return true;
         }
         return false;
@@ -151,8 +151,8 @@ public class GbcsTool extends BasicTool {
             default:
                 throw new ToolException(
                         MessageFormat.format("Illegal value for key ''{0}'': ''{1}''.",
-                                             Configuration.KEY_MMS_GBCS_SENSOR,
-                                             sensorName),
+                                Configuration.KEY_MMS_GBCS_SENSOR,
+                                sensorName),
                         ToolException.TOOL_CONFIGURATION_ERROR);
         }
     }

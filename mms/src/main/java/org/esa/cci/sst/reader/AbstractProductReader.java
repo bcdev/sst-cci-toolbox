@@ -36,6 +36,7 @@ import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.log.SstLogging;
 import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.util.SamplingPoint;
 import ucar.ma2.Array;
@@ -309,7 +310,7 @@ abstract class AbstractProductReader implements Reader {
         final GeoCoding geoCoding = product.getGeoCoding();
         final PixelPos pixelPos = geoCoding.getPixelPos(geoPos, new PixelPos());
         if (!pixelPos.isValid()) {
-            final Logger logger = Logger.getLogger("org.esa.cci.sst");
+            final Logger logger = SstLogging.getLogger();
             final String message = MessageFormat.format("Unable to find pixel at ({0}, {1}) in product ''{2}''.",
                                                         geoPos.getLon(),
                                                         geoPos.getLat(),

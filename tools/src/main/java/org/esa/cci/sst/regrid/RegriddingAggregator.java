@@ -27,8 +27,6 @@ import org.esa.cci.sst.common.cell.CellAggregationCell;
 import org.esa.cci.sst.common.cell.CellFactory;
 import org.esa.cci.sst.common.cell.SpatialAggregationCell;
 import org.esa.cci.sst.common.cellgrid.CellGrid;
-import org.esa.cci.sst.common.Grid;
-import org.esa.cci.sst.common.GridDef;
 import org.esa.cci.sst.common.file.FileList;
 import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.common.file.FileType;
@@ -43,7 +41,6 @@ import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
  * Aggregator for the Regridding Tool.
@@ -53,8 +50,6 @@ import java.util.logging.Logger;
  * @author Ralf Quast
  */
 class RegriddingAggregator extends AbstractAggregator {
-
-    private static final Logger LOGGER = Logger.getLogger("org.esa.cci.sst");
 
     private final AggregationContext aggregationContext;
     private final LUT timeLut;
@@ -128,7 +123,7 @@ class RegriddingAggregator extends AbstractAggregator {
                     try {
                         writer.writeTargetFile(timeStep);
                     } catch (IOException e) {
-                        LOGGER.warning(e.getMessage());
+                        logger.warning(e.getMessage());
                     }
                 } else {
                     resultGridList.add(timeStep);
@@ -166,13 +161,13 @@ class RegriddingAggregator extends AbstractAggregator {
         final List<FileList> allFiles = fileStore.getFiles(date1, date2);
 
         if (allFiles.isEmpty()) {
-            LOGGER.warning(MessageFormat.format("No matching files found in {0} for period {1} - {2}",
+            logger.warning(MessageFormat.format("No matching files found in {0} for period {1} - {2}",
                     Arrays.toString(fileStore.getInputPaths()),
                     SimpleDateFormat.getDateInstance().format(date1),
                     SimpleDateFormat.getDateInstance().format(date2)));
             return null;
         }
-        LOGGER.info(String.format("Aggregating output time step from %s to %s.",
+        logger.info(String.format("Aggregating output time step from %s to %s.",
                 TimeUtil.formatIsoUtcFormat(date1), TimeUtil.formatIsoUtcFormat(date2)));
 
         final Climatology climatology = getClimatology();
@@ -182,7 +177,7 @@ class RegriddingAggregator extends AbstractAggregator {
 
         for (final FileList singleDayFiles : allFiles) {
             final int doy = TimeUtil.getYear(singleDayFiles.getDate());
-            LOGGER.info("Day of year is " + doy);
+            logger.info("Day of year is " + doy);
 
             aggregationContext.setClimatologySstGrid(climatology.getSstGrid(doy));
             aggregationContext.setSeaCoverageGrid(climatology.getSeaCoverageGrid());
@@ -231,7 +226,7 @@ class RegriddingAggregator extends AbstractAggregator {
         CellGrid<SpatialAggregationCell> targetGrid = null;
 
         for (final File file : files) {
-            LOGGER.info(String.format("Processing input %s file '%s'", productType, file));
+            logger.info(String.format("Processing input %s file '%s'", productType, file));
             final long t0 = System.currentTimeMillis();
 
             NetcdfFile datafile = null;
@@ -241,21 +236,21 @@ class RegriddingAggregator extends AbstractAggregator {
                 if (targetGrid == null) {
                     targetGrid = CellGrid.create(fileType.getGridDef(), dailyCellFactory);
                 }
-                LOGGER.fine("Aggregating grid(s)...");
+                logger.fine("Aggregating grid(s)...");
                 final long t1 = System.currentTimeMillis();
                 aggregateSingleDaySourcePixels(aggregationContext, targetGrid);
-                LOGGER.fine(String.format("Aggregating grid(s) took %d ms", (System.currentTimeMillis() - t1)));
+                logger.fine(String.format("Aggregating grid(s) took %d ms", (System.currentTimeMillis() - t1)));
             } catch (IOException e) {
-                LOGGER.warning(
+                logger.warning(
                         String.format("Cannot process input %s file '%s' because of an I/O error: '%s'.", productType,
                                 file, e.getMessage()));
             } catch (Exception e) {
                 if (e.getMessage() == null) {
-                    LOGGER.severe(
+                    logger.severe(
                             String.format("Cannot process input %s file '%s' because of an unknown error.", productType,
                                     file));
                 } else {
-                    LOGGER.warning(
+                    logger.warning(
                             String.format("Cannot process input %s file '%s' because of an error: '%s'.", productType,
                                     file, e.getMessage()));
                 }
@@ -268,7 +263,7 @@ class RegriddingAggregator extends AbstractAggregator {
                     }
                 }
             }
-            LOGGER.fine(String.format("Processing input %s file took %d ms", productType,
+            logger.fine(String.format("Processing input %s file took %d ms", productType,
                     System.currentTimeMillis() - t0));
         }
 

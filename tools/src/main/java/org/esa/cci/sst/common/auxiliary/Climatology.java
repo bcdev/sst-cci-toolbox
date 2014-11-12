@@ -24,6 +24,7 @@ import org.esa.cci.sst.common.GridDef;
 import org.esa.cci.sst.common.cellgrid.Downscaling;
 import org.esa.cci.sst.common.cellgrid.Mask;
 import org.esa.cci.sst.common.cellgrid.YFlip;
+import org.esa.cci.sst.log.SstLogging;
 import org.esa.cci.sst.netcdf.NcTools;
 import org.esa.cci.sst.tool.ToolException;
 import ucar.nc2.NetcdfFile;
@@ -50,7 +51,7 @@ public class Climatology {
     private static final GridDef TARGET_5D_GRID_DEF = GridDef.createGlobal(5.0);
     private static final GridDef TARGET_90D_GRID_DEF = GridDef.createGlobal(90.0);
 
-    private static final Logger LOGGER = Logger.getLogger("org.esa.cci.sst");
+    private static final Logger logger = SstLogging.getLogger();
 
     private final File[] dailyClimatologyFiles;
     private final GridDef targetGridDef;
@@ -132,14 +133,14 @@ public class Climatology {
         }
         final File file = dailyClimatologyFiles[doy - 1];
         long t0 = System.currentTimeMillis();
-        LOGGER.info(String.format("Processing input climatology file '%s' for day of year %d", file.getPath(), doy));
+        logger.info(String.format("Processing input climatology file '%s' for day of year %d", file.getPath(), doy));
         final NetcdfFile netcdfFile = NetcdfFile.open("file:" + file.getPath().replace('\\', '/'));
         try {
             readGrids(netcdfFile, doy);
         } finally {
             netcdfFile.close();
         }
-        LOGGER.fine(String.format("Processing input climatology file took %d ms", System.currentTimeMillis() - t0));
+        logger.fine(String.format("Processing input climatology file took %d ms", System.currentTimeMillis() - t0));
     }
 
     private void readGrids(NetcdfFile netcdfFile, int dayOfYear) throws IOException {
@@ -153,23 +154,23 @@ public class Climatology {
 
     private void readAnalysedSstGrid(NetcdfFile netcdfFile, int dayOfYear) throws IOException {
         long t0 = System.currentTimeMillis();
-        LOGGER.fine("Reading 'analysed_sst'...");
+        logger.fine("Reading 'analysed_sst'...");
         Grid sstGrid = NcTools.readGrid(netcdfFile, "analysed_sst", SOURCE_GRID_DEF, 0);
-        LOGGER.fine(String.format("Reading 'analysed_sst' took %d ms", System.currentTimeMillis() - t0));
+        logger.fine(String.format("Reading 'analysed_sst' took %d ms", System.currentTimeMillis() - t0));
         t0 = System.currentTimeMillis();
         if (!SOURCE_GRID_DEF.equals(targetGridDef)) {
             sstGrid = Downscaling.create(sstGrid, targetGridDef);
         }
-        LOGGER.fine(String.format("Transforming 'analysed_sst' took %d ms", System.currentTimeMillis() - t0));
+        logger.fine(String.format("Transforming 'analysed_sst' took %d ms", System.currentTimeMillis() - t0));
         this.sstGrid = YFlip.create(sstGrid);
         this.dayOfYear = dayOfYear;
     }
 
     private void readSeaCoverageGrids(NetcdfFile netcdfFile) throws IOException {
         long t0 = System.currentTimeMillis();
-        LOGGER.fine("Reading 'mask'...");
+        logger.fine("Reading 'mask'...");
         final Grid maskGrid = NcTools.readGrid(netcdfFile, "mask", SOURCE_GRID_DEF, 0);
-        LOGGER.fine(String.format("Reading 'mask' took %d ms", System.currentTimeMillis() - t0));
+        logger.fine(String.format("Reading 'mask' took %d ms", System.currentTimeMillis() - t0));
         t0 = System.currentTimeMillis();
         seaCoverageGrid = YFlip.create(Mask.create(maskGrid, 0x01));
         if (!SOURCE_GRID_DEF.equals(targetGridDef)) {
@@ -177,7 +178,7 @@ public class Climatology {
         }
         seaCoverageCell5Grid = Downscaling.create(seaCoverageGrid, TARGET_5D_GRID_DEF);
         seaCoverageCell90Grid = Downscaling.create(seaCoverageCell5Grid, TARGET_90D_GRID_DEF);
-        LOGGER.fine(String.format("Transforming 'mask' took %d ms", System.currentTimeMillis() - t0));
+        logger.fine(String.format("Transforming 'mask' took %d ms", System.currentTimeMillis() - t0));
     }
 
     private static String[] getMissingDays(File[] files) {

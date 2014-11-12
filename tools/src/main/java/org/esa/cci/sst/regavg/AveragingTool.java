@@ -27,6 +27,7 @@ import org.esa.cci.sst.common.auxiliary.Climatology;
 import org.esa.cci.sst.common.cellgrid.RegionMask;
 import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.common.file.ProductType;
+import org.esa.cci.sst.log.SstLogging;
 import org.esa.cci.sst.regavg.auxiliary.LUT1;
 import org.esa.cci.sst.regavg.auxiliary.LUT2;
 import org.esa.cci.sst.tool.*;
@@ -237,7 +238,7 @@ public final class AveragingTool extends Tool {
         final LUT1 lut1;
         try {
             lut1 = LUT1.read(lut1File);
-            LOGGER.info(String.format("LUT-1 read from '%s'", lut1File));
+            SstLogging.getLogger().info(String.format("LUT-1 read from '%s'", lut1File));
         } catch (IOException e) {
             throw new ToolException(e, ToolException.TOOL_IO_ERROR);
         }
@@ -248,7 +249,7 @@ public final class AveragingTool extends Tool {
         final LUT2 lut2;
         try {
             lut2 = LUT2.read(lut2File);
-            LOGGER.info(String.format("LUT-2 read from '%s'", lut2File));
+            SstLogging.getLogger().info(String.format("LUT-2 read from '%s'", lut2File));
         } catch (IOException e) {
             throw new ToolException(e, ToolException.TOOL_IO_ERROR);
         }
@@ -278,7 +279,7 @@ public final class AveragingTool extends Tool {
                     "DM"
             );
             final File file = new File(outputDir, outputFilename);
-            LOGGER.info("Writing output file '" + file + "'...");
+            SstLogging.getLogger().info("Writing output file '" + file + "'...");
             writeOutputFile(file, textWriter, productType, filenameRegex, sstDepth, startDate, endDate,
                     temporalResolution, regionMask, regionIndex, timeSteps);
         }
@@ -381,7 +382,7 @@ public final class AveragingTool extends Tool {
             throw new IllegalStateException(e);
         } catch (Exception e) {
             e.printStackTrace();
-            LOGGER.log(Level.SEVERE, "", e);
+            SstLogging.getLogger().log(Level.SEVERE, "", e);
             throw new IOException(e);
         } finally {
             try {

@@ -17,20 +17,16 @@
 package org.esa.cci.sst.tools.nwp;
 
 import org.esa.beam.util.math.FracIndex;
-import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tool.Configuration;
 import org.esa.cci.sst.tool.ToolException;
+import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.util.ProcessRunner;
 import org.esa.cci.sst.util.SensorNames;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
 import ucar.ma2.InvalidRangeException;
 import ucar.ma2.Section;
-import ucar.nc2.Attribute;
-import ucar.nc2.Dimension;
-import ucar.nc2.NetcdfFile;
-import ucar.nc2.NetcdfFileWriter;
-import ucar.nc2.Variable;
+import ucar.nc2.*;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -51,26 +47,26 @@ class NwpTool extends BasicTool {
 
     private static final String CDO_NWP_TEMPLATE =
             "#! /bin/sh\n" +
-            "${CDO} ${CDO_OPTS} -f nc2 mergetime ${GGAS_TIMESTEPS} ${GGAS_TIME_SERIES} && " +
-            "${CDO} ${CDO_OPTS} -f grb mergetime ${GGAM_TIMESTEPS} ${GGAM_TIME_SERIES} && " +
-            "${CDO} ${CDO_OPTS} -f grb mergetime ${SPAM_TIMESTEPS} ${SPAM_TIME_SERIES} && " +
-            // attention: chaining the operations below results in a loss of the y dimension in the result file
-            "${CDO} ${CDO_OPTS} -f nc2 -R -t ecmwf setreftime,${REFTIME} -remapbil,${GEO} -selname,Q,O3 ${GGAM_TIME_SERIES} ${GGAM_TIME_SERIES_REMAPPED} && " +
-            "${CDO} ${CDO_OPTS} -f nc2 -R -t ecmwf setreftime,${REFTIME} -remapbil,${GEO} -sp2gp -selname,LNSP,T ${SPAM_TIME_SERIES} ${SPAM_TIME_SERIES_REMAPPED} && " +
-            "${CDO} ${CDO_OPTS} -f nc2 merge -setreftime,${REFTIME} -remapbil,${GEO} -selname,CI,ASN,SSTK,TCWV,MSL,TCC,U10,V10,T2,D2,AL,SKT ${GGAS_TIME_SERIES} ${GGAM_TIME_SERIES_REMAPPED} ${SPAM_TIME_SERIES_REMAPPED} ${NWP_TIME_SERIES}\n";
+                    "${CDO} ${CDO_OPTS} -f nc2 mergetime ${GGAS_TIMESTEPS} ${GGAS_TIME_SERIES} && " +
+                    "${CDO} ${CDO_OPTS} -f grb mergetime ${GGAM_TIMESTEPS} ${GGAM_TIME_SERIES} && " +
+                    "${CDO} ${CDO_OPTS} -f grb mergetime ${SPAM_TIMESTEPS} ${SPAM_TIME_SERIES} && " +
+                    // attention: chaining the operations below results in a loss of the y dimension in the result file
+                    "${CDO} ${CDO_OPTS} -f nc2 -R -t ecmwf setreftime,${REFTIME} -remapbil,${GEO} -selname,Q,O3 ${GGAM_TIME_SERIES} ${GGAM_TIME_SERIES_REMAPPED} && " +
+                    "${CDO} ${CDO_OPTS} -f nc2 -R -t ecmwf setreftime,${REFTIME} -remapbil,${GEO} -sp2gp -selname,LNSP,T ${SPAM_TIME_SERIES} ${SPAM_TIME_SERIES_REMAPPED} && " +
+                    "${CDO} ${CDO_OPTS} -f nc2 merge -setreftime,${REFTIME} -remapbil,${GEO} -selname,CI,ASN,SSTK,TCWV,MSL,TCC,U10,V10,T2,D2,AL,SKT ${GGAS_TIME_SERIES} ${GGAM_TIME_SERIES_REMAPPED} ${SPAM_TIME_SERIES_REMAPPED} ${NWP_TIME_SERIES}\n";
 
     private static final String CDO_MATCHUP_AN_TEMPLATE =
             "#! /bin/sh\n" +
-            "${CDO} ${CDO_OPTS} -f nc2 mergetime ${GGAS_TIMESTEPS} ${GGAS_TIME_SERIES} && " +
-            "${CDO} ${CDO_OPTS} -f nc2 setreftime,${REFTIME} -remapbil,${GEO} -selname,CI,SSTK,U10,V10 ${GGAS_TIME_SERIES} ${AN_TIME_SERIES}\n";
+                    "${CDO} ${CDO_OPTS} -f nc2 mergetime ${GGAS_TIMESTEPS} ${GGAS_TIME_SERIES} && " +
+                    "${CDO} ${CDO_OPTS} -f nc2 setreftime,${REFTIME} -remapbil,${GEO} -selname,CI,SSTK,U10,V10 ${GGAS_TIME_SERIES} ${AN_TIME_SERIES}\n";
 
     private static final String CDO_MATCHUP_FC_TEMPLATE =
             "#! /bin/sh\n" +
-            "${CDO} ${CDO_OPTS} -f nc2 mergetime ${GAFS_TIMESTEPS} ${GAFS_TIME_SERIES} && " +
-            "${CDO} ${CDO_OPTS} -f nc2 mergetime ${GGFS_TIMESTEPS} ${GGFS_TIME_SERIES} && " +
-            // attention: chaining the operations below results in a loss of the y dimension in the result file
-            "${CDO} ${CDO_OPTS} -f nc2 setreftime,${REFTIME} -remapbil,${GEO} -selname,SSTK,MSL,BLH,U10,V10,T2,D2 ${GGFS_TIME_SERIES} ${GGFS_TIME_SERIES_REMAPPED} && " +
-            "${CDO} ${CDO_OPTS} -f nc2 merge -setreftime,${REFTIME} -remapbil,${GEO} -selname,SSHF,SLHF,SSRD,STRD,SSR,STR,EWSS,NSSS,E,TP ${GAFS_TIME_SERIES} ${GGFS_TIME_SERIES_REMAPPED} ${FC_TIME_SERIES}\n";
+                    "${CDO} ${CDO_OPTS} -f nc2 mergetime ${GAFS_TIMESTEPS} ${GAFS_TIME_SERIES} && " +
+                    "${CDO} ${CDO_OPTS} -f nc2 mergetime ${GGFS_TIMESTEPS} ${GGFS_TIME_SERIES} && " +
+                    // attention: chaining the operations below results in a loss of the y dimension in the result file
+                    "${CDO} ${CDO_OPTS} -f nc2 setreftime,${REFTIME} -remapbil,${GEO} -selname,SSTK,MSL,BLH,U10,V10,T2,D2 ${GGFS_TIME_SERIES} ${GGFS_TIME_SERIES_REMAPPED} && " +
+                    "${CDO} ${CDO_OPTS} -f nc2 merge -setreftime,${REFTIME} -remapbil,${GEO} -selname,SSHF,SLHF,SSRD,STRD,SSR,STR,EWSS,NSSS,E,TP ${GAFS_TIME_SERIES} ${GGFS_TIME_SERIES_REMAPPED} ${FC_TIME_SERIES}\n";
 
     private String cdoHome;
     private String sourceMmdLocation;
@@ -126,66 +122,66 @@ class NwpTool extends BasicTool {
     private void run() throws IOException, InterruptedException {
         final boolean exists = new File(sourceMmdLocation).exists();
         if (!exists) {
-            getLogger().warning(
+            logger.warning(
                     MessageFormat.format("missing source file: {0}", sourceMmdLocation));
-            getLogger().warning(
+            logger.warning(
                     MessageFormat.format("skipping target file: {0}", targetNwpLocation));
             return;
         }
 
-        getLogger().info(MessageFormat.format("loading dimensions from file: {0}", dimensionFilePath));
+        logger.info(MessageFormat.format("loading dimensions from file: {0}", dimensionFilePath));
         final Properties dimensions = new Properties();
         dimensions.load(new BufferedReader(new FileReader(dimensionFilePath)));
-        getLogger().info(MessageFormat.format("completed loading dimensions from file: {0}", dimensionFilePath));
+        logger.info(MessageFormat.format("completed loading dimensions from file: {0}", dimensionFilePath));
 
         if (forSensor) {
-            getLogger().info(
+            logger.info(
                     MessageFormat.format("extracting matchups from source file: {0}", sourceMmdLocation));
             final String sensorMmdLocation = writeSingleSensorMmdFile(sourceMmdLocation, sensorName, sensorPattern,
-                                                                      true);
-            getLogger().info(
+                    true);
+            logger.info(
                     MessageFormat.format("completed extracting matchups from source file: {0}", sourceMmdLocation));
 
             if (sensorMmdLocation == null) {
-                getLogger().warning(
+                logger.warning(
                         MessageFormat.format("no records with pattern {0} found in source file: {1}",
-                                             sensorPattern, sourceMmdLocation));
-                getLogger().warning(
+                                sensorPattern, sourceMmdLocation));
+                logger.warning(
                         MessageFormat.format("skipping target file: {0}", targetNwpLocation));
                 return;
             }
 
 
-            getLogger().info(
+            logger.info(
                     MessageFormat.format("extracting NWP data for source file: {0}", sensorMmdLocation));
             writeSensorNwpFile(sensorMmdLocation, dimensions);
-            getLogger().info(
+            logger.info(
                     MessageFormat.format("completed extracting NWP data for source file: {0}", sensorMmdLocation));
         } else {
             final int analysisTimeStepCount = Integer.parseInt(dimensions.getProperty("matchup.nwp.an.time"));
             final int forecastTimeStepCount = Integer.parseInt(dimensions.getProperty("matchup.nwp.fc.time"));
 
-            getLogger().info(
+            logger.info(
                     MessageFormat.format("extracting NWP analysis data for source file: {0}", sourceMmdLocation));
             final String analysisFileLocation = createAnalysisFile(sourceMmdLocation);
-            getLogger().info(
+            logger.info(
                     MessageFormat.format("completed extracting NWP analysis data for source file: {0}",
-                                         sourceMmdLocation));
+                            sourceMmdLocation));
 
-            getLogger().info(
+            logger.info(
                     MessageFormat.format("extracting NWP forecast data for source file: {0}", sourceMmdLocation));
             final String forecastFileLocation = createForecastFile(sourceMmdLocation);
-            getLogger().info(
+            logger.info(
                     MessageFormat.format("completed extracting NWP forecast data for source file: {0}",
-                                         sourceMmdLocation));
+                            sourceMmdLocation));
 
-            getLogger().info(
+            logger.info(
                     MessageFormat.format("writing matchup NWP data for source file: {0}", sourceMmdLocation));
             writeMatchupNwpFile(sourceMmdLocation, forecastFileLocation, analysisFileLocation,
-                                targetNwpLocation, forecastTimeStepCount, analysisTimeStepCount);
-            getLogger().info(
+                    targetNwpLocation, forecastTimeStepCount, analysisTimeStepCount);
+            logger.info(
                     MessageFormat.format("completed writing matchup NWP data for source file: {0}",
-                                         sourceMmdLocation));
+                            sourceMmdLocation));
         }
     }
 
@@ -204,13 +200,13 @@ class NwpTool extends BasicTool {
 
             properties.setProperty("GEO", geoFileLocation);
             properties.setProperty("GGAS_TIMESTEPS",
-                                   NwpUtil.composeFilesString(sourceNwpLocation + "/ggas", subDirectories,
-                                                              "ggas[0-9]*.nc"));
+                    NwpUtil.composeFilesString(sourceNwpLocation + "/ggas", subDirectories,
+                            "ggas[0-9]*.nc"));
             properties.setProperty("GGAS_TIME_SERIES", NwpUtil.createTempFile("ggas", ".nc", deleteOnExit).getPath());
             final String analysisFileLocation = NwpUtil.createTempFile("analysis", ".nc", deleteOnExit).getPath();
             properties.setProperty("AN_TIME_SERIES", analysisFileLocation);
 
-            final ProcessRunner runner = new ProcessRunner("org.esa.cci.sst");
+            final ProcessRunner runner = new ProcessRunner();
             final String resolvedTemplate = ProcessRunner.resolveTemplate(CDO_MATCHUP_AN_TEMPLATE, properties);
             runner.execute(ProcessRunner.writeExecutableScript(resolvedTemplate, "cdo", ".sh", deleteOnExit).getPath());
 
@@ -237,19 +233,19 @@ class NwpTool extends BasicTool {
 
             properties.setProperty("GEO", geoFileLocation);
             properties.setProperty("GAFS_TIMESTEPS",
-                                   NwpUtil.composeFilesString(sourceNwpLocation + "/gafs", subDirectories,
-                                                              "gafs[0-9]*.nc"));
+                    NwpUtil.composeFilesString(sourceNwpLocation + "/gafs", subDirectories,
+                            "gafs[0-9]*.nc"));
             properties.setProperty("GGFS_TIMESTEPS",
-                                   NwpUtil.composeFilesString(sourceNwpLocation + "/ggfs", subDirectories,
-                                                              "ggfs[0-9]*.nc"));
+                    NwpUtil.composeFilesString(sourceNwpLocation + "/ggfs", subDirectories,
+                            "ggfs[0-9]*.nc"));
             properties.setProperty("GAFS_TIME_SERIES", NwpUtil.createTempFile("gafs", ".nc", deleteOnExit).getPath());
             properties.setProperty("GGFS_TIME_SERIES", NwpUtil.createTempFile("ggfs", ".nc", deleteOnExit).getPath());
             properties.setProperty("GGFS_TIME_SERIES_REMAPPED",
-                                   NwpUtil.createTempFile("ggfr", ".nc", deleteOnExit).getPath());
+                    NwpUtil.createTempFile("ggfr", ".nc", deleteOnExit).getPath());
             final String forecastFileLocation = NwpUtil.createTempFile("forecast", ".nc", deleteOnExit).getPath();
             properties.setProperty("FC_TIME_SERIES", forecastFileLocation);
 
-            final ProcessRunner runner = new ProcessRunner("org.esa.cci.sst");
+            final ProcessRunner runner = new ProcessRunner();
             final String resolvedTemplate = ProcessRunner.resolveTemplate(CDO_MATCHUP_FC_TEMPLATE, properties);
             runner.execute(ProcessRunner.writeExecutableScript(resolvedTemplate, "cdo", ".sh", deleteOnExit).getPath());
 
@@ -287,7 +283,7 @@ class NwpTool extends BasicTool {
             }
 
             final String geoFileLocation = writeSensorGeoFile(mmdFile, nwpNx, nwpNy, strideX, strideY,
-                                                              sensorName, true);
+                    sensorName, true);
 
             final Properties properties = new Properties();
             properties.setProperty("CDO", "cdo");
@@ -296,33 +292,33 @@ class NwpTool extends BasicTool {
 
             properties.setProperty("GEO", geoFileLocation);
             properties.setProperty("GGAS_TIMESTEPS",
-                                   NwpUtil.composeFilesString(sourceNwpLocation + "/ggas", subDirectories,
-                                                              "ggas[0-9]*.nc"));
+                    NwpUtil.composeFilesString(sourceNwpLocation + "/ggas", subDirectories,
+                            "ggas[0-9]*.nc"));
             properties.setProperty("GGAM_TIMESTEPS",
-                                   NwpUtil.composeFilesString(sourceNwpLocation + "/ggam", subDirectories,
-                                                              "ggam[0-9]*.grb"));
+                    NwpUtil.composeFilesString(sourceNwpLocation + "/ggam", subDirectories,
+                            "ggam[0-9]*.grb"));
             properties.setProperty("SPAM_TIMESTEPS",
-                                   NwpUtil.composeFilesString(sourceNwpLocation + "/spam", subDirectories,
-                                                              "spam[0-9]*.grb"));
+                    NwpUtil.composeFilesString(sourceNwpLocation + "/spam", subDirectories,
+                            "spam[0-9]*.grb"));
             properties.setProperty("GGAS_TIME_SERIES", NwpUtil.createTempFile("ggas", ".nc", deleteOnExit).getPath());
             properties.setProperty("GGAM_TIME_SERIES", NwpUtil.createTempFile("ggam", ".grb", deleteOnExit).getPath());
             properties.setProperty("SPAM_TIME_SERIES", NwpUtil.createTempFile("spam", ".grb", deleteOnExit).getPath());
             properties.setProperty("GGAM_TIME_SERIES_REMAPPED",
-                                   NwpUtil.createTempFile("ggar", ".nc", deleteOnExit).getPath());
+                    NwpUtil.createTempFile("ggar", ".nc", deleteOnExit).getPath());
             properties.setProperty("SPAM_TIME_SERIES_REMAPPED",
-                                   NwpUtil.createTempFile("spar", ".nc", deleteOnExit).getPath());
+                    NwpUtil.createTempFile("spar", ".nc", deleteOnExit).getPath());
             properties.setProperty("NWP_TIME_SERIES", NwpUtil.createTempFile("nwp", ".nc", deleteOnExit).getPath());
 
-            final ProcessRunner runner = new ProcessRunner("org.esa.cci.sst");
+            final ProcessRunner runner = new ProcessRunner();
             final String resolvedTemplate = ProcessRunner.resolveTemplate(CDO_NWP_TEMPLATE, properties);
             final String path = ProcessRunner.writeExecutableScript(resolvedTemplate, "cdo", ".sh", true).getPath();
             runner.execute(path);
 
             final NetcdfFile nwpFile = NetcdfFile.open(properties.getProperty("NWP_TIME_SERIES"));
             try {
-                getLogger().info(MessageFormat.format("Starting to write NWP MMD file: {0}", targetNwpLocation));
+                logger.info(MessageFormat.format("Starting to write NWP MMD file: {0}", targetNwpLocation));
                 merge(mmdFile, nwpFile, sensorName, targetNwpLocation);
-                getLogger().info(MessageFormat.format("Finished writing NWP MMD file: {0}", targetNwpLocation));
+                logger.info(MessageFormat.format("Finished writing NWP MMD file: {0}", targetNwpLocation));
             } finally {
                 try {
                     nwpFile.close();
@@ -473,8 +469,8 @@ class NwpTool extends BasicTool {
     }
 
     private static void copyVariableData(String name, NetcdfFile sourceMmd, NetcdfFileWriter targetMmd) throws
-                                                                                                        IOException,
-                                                                                                        InvalidRangeException {
+            IOException,
+            InvalidRangeException {
         final Array data = NwpUtil.findVariable(sourceMmd, name).read();
         targetMmd.write(targetMmd.findVariable(NetcdfFile.makeValidPathName(name)), data);
     }
@@ -489,8 +485,8 @@ class NwpTool extends BasicTool {
 
     private static Variable addCenterTimeVariable(NetcdfFileWriter targetMmd, Variable mmdTime, String id) {
         final Variable anT0 = targetMmd.addVariable(null, "matchup.nwp." + id + ".t0",
-                                                    mmdTime.getDataType(),
-                                                    mmdTime.getDimensionsString());
+                mmdTime.getDataType(),
+                mmdTime.getDimensionsString());
         for (final Attribute a : mmdTime.getAttributes()) {
             anT0.addAttribute(a);
         }
@@ -505,13 +501,13 @@ class NwpTool extends BasicTool {
             final Dimension sourceMatchupDimension = NwpUtil.findDimension(sourceMmd, "matchup");
             final int matchupCount = sourceMatchupDimension.getLength();
             targetMmd.addDimension(null,
-                                   sourceMatchupDimension.getShortName(),
-                                   matchupCount);
+                    sourceMatchupDimension.getShortName(),
+                    matchupCount);
             final Variable sourceMatchupId = NwpUtil.findVariable(sourceMmd, "matchup.id");
             final Variable targetMatchupId = targetMmd.addVariable(null,
-                                                                   sourceMatchupId.getShortName(),
-                                                                   sourceMatchupId.getDataType(),
-                                                                   sourceMatchupId.getDimensionsString());
+                    sourceMatchupId.getShortName(),
+                    sourceMatchupId.getDataType(),
+                    sourceMatchupId.getDimensionsString());
 
             // copy NWP structure
             final Dimension yDimension = NwpUtil.findDimension(sourceNwp, "y");
@@ -532,10 +528,10 @@ class NwpTool extends BasicTool {
                     final String dimensions;
                     if (s.getDimension(1).getLength() == 1) {
                         dimensions = String.format("matchup %s.nwp.ny %s.nwp.nx",
-                                                   sensorBasename, sensorBasename);
+                                sensorBasename, sensorBasename);
                     } else {
                         dimensions = String.format("matchup %s.nwp.nz %s.nwp.ny %s.nwp.nx",
-                                                   sensorBasename, sensorBasename, sensorBasename);
+                                sensorBasename, sensorBasename, sensorBasename);
                     }
                     final String sourceName = s.getShortName();
                     final String targetName = sensorName + ".nwp." + sourceName;
@@ -557,7 +553,7 @@ class NwpTool extends BasicTool {
             final Array sourceTimes = NwpUtil.findVariable(sourceNwp, "time", "t").read();
             final Array targetTimes = targetTimesVariable.read();
             final float targetTimeFillValue = NwpUtil.getAttribute(targetTimesVariable, "_FillValue",
-                                                                   Integer.MIN_VALUE);
+                    Integer.MIN_VALUE);
 
             for (int i = 0; i < matchupCount; i++) {
                 final int[] sourceStart = {0, 0, i * gy, 0};
@@ -609,7 +605,7 @@ class NwpTool extends BasicTool {
             }
         } catch (IOException | InvalidRangeException e) {
             final String message = MessageFormat.format("Failed to write NWP MMD file: {0} ({1})", targetPath,
-                                                        e.getMessage());
+                    e.getMessage());
             throw new IOException(message, e);
         } finally {
             try {
@@ -628,9 +624,7 @@ class NwpTool extends BasicTool {
      * @param sensorName        The sensor name.
      * @param sensorPattern     The sensor pattern.
      * @param deleteOnExit      A flag indicating whether temporary files shall be deleted on exit.
-     *
      * @return the location of the netCDF file written.
-     *
      * @throws java.io.IOException when an error occurred.
      */
     private static String writeSingleSensorMmdFile(String sourceMmdLocation, String sensorName,
@@ -649,7 +643,7 @@ class NwpTool extends BasicTool {
             }
             final String sensorMmdLocation = NwpUtil.createTempFile("mmd", ".nc", deleteOnExit).getPath();
             final NetcdfFileWriter targetMmd = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf3,
-                                                                          sensorMmdLocation);
+                    sensorMmdLocation);
 
             final int ny = nyDimension.getLength();
             final int nx = nxDimension.getLength();
@@ -708,7 +702,6 @@ class NwpTool extends BasicTool {
      *
      * @param mmd          The MMD file.
      * @param deleteOnExit
-     *
      * @throws java.io.IOException when an error occurred.
      */
     private static String writeMatchupGeoFile(NetcdfFile mmd, boolean deleteOnExit) throws IOException {
@@ -785,7 +778,6 @@ class NwpTool extends BasicTool {
      * @param strideY      The tie point stride in y direction.
      * @param sensorName   The sensor name.
      * @param deleteOnExit
-     *
      * @throws java.io.IOException when an error occurred.
      */
     private static String writeSensorGeoFile(NetcdfFile mmd, int gx, int gy, int strideX, int strideY,

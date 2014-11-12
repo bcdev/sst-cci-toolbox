@@ -37,9 +37,9 @@ public class MapPlotTool extends BasicTool {
 
     private static final String SQL_GET_REFERENCE_OBSERVATIONS =
             "select o"
-            + " from ReferenceObservation o"
-            + " where o.sensor = ?1 and o.time >= ?2 and o.time < ?3"
-            + " order by o.time";
+                    + " from ReferenceObservation o"
+                    + " where o.sensor = ?1 and o.time >= ?2 and o.time < ?3"
+                    + " order by o.time";
 
     private String sensor;
     private boolean show;
@@ -79,8 +79,8 @@ public class MapPlotTool extends BasicTool {
         final Configuration config = getConfig();
         sensor = config.getStringValue(Configuration.KEY_MMS_MAPPLOT_SENSOR);
         timeRange = ConfigUtil.getTimeRange(Configuration.KEY_MMS_MAPPLOT_START_TIME,
-                                            Configuration.KEY_MMS_MAPPLOT_STOP_TIME,
-                                            config);
+                Configuration.KEY_MMS_MAPPLOT_STOP_TIME,
+                config);
         show = config.getBooleanValue(Configuration.KEY_MMS_MAPPLOT_SHOW, false);
         mapStrategyName = config.getStringValue(Configuration.KEY_MMS_MAPPLOT_STATEGY, "lonlat");
         targetDir = config.getStringValue(Configuration.KEY_MMS_MAPPLOT_TARGET_DIR);
@@ -100,20 +100,20 @@ public class MapPlotTool extends BasicTool {
             query.setParameter(2, startDate);
             query.setParameter(3, stopDate);
 
-            getLogger().info(
+            logger.info(
                     MessageFormat.format("querying samples: sensor = {0}, start time = {1}, stop time = {2}", sensor,
-                                         startDate, stopDate)
+                            startDate, stopDate)
             );
             @SuppressWarnings("unchecked")
             final List<ReferenceObservation> referenceObservations = query.getResultList();
-            getLogger().info(MessageFormat.format("{0} samples found", referenceObservations.size()));
+            logger.info(MessageFormat.format("{0} samples found", referenceObservations.size()));
 
             final List<SamplingPoint> samples = new ArrayList<>(referenceObservations.size());
             for (final ReferenceObservation o : referenceObservations) {
                 final Point p = o.getPoint().getGeometry().getPoint(0);
                 samples.add(new SamplingPoint(p.getX(), p.getY(), o.getTime().getTime(), 0.0));
             }
-            getLogger().info(MessageFormat.format("plotting {0} samples...", samples.size()));
+            logger.info(MessageFormat.format("plotting {0} samples...", samples.size()));
             new SamplingPointPlotter()
                     .samples(samples)
                     .show(show)
@@ -122,7 +122,7 @@ public class MapPlotTool extends BasicTool {
                     .filePath(new File(targetDir, targetFilename).getPath())
                     .mapStrategyName(mapStrategyName)
                     .plot();
-            getLogger().info("finished plotting samples");
+            logger.info("finished plotting samples");
         } finally {
             persistenceManager.commit();
         }

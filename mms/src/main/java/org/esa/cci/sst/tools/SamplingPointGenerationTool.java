@@ -15,7 +15,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.logging.Logger;
 
 public class SamplingPointGenerationTool extends BasicTool {
 
@@ -50,27 +49,27 @@ public class SamplingPointGenerationTool extends BasicTool {
 
         final Configuration config = getConfig();
         workflowContext = new WorkflowContext();
-        workflowContext.setLogger(getLogger());
+        workflowContext.setLogger(logger);
         workflowContext.setConfig(config);
         workflowContext.setPersistenceManager(getPersistenceManager());
         assignFromConfig(workflowContext, config);
     }
 
     private void run() throws IOException, ParseException {
-        logInfo("Start generating sample points ...");
+        logger.info("Start generating sample points ...");
         final Workflow generatePointsWorkflow = createPointGeneratorWorkflow(workflowContext);
         final List<SamplingPoint> samples = generatePointsWorkflow.execute();
-        logInfo("Generated sample points: " + samples.size());
+        logger.info("Generated sample points: " + samples.size());
 
-        logInfo("Start intersecting matching orbits ...");
+        logger.info("Start intersecting matching orbits ...");
         final Workflow findObservationsWorkflow = new FindObservationsWorkflow(workflowContext);
         findObservationsWorkflow.execute(samples);
-        logInfo("Intersected with matching orbits: " + samples.size());
+        logger.info("Intersected with matching orbits: " + samples.size());
 
-        logInfo("Start exporting sample points ...");
+        logger.info("Start exporting sample points ...");
         final Workflow exportSamplingPointsWorkflow = new ExportSamplingPointsWorkflow(workflowContext);
         exportSamplingPointsWorkflow.execute(samples);
-        logInfo("Exporting sample points");
+        logger.info("Exporting sample points");
     }
 
     // package access for testing only tb 2014-03-07
@@ -143,12 +142,5 @@ public class SamplingPointGenerationTool extends BasicTool {
         utcCalendar.setTime(stopDate);
         utcCalendar.add(Calendar.DAY_OF_MONTH, -1);
         return TimeUtil.getEndOfMonth(utcCalendar.getTime());
-    }
-
-    private void logInfo(String msg) {
-        final Logger logger = getLogger();
-        if (logger != null) {
-            logger.info(msg);
-        }
     }
 }

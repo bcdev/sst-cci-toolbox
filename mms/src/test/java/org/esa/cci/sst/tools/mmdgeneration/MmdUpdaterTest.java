@@ -25,7 +25,6 @@ import ucar.ma2.DataType;
 import ucar.nc2.NetcdfFileWriter;
 
 import java.io.IOException;
-import java.util.logging.Logger;
 
 import static org.junit.Assert.assertEquals;
 
@@ -34,7 +33,6 @@ import static org.junit.Assert.assertEquals;
  */
 public class MmdUpdaterTest {
 
-    private String msg;
     private String fileLocation;
 
     @Before
@@ -50,16 +48,6 @@ public class MmdUpdaterTest {
                 properties.put("mms.mmdupdate.variables", variableList);
                 properties.put("mms.mmdupdate.mmd", fileLocation);
                 return properties;
-            }
-
-            @Override
-            public Logger getLogger() {
-                return new Logger("", null) {
-                    @Override
-                    public void warning(String msg) {
-                        MmdUpdaterTest.this.msg = msg;
-                    }
-                };
             }
         };
 
@@ -99,13 +87,5 @@ public class MmdUpdaterTest {
         assertEquals("insitu.sea_surface_temperature", updater.variables.get(0).getShortName());
         assertEquals("matchup.id", updater.variables.get(1).getShortName());
         assertEquals("avhrr_brightness_temperature_3b", updater.variables.get(2).getShortName());
-    }
-
-    @Test
-    public void testLoggedWarning() throws Exception {
-        final String bogusVariableName = "bogus_variable";
-        final MmdUpdater updater = createUpdater(bogusVariableName);
-        updater.parseVariables();
-        assertEquals("Variable '" + bogusVariableName + "' not found in mmd file.", msg);
     }
 }

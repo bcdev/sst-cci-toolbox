@@ -21,9 +21,9 @@ import org.esa.cci.sst.data.*;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.orm.Storage;
 import org.esa.cci.sst.reader.MmdReader;
-import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tool.Configuration;
 import org.esa.cci.sst.tool.ToolException;
+import org.esa.cci.sst.tools.BasicTool;
 
 import java.io.File;
 import java.io.IOException;
@@ -71,7 +71,7 @@ public class FlagsUpdateTool extends BasicTool {
         // determine MMD' variables
         final Item referenceFlagColumn = reader.getColumn("matchup.reference_flag");
         if (referenceFlagColumn != null) {
-            getLogger().fine("going to update column referenceflag of matchup reference observations");
+            logger.fine("going to update column referenceflag of matchup reference observations");
         }
 
         // loop over matchups
@@ -83,7 +83,7 @@ public class FlagsUpdateTool extends BasicTool {
             final int matchupId = reader.getMatchupId(recordNo);
             final ReferenceObservation observation = storage.getReferenceObservation(matchupId);
             if (observation == null) {
-                getLogger().warning(String.format("matchup %d of record %d not found - skipped", matchupId, recordNo));
+                logger.warning(String.format("matchup %d of record %d not found - skipped", matchupId, recordNo));
                 continue;
             }
             // update matchup reference observation fields of MMD' variables
@@ -94,11 +94,11 @@ public class FlagsUpdateTool extends BasicTool {
             if (referenceFlagColumn != null /* or ... */) {
                 ++count;
                 if (count % 1000 == 0) {
-                    getLogger().info(count + "/" + numRecords + " updated");
+                    logger.info(count + "/" + numRecords + " updated");
                 }
             }
         }
-        getLogger().info(String.format("%d observations updated", count));
+        logger.info(String.format("%d observations updated", count));
     }
 
     private MmdReader createReader(String mmdFilename, String archiveRootPath) throws IOException {

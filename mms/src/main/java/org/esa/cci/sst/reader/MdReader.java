@@ -22,6 +22,7 @@ import org.esa.beam.util.SampleSource;
 import org.esa.beam.util.SampleSourceFactory;
 import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.data.DataFile;
+import org.esa.cci.sst.log.SstLogging;
 import ucar.ma2.Array;
 import ucar.ma2.ArrayChar;
 import ucar.ma2.ArrayDouble;
@@ -119,7 +120,7 @@ abstract class MdReader extends NetcdfReader {
             }
             return targetArray;
         } else {
-            final Logger logger = Logger.getLogger("org.esa.cci.sst");
+            final Logger logger = SstLogging.getLogger();
             final String message = MessageFormat.format(
                     "Unable to find pixel at ({0}, {1}) for record {2} in file ''{3}''.",
                     extractDefinition.getLon(),

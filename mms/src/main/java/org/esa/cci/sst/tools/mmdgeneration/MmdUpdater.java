@@ -16,9 +16,9 @@
 
 package org.esa.cci.sst.tools.mmdgeneration;
 
+import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tools.Constants;
-import org.esa.cci.sst.tool.ToolException;
 import ucar.ma2.Array;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
@@ -104,7 +104,7 @@ public class MmdUpdater extends BasicTool {
         try {
             mmdWriter.close();
         } catch (IOException e) {
-            getLogger().warning("File could not be closed: " + e.getMessage());
+            logger.warning("File could not be closed: " + e.getMessage());
         }
     }
 
@@ -126,7 +126,7 @@ public class MmdUpdater extends BasicTool {
         for (String updateVariable : updateVariables.split(",")) {
             final Variable variable = mmdWriter.getVariable(updateVariable);
             if (variable == null) {
-                getLogger().warning("Variable '" + updateVariable + "' not found in mmd file.");
+                logger.warning("Variable '" + updateVariable + "' not found in mmd file.");
             }
             variables.add(variable);
         }

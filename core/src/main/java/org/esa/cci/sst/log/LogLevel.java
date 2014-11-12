@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.esa.cci.sst.tool;
+package org.esa.cci.sst.log;
 
 import java.util.logging.Level;
 
@@ -28,6 +28,7 @@ import java.util.logging.Level;
  * @author Ralf Quast
  */
 public enum LogLevel {
+
     OFF(Level.OFF),
     ERROR(Level.SEVERE),
     WARNING(Level.WARNING),

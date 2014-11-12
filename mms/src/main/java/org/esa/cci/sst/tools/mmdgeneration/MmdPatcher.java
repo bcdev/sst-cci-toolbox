@@ -16,8 +16,9 @@
 
 package org.esa.cci.sst.tools.mmdgeneration;
 
-import org.esa.cci.sst.tools.BasicTool;
+import org.esa.cci.sst.log.SstLogging;
 import org.esa.cci.sst.tool.ToolException;
+import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.util.TimeUtil;
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;
@@ -46,7 +47,7 @@ public class MmdPatcher extends BasicTool {
 
     public static void main(String[] args) throws Exception {
         final MmdPatcher mmdPatcher = new MmdPatcher();
-        if (! mmdPatcher.setCommandLineArgs(args)) {
+        if (!mmdPatcher.setCommandLineArgs(args)) {
             return;
         }
         mmdPatcher.initialize();
@@ -60,7 +61,7 @@ public class MmdPatcher extends BasicTool {
         final String mmdLocation = getConfig().getStringValue("mms.mmdpatch.mmd");
         try {
             final boolean canOpen = NetcdfFileWriteable.canOpen(mmdLocation);
-            if(!canOpen) {
+            if (!canOpen) {
                 throw new Exception("Cannot open file '" + mmdLocation + "'.");
             }
             mmd = NetcdfFileWriteable.openExisting(mmdLocation);
@@ -87,7 +88,7 @@ public class MmdPatcher extends BasicTool {
             }
             detectorTemperatureBuffer.setShort(recordNo, temperature);
         }
-        mmd.write(NetcdfFile.makeValidPathName("atsr.1.detector_temperature_12"), new int[] { 0 }, detectorTemperatureBuffer);
+        mmd.write(NetcdfFile.makeValidPathName("atsr.1.detector_temperature_12"), new int[]{0}, detectorTemperatureBuffer);
         // set atsr.2.detector_temperature_12 to fill value
         Variable timeVariable2 = mmd.findVariable(NetcdfFile.makeValidPathName("atsr.2.time"));
         Variable detectorTemperatureVariable2 = mmd.findVariable(NetcdfFile.makeValidPathName("atsr.2.detector_temperature_12"));
@@ -97,7 +98,7 @@ public class MmdPatcher extends BasicTool {
             short temperature = FILL_VALUE;
             detectorTemperatureBuffer2.setShort(recordNo, temperature);
         }
-        mmd.write(NetcdfFile.makeValidPathName("atsr.2.detector_temperature_12"), new int[] { 0 }, detectorTemperatureBuffer2);
+        mmd.write(NetcdfFile.makeValidPathName("atsr.2.detector_temperature_12"), new int[]{0}, detectorTemperatureBuffer2);
 
     }
 
@@ -105,7 +106,7 @@ public class MmdPatcher extends BasicTool {
         try {
             mmd.close();
         } catch (IOException e) {
-            getLogger().warning("File '" + mmd.getLocation() + "' could not be closed.");
+            SstLogging.getLogger().warning("File '" + mmd.getLocation() + "' could not be closed.");
         }
     }
 }

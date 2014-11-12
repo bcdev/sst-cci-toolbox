@@ -17,11 +17,12 @@
 package org.esa.cci.sst.tools.ingestion;
 
 import org.esa.cci.sst.data.*;
+import org.esa.cci.sst.log.SstLogging;
 import org.esa.cci.sst.orm.ColumnStorage;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.Reader;
-import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tool.Configuration;
+import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tools.samplepoint.TimeRange;
 import org.esa.cci.sst.util.ConfigUtil;
 import org.esa.cci.sst.util.TimeUtil;
@@ -63,7 +64,7 @@ class Ingester {
 
     void persistColumns(final String sensorName, final Reader reader) throws IOException {
         final Item[] columns = reader.getColumns();
-        final Logger logger = tool.getLogger();
+        final Logger logger = SstLogging.getLogger();
         logger.info(MessageFormat.format("Number of columns for sensor ''{0}'' = {1}.", sensorName, columns.length));
         final ColumnStorage columnStorage = tool.getPersistenceManager().getColumnStorage();
         final List<String> existingVariables = columnStorage.getAllColumnNames();

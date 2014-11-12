@@ -20,17 +20,16 @@
 package org.esa.cci.sst.tool;
 
 import org.apache.commons.cli.*;
-import org.esa.beam.util.logging.BeamLogManager;
+import org.esa.cci.sst.log.LogLevel;
+import org.esa.cci.sst.log.SstLogging;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.Properties;
-import java.util.logging.*;
+import java.util.logging.Logger;
 
 /**
  * Abstract base class for all SST-CCI tools.
@@ -40,19 +39,14 @@ import java.util.logging.*;
  */
 public abstract class Tool {
 
-    private static final LogLevel DEFAULT_LOG_LEVEL = LogLevel.INFO;
-
     private CommandLine commandLine;
     private boolean dumpStackTrace;
     private Options options;
 
-    public static final Logger LOGGER = Logger.getLogger("org.esa.cci.sst");
-
-    static {
-        BeamLogManager.removeRootLoggerHandlers();
-    }
+    protected Logger logger;
 
     protected Tool() {
+        logger = SstLogging.getLogger();
     }
 
     public final void run(String[] arguments) {
@@ -89,11 +83,11 @@ public abstract class Tool {
             return;
         }
 
-        LogLevel logLevel = DEFAULT_LOG_LEVEL;
+        LogLevel logLevel = SstLogging.getDefaultLevel();
         if (commandLine.hasOption("logLevel")) {
             logLevel = LogLevel.valueOf(commandLine.getOptionValue("logLevel"));
         }
-        initLogger(logLevel);
+        logger = SstLogging.getLogger(logLevel);
 
         run(getConfiguration(), commandLine.getArgs());
     }
@@ -143,7 +137,7 @@ public abstract class Tool {
         if (defaultConfigFile.exists()) {
             loadConfig(defaultConfigFile.getPath(), properties);
         } else {
-            info("Default configuration file '" + defaultConfigFile + "' does not exist.");
+            logger.info("Default configuration file '" + defaultConfigFile + "' does not exist.");
         }
 
         // 3. Overwrite from user config file
@@ -178,7 +172,7 @@ public abstract class Tool {
             FileReader reader = new FileReader(configPath);
             try {
                 properties.load(reader);
-                info("Configuration '" + configPath + "' loaded");
+                logger.info("Configuration '" + configPath + "' loaded");
             } finally {
                 reader.close();
             }
@@ -188,20 +182,16 @@ public abstract class Tool {
         }
     }
 
-    protected void info(String message) {
-        LOGGER.info(message);
-    }
-
     private void error(Throwable error, int exitCode) {
         if (ToolException.class.equals(error.getClass())) {
-            LOGGER.severe("Error: " + error.getMessage());
+            logger.severe("Error: " + error.getMessage());
             if (exitCode == ToolException.TOOL_USAGE_ERROR) {
-                LOGGER.severe("Consider using option -h to display the usage help");
+                logger.severe("Consider using option -h to display the usage help");
             }
         } else {
-            LOGGER.severe("Internal error: " + error.getClass().getName() + ": " + error.getMessage());
+            logger.severe("Internal error: " + error.getClass().getName() + ": " + error.getMessage());
             if (!dumpStackTrace) {
-                LOGGER.severe("Consider using option -e to display the error's full stack trace");
+                logger.severe("Consider using option -e to display the error's full stack trace");
             }
         }
         if (dumpStackTrace) {
@@ -252,7 +242,7 @@ public abstract class Tool {
         options.addOption(createOption("l", "logLevel", "LEVEL",
                 String.format(
                         "sets the logging level. Must be one of %s. Use level '%s' to also output diagnostics. The default value is '%s'.",
-                        Arrays.toString(LogLevel.values()), LogLevel.ALL, DEFAULT_LOG_LEVEL)));
+                        Arrays.toString(LogLevel.values()), LogLevel.ALL, SstLogging.getDefaultLevel())));
         return options;
     }
 
@@ -263,34 +253,4 @@ public abstract class Tool {
         from.setArgName(argName);
         return from;
     }
-
-    protected static void initLogger(LogLevel logLevel) {
-        final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        final Formatter formatter = new Formatter() {
-            @Override
-            public String format(LogRecord record) {
-                final StringBuilder sb = new StringBuilder();
-                sb.append(dateFormat.format(new Date(record.getMillis())));
-                sb.append(" - ");
-                sb.append(record.getLevel().getName());
-                sb.append(": ");
-                sb.append(record.getMessage());
-                sb.append("\n");
-                @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
-                final Throwable thrown = record.getThrown();
-                if (thrown != null) {
-                    sb.append(thrown.toString());
-                    sb.append("\n");
-                }
-                return sb.toString();
-            }
-        };
-        final ConsoleHandler handler = new ConsoleHandler();
-        handler.setFormatter(formatter);
-        handler.setLevel(Level.ALL);
-        LOGGER.setUseParentHandlers(false);
-        LOGGER.addHandler(handler);
-        LOGGER.setLevel(logLevel.getValue());
-    }
-
 }

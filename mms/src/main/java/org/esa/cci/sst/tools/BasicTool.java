@@ -16,15 +16,9 @@
 
 package org.esa.cci.sst.tools;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.PosixParser;
+import org.apache.commons.cli.*;
 import org.esa.beam.framework.gpf.GPF;
-import org.esa.beam.util.logging.BeamLogManager;
+import org.esa.cci.sst.log.SstLogging;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.orm.Storage;
 import org.esa.cci.sst.tool.Configuration;
@@ -33,20 +27,13 @@ import org.esa.cci.sst.util.TimeUtil;
 
 import javax.media.jai.JAI;
 import javax.persistence.Query;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.io.*;
 import java.text.MessageFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.TimeZone;
-import java.util.logging.ConsoleHandler;
 import java.util.logging.Formatter;
-import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
@@ -62,38 +49,6 @@ public abstract class BasicTool {
 
     private Storage toolStorage;
 
-    static class SstLogFormatter extends Formatter {
-
-        private static final String LINE_SEPARATOR = System.getProperty("line.separator");
-
-        @Override
-        public String format(LogRecord record) {
-            final String time = TimeUtil.formatCcsdsUtcMillisFormat(new Date(record.getMillis()));
-            final StringBuilder sb = new StringBuilder(time);
-            sb.append(" ")
-                    .append(record.getLevel().getLocalizedName())
-                    .append(": ")
-                    .append(formatMessage(record))
-                    .append(LINE_SEPARATOR);
-
-            final Throwable thrown = record.getThrown();
-            if (thrown != null) {
-                try {
-                    final StringWriter sw = new StringWriter();
-                    final PrintWriter pw = new PrintWriter(sw);
-                    thrown.printStackTrace(pw);
-                    pw.close();
-                    sb.append(sw.toString());
-                } catch (Exception ignored) {
-                    // ignore
-                }
-            }
-
-            return sb.toString();
-        }
-    }
-
-
     public static final String CONFIG_FILE_OPTION_NAME = "c";
     public static final String DEFAULT_CONFIGURATION_FILE_NAME = "mms-config.properties";
 
@@ -102,7 +57,7 @@ public abstract class BasicTool {
     private final Configuration config;
     private final Options options;
 
-    private Logger logger;
+    protected final Logger logger;
     private ErrorHandler errorHandler;
 
     private boolean initialised;
@@ -120,9 +75,6 @@ public abstract class BasicTool {
 
         GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis();
 
-        for (Handler handler : BeamLogManager.getSystemLogger().getHandlers()) {
-            BeamLogManager.getSystemLogger().removeHandler(handler);
-        }
     }
 
     protected BasicTool(String name, String version) {
@@ -133,27 +85,12 @@ public abstract class BasicTool {
 
         config = new Configuration();
         config.add(System.getProperties(), "mms.");
+
+        logger = SstLogging.getLogger();
     }
 
     public final String getName() {
         return name;
-    }
-
-    public Logger getLogger() {
-        if (logger == null) {
-            synchronized (this) {
-                if (logger == null) {
-                    logger = Logger.getLogger("org.esa.cci.sst");
-                    logger.setLevel(Level.INFO);
-                    final ConsoleHandler consoleHandler = new ConsoleHandler();
-                    final Formatter formatter = new SstLogFormatter();
-                    consoleHandler.setFormatter(formatter);
-                    consoleHandler.setLevel(Level.ALL);
-                    logger.addHandler(consoleHandler);
-                }
-            }
-        }
-        return logger;
     }
 
     public final ErrorHandler getErrorHandler() {
@@ -163,10 +100,11 @@ public abstract class BasicTool {
                     errorHandler = new ErrorHandler() {
                         @Override
                         public void terminate(ToolException e) {
-                            getLogger().log(Level.SEVERE, e.getMessage(), e);
-                            if (getLogger().isLoggable(Level.FINEST)) {
+                            final Logger localLogger = SstLogging.getLogger();
+                            localLogger.log(Level.SEVERE, e.getMessage(), e);
+                            if (localLogger.isLoggable(Level.FINEST)) {
                                 for (final StackTraceElement element : e.getCause().getStackTrace()) {
-                                    getLogger().log(Level.FINEST, element.toString());
+                                    localLogger.log(Level.FINEST, element.toString());
                                 }
                             }
                             e.getCause().printStackTrace(System.err);
@@ -175,10 +113,11 @@ public abstract class BasicTool {
 
                         @Override
                         public void warn(Throwable t, String message) {
-                            Logger.getLogger("org.esa.cci.sst").log(Level.WARNING, message, t);
-                            if (getLogger().isLoggable(Level.FINEST)) {
+                            final Logger localLogger = SstLogging.getLogger();
+                            localLogger.log(Level.WARNING, message, t);
+                            if (localLogger.isLoggable(Level.FINEST)) {
                                 for (final StackTraceElement element : t.getStackTrace()) {
-                                    getLogger().log(Level.FINEST, element.toString());
+                                    localLogger.log(Level.FINEST, element.toString());
                                 }
                             }
                         }
@@ -195,13 +134,13 @@ public abstract class BasicTool {
 
     private void setDebug(boolean debug) {
         if (debug) {
-            getLogger().setLevel(Level.ALL);
+            SstLogging.setLevelDebug();
         }
     }
 
     private void setSilent(boolean silent) {
         if (silent) {
-            getLogger().setLevel(Level.WARNING);
+            SstLogging.setLevelSilent();
         }
     }
 
@@ -256,11 +195,11 @@ public abstract class BasicTool {
         if (initialised) {
             return;
         }
-        getLogger().info("connecting to database " + config.getStringValue("openjpa.ConnectionURL"));
+        SstLogging.getLogger().info("connecting to database " + config.getStringValue("openjpa.ConnectionURL"));
         try {
             persistenceManager = PersistenceManager.create(Constants.PERSISTENCE_UNIT_NAME,
-                                                           Constants.PERSISTENCE_RETRY_COUNT,
-                                                           config.getAsProperties());
+                    Constants.PERSISTENCE_RETRY_COUNT,
+                    config.getAsProperties());
         } catch (Exception e) {
             throw new ToolException("Unable to establish database connection.", e, ToolException.TOOL_DB_ERROR);
         }
@@ -271,7 +210,7 @@ public abstract class BasicTool {
                 setSeqScanOff.executeUpdate();
                 persistenceManager.commit();
             } catch (Exception e) {
-                getLogger().warning("failed setting seqscan to off: " + e.getMessage());
+                SstLogging.getLogger().warning("failed setting seqscan to off: " + e.getMessage());
             }
         }
         toolStorage = persistenceManager.getStorage();
@@ -294,10 +233,10 @@ public abstract class BasicTool {
             config.load(reader);
         } catch (FileNotFoundException e) {
             throw new ToolException(MessageFormat.format("File not found: {0}", configurationFile), e,
-                                    ToolException.CONFIGURATION_FILE_NOT_FOUND_ERROR);
+                    ToolException.CONFIGURATION_FILE_NOT_FOUND_ERROR);
         } catch (IOException e) {
             throw new ToolException(MessageFormat.format("Failed to read from {0}.", configurationFile), e,
-                                    ToolException.CONFIGURATION_FILE_IO_ERROR);
+                    ToolException.CONFIGURATION_FILE_IO_ERROR);
         } finally {
             if (reader != null) {
                 try {

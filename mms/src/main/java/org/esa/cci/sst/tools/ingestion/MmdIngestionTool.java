@@ -21,9 +21,9 @@ import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.orm.Storage;
 import org.esa.cci.sst.reader.GunzipDecorator;
 import org.esa.cci.sst.reader.MmdReader;
-import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tool.Configuration;
 import org.esa.cci.sst.tool.ToolException;
+import org.esa.cci.sst.tools.BasicTool;
 
 import javax.persistence.PersistenceException;
 import javax.persistence.Query;
@@ -78,13 +78,13 @@ public class MmdIngestionTool extends BasicTool {
         final String mmdFileLocation = config.getStringValue(Configuration.KEY_MMS_REINGESTION_SOURCE);
         final File mmdFile = new File(mmdFileLocation);
         if (!mmdFile.exists()) {
-            getLogger().warning("missing source file: " + mmdFile);
-            getLogger().warning("reingestion skipped");
+            logger.warning("missing source file: " + mmdFile);
+            logger.warning("reingestion skipped");
             return;
         }
         if (!mmdFile.isAbsolute()) {
             final String message = MessageFormat.format("Property key {0}: absolute path expected.",
-                                                        Configuration.KEY_MMS_REINGESTION_SOURCE);
+                    Configuration.KEY_MMS_REINGESTION_SOURCE);
             throw new ToolException(message, ToolException.TOOL_CONFIGURATION_ERROR);
         }
         if (!mmdFile.getAbsolutePath().startsWith(archiveRootPath)) {
@@ -96,7 +96,7 @@ public class MmdIngestionTool extends BasicTool {
         }
         if (!mmdFile.isFile()) {
             final String message = MessageFormat.format("Property key {0}: absolute path to file expected.",
-                                                        Configuration.KEY_MMS_REINGESTION_SOURCE);
+                    Configuration.KEY_MMS_REINGESTION_SOURCE);
             throw new ToolException(message, ToolException.TOOL_CONFIGURATION_ERROR);
         }
         final String mmdFileRelativePath = mmdFileLocation.substring(archiveRootPath.length() + 1);
@@ -151,22 +151,22 @@ public class MmdIngestionTool extends BasicTool {
 
     private void deleteObservationsAndCoincidences(DataFile dataFile) {
         Query query = getPersistenceManager().createNativeQuery("delete from mm_coincidence c " +
-                                                                "where exists ( select f.id from mm_datafile f, mm_observation o " +
-                                                                "where f.path = ?1 and o.datafile_id = f.id and c.observation_id = o.id )");
+                "where exists ( select f.id from mm_datafile f, mm_observation o " +
+                "where f.path = ?1 and o.datafile_id = f.id and c.observation_id = o.id )");
         query.setParameter(1, dataFile.getPath());
         long time = System.currentTimeMillis();
         query.executeUpdate();
-        getLogger().info(MessageFormat.format("{0} coincidences dropped in {1} ms.", dataFile.getPath(),
-                                              System.currentTimeMillis() - time));
+        logger.info(MessageFormat.format("{0} coincidences dropped in {1} ms.", dataFile.getPath(),
+                System.currentTimeMillis() - time));
 
         query = getPersistenceManager().createNativeQuery("delete from mm_observation o " +
-                                                          "where exists ( select f.id from mm_datafile f " +
-                                                          "where f.path = ?1 and o.datafile_id = f.id )");
+                "where exists ( select f.id from mm_datafile f " +
+                "where f.path = ?1 and o.datafile_id = f.id )");
         query.setParameter(1, dataFile.getPath());
         time = System.currentTimeMillis();
         query.executeUpdate();
-        getLogger().info(MessageFormat.format("{0} observations dropped in {1} ms.", dataFile.getPath(),
-                                              System.currentTimeMillis() - time));
+        logger.info(MessageFormat.format("{0} observations dropped in {1} ms.", dataFile.getPath(),
+                System.currentTimeMillis() - time));
     }
 
     private void ingestObservations(long pattern) {
@@ -206,7 +206,7 @@ public class MmdIngestionTool extends BasicTool {
         } catch (IOException e) {
             final File filePath = new File(archiveRoot, dataFile.getPath());
             throw new ToolException("Error initializing Reader for MMD file '" + filePath + "'.", e,
-                                    ToolException.TOOL_ERROR);
+                    ToolException.TOOL_ERROR);
         }
     }
 

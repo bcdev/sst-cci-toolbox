@@ -15,6 +15,8 @@
  */
 package org.esa.cci.sst.util;
 
+import org.esa.cci.sst.log.SstLogging;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileWriter;
@@ -37,8 +39,8 @@ public class ProcessRunner {
 
     private final Logger logger;
 
-    public ProcessRunner(String loggerName) {
-        logger = Logger.getLogger(loggerName);
+    public ProcessRunner() {
+        logger = SstLogging.getLogger();
     }
 
     public static String resolveTemplate(String template, Properties properties) {

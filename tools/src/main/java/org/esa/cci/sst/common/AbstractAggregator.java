@@ -6,6 +6,7 @@ import org.esa.cci.sst.common.cellgrid.CellGrid;
 import org.esa.cci.sst.common.cellgrid.RegionMask;
 import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.common.file.FileType;
+import org.esa.cci.sst.log.SstLogging;
 import ucar.nc2.NetcdfFile;
 
 import java.awt.Rectangle;
@@ -22,18 +23,20 @@ import java.util.logging.Logger;
  */
 public abstract class AbstractAggregator {
 
-    private static final Logger LOGGER = Logger.getLogger("org.esa.cci.sst");
-
     private final FileStore fileStore;
     private final Climatology climatology;
     private final SstDepth sstDepth;
     private final FileType fileType;
+
+    protected final Logger logger;
 
     protected AbstractAggregator(FileStore fileStore, Climatology climatology, SstDepth sstDepth) {
         this.fileStore = fileStore;
         this.climatology = climatology;
         this.sstDepth = sstDepth;
         this.fileType = fileStore.getProductType().getFileType();
+
+        logger = SstLogging.getLogger();
     }
 
     abstract public List<? extends TimeStep> aggregate(
@@ -41,10 +44,10 @@ public abstract class AbstractAggregator {
 
     protected final void readSourceGrids(NetcdfFile dataFile, AggregationContext context) throws IOException {
         final long t0 = System.currentTimeMillis();
-        LOGGER.fine("Reading source grid(s)...");
+        logger.fine("Reading source grid(s)...");
         fileType.readSourceGrids(dataFile, sstDepth, context);
         final long t1 = System.currentTimeMillis();
-        LOGGER.fine(String.format("Reading source grid(s) took %d ms", t1 - t0));
+        logger.fine(String.format("Reading source grid(s) took %d ms", t1 - t0));
     }
 
     protected static <C extends SpatialAggregationCell> void aggregateSourcePixels(AggregationContext context,
