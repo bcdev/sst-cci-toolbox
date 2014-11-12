@@ -41,6 +41,7 @@ import java.util.logging.*;
 public abstract class Tool {
 
     private static final LogLevel DEFAULT_LOG_LEVEL = LogLevel.INFO;
+
     private CommandLine commandLine;
     private boolean dumpStackTrace;
     private Options options;
