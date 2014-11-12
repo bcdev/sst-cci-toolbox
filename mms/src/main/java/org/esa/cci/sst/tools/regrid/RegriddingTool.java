@@ -14,7 +14,7 @@
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-package org.esa.cci.sst.regrid;
+package org.esa.cci.sst.tools.regrid;
 
 import org.esa.cci.sst.common.*;
 import org.esa.cci.sst.common.auxiliary.Climatology;
@@ -39,7 +39,7 @@ import java.util.Date;
 public class RegriddingTool extends Tool {
 
     private static final String FILE_FORMAT_VERSION = "1.0";
-    private static final String TOOL_NAME = "regrid";
+    private static final String TOOL_NAME = "org/esa/cci/sst/regrid";
     private static final String TOOL_VERSION = "2.0";
     private static final String TOOL_HEADER = "\n" + "The " + TOOL_NAME + " tool is used to read in the SST CCI L3U, L3C, and L4 products at daily 0.05 ° " +
             "latitude by longitude resolution and output on other spatio-temporal resolutions, which are a multiple" +
@@ -221,7 +221,7 @@ public class RegriddingTool extends Tool {
 
     @Override
     protected Parameter[] getParameters() {
-        ArrayList<Parameter> paramList = new ArrayList<Parameter>();
+        ArrayList<Parameter> paramList = new ArrayList<>();
         paramList.addAll(Arrays.asList(
                 PARAM_REGION,
                 PARAM_CLIMATOLOGY_DIR,

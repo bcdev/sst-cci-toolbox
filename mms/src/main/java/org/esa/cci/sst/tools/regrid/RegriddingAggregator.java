@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.esa.cci.sst.regrid;
+package org.esa.cci.sst.tools.regrid;
 
 import org.esa.cci.sst.common.*;
 import org.esa.cci.sst.common.auxiliary.Climatology;
@@ -57,7 +57,9 @@ class RegriddingAggregator extends AbstractAggregator {
 
     RegriddingAggregator(FileStore fileStore,
                          Climatology climatology,
-                         SstDepth sstDepth, AggregationContext aggregationContext, LUT timeLut,
+                         SstDepth sstDepth,
+                         AggregationContext aggregationContext,
+                         LUT timeLut,
                          LUT spaceLut) {
         super(fileStore, climatology, sstDepth);
         this.aggregationContext = aggregationContext;
@@ -73,7 +75,7 @@ class RegriddingAggregator extends AbstractAggregator {
 
     public List<RegriddingTimeStep> aggregate(Date startDate, Date endDate,
                                               TemporalResolution temporalResolution, Writer writer) throws IOException {
-        final List<RegriddingTimeStep> resultGridList = new ArrayList<RegriddingTimeStep>();
+        final List<RegriddingTimeStep> resultGridList = new ArrayList<>();
         final Calendar calendar = TimeUtil.createUtcCalendar(startDate);
 
         while (calendar.getTime().before(endDate)) {
@@ -117,6 +119,7 @@ class RegriddingAggregator extends AbstractAggregator {
                     throw new IllegalArgumentException(
                             String.format("Temporal resolution '%s' is not supported.", temporalResolution.toString()));
             }
+
             if (resultGrid != null) {
                 final RegriddingTimeStep timeStep = new RegriddingTimeStep(date1, calendar.getTime(), resultGrid);
                 if (writer != null) {
@@ -185,21 +188,15 @@ class RegriddingAggregator extends AbstractAggregator {
             final CellGrid<SpatialAggregationCell> singleDayGrid = aggregateSingleDay(productType, singleDayFiles.getFiles());
 
             if (singleDayGrid != null) {
-                aggregationContext.setSstGrid(
-                        new CellGridAdapter(singleDayGrid, Aggregation.SST));
-                aggregationContext.setRandomUncertaintyGrid(
-                        new CellGridAdapter(singleDayGrid, Aggregation.RANDOM_UNCERTAINTY));
-                aggregationContext.setLargeScaleUncertaintyGrid(
-                        new CellGridAdapter(singleDayGrid, Aggregation.LARGE_SCALE_UNCERTAINTY));
-                aggregationContext.setSynopticUncertaintyGrid(
-                        new CellGridAdapter(singleDayGrid, Aggregation.SYNOPTIC_UNCERTAINTY));
-                aggregationContext.setAdjustmentUncertaintyGrid(
-                        new CellGridAdapter(singleDayGrid, Aggregation.ADJUSTMENT_UNCERTAINTY));
-                aggregationContext.setAdjustmentUncertaintyGrid(
-                        new CellGridAdapter(singleDayGrid, Aggregation.ADJUSTMENT_UNCERTAINTY));
-                aggregationContext.setSeaIceFractionGrid(
-                        new CellGridAdapter(singleDayGrid, Aggregation.SEA_ICE_FRACTION));
+                aggregationContext.setSstGrid(new CellGridAdapter(singleDayGrid, Aggregation.SST));
+                aggregationContext.setRandomUncertaintyGrid(new CellGridAdapter(singleDayGrid, Aggregation.RANDOM_UNCERTAINTY));
+                aggregationContext.setLargeScaleUncertaintyGrid(new CellGridAdapter(singleDayGrid, Aggregation.LARGE_SCALE_UNCERTAINTY));
+                aggregationContext.setSynopticUncertaintyGrid(new CellGridAdapter(singleDayGrid, Aggregation.SYNOPTIC_UNCERTAINTY));
+                aggregationContext.setAdjustmentUncertaintyGrid(new CellGridAdapter(singleDayGrid, Aggregation.ADJUSTMENT_UNCERTAINTY));
+                aggregationContext.setAdjustmentUncertaintyGrid(new CellGridAdapter(singleDayGrid, Aggregation.ADJUSTMENT_UNCERTAINTY));
+                aggregationContext.setSeaIceFractionGrid(new CellGridAdapter(singleDayGrid, Aggregation.SEA_ICE_FRACTION));
                 aggregationContext.setQualityGrid(null);
+
                 if (targetGrid == null) {
                     targetGrid = createSpatialAggregationCellGrid();
                 }

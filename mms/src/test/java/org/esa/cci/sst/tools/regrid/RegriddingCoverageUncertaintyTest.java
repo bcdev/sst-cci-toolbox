@@ -1,4 +1,4 @@
-package org.esa.cci.sst.regrid;
+package org.esa.cci.sst.tools.regrid;
 
 import org.junit.Test;
 

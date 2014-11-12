@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.esa.cci.sst.regrid;
+package org.esa.cci.sst.tools.regrid;
 
 import org.esa.cci.sst.common.Grid;
 import org.esa.cci.sst.common.GridDef;

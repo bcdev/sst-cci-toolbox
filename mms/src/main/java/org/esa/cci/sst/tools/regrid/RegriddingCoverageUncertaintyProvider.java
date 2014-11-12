@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.esa.cci.sst.regrid;
+package org.esa.cci.sst.tools.regrid;
 
 import org.esa.cci.sst.common.LUT;
 import org.esa.cci.sst.common.calculator.CoverageUncertaintyProvider;
@@ -38,16 +38,6 @@ class RegriddingCoverageUncertaintyProvider implements CoverageUncertaintyProvid
     private final Grid x0time;
     private final double xDay;
 
-    RegriddingCoverageUncertaintyProvider(LUT lut2, LUT lut3, Date date1, Date date2) {
-        x0space = lut2.getGrid();
-        x0time = lut3.getGrid();
-        xDay = calculateXDay(date1, date2);
-    }
-
-    static double calculateXDay(Date date1, Date date2) {
-        return (date2.getTime() - date1.getTime()) / 86400000;
-    }
-
     @Override
     public double calculate(AggregationCell cell, double variance) {
         final int x = cell.getX();
@@ -67,5 +57,16 @@ class RegriddingCoverageUncertaintyProvider implements CoverageUncertaintyProvid
         final double rBar = rBarSpace * rBarTime;
 
         return Math.sqrt((variance * rBar * (1.0 - rBar)) / (1.0 + (cell.getSampleCount() - 1.0) * rBar));
+    }
+
+    RegriddingCoverageUncertaintyProvider(LUT lut2, LUT lut3, Date date1, Date date2) {
+        x0space = lut2.getGrid();
+        x0time = lut3.getGrid();
+        xDay = calculateXDay(date1, date2);
+    }
+
+    // package access for testing only tb 2014-11-12
+    static double calculateXDay(Date date1, Date date2) {
+        return (date2.getTime() - date1.getTime()) / 86400000;
     }
 }
