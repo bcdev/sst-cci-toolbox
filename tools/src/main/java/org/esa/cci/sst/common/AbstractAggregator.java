@@ -7,6 +7,7 @@ import org.esa.cci.sst.common.cellgrid.RegionMask;
 import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.common.file.FileType;
 import org.esa.cci.sst.log.SstLogging;
+import org.esa.cci.sst.util.StopWatch;
 import ucar.nc2.NetcdfFile;
 
 import java.awt.Rectangle;
@@ -43,11 +44,14 @@ public abstract class AbstractAggregator {
             Date startDate, Date endDate, TemporalResolution temporalResolution) throws IOException;
 
     protected final void readSourceGrids(NetcdfFile dataFile, AggregationContext context) throws IOException {
-        final long t0 = System.currentTimeMillis();
+        final StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
+
         logger.fine("Reading source grid(s)...");
         fileType.readSourceGrids(dataFile, sstDepth, context);
-        final long t1 = System.currentTimeMillis();
-        logger.fine(String.format("Reading source grid(s) took %d ms", t1 - t0));
+
+        stopWatch.stop();
+        logger.fine(String.format("Reading source grid(s) took %d ms", stopWatch.getElapsedMillis()));
     }
 
     protected static <C extends SpatialAggregationCell> void aggregateSourcePixels(AggregationContext context,

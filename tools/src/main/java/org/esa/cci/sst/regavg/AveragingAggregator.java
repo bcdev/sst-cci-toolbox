@@ -15,6 +15,7 @@ import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.common.file.FileType;
 import org.esa.cci.sst.regavg.auxiliary.LUT1;
 import org.esa.cci.sst.regavg.auxiliary.LUT2;
+import org.esa.cci.sst.util.StopWatch;
 import org.esa.cci.sst.util.TimeUtil;
 import ucar.nc2.NetcdfFile;
 
@@ -158,6 +159,7 @@ public class AveragingAggregator extends AbstractAggregator {
 
         final CoverageUncertaintyProvider coverageUncertaintyProvider = createCoverageUncertaintyProvider(date1);
         context.setCoverageUncertaintyProvider(coverageUncertaintyProvider);
+
         final CellFactory<SpatialAggregationCell> targetCellFactory = fileType.getCellFactory5(context);
         final GridDef targetGridDef = GridDef.createGlobal(SpatialResolution.DEGREE_5_00.getResolution());
         final CellGrid<SpatialAggregationCell> targetGrid = CellGrid.create(targetGridDef, targetCellFactory);
@@ -166,29 +168,40 @@ public class AveragingAggregator extends AbstractAggregator {
             for (final File file : filesForOneDay.getFiles()) {
                 logger.info(String.format("Processing input %s file '%s'", getFileStore().getProductType(), file));
 
-                final long t0 = System.currentTimeMillis();
+                final StopWatch fileWatch = new StopWatch();
+                fileWatch.start();
+
                 final NetcdfFile dataFile = NetcdfFile.open(file.getPath());
 
                 try {
+
+                    final StopWatch gridWatch = new StopWatch();
+                    gridWatch.start();
+
                     final Date date = fileType.readDate(dataFile);
                     final int dayOfYear = TimeUtil.getYear(date);
                     logger.fine("Day of year is " + dayOfYear);
+
                     context.setClimatologySstGrid(climatology.getSstGrid(dayOfYear));
                     context.setSeaCoverageGrid(climatology.getSeaCoverageGrid());
+
                     readSourceGrids(dataFile, context);
+
                     logger.fine("Aggregating grid(s)...");
-                    final long t1 = System.currentTimeMillis();
 
                     aggregateSourcePixels(context, combinedRegionMask, targetGrid);
 
-                    logger.fine(String.format("Aggregating grid(s) took %d ms", (System.currentTimeMillis() - t1)));
+                    gridWatch.stop();
+                    logger.fine(String.format("Aggregating grid(s) took %d ms", gridWatch.getElapsedMillis()));
                 } catch (IOException e) {
                     logger.warning(e.getMessage());
                 } finally {
                     dataFile.close();
                 }
+
+                fileWatch.stop();
                 logger.fine(String.format("Processing input %s file took %d ms", getFileStore().getProductType(),
-                        System.currentTimeMillis() - t0));
+                        fileWatch.getElapsedMillis()));
             }
         }
 

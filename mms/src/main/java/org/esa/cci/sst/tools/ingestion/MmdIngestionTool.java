@@ -24,6 +24,7 @@ import org.esa.cci.sst.reader.MmdReader;
 import org.esa.cci.sst.tool.Configuration;
 import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.tools.BasicTool;
+import org.esa.cci.sst.util.StopWatch;
 
 import javax.persistence.PersistenceException;
 import javax.persistence.Query;
@@ -154,19 +155,26 @@ public class MmdIngestionTool extends BasicTool {
                 "where exists ( select f.id from mm_datafile f, mm_observation o " +
                 "where f.path = ?1 and o.datafile_id = f.id and c.observation_id = o.id )");
         query.setParameter(1, dataFile.getPath());
-        long time = System.currentTimeMillis();
+
+        final StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
+
         query.executeUpdate();
-        logger.info(MessageFormat.format("{0} coincidences dropped in {1} ms.", dataFile.getPath(),
-                System.currentTimeMillis() - time));
+
+        stopWatch.stop();
+        logger.info(MessageFormat.format("{0} coincidences dropped in {1} ms.", dataFile.getPath(), stopWatch.getElapsedMillis()));
 
         query = getPersistenceManager().createNativeQuery("delete from mm_observation o " +
                 "where exists ( select f.id from mm_datafile f " +
                 "where f.path = ?1 and o.datafile_id = f.id )");
         query.setParameter(1, dataFile.getPath());
-        time = System.currentTimeMillis();
+
+        stopWatch.start();
+
         query.executeUpdate();
-        logger.info(MessageFormat.format("{0} observations dropped in {1} ms.", dataFile.getPath(),
-                System.currentTimeMillis() - time));
+
+        stopWatch.stop();
+        logger.info(MessageFormat.format("{0} observations dropped in {1} ms.", dataFile.getPath(), stopWatch.getElapsedMillis()));
     }
 
     private void ingestObservations(long pattern) {

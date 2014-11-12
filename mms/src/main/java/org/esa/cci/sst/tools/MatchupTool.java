@@ -18,11 +18,13 @@ package org.esa.cci.sst.tools;
 
 import com.bc.ceres.core.Assert;
 import org.esa.cci.sst.data.*;
+import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.orm.Storage;
 import org.esa.cci.sst.tool.Configuration;
 import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.tools.samplepoint.TimeRange;
 import org.esa.cci.sst.util.ConfigUtil;
+import org.esa.cci.sst.util.StopWatch;
 import org.esa.cci.sst.util.TimeUtil;
 
 import javax.persistence.PersistenceException;
@@ -232,95 +234,101 @@ public class MatchupTool extends BasicTool {
      * with lower temporal distance of in-situ measurement
      */
     private void markDuplicates() {
+        final PersistenceManager persistenceManager = getPersistenceManager();
+
         try {
-            getPersistenceManager().transaction();
-            Query query = getPersistenceManager().createNativeQuery(DUPLICATES_QUERY);
+            persistenceManager.transaction();
+            Query query = persistenceManager.createNativeQuery(DUPLICATES_QUERY);
             query.setParameter(2, timeRange.getStartDate());
             query.setParameter(3, timeRange.getStopDate());
 
-            long time = System.currentTimeMillis();
+            final StopWatch stopWatch = new StopWatch();
+            stopWatch.start();
             query.setParameter(1, ATSR_MD);
             query.executeUpdate();
-            logger.info(MessageFormat.format("{0} duplicates determined in {1} ms.", ATSR_MD,
-                    System.currentTimeMillis() - time));
+            stopWatch.stop();
+            logger.info(MessageFormat.format("{0} duplicates determined in {1} ms.", ATSR_MD, stopWatch.getElapsedMillis()));
 
-            getPersistenceManager().commit();
-            getPersistenceManager().transaction();
+            persistenceManager.commit();
+            persistenceManager.transaction();
 
-            time = System.currentTimeMillis();
+            stopWatch.start();
             query.setParameter(1, METOP);
             query.executeUpdate();
-            logger.info(MessageFormat.format("{0} duplicates determined in {1} ms.", METOP,
-                    System.currentTimeMillis() - time));
+            stopWatch.stop();
+            logger.info(MessageFormat.format("{0} duplicates determined in {1} ms.", METOP, stopWatch.getElapsedMillis()));
 
-            getPersistenceManager().commit();
-            getPersistenceManager().transaction();
+            persistenceManager.commit();
+            persistenceManager.transaction();
 
-            time = System.currentTimeMillis();
+            stopWatch.start();
             query.setParameter(1, SEVIRI);
             query.executeUpdate();
-            logger.info(MessageFormat.format("{0} duplicates determined in {1} ms.", SEVIRI,
-                    System.currentTimeMillis() - time));
+            stopWatch.stop();
+            logger.info(MessageFormat.format("{0} duplicates determined in {1} ms.", SEVIRI, stopWatch.getElapsedMillis()));
 
-            getPersistenceManager().commit();
-            getPersistenceManager().transaction();
+            persistenceManager.commit();
+            persistenceManager.transaction();
 
-            time = System.currentTimeMillis();
+            stopWatch.start();
             query.setParameter(1, AVHRR_MD);
             query.executeUpdate();
-            logger.info(MessageFormat.format("{0} duplicates determined in {1} ms.", AVHRR_MD,
-                    System.currentTimeMillis() - time));
+            stopWatch.stop();
+            logger.info(MessageFormat.format("{0} duplicates determined in {1} ms.", AVHRR_MD, stopWatch.getElapsedMillis()));
 
-            getPersistenceManager().commit();
+            persistenceManager.commit();
         } catch (Exception e) {
-            getPersistenceManager().rollback();
+            persistenceManager.rollback();
             throw new ToolException(e.getMessage(), e, ToolException.TOOL_ERROR);
         }
     }
 
     private void dropDuplicates() {
+        final PersistenceManager persistenceManager = getPersistenceManager();
+
         try {
-            getPersistenceManager().transaction();
-            Query query = getPersistenceManager().createNativeQuery(DUPLICATES_DELETE_QUERY);
+            persistenceManager.transaction();
+            Query query = persistenceManager.createNativeQuery(DUPLICATES_DELETE_QUERY);
             query.setParameter(2, timeRange.getStartDate());
             query.setParameter(3, timeRange.getStopDate());
 
-            long time = System.currentTimeMillis();
+            final StopWatch stopWatch = new StopWatch();
+            stopWatch.start();
             query.setParameter(1, ATSR_MD);
             query.executeUpdate();
-            logger.info(MessageFormat.format("{0} duplicates dropped in {1} ms.", ATSR_MD,
-                    System.currentTimeMillis() - time));
+            stopWatch.stop();
+            logger.info(MessageFormat.format("{0} duplicates dropped in {1} ms.", ATSR_MD, stopWatch.getElapsedMillis()));
 
-            getPersistenceManager().commit();
-            getPersistenceManager().transaction();
+            persistenceManager.commit();
+            persistenceManager.transaction();
 
-            time = System.currentTimeMillis();
+            stopWatch.start();
             query.setParameter(1, METOP);
             query.executeUpdate();
-            logger.info(MessageFormat.format("{0} duplicates dropped in {1} ms.", METOP,
-                    System.currentTimeMillis() - time));
+            stopWatch.stop();
+            logger.info(MessageFormat.format("{0} duplicates dropped in {1} ms.", METOP, stopWatch.getElapsedMillis()));
 
-            getPersistenceManager().commit();
-            getPersistenceManager().transaction();
+            persistenceManager.commit();
+            persistenceManager.transaction();
 
-            time = System.currentTimeMillis();
+            stopWatch.start();
             query.setParameter(1, SEVIRI);
             query.executeUpdate();
-            logger.info(MessageFormat.format("{0} duplicates dropped in {1} ms.", SEVIRI,
-                    System.currentTimeMillis() - time));
+            stopWatch.stop();
+            logger.info(MessageFormat.format("{0} duplicates dropped in {1} ms.", SEVIRI, stopWatch.getElapsedMillis()));
 
-            getPersistenceManager().commit();
-            getPersistenceManager().transaction();
+            persistenceManager.commit();
+            persistenceManager.transaction();
 
-            time = System.currentTimeMillis();
+            stopWatch.start();
             query.setParameter(1, AVHRR_MD);
             query.executeUpdate();
-            logger.info(MessageFormat.format("{0} duplicates dropped in {1} ms.", AVHRR_MD,
-                    System.currentTimeMillis() - time));
+            stopWatch.stop();
+            logger.info(MessageFormat.format("{0} duplicates dropped in {1} ms.", AVHRR_MD, stopWatch.getElapsedMillis()));
 
-            getPersistenceManager().commit();
+            persistenceManager.commit();
         } catch (Exception e) {
-            getPersistenceManager().rollback();
+            persistenceManager.rollback();
             throw new ToolException(e.getMessage(), e, ToolException.TOOL_ERROR);
         }
     }
@@ -343,7 +351,9 @@ public class MatchupTool extends BasicTool {
             getPersistenceManager().transaction();
 
             int count = 0;
-            long time = System.currentTimeMillis();
+
+            final StopWatch stopWatch = new StopWatch();
+            stopWatch.start();
 
             final Query query = createIncrementalQuery(ATSR_MD, SENSOR_OBSERVATION_QUERY);
             for (int cursor = 0; ; ) {
@@ -402,32 +412,35 @@ public class MatchupTool extends BasicTool {
                     if (count % 1024 == 0) {
                         getPersistenceManager().commit();
                         getPersistenceManager().transaction();
+                        stopWatch.stop();
                         logger.info(MessageFormat.format("{0} {1} processed in {2} ms.",
                                 count,
                                 atsrSensor.getName(),
-                                System.currentTimeMillis() - time));
-                        time = System.currentTimeMillis();
+                                stopWatch.getElapsedMillis()));
+                        stopWatch.start();
                     }
                 }
             }
 
             getPersistenceManager().commit();
             getPersistenceManager().transaction();
+            stopWatch.stop();
             logger.info(MessageFormat.format("{0} {1} processed in {2} ms.",
                     count,
                     atsrSensor.getName(),
-                    System.currentTimeMillis() - time));
-            time = System.currentTimeMillis();
+                    stopWatch.getElapsedMillis()));
+            stopWatch.start();
             for (Matchup m : matchupAccu) {
                 getPersistenceManager().persist(m);
             }
             for (Coincidence c : coincidenceAccu) {
                 getPersistenceManager().persist(c);
             }
+            stopWatch.stop();
             logger.info(MessageFormat.format("{0} matchups and {1} coincidences stored in {2} ms.",
                     matchupAccu.size(),
                     coincidenceAccu.size(),
-                    System.currentTimeMillis() - time));
+                    stopWatch.getElapsedMillis()));
             matchupAccu.clear();
             coincidenceAccu.clear();
 
@@ -452,7 +465,8 @@ public class MatchupTool extends BasicTool {
             getPersistenceManager().transaction();
 
             int count = 0;
-            long time = System.currentTimeMillis();
+            final StopWatch stopWatch = new StopWatch();
+            stopWatch.start();
             final Query query = createIncrementalQuery(METOP, SECONDARY_OBSERVATION_QUERY);
             for (int cursor = 0; ; ) {
                 final List<ReferenceObservation> metopObservations = query.setFirstResult(cursor).getResultList();
@@ -476,32 +490,37 @@ public class MatchupTool extends BasicTool {
                     if (count % 1024 == 0) {
                         getPersistenceManager().commit();
                         getPersistenceManager().transaction();
+                        stopWatch.stop();
                         logger.info(MessageFormat.format("{0} {1} processed in {2} ms.",
                                 count,
                                 metopSensor.getName(),
-                                System.currentTimeMillis() - time));
-                        time = System.currentTimeMillis();
+                                stopWatch.getElapsedMillis()));
+                        stopWatch.start();
                     }
                 }
             }
 
             getPersistenceManager().commit();
             getPersistenceManager().transaction();
+
+            stopWatch.stop();
             logger.info(MessageFormat.format("{0} {1} processed in {2} ms.",
                     count,
                     metopSensor.getName(),
-                    System.currentTimeMillis() - time));
-            time = System.currentTimeMillis();
+                    stopWatch.getElapsedMillis()));
+            stopWatch.start();
             for (Matchup m : matchupAccu) {
                 getPersistenceManager().persist(m);
             }
             for (Coincidence c : coincidenceAccu) {
                 getPersistenceManager().persist(c);
             }
+
+            stopWatch.stop();
             logger.info(MessageFormat.format("{0} matchups and {1} coincidences stored in {2} ms.",
                     matchupAccu.size(),
                     coincidenceAccu.size(),
-                    System.currentTimeMillis() - time));
+                    stopWatch.getElapsedMillis()));
             matchupAccu.clear();
             coincidenceAccu.clear();
 
@@ -517,7 +536,8 @@ public class MatchupTool extends BasicTool {
             getPersistenceManager().transaction();
 
             int count = 0;
-            long time = System.currentTimeMillis();
+            final StopWatch stopWatch = new StopWatch();
+            stopWatch.start();
             final Query query = createIncrementalQuery(sensorName, SINGLE_SENSOR_OBSERVATION_QUERY);
             for (int cursor = 0; ; ) {
                 final List<ReferenceObservation> observations = query.setFirstResult(cursor).getResultList();
@@ -532,28 +552,31 @@ public class MatchupTool extends BasicTool {
                     if (count % 1024 == 0) {
                         getPersistenceManager().commit();
                         getPersistenceManager().transaction();
+                        stopWatch.stop();
                         logger.info(MessageFormat.format("{0} {1} processed in {2} ms.",
                                 count,
                                 sensor.getName(),
-                                System.currentTimeMillis() - time));
-                        time = System.currentTimeMillis();
+                                stopWatch.getElapsedMillis()));
+                        stopWatch.start();
                     }
                 }
             }
 
             getPersistenceManager().commit();
             getPersistenceManager().transaction();
+            stopWatch.stop();
             logger.info(MessageFormat.format("{0} {1} processed in {2} ms.",
                     count,
                     sensor.getName(),
-                    System.currentTimeMillis() - time));
-            time = System.currentTimeMillis();
+                    stopWatch.getElapsedMillis()));
+            stopWatch.start();
             for (Matchup m : matchupAccu) {
                 getPersistenceManager().persist(m);
             }
+            stopWatch.stop();
             logger.info(MessageFormat.format("{0} matchups stored in {1} ms.",
                     matchupAccu.size(),
-                    System.currentTimeMillis() - time));
+                    stopWatch.getElapsedMillis()));
             matchupAccu.clear();
 
             getPersistenceManager().commit();
@@ -573,7 +596,9 @@ public class MatchupTool extends BasicTool {
             } else {
                 query = getPersistenceManager().createQuery(MATCHUPS_QUERY);
             }
-            long time = System.currentTimeMillis();
+
+            final StopWatch stopWatch = new StopWatch();
+            stopWatch.start();
 
             long chunkSizeMillis = 3600 * 1000;
             final long startTime = timeRange.getStartDate().getTime();
@@ -598,12 +623,14 @@ public class MatchupTool extends BasicTool {
                     for (final Matchup matchup : matchups) {
                         addCoincidence(matchup, sensorName, queryString, sensor.getPattern(), observationClass);
                     }
+
+                    stopWatch.stop();
                     logger.info(MessageFormat.format("{0} {1} up to {2} processed in {3} ms.",
                             matchups.size(),
                             sensorName,
                             TimeUtil.formatCcsdsUtcFormat(new Date(chunkStopTime)),
-                            System.currentTimeMillis() - time));
-                    time = System.currentTimeMillis();
+                            stopWatch.getElapsedMillis()));
+                    stopWatch.start();
                 }
                 getPersistenceManager().commit();
                 getPersistenceManager().transaction();
@@ -618,9 +645,11 @@ public class MatchupTool extends BasicTool {
             for (Coincidence c : coincidenceAccu) {
                 getPersistenceManager().persist(c);
             }
+
+            stopWatch.stop();
             logger.info(MessageFormat.format("{0} coincidences stored in {1} ms.",
                     coincidenceAccu.size(),
-                    System.currentTimeMillis() - time));
+                    stopWatch.getElapsedMillis()));
             coincidenceAccu.clear();
 
             getPersistenceManager().commit();
