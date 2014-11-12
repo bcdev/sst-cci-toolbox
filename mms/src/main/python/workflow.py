@@ -577,7 +577,7 @@ class Workflow:
                 raise exceptions.ValueError, "Periods of sensor '" + name + "' must not intersect."
         self.secondary_sensors.add(Sensor(name, period))
 
-    def run(self, mmdtype, hosts=list([('localhost', 60)]), calls=list(), log_dir='trace',
+    def run(self, mmdtype, hosts=list([('localhost', 120)]), calls=list(), log_dir='trace',
             with_history=False,
             with_selection=False,
             simulation=False):
@@ -600,7 +600,6 @@ class Workflow:
         self._execute_sampling(m)
         self._execute_clearing(m)
         self._execute_plotting(m, sampling_prefix)
-        m.wait_for_completion()
         self._execute_create_sub_mmd_files(m)
         m.wait_for_completion()
         self._execute_ingest_coincidences(m, sampling_prefix)
