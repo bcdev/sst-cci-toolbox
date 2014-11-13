@@ -16,4 +16,4 @@ w.add_primary_sensor('avhrr.n19', '2009-02-06', '2014-01-01')
 w.add_primary_sensor('avhrr.m02', '2006-10-30', '2014-01-01')
 w.set_samples_per_month(0)
 
-w.run(mmdtype, calls=[('sampling-start.sh', 1), ('coincidence-start.sh', 24)], with_history=True)
+w.run(mmdtype, calls=[('sampling-start.sh', 1), ('coincidence-start.sh', 6)], with_history=True)
