@@ -17,9 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.esa.cci.sst.common;
-
-import org.esa.cci.sst.aggregate.Aggregation;
+package org.esa.cci.sst.aggregate;
 
 /**
  * A factory for {@link org.esa.cci.sst.aggregate.Aggregation}s.

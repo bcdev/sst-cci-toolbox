@@ -35,6 +35,7 @@ import org.esa.cci.sst.common.file.FileType;
 import org.esa.cci.sst.common.file.ProductType;
 import org.esa.cci.sst.grid.Grid;
 import org.esa.cci.sst.grid.GridDef;
+import org.esa.cci.sst.grid.LUT;
 import org.esa.cci.sst.util.StopWatch;
 import org.esa.cci.sst.util.TimeUtil;
 import ucar.nc2.NetcdfFile;

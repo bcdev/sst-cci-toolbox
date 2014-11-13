@@ -21,7 +21,7 @@ package org.esa.cci.sst.tools.regrid;
 
 import org.esa.cci.sst.grid.Grid;
 import org.esa.cci.sst.grid.GridDef;
-import org.esa.cci.sst.common.LUT;
+import org.esa.cci.sst.grid.LUT;
 import org.esa.cci.sst.common.cellgrid.Downscaling;
 import org.esa.cci.sst.common.cellgrid.YFlip;
 import org.esa.cci.sst.log.SstLogging;
