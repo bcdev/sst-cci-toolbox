@@ -178,31 +178,30 @@ public class MmdTool extends BasicTool {
                         }
                         previousDataFile = observation.getDatafile();
                     }
-                    for (final Variable variable : sensorMap.get(sensorName)) {
-                        if (observation != null) {
-                            if (testCoincidenceAccurately(referenceObservation, observation)) {
-                                continue;
-                            }
-                        }
-                        final Item targetColumn = columnRegistry.getColumn(variable.getShortName());
-                        final Item sourceColumn = columnRegistry.getSourceColumn(targetColumn);
-                        if ("Implicit".equals(sourceColumn.getName())) {
-                            final Context context = new ContextBuilder(readerCache)
-                                    .matchup(matchup)
-                                    .observation(observation)
-                                    .targetVariable(variable)
-                                    .dimensionConfiguration(dimensionConfiguration)
-                                    .configuration(getConfig())
-                                    .build();
-                            writeImplicitColumn(mmdWriter, variable, targetRecordNo, targetColumn, context);
-                        } else {
-                            if (observation != null) {
-                                writeColumn(mmdWriter, variable, targetRecordNo, targetColumn, sourceColumn,
-                                        observation,
-                                        referenceObservation);
+
+                    if (observation != null) {
+                        if (isAccurateCoincidence(referenceObservation, observation)) {
+                            for (final Variable variable : sensorMap.get(sensorName)) {
+                                final Item targetColumn = columnRegistry.getColumn(variable.getShortName());
+                                final Item sourceColumn = columnRegistry.getSourceColumn(targetColumn);
+                                if ("Implicit".equals(sourceColumn.getName())) {
+                                    final Context context = new ContextBuilder(readerCache)
+                                            .matchup(matchup)
+                                            .observation(observation)
+                                            .targetVariable(variable)
+                                            .dimensionConfiguration(dimensionConfiguration)
+                                            .configuration(getConfig())
+                                            .build();
+                                    writeImplicitColumn(mmdWriter, variable, targetRecordNo, targetColumn, context);
+                                } else {
+                                    writeColumn(mmdWriter, variable, targetRecordNo, targetColumn, sourceColumn,
+                                            observation,
+                                            referenceObservation);
+                                }
                             }
                         }
                     }
+
                     persistenceManager.detach(matchup);
                     if (observation != null) {
                         persistenceManager.detach(observation);
@@ -274,7 +273,7 @@ public class MmdTool extends BasicTool {
         registerTargetColumns(config);
     }
 
-    private boolean testCoincidenceAccurately(ReferenceObservation refObs, Observation observation) throws IOException {
+    private boolean isAccurateCoincidence(ReferenceObservation refObs, Observation observation) throws IOException {
         final Reader observationReader = readerCache.getReader(observation.getDatafile(), true);
         final GeoCoding geoCoding;
         try {
@@ -282,9 +281,11 @@ public class MmdTool extends BasicTool {
         } catch (IOException e) {
             throw new ToolException("Unable to get geo coding.", e, ToolException.TOOL_ERROR);
         }
+
         if (geoCoding == null) {
-            return false;
+            return true;
         }
+
         final Point location = refObs.getPoint().getGeometry().getFirstPoint();
         final GeoPos geoPos = new GeoPos((float) location.y, (float) location.x);
         final PixelPos pixelPos = new PixelPos();
@@ -293,16 +294,16 @@ public class MmdTool extends BasicTool {
             final String msg = String.format(
                     "Observation (id=%d) does not contain reference observation and is ignored.", observation.getId());
             logger.warning(msg);
-            return true;
+            return false;
         }
         if (pixelPos.x >= observationReader.getElementCount() || pixelPos.y >= observationReader.getScanLineCount()) {
             final String msg = String.format(
                     "Observation (id=%d) does not contain reference observation and is ignored.", observation.getId());
             logger.warning(msg);
-            return true;
+            return false;
         }
 
-        return false;
+        return true;
     }
 
     private void writeImplicitColumn(MmdWriter mmdWriter, Variable variable, int targetRecordNo, Item targetColumn,
