@@ -14,13 +14,13 @@ package org.esa.cci.sst.common.file;/*
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-import org.esa.cci.sst.common.AggregationCell;
-import org.esa.cci.sst.common.AggregationContext;
+import org.esa.cci.sst.aggregate.AggregationCell;
+import org.esa.cci.sst.aggregate.AggregationContext;
 import org.esa.cci.sst.common.calculator.ArithmeticMeanAccumulator;
 import org.esa.cci.sst.common.calculator.NumberAccumulator;
 import org.esa.cci.sst.common.calculator.WeightedUncertaintyAccumulator;
 import org.esa.cci.sst.common.cell.AbstractAggregationCell;
-import org.esa.cci.sst.common.CellAggregationCell;
+import org.esa.cci.sst.cell.CellAggregationCell;
 
 class DefaultCellAggregationCell extends AbstractAggregationCell implements CellAggregationCell<AggregationCell> {
 

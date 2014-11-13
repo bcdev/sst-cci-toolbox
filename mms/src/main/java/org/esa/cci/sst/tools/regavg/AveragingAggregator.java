@@ -1,10 +1,18 @@
 package org.esa.cci.sst.tools.regavg;
 
+import org.esa.cci.sst.aggregate.*;
+import org.esa.cci.sst.cell.CellAggregationCell;
+import org.esa.cci.sst.cell.CellFactory;
+import org.esa.cci.sst.cell.CellGrid;
 import org.esa.cci.sst.common.*;
 import org.esa.cci.sst.common.auxiliary.Climatology;
 import org.esa.cci.sst.common.file.FileList;
 import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.common.file.FileType;
+import org.esa.cci.sst.grid.Grid;
+import org.esa.cci.sst.grid.GridDef;
+import org.esa.cci.sst.grid.RegionMask;
+import org.esa.cci.sst.grid.RegionMaskList;
 import org.esa.cci.sst.tools.regavg.auxiliary.LUT1;
 import org.esa.cci.sst.tools.regavg.auxiliary.LUT2;
 import org.esa.cci.sst.util.StopWatch;

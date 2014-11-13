@@ -19,12 +19,16 @@
 
 package org.esa.cci.sst.common.file;
 
+import org.esa.cci.sst.aggregate.*;
+import org.esa.cci.sst.cell.CellFactory;
 import org.esa.cci.sst.common.*;
 import org.esa.cci.sst.common.calculator.ArithmeticMeanAccumulator;
 import org.esa.cci.sst.common.calculator.NumberAccumulator;
 import org.esa.cci.sst.common.calculator.WeightedUncertaintyAccumulator;
-import org.esa.cci.sst.common.CellAggregationCell;
+import org.esa.cci.sst.cell.CellAggregationCell;
 import org.esa.cci.sst.common.cellgrid.YFlip;
+import org.esa.cci.sst.grid.Grid;
+import org.esa.cci.sst.grid.GridDef;
 import org.esa.cci.sst.netcdf.NcTools;
 import org.esa.cci.sst.util.TimeUtil;
 import ucar.ma2.DataType;

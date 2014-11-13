@@ -1,4 +1,4 @@
-package org.esa.cci.sst.common;
+package org.esa.cci.sst.grid;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -182,11 +182,11 @@ public class GridDefTest {
     }
 
     @Test
-    public void testGetGridRectangle_resolutionTooCoarse(){
+    public void testGetGridRectangle_resolutionTooCoarse() {
         try {
             gridDef5.getGridRectangle(0, 0, gridDef05);
             fail("IllegalArgumentException expected");
-        } catch(IllegalArgumentException expected) {
+        } catch (IllegalArgumentException expected) {
         }
     }
 

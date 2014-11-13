@@ -19,8 +19,10 @@
 
 package org.esa.cci.sst.common;
 
+import org.esa.cci.sst.aggregate.Aggregation;
+
 /**
- * A factory for {@link Aggregation}s.
+ * A factory for {@link org.esa.cci.sst.aggregate.Aggregation}s.
  *
  * @author Norman
  */

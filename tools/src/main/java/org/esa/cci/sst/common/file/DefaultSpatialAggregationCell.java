@@ -14,14 +14,14 @@ package org.esa.cci.sst.common.file;/*
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-import org.esa.cci.sst.common.AggregationContext;
+import org.esa.cci.sst.aggregate.AggregationContext;
 import org.esa.cci.sst.common.calculator.ArithmeticMeanAccumulator;
 import org.esa.cci.sst.common.calculator.NumberAccumulator;
 import org.esa.cci.sst.common.calculator.WeightedUncertaintyAccumulator;
 import org.esa.cci.sst.common.calculator.UncertaintyAccumulator;
 import org.esa.cci.sst.common.cell.AbstractAggregationCell;
-import org.esa.cci.sst.common.SpatialAggregationCell;
-import org.esa.cci.sst.common.Grid;
+import org.esa.cci.sst.aggregate.SpatialAggregationCell;
+import org.esa.cci.sst.grid.Grid;
 
 import java.awt.Rectangle;
 

@@ -14,8 +14,8 @@ package org.esa.cci.sst.common.cellgrid;/*
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-import org.esa.cci.sst.common.Grid;
-import org.esa.cci.sst.common.GridDef;
+import org.esa.cci.sst.grid.Grid;
+import org.esa.cci.sst.grid.GridDef;
 
 /**
  * Decorator for creating a mask from an existing grid.

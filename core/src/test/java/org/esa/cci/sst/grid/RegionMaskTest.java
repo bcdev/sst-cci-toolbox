@@ -1,5 +1,8 @@
-package org.esa.cci.sst.common;
+package org.esa.cci.sst.grid;
 
+import org.esa.cci.sst.common.Coverage;
+import org.esa.cci.sst.common.SpatialResolution;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.text.ParseException;
@@ -60,7 +63,7 @@ public class RegionMaskTest {
 
     @Test
     public void testCoverage() throws Exception {
-        assertEquals(Coverage.GLOBE, RegionMask.create("X", -180, +90, +180, -90).getCoverage());
+        Assert.assertEquals(Coverage.GLOBE, RegionMask.create("X", -180, +90, +180, -90).getCoverage());
         assertEquals(Coverage.N_HEMISPHERE, RegionMask.create("X", -180, +90, +180, 0).getCoverage());
         assertEquals(Coverage.S_HEMISPHERE, RegionMask.create("X", -180, 0, +180, -90).getCoverage());
         assertEquals(Coverage.OTHER, RegionMask.create("X", 0, 10, 10, 0).getCoverage());

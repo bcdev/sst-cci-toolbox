@@ -19,9 +19,9 @@
 
 package org.esa.cci.sst.common.file;
 
-import org.esa.cci.sst.common.AggregationContext;
-import org.esa.cci.sst.common.ArrayGrid;
-import org.esa.cci.sst.common.GridDef;
+import org.esa.cci.sst.aggregate.AggregationContext;
+import org.esa.cci.sst.grid.ArrayGrid;
+import org.esa.cci.sst.grid.GridDef;
 import org.esa.cci.sst.common.SstDepth;
 import org.esa.cci.sst.log.SstLogging;
 import org.esa.cci.sst.netcdf.NcTools;

@@ -17,7 +17,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.esa.cci.sst.common;
+package org.esa.cci.sst.cell;
+
+import org.esa.cci.sst.grid.GridDef;
 
 import java.util.ArrayList;
 import java.util.List;

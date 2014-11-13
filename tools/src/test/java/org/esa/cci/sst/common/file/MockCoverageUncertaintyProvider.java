@@ -1,7 +1,7 @@
 package org.esa.cci.sst.common.file;
 
-import org.esa.cci.sst.common.CoverageUncertaintyProvider;
-import org.esa.cci.sst.common.AggregationCell;
+import org.esa.cci.sst.aggregate.CoverageUncertaintyProvider;
+import org.esa.cci.sst.aggregate.AggregationCell;
 
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;

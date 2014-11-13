@@ -19,8 +19,8 @@
 
 package org.esa.cci.sst.tools.regavg.auxiliary;
 
-import org.esa.cci.sst.common.Grid;
-import org.esa.cci.sst.common.GridDef;
+import org.esa.cci.sst.grid.Grid;
+import org.esa.cci.sst.grid.GridDef;
 import org.esa.cci.sst.common.cellgrid.XSwap;
 import org.esa.cci.sst.common.cellgrid.YFlip;
 import org.esa.cci.sst.netcdf.NcTools;

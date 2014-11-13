@@ -14,9 +14,9 @@ package org.esa.cci.sst.common.file;/*
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-import org.esa.cci.sst.common.AggregationContext;
-import org.esa.cci.sst.common.CellFactory;
-import org.esa.cci.sst.common.SpatialAggregationCell;
+import org.esa.cci.sst.aggregate.AggregationContext;
+import org.esa.cci.sst.cell.CellFactory;
+import org.esa.cci.sst.aggregate.SpatialAggregationCell;
 
 public class SingleDayAggregationCellFactory implements CellFactory<SpatialAggregationCell> {
 

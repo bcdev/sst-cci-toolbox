@@ -19,7 +19,7 @@
 
 package org.esa.cci.sst.common.cell;
 
-import org.esa.cci.sst.common.Cell;
+import org.esa.cci.sst.cell.Cell;
 
 /**
  * An abstract cell.

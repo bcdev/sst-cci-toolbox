@@ -17,16 +17,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.esa.cci.sst.common;
-
-import java.awt.*;
+package org.esa.cci.sst.cell;
 
 /**
- * A cell that accumulates rectangular regions of source grids.
+ * Creates cells.
  *
  * @author Norman Fomferra
  */
-public interface SpatialAggregationCell extends AggregationCell {
+public interface CellFactory<C extends Cell> {
 
-    void accumulate(AggregationContext aggregationContext, Rectangle rectangle);
+    C createCell(int cellX, int cellY);
 }

@@ -1,6 +1,6 @@
 package org.esa.cci.sst.common.file;
 
-import org.esa.cci.sst.common.AggregationContext;
+import org.esa.cci.sst.aggregate.AggregationContext;
 
 final class Cell5 extends DefaultSpatialAggregationCell {
 

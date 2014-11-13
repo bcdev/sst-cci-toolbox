@@ -19,8 +19,11 @@
 
 package org.esa.cci.sst.common.file;
 
+import org.esa.cci.sst.aggregate.*;
+import org.esa.cci.sst.cell.CellFactory;
 import org.esa.cci.sst.common.*;
-import org.esa.cci.sst.common.CellAggregationCell;
+import org.esa.cci.sst.cell.CellAggregationCell;
+import org.esa.cci.sst.grid.GridDef;
 import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;

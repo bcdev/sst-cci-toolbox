@@ -1,5 +1,7 @@
 package org.esa.cci.sst.common;
 
+import org.esa.cci.sst.grid.Grid;
+import org.esa.cci.sst.grid.GridDef;
 import org.junit.Ignore;
 
 /**

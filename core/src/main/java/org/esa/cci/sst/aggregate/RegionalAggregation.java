@@ -17,18 +17,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.esa.cci.sst.common;
+package org.esa.cci.sst.aggregate;
 
 /**
- * A cell that aggregates SpatialAggregationCells.
- * <p/>
- * For the regional averaging tool: A daily or monthly / 90º cell that accumulates daily or
- * monthly / 5º cells ({@link org.esa.cci.sst.common.SpatialAggregationCell}).
+ * A regional aggregation.
  *
  * @author Norman Fomferra
  */
-public interface CellAggregationCell<C extends AggregationCell> extends AggregationCell, CellAccumulator<C> {
-
-    @Override
-    void accumulate(C cell, double weight);
+public interface RegionalAggregation extends Aggregation {
 }

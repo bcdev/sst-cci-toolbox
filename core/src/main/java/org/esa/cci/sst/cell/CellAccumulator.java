@@ -17,28 +17,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.esa.cci.sst.common;
+package org.esa.cci.sst.cell;
 
 /**
- * Filters cells.
+ * An accumulator whose samples are weighted {@link Cell}s.
  *
  * @author Norman Fomferra
  */
-public interface CellFilter<C extends Cell> {
+public interface CellAccumulator<C extends Cell> {
 
-    CellFilter ALL = new CellFilter() {
-        @Override
-        public boolean accept(Cell cell) {
-            return true;
-        }
-    };
-
-    CellFilter NON_EMPTY = new CellFilter() {
-        @Override
-        public boolean accept(Cell cell) {
-            return !cell.isEmpty();
-        }
-    };
-
-    boolean accept(C cell);
+    /**
+     * Accumulates the given cell (contents) using the provided weight.
+     *
+     * @param cell   The cell to be accumulated.
+     * @param weight The weight.
+     */
+    void accumulate(C cell, double weight);
 }

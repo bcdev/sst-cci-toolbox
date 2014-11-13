@@ -20,11 +20,11 @@
 package org.esa.cci.sst.tools.regavg;
 
 import org.esa.cci.sst.common.ProcessingLevel;
-import org.esa.cci.sst.common.RegionMaskList;
+import org.esa.cci.sst.grid.RegionMaskList;
 import org.esa.cci.sst.common.SstDepth;
 import org.esa.cci.sst.common.TemporalResolution;
 import org.esa.cci.sst.common.auxiliary.Climatology;
-import org.esa.cci.sst.common.RegionMask;
+import org.esa.cci.sst.grid.RegionMask;
 import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.common.file.ProductType;
 import org.esa.cci.sst.log.SstLogging;

@@ -17,20 +17,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.esa.cci.sst.common;
+package org.esa.cci.sst.grid;
 
 /**
- * An accumulator whose samples are weighted {@link org.esa.cci.sst.common.Cell}s.
+ * A grid.
  *
  * @author Norman Fomferra
  */
-public interface CellAccumulator<C extends Cell> {
+public interface Grid {
 
-    /**
-     * Accumulates the given cell (contents) using the provided weight.
-     *
-     * @param cell   The cell to be accumulated.
-     * @param weight The weight.
-     */
-    void accumulate(C cell, double weight);
+    GridDef getGridDef();
+
+    double getSampleDouble(int x, int y);
+
+    int getSampleInt(int x, int y);
+
+    boolean getSampleBoolean(int x, int y);
 }

@@ -1,6 +1,6 @@
 package org.esa.cci.sst.netcdf;
 
-import org.esa.cci.sst.common.GridDef;
+import org.esa.cci.sst.grid.GridDef;
 import org.junit.Before;
 import org.junit.Test;
 import ucar.nc2.Attribute;

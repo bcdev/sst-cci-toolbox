@@ -17,7 +17,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.esa.cci.sst.common;
+package org.esa.cci.sst.grid;
+
+import org.esa.cci.sst.common.SpatialResolution;
 
 import java.io.File;
 import java.io.FileReader;

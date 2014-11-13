@@ -17,19 +17,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.esa.cci.sst.common;
+package org.esa.cci.sst.aggregate;
 
 /**
- * A "multi-month" (seasonal, annual) / regional aggregation
- * that accumulates monthly / regional aggregations ({@link org.esa.cci.sst.common.RegionalAggregation}).
+ * Interface for coverage uncertainty calculation.
  *
- * @author Norman Fomferra
+ * @author Bettina Scholze
+ * @author Ralf Quast
  */
-public interface MultiMonthAggregation<A extends RegionalAggregation> extends RegionalAggregation {
+public interface CoverageUncertaintyProvider {
+
     /**
-     * Accumulates the given aggregation.
+     * Calculates the coverage uncertainty of an aggregation cell.
      *
-     * @param aggregation The aggregation to be accumulated.
+     * @param cell The aggregation cell.
+     * @param a    An additional parameter.
+     * @return the coverage uncertainty for the given cell.
      */
-    void accumulate(A aggregation);
+    double calculate(AggregationCell cell, double a);
 }

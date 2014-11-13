@@ -1,11 +1,14 @@
 package org.esa.cci.sst.common.file;
 
+import org.esa.cci.sst.aggregate.Aggregation;
+import org.esa.cci.sst.aggregate.AggregationContext;
 import org.esa.cci.sst.common.*;
-import org.esa.cci.sst.common.AggregationCell;
-import org.esa.cci.sst.common.CellAggregationCell;
-import org.esa.cci.sst.common.CellFactory;
-import org.esa.cci.sst.common.SpatialAggregationCell;
-import org.esa.cci.sst.common.Grid;
+import org.esa.cci.sst.aggregate.AggregationCell;
+import org.esa.cci.sst.cell.CellAggregationCell;
+import org.esa.cci.sst.cell.CellFactory;
+import org.esa.cci.sst.aggregate.SpatialAggregationCell;
+import org.esa.cci.sst.grid.Grid;
+import org.esa.cci.sst.grid.GridDef;
 import org.esa.cci.sst.util.TestL3ProductMaker;
 import org.junit.Test;
 import ucar.nc2.NetcdfFile;

@@ -17,12 +17,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.esa.cci.sst.common;
+package org.esa.cci.sst.aggregate;
+
+import org.esa.cci.sst.cell.CellAccumulator;
 
 /**
- * A regional aggregation.
+ * A "same month" (daily, monthly) / regional aggregation
+ * that accumulates daily, monthly / 5º,90º cells ({@link SpatialAggregationCell}, {@link org.esa.cci.sst.cell.CellAggregationCell}).
  *
  * @author Norman Fomferra
  */
-public interface RegionalAggregation extends Aggregation {
+public interface SameMonthAggregation<C extends AggregationCell> extends RegionalAggregation, CellAccumulator<C> {
+    /**
+     * Accumulates the given cell using the given fractional sea coverage as weight.
+     *
+     * @param cell        The cell to be accumulated.
+     * @param seaCoverage The fractional sea coverage.
+     */
+    @Override
+    void accumulate(C cell, double seaCoverage);
 }

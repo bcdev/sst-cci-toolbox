@@ -19,10 +19,10 @@
 
 package org.esa.cci.sst.common.cellgrid;
 
-import org.esa.cci.sst.common.CellGrid;
-import org.esa.cci.sst.common.GridDef;
+import org.esa.cci.sst.cell.CellGrid;
+import org.esa.cci.sst.grid.GridDef;
 import org.esa.cci.sst.common.cell.AbstractCell;
-import org.esa.cci.sst.common.CellFactory;
+import org.esa.cci.sst.cell.CellFactory;
 import org.junit.Test;
 
 import java.util.List;

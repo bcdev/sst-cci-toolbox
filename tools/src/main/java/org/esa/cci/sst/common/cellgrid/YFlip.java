@@ -14,7 +14,7 @@ package org.esa.cci.sst.common.cellgrid;/*
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-import org.esa.cci.sst.common.Grid;
+import org.esa.cci.sst.grid.Grid;
 
 /**
  * Decorator for flipping an existing grid upside down.

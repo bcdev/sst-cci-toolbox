@@ -1,6 +1,6 @@
 package org.esa.cci.sst.tools.regavg.auxiliary;
 
-import org.esa.cci.sst.common.Grid;
+import org.esa.cci.sst.grid.Grid;
 import org.junit.BeforeClass;
 import org.junit.Test;
 

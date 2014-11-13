@@ -19,8 +19,8 @@
 
 package org.esa.cci.sst.common.auxiliary;
 
-import org.esa.cci.sst.common.Grid;
-import org.esa.cci.sst.common.GridDef;
+import org.esa.cci.sst.grid.Grid;
+import org.esa.cci.sst.grid.GridDef;
 import org.esa.cci.sst.common.cellgrid.Downscaling;
 import org.esa.cci.sst.common.cellgrid.Mask;
 import org.esa.cci.sst.common.cellgrid.YFlip;

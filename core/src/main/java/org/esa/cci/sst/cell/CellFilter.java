@@ -17,18 +17,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.esa.cci.sst.common;
+package org.esa.cci.sst.cell;
 
 /**
- * A cell of a {@link org.esa.cci.sst.common.CellGrid} used for numeric aggregations.
+ * Filters cells.
  *
  * @author Norman Fomferra
  */
-public interface Cell {
+public interface CellFilter<C extends Cell> {
 
-    boolean isEmpty();
+    CellFilter ALL = new CellFilter() {
+        @Override
+        public boolean accept(Cell cell) {
+            return true;
+        }
+    };
 
-    int getX();
+    CellFilter NON_EMPTY = new CellFilter() {
+        @Override
+        public boolean accept(Cell cell) {
+            return !cell.isEmpty();
+        }
+    };
 
-    int getY();
+    boolean accept(C cell);
 }

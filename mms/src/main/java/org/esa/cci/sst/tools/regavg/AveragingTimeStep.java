@@ -1,6 +1,6 @@
 package org.esa.cci.sst.tools.regavg;
 
-import org.esa.cci.sst.common.RegionalAggregation;
+import org.esa.cci.sst.aggregate.RegionalAggregation;
 import org.esa.cci.sst.common.TimeStep;
 
 import java.util.Date;

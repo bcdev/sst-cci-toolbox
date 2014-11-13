@@ -1,6 +1,6 @@
 package org.esa.cci.sst.tools.regavg;
 
-import org.esa.cci.sst.common.RegionMask;
+import org.esa.cci.sst.grid.RegionMask;
 import org.junit.Test;
 
 import static org.junit.Assert.assertFalse;

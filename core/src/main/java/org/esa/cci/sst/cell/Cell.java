@@ -17,20 +17,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.esa.cci.sst.common;
+package org.esa.cci.sst.cell;
 
 /**
- * A grid.
+ * A cell of a {@link CellGrid} used for numeric aggregations.
  *
  * @author Norman Fomferra
  */
-public interface Grid {
+public interface Cell {
 
-    GridDef getGridDef();
+    boolean isEmpty();
 
-    double getSampleDouble(int x, int y);
+    int getX();
 
-    int getSampleInt(int x, int y);
-
-    boolean getSampleBoolean(int x, int y);
+    int getY();
 }

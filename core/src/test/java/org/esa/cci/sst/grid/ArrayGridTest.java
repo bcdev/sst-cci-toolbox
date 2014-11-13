@@ -1,4 +1,4 @@
-package org.esa.cci.sst.common;
+package org.esa.cci.sst.grid;
 
 import org.junit.Before;
 import org.junit.Test;

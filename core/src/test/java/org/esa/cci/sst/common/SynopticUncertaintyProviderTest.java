@@ -1,5 +1,6 @@
 package org.esa.cci.sst.common;
 
+import org.esa.cci.sst.aggregate.AggregationCell;
 import org.junit.Test;
 
 import static junit.framework.Assert.assertEquals;

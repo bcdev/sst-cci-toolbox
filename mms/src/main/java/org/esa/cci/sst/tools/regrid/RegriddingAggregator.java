@@ -19,18 +19,22 @@
 
 package org.esa.cci.sst.tools.regrid;
 
+import org.esa.cci.sst.aggregate.Aggregation;
+import org.esa.cci.sst.aggregate.AggregationContext;
 import org.esa.cci.sst.common.*;
 import org.esa.cci.sst.common.auxiliary.Climatology;
-import org.esa.cci.sst.common.CoverageUncertaintyProvider;
-import org.esa.cci.sst.common.AggregationCell;
-import org.esa.cci.sst.common.CellAggregationCell;
-import org.esa.cci.sst.common.CellFactory;
-import org.esa.cci.sst.common.SpatialAggregationCell;
-import org.esa.cci.sst.common.CellGrid;
+import org.esa.cci.sst.aggregate.CoverageUncertaintyProvider;
+import org.esa.cci.sst.aggregate.AggregationCell;
+import org.esa.cci.sst.cell.CellAggregationCell;
+import org.esa.cci.sst.cell.CellFactory;
+import org.esa.cci.sst.aggregate.SpatialAggregationCell;
+import org.esa.cci.sst.cell.CellGrid;
 import org.esa.cci.sst.common.file.FileList;
 import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.common.file.FileType;
 import org.esa.cci.sst.common.file.ProductType;
+import org.esa.cci.sst.grid.Grid;
+import org.esa.cci.sst.grid.GridDef;
 import org.esa.cci.sst.util.StopWatch;
 import org.esa.cci.sst.util.TimeUtil;
 import ucar.nc2.NetcdfFile;

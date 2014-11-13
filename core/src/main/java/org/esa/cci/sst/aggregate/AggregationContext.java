@@ -17,7 +17,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.esa.cci.sst.common;
+package org.esa.cci.sst.aggregate;
+
+import org.esa.cci.sst.common.*;
+import org.esa.cci.sst.grid.Grid;
+import org.esa.cci.sst.grid.GridDef;
+import org.esa.cci.sst.grid.RegionMask;
+import org.esa.cci.sst.grid.RegionMaskList;
 
 /**
  * Provides the input grids for a {@link SpatialAggregationCell}.

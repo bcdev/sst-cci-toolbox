@@ -17,7 +17,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.esa.cci.sst.common;
+package org.esa.cci.sst.aggregate;
+
+import org.esa.cci.sst.cell.Cell;
 
 /**
  * A cell that represents an aggregation of some type of "samples".

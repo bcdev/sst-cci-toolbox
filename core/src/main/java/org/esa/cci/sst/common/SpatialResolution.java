@@ -16,6 +16,8 @@
 
 package org.esa.cci.sst.common;
 
+import org.esa.cci.sst.grid.GridDef;
+
 import java.util.Arrays;
 
 /**

@@ -19,6 +19,8 @@
 
 package org.esa.cci.sst.common;
 
+import org.esa.cci.sst.aggregate.AggregationCell;
+
 /**
  * Calculates average spatial and temporal separations for calculating synoptic uncertainties.
  * <p/>

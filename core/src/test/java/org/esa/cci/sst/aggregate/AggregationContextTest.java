@@ -1,4 +1,4 @@
-package org.esa.cci.sst.common;
+package org.esa.cci.sst.aggregate;
 
 import org.junit.Test;
 

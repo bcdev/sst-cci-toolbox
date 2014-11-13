@@ -14,7 +14,7 @@ package org.esa.cci.sst.tools.regrid;/*
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-import org.esa.cci.sst.common.GridDef;
+import org.esa.cci.sst.grid.GridDef;
 
 class WriterHelper {
 
