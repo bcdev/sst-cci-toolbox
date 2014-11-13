@@ -1,4 +1,4 @@
-package org.esa.cci.sst.common.calculator;
+package org.esa.cci.sst.accumulate;
 
 import org.junit.Before;
 import org.junit.Test;

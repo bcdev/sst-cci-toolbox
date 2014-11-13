@@ -17,32 +17,42 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.esa.cci.sst.common.calculator;
+package org.esa.cci.sst.accumulate;
 
 /**
- * An accumulator whose samples are single, weighted numbers.
+ * For (non-weighted) accumulating of synoptic and adjustment uncertainties.
  *
- * @author Norman Fomferra
+ * @author Bettina Scholze
  * @author Ralf Quast
  */
-public abstract class NumberAccumulator implements Accumulator {
+public final class UncertaintyAccumulator extends NumberAccumulator {
 
-    protected NumberAccumulator() {
+    private double sumXX;
+    private int sampleCount;
+
+    @Override
+    public int getSampleCount() {
+        return sampleCount;
     }
 
-    public final void accumulate(double sample) {
-        if (!Double.isNaN(sample)) {
-            accumulateSample(sample, 1.0);
+    @Override
+    protected void accumulateSample(double sample, double weight) {
+        if (weight != 1.0) {
+            throw new IllegalArgumentException("weight != 1.0");
         }
+        sumXX += sample * sample;
+        sampleCount++;
     }
 
-    public final void accumulate(double sample, double weight) {
-        if (!Double.isNaN(sample) && !Double.isNaN(weight) && weight != 0.0) {
-            accumulateSample(sample, weight);
+    @Override
+    public double combine() {
+        if (sampleCount == 0) {
+            return Double.NaN;
         }
+        if (sumXX == 0.0) {
+            return 0.0;
+        }
+
+        return Math.sqrt(sumXX);
     }
-
-    public abstract double combine();
-
-    protected abstract void accumulateSample(double sample, double weight);
 }

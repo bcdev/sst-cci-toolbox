@@ -16,9 +16,9 @@ package org.esa.cci.sst.common.file;/*
 
 import org.esa.cci.sst.aggregate.AggregationCell;
 import org.esa.cci.sst.aggregate.AggregationContext;
-import org.esa.cci.sst.common.calculator.ArithmeticMeanAccumulator;
-import org.esa.cci.sst.common.calculator.NumberAccumulator;
-import org.esa.cci.sst.common.calculator.WeightedUncertaintyAccumulator;
+import org.esa.cci.sst.accumulate.ArithmeticMeanAccumulator;
+import org.esa.cci.sst.accumulate.NumberAccumulator;
+import org.esa.cci.sst.accumulate.WeightedUncertaintyAccumulator;
 import org.esa.cci.sst.common.cell.AbstractAggregationCell;
 import org.esa.cci.sst.cell.CellAggregationCell;
 

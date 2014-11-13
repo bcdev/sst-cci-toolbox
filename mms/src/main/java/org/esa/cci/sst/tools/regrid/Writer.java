@@ -21,8 +21,8 @@ package org.esa.cci.sst.tools.regrid;
 
 import org.esa.cci.sst.aggregate.Aggregation;
 import org.esa.cci.sst.common.*;
-import org.esa.cci.sst.common.calculator.NumberAccumulator;
-import org.esa.cci.sst.common.calculator.UncertaintyAccumulator;
+import org.esa.cci.sst.accumulate.NumberAccumulator;
+import org.esa.cci.sst.accumulate.UncertaintyAccumulator;
 import org.esa.cci.sst.aggregate.AggregationCell;
 import org.esa.cci.sst.cell.CellGrid;
 import org.esa.cci.sst.grid.GridDef;

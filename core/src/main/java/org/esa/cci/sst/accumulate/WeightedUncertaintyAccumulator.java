@@ -17,19 +17,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.esa.cci.sst.common.calculator;
+package org.esa.cci.sst.accumulate;
 
 /**
- * An {@link NumberAccumulator} used for weighted, arithmetic mean averaging.
- * (See Eq. 1.2 in Nicks RegionalAverageTool spec, draft5)
+ * For weighted accumulating of random (i.e. uncorrelated) uncertainties.
  *
  * @author Norman Fomferra
+ * @author Ralf Quast
  */
-public final class ArithmeticMeanAccumulator extends NumberAccumulator {
+public final class WeightedUncertaintyAccumulator extends NumberAccumulator {
 
-    private double sumX;
+    private double sumXX;
     private double sumW;
-    protected int sampleCount;
+    private int sampleCount;
 
     @Override
     public int getSampleCount() {
@@ -38,7 +38,8 @@ public final class ArithmeticMeanAccumulator extends NumberAccumulator {
 
     @Override
     protected void accumulateSample(double sample, double weight) {
-        sumX += weight * sample;
+        final double weightedSample = weight * sample;
+        sumXX += weightedSample * weightedSample;
         sumW += weight;
         sampleCount++;
     }
@@ -48,12 +49,14 @@ public final class ArithmeticMeanAccumulator extends NumberAccumulator {
         if (sampleCount == 0) {
             return Double.NaN;
         }
-        if (sumX == 0.0) {
+        if (sumXX == 0.0) {
             return 0.0;
         }
         if (sumW == 0.0) {
             return Double.NaN;
         }
-        return sumX / sumW;
+        final double variance = sumXX / (sumW * sumW);
+        return variance > 0.0 ? Math.sqrt(variance) : 0.0;
     }
+
 }
