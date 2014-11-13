@@ -1,5 +1,6 @@
 package org.esa.cci.sst.common.file;
 
+import org.esa.cci.sst.file.FileType;
 import org.junit.Test;
 
 import static org.junit.Assert.assertTrue;

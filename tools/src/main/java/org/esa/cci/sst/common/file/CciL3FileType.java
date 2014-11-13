@@ -27,6 +27,7 @@ import org.esa.cci.sst.accumulate.ArithmeticMeanAccumulator;
 import org.esa.cci.sst.accumulate.NumberAccumulator;
 import org.esa.cci.sst.accumulate.WeightedUncertaintyAccumulator;
 import org.esa.cci.sst.common.cellgrid.YFlip;
+import org.esa.cci.sst.file.FileType;
 import org.esa.cci.sst.grid.Grid;
 import org.esa.cci.sst.netcdf.NcTools;
 import ucar.ma2.DataType;

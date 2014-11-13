@@ -5,7 +5,7 @@ import org.esa.cci.sst.aggregate.SpatialAggregationCell;
 import org.esa.cci.sst.cell.CellGrid;
 import org.esa.cci.sst.common.auxiliary.Climatology;
 import org.esa.cci.sst.common.file.FileStore;
-import org.esa.cci.sst.common.file.FileType;
+import org.esa.cci.sst.file.FileType;
 import org.esa.cci.sst.grid.GridDef;
 import org.esa.cci.sst.grid.RegionMask;
 import org.esa.cci.sst.log.SstLogging;

@@ -7,6 +7,7 @@ import org.esa.cci.sst.aggregate.AggregationCell;
 import org.esa.cci.sst.cell.CellAggregationCell;
 import org.esa.cci.sst.cell.CellFactory;
 import org.esa.cci.sst.aggregate.SpatialAggregationCell;
+import org.esa.cci.sst.file.FileType;
 import org.esa.cci.sst.grid.Grid;
 import org.esa.cci.sst.grid.GridDef;
 import org.esa.cci.sst.util.TestL3ProductMaker;

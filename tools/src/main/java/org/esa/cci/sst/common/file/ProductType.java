@@ -20,6 +20,7 @@
 package org.esa.cci.sst.common.file;
 
 import org.esa.cci.sst.common.ProcessingLevel;
+import org.esa.cci.sst.file.FileType;
 import org.esa.cci.sst.grid.GridDef;
 
 import java.io.File;

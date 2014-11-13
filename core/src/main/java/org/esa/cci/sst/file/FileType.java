@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.esa.cci.sst.common.file;
+package org.esa.cci.sst.file;
 
 import org.esa.cci.sst.aggregate.*;
 import org.esa.cci.sst.cell.CellFactory;

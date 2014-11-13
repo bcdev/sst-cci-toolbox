@@ -8,7 +8,7 @@ import org.esa.cci.sst.common.*;
 import org.esa.cci.sst.common.auxiliary.Climatology;
 import org.esa.cci.sst.common.file.FileList;
 import org.esa.cci.sst.common.file.FileStore;
-import org.esa.cci.sst.common.file.FileType;
+import org.esa.cci.sst.file.FileType;
 import org.esa.cci.sst.grid.Grid;
 import org.esa.cci.sst.grid.GridDef;
 import org.esa.cci.sst.grid.RegionMask;
