@@ -12,7 +12,7 @@ import static junit.framework.Assert.assertEquals;
 public class LUT2Test {
     @Test
     public void testRead() throws Exception {
-        File lutFile = new File("tools/config/auxdata/RegionalAverage_LUT2.txt");
+        File lutFile = new File("mms/config/auxdata/RegionalAverage_LUT2.txt");
         if (!lutFile.isFile()) {
             lutFile = new File("config/auxdata/RegionalAverage_LUT2.txt");
         }
