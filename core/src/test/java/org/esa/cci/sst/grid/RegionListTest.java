@@ -1,7 +1,5 @@
-package org.esa.cci.sst.common;
+package org.esa.cci.sst.grid;
 
-import org.esa.cci.sst.grid.RegionMask;
-import org.esa.cci.sst.grid.RegionMaskList;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

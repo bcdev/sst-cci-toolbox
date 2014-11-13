@@ -6,6 +6,7 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -19,11 +20,9 @@ public class LUT1Test {
 
     @BeforeClass
     public static void read() throws IOException {
-        File lutFile = new File("mms/config/auxdata/coverage_uncertainty_parameters.nc");
-        if (!lutFile.isFile()) {
-            lutFile = new File("config/auxdata/coverage_uncertainty_parameters.nc");
-        }
-        lut1 = LUT1.read(lutFile);
+        final URL resource = LUT1Test.class.getResource("coverage_uncertainty_parameters.nc");
+        final String lutFilePath = resource.getFile();
+        lut1 = LUT1.read(new File(lutFilePath));
     }
 
     @Test

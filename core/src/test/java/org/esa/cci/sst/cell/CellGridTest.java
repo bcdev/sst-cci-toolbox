@@ -17,20 +17,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.esa.cci.sst.common.cellgrid;
+package org.esa.cci.sst.cell;
 
-import org.esa.cci.sst.cell.CellGrid;
 import org.esa.cci.sst.grid.GridDef;
-import org.esa.cci.sst.common.cell.AbstractCell;
-import org.esa.cci.sst.cell.CellFactory;
 import org.junit.Test;
 
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
+import static org.junit.Assert.*;
 
 /**
  * @author Norman

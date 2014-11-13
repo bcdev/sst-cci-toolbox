@@ -17,9 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.esa.cci.sst.common.cell;
-
-import org.esa.cci.sst.cell.Cell;
+package org.esa.cci.sst.cell;
 
 /**
  * An abstract cell.
