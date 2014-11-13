@@ -19,17 +19,8 @@
 
 package org.esa.cci.sst.common.file;
 
-import org.esa.cci.sst.common.AggregationContext;
-import org.esa.cci.sst.common.AggregationFactory;
-import org.esa.cci.sst.common.RegionalAggregation;
-import org.esa.cci.sst.common.SstDepth;
-import org.esa.cci.sst.common.cell.AggregationCell;
-import org.esa.cci.sst.common.cell.CellAggregationCell;
-import org.esa.cci.sst.common.cell.CellFactory;
-import org.esa.cci.sst.common.cell.SpatialAggregationCell;
-import org.esa.cci.sst.common.GridDef;
-import org.esa.cci.sst.regavg.MultiMonthAggregation;
-import org.esa.cci.sst.regavg.SameMonthAggregation;
+import org.esa.cci.sst.common.*;
+import org.esa.cci.sst.common.CellAggregationCell;
 import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;

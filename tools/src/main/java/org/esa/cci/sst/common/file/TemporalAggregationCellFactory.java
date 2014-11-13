@@ -14,9 +14,9 @@ package org.esa.cci.sst.common.file;/*
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-import org.esa.cci.sst.common.cell.AggregationCell;
-import org.esa.cci.sst.common.cell.CellAggregationCell;
-import org.esa.cci.sst.common.cell.CellFactory;
+import org.esa.cci.sst.common.AggregationCell;
+import org.esa.cci.sst.common.CellAggregationCell;
+import org.esa.cci.sst.common.CellFactory;
 
 class TemporalAggregationCellFactory implements CellFactory<CellAggregationCell<AggregationCell>> {
 

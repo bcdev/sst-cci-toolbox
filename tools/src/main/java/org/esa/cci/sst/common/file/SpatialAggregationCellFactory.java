@@ -15,8 +15,8 @@ package org.esa.cci.sst.common.file;/*
  */
 
 import org.esa.cci.sst.common.AggregationContext;
-import org.esa.cci.sst.common.cell.CellFactory;
-import org.esa.cci.sst.common.cell.SpatialAggregationCell;
+import org.esa.cci.sst.common.CellFactory;
+import org.esa.cci.sst.common.SpatialAggregationCell;
 
 class SpatialAggregationCellFactory implements CellFactory<SpatialAggregationCell> {
 

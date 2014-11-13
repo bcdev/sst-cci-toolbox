@@ -21,12 +21,12 @@ package org.esa.cci.sst.tools.regrid;
 
 import org.esa.cci.sst.common.*;
 import org.esa.cci.sst.common.auxiliary.Climatology;
-import org.esa.cci.sst.common.calculator.CoverageUncertaintyProvider;
-import org.esa.cci.sst.common.cell.AggregationCell;
-import org.esa.cci.sst.common.cell.CellAggregationCell;
-import org.esa.cci.sst.common.cell.CellFactory;
-import org.esa.cci.sst.common.cell.SpatialAggregationCell;
-import org.esa.cci.sst.common.cellgrid.CellGrid;
+import org.esa.cci.sst.common.CoverageUncertaintyProvider;
+import org.esa.cci.sst.common.AggregationCell;
+import org.esa.cci.sst.common.CellAggregationCell;
+import org.esa.cci.sst.common.CellFactory;
+import org.esa.cci.sst.common.SpatialAggregationCell;
+import org.esa.cci.sst.common.CellGrid;
 import org.esa.cci.sst.common.file.FileList;
 import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.common.file.FileType;

@@ -3,10 +3,10 @@ package org.esa.cci.sst.common.file;
 import org.esa.cci.sst.common.AggregationContext;
 import org.esa.cci.sst.common.calculator.ArithmeticMeanAccumulator;
 import org.esa.cci.sst.common.calculator.NumberAccumulator;
-import org.esa.cci.sst.common.calculator.SynopticUncertaintyProvider;
+import org.esa.cci.sst.common.SynopticUncertaintyProvider;
 import org.esa.cci.sst.common.calculator.WeightedUncertaintyAccumulator;
 import org.esa.cci.sst.common.cell.AbstractAggregationCell;
-import org.esa.cci.sst.common.cell.SpatialAggregationCell;
+import org.esa.cci.sst.common.SpatialAggregationCell;
 import org.esa.cci.sst.common.Grid;
 
 import java.awt.Rectangle;

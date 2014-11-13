@@ -20,8 +20,8 @@
 package org.esa.cci.sst.tools.regrid;
 
 import org.esa.cci.sst.common.LUT;
-import org.esa.cci.sst.common.calculator.CoverageUncertaintyProvider;
-import org.esa.cci.sst.common.cell.AggregationCell;
+import org.esa.cci.sst.common.CoverageUncertaintyProvider;
+import org.esa.cci.sst.common.AggregationCell;
 import org.esa.cci.sst.common.Grid;
 
 import java.util.Date;

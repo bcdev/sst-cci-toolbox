@@ -1,9 +1,6 @@
 package org.esa.cci.sst.common;
 
 import org.esa.cci.sst.common.auxiliary.Climatology;
-import org.esa.cci.sst.common.cell.SpatialAggregationCell;
-import org.esa.cci.sst.common.cellgrid.CellGrid;
-import org.esa.cci.sst.common.cellgrid.RegionMask;
 import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.common.file.FileType;
 import org.esa.cci.sst.log.SstLogging;

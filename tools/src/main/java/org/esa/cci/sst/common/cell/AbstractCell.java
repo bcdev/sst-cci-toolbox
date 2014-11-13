@@ -19,6 +19,8 @@
 
 package org.esa.cci.sst.common.cell;
 
+import org.esa.cci.sst.common.Cell;
+
 /**
  * An abstract cell.
  *

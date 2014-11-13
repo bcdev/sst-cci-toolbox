@@ -1,10 +1,10 @@
 package org.esa.cci.sst.common.file;
 
 import org.esa.cci.sst.common.*;
-import org.esa.cci.sst.common.cell.AggregationCell;
-import org.esa.cci.sst.common.cell.CellAggregationCell;
-import org.esa.cci.sst.common.cell.CellFactory;
-import org.esa.cci.sst.common.cell.SpatialAggregationCell;
+import org.esa.cci.sst.common.AggregationCell;
+import org.esa.cci.sst.common.CellAggregationCell;
+import org.esa.cci.sst.common.CellFactory;
+import org.esa.cci.sst.common.SpatialAggregationCell;
 import org.esa.cci.sst.common.Grid;
 import org.esa.cci.sst.util.TestL3ProductMaker;
 import org.junit.Test;

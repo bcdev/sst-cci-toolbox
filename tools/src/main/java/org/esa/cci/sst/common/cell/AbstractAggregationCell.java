@@ -20,6 +20,7 @@
 package org.esa.cci.sst.common.cell;
 
 import org.esa.cci.sst.common.AbstractAggregation;
+import org.esa.cci.sst.common.AggregationCell;
 import org.esa.cci.sst.common.AggregationContext;
 
 /**
