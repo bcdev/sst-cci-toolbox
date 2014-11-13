@@ -26,6 +26,7 @@ import org.esa.cci.sst.common.cellgrid.Downscaling;
 import org.esa.cci.sst.common.cellgrid.YFlip;
 import org.esa.cci.sst.log.SstLogging;
 import org.esa.cci.sst.netcdf.NcTools;
+import org.esa.cci.sst.util.StopWatch;
 import ucar.nc2.NetcdfFile;
 
 import java.io.File;
@@ -52,10 +53,14 @@ final class RegriddingLUT1 implements LUT {
     public static LUT create(File file, GridDef gridDef) throws IOException {
         Grid grid = readGrid(file);
         if (SOURCE_GRID_DEF.getResolution() != gridDef.getResolution()) {
-            long t0 = System.currentTimeMillis();
             logger.fine("Downscaling regridding LUT1");
+            final StopWatch stopWatch = new StopWatch();
+            stopWatch.start();
+
             grid = Downscaling.create(grid, gridDef);
-            logger.fine(String.format("Downscaling regridding LUT1 took %d ms", System.currentTimeMillis() - t0));
+
+            stopWatch.stop();
+            logger.fine(String.format("Downscaling regridding LUT1 took %d ms", stopWatch.getElapsedMillis()));
         }
         return new RegriddingLUT1(YFlip.create(grid));
     }
@@ -70,11 +75,14 @@ final class RegriddingLUT1 implements LUT {
 
         final NetcdfFile gridFile = NetcdfFile.open("file:" + file.getPath());
         try {
-            long t0 = System.currentTimeMillis();
             logger.fine("Reading 'analysed_sst_anomaly'...");
+            final StopWatch stopWatch = new StopWatch();
+            stopWatch.start();
 
             final Grid grid = NcTools.readGrid(gridFile, "analysed_sst_anomaly", SOURCE_GRID_DEF, 0);
-            logger.fine(String.format("Reading 'analysed_sst_anomaly' took %d ms", System.currentTimeMillis() - t0));
+
+            stopWatch.stop();
+            logger.fine(String.format("Reading 'analysed_sst_anomaly' took %d ms", stopWatch.getElapsedMillis()));
             return grid;
         } finally {
             try {

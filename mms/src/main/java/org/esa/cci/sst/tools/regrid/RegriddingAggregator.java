@@ -31,6 +31,7 @@ import org.esa.cci.sst.common.file.FileList;
 import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.common.file.FileType;
 import org.esa.cci.sst.common.file.ProductType;
+import org.esa.cci.sst.util.StopWatch;
 import org.esa.cci.sst.util.TimeUtil;
 import ucar.nc2.NetcdfFile;
 
@@ -224,7 +225,9 @@ class RegriddingAggregator extends AbstractAggregator {
 
         for (final File file : files) {
             logger.info(String.format("Processing input %s file '%s'", productType, file));
-            final long t0 = System.currentTimeMillis();
+
+            final StopWatch fileWatch = new StopWatch();
+            fileWatch.start();
 
             NetcdfFile datafile = null;
             try {
@@ -233,10 +236,15 @@ class RegriddingAggregator extends AbstractAggregator {
                 if (targetGrid == null) {
                     targetGrid = CellGrid.create(fileType.getGridDef(), dailyCellFactory);
                 }
+
                 logger.fine("Aggregating grid(s)...");
-                final long t1 = System.currentTimeMillis();
+                final StopWatch gridWatch = new StopWatch();
+                gridWatch.start();
+
                 aggregateSingleDaySourcePixels(aggregationContext, targetGrid);
-                logger.fine(String.format("Aggregating grid(s) took %d ms", (System.currentTimeMillis() - t1)));
+
+                gridWatch.stop();
+                logger.fine(String.format("Aggregating grid(s) took %d ms", gridWatch.getElapsedMillis()));
             } catch (IOException e) {
                 logger.warning(
                         String.format("Cannot process input %s file '%s' because of an I/O error: '%s'.", productType,
@@ -260,8 +268,9 @@ class RegriddingAggregator extends AbstractAggregator {
                     }
                 }
             }
-            logger.fine(String.format("Processing input %s file took %d ms", productType,
-                    System.currentTimeMillis() - t0));
+
+            fileWatch.stop();
+            logger.fine(String.format("Processing input %s file took %d ms", productType, fileWatch.getElapsedMillis()));
         }
 
         return targetGrid;

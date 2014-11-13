@@ -28,6 +28,7 @@ import org.esa.cci.sst.common.GridDef;
 import org.esa.cci.sst.common.cellgrid.Interpolation;
 import org.esa.cci.sst.common.cellgrid.YFlip;
 import org.esa.cci.sst.log.SstLogging;
+import org.esa.cci.sst.util.StopWatch;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -67,7 +68,9 @@ final class RegriddingLUT2 implements LUT {
     static RegriddingLUT2 create(File file, SpatialResolution targetResolution, double fillValue) throws IOException {
         final Logger logger = SstLogging.getLogger();
 
-        final long t0 = System.currentTimeMillis();
+        final StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
+
         logger.info(String.format("Creating LUT for file '%s'", file.getPath()));
 
         Grid lutGrid;
@@ -83,8 +86,8 @@ final class RegriddingLUT2 implements LUT {
         // 4. flip
         lutGrid = YFlip.create(lutGrid);
 
-        final long t1 = System.currentTimeMillis();
-        logger.info(String.format("Ready creating LUT in %d ms", t1 - t0));
+        stopWatch.stop();
+        logger.info(String.format("Ready creating LUT in %d ms", stopWatch.getElapsedMillis()));
 
         return new RegriddingLUT2(lutGrid);
     }
