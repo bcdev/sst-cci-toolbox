@@ -109,17 +109,14 @@ public class MmdTool extends BasicTool {
 
             initialize();
 
-            matchupCount = getMatchupCountFromDb();
+            final Configuration config = getConfig();
+            final Map<Integer, Integer> matchupIdToRecordIndexMap = createMatchupIdToRecordIndexMap();
+            matchupCount = matchupIdToRecordIndexMap.size();
+            final NetcdfFileWriter writer = createNetCDFWriter(config);
+            mmdWriter = prepareMmdWriter(writer);
             if (matchupCount == 0) {
                 return;
             }
-
-            final Configuration config = getConfig();
-            final NetcdfFileWriter writer = createNetCDFWriter(config);
-            mmdWriter = prepareMmdWriter(writer);
-
-            final Map<Integer, Integer> matchupIdToRecordIndexMap = createMatchupIdToRecordIndexMap();
-
             writeMmdFile(mmdWriter, matchupIdToRecordIndexMap);
         } catch (ToolException e) {
             getErrorHandler().terminate(e);
@@ -387,25 +384,11 @@ public class MmdTool extends BasicTool {
 
 
     private MmdWriter prepareMmdWriter(NetcdfFileWriter fileWriter) throws IOException {
-
         final List<Item> variableList = extractVariableList(targetColumnNames, columnRegistry);
         final MmdWriter mmdWriter = new MmdWriter(fileWriter);
         mmdWriter.initialize(matchupCount, dimensionConfiguration, variableList);
 
         return mmdWriter;
-    }
-
-    private int getMatchupCountFromDb() {
-        final Configuration config = getConfig();
-        final PersistenceManager persistenceManager = getPersistenceManager();
-        final MatchupStorage matchupStorage = persistenceManager.getMatchupStorage();
-
-        final MatchupQueryParameter parameter = createMatchupQueryParameter(config);
-        final int matchupCount = matchupStorage.getCount(parameter);
-
-        logger.info(String.format("%d matchups in time interval", matchupCount));
-
-        return matchupCount;
     }
 
 
