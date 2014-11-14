@@ -1,4 +1,4 @@
-package org.esa.cci.sst.common.cellgrid;/*
+package org.esa.cci.sst.grid;/*
  * Copyright (C) 2012 Brockmann Consult GmbH (info@brockmann-consult.de)
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -14,10 +14,6 @@ package org.esa.cci.sst.common.cellgrid;/*
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-import org.esa.cci.sst.grid.ArrayGrid;
-import org.esa.cci.sst.grid.Downscaling;
-import org.esa.cci.sst.grid.Grid;
-import org.esa.cci.sst.grid.GridDef;
 import org.junit.Before;
 import org.junit.Test;
 import ucar.ma2.Array;
