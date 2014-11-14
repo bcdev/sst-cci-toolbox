@@ -227,10 +227,10 @@
                 <!-- Path to the MMS installation -->
                 <mms.home>/group_workspaces/cems2/esacci_sst/mms/software/sst-cci-mms-${project.version}</mms.home>
                 <!-- Path to the MMS source code -->
-                <mms.github>/group_workspaces/cems2/esacci_sst/mms/github/sst-cci-toolbox/mms</mms.github>
+                <mms.github>/group_workspaces/cems2/esacci_sst/mms/github/sst-cci-toolbox</mms.github>
                 <!-- Path to the root directory of the MMS data archive -->
                 <mms.archive.root>/group_workspaces/cems2/esacci_sst/mms/archive</mms.archive.root>
-                <!-- Path to the root directory of the MMS data archive -->
+                <!-- Path to the MMS tmp directory -->
                 <mms.tmpdir>/group_workspaces/cems2/esacci_sst/mms/tmp</mms.tmpdir>
 
                 <!-- Path to the JDK -->
@@ -243,6 +243,11 @@
                 <mms.gbcs.intelversion>12.1.5</mms.gbcs.intelversion>
                 <!-- Path to the CDO installation to use -->
                 <mms.nwp.cdo.home>/group_workspaces/cems2/esacci_sst/software/cdo/1.6.4</mms.nwp.cdo.home>
+
+                <!-- Path to the Apache Maven executable -->
+                <mms.mvn.exec>/group_workspaces/cems2/esacci_sst/mms/software/apache-maven-3.2.3/bin/mvn</mms.mvn.exec>
+                <!-- Path to the git executable -->
+                <mms.git.exec>/usr/bin/git</mms.git.exec>
 
                 <!-- Properties related to the PostgreSQL database -->
                 <mms.pg.host>130.246.142.93</mms.pg.host>
