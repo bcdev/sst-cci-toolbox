@@ -233,16 +233,14 @@ public class MmdTool extends BasicTool {
     }
 
     private Map<Integer, Integer> createMatchupIdToRecordIndexMap() {
-        final Map<Integer, Integer> matchupIdToRecordIndexMap = new HashMap<>();
-
         final Configuration config = getConfig();
         final PersistenceManager persistenceManager = getPersistenceManager();
         final MatchupStorage matchupStorage = persistenceManager.getMatchupStorage();
         final MatchupQueryParameter queryParameter = createMatchupQueryParameter(config);
         final List<Matchup> matchups = matchupStorage.get(queryParameter);
-
         logger.info(String.format("%d matchups retrieved", matchups.size()));
 
+        final Map<Integer, Integer> matchupIdToRecordIndexMap = new HashMap<>(matchups.size());
         for (int i = 0; i < matchups.size(); ++i) {
             matchupIdToRecordIndexMap.put(matchups.get(i).getId(), i);
         }
