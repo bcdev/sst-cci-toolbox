@@ -15,17 +15,15 @@ import java.net.URL;
 public class TestL3ProductMaker {
 
     public static NetcdfFile readL3GridsSetup() throws IOException, URISyntaxException {
-        final URL url = TestL3ProductMaker.class.getResource(
-                "20100701000000-ESACCI-L3U_GHRSST-SSTskin-AATSR-LT-v02.0-fv01.0.nc");
-        final URI uri = url.toURI();
-        final File file = new File(uri);
-
-        return NetcdfFile.open(file.getPath());
+        return getNetcdfFile("20100701000000-ESACCI-L3U_GHRSST-SSTskin-AATSR-LT-v02.0-fv01.0.nc");
     }
 
     public static NetcdfFile readL4GridsSetup() throws IOException, URISyntaxException {
-        final URL url = TestL3ProductMaker.class.getResource(
-                "20100701000000-ESACCI-L4_GHRSST-SSTdepth-OSTIA-LT-v02.0-fv01.1.nc");
+        return getNetcdfFile("20100701000000-ESACCI-L4_GHRSST-SSTdepth-OSTIA-LT-v02.0-fv01.1.nc");
+    }
+
+    private static NetcdfFile getNetcdfFile(String l3) throws URISyntaxException, IOException {
+        final URL url = TestL3ProductMaker.class.getResource(l3);
         final URI uri = url.toURI();
         final File file = new File(uri);
 
