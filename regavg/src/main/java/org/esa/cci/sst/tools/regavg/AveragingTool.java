@@ -21,13 +21,13 @@ package org.esa.cci.sst.tools.regavg;
 
 import org.esa.cci.sst.auxiliary.Climatology;
 import org.esa.cci.sst.common.ProcessingLevel;
-import org.esa.cci.sst.grid.RegionMaskList;
 import org.esa.cci.sst.common.SstDepth;
 import org.esa.cci.sst.common.TemporalResolution;
-import org.esa.cci.sst.grid.RegionMask;
 import org.esa.cci.sst.file.FileStore;
-import org.esa.cci.sst.product.ProductType;
+import org.esa.cci.sst.grid.RegionMask;
+import org.esa.cci.sst.grid.RegionMaskList;
 import org.esa.cci.sst.log.SstLogging;
+import org.esa.cci.sst.product.ProductType;
 import org.esa.cci.sst.tool.Configuration;
 import org.esa.cci.sst.tool.Parameter;
 import org.esa.cci.sst.tool.Tool;
@@ -66,18 +66,18 @@ public final class AveragingTool extends Tool {
     private static final String FILE_FORMAT_VERSION = "1.1";
 
     private static final String TOOL_NAME = "org/esa/cci/sst/tools/regavg";
-    private static final String TOOL_VERSION = "2.0";
+    private static final String TOOL_VERSION = "3.0";
     private static final String TOOL_SYNTAX = TOOL_NAME + " [OPTIONS]";
     private static final String TOOL_HEADER = "\n" +
-            "The org.esa.cci.sst.tools.regavg tool is used to generate regional average time-series from ARC (L2P, L3U) and " +
+            "The regavg tool is used to generate regional average time-series from ARC (L2P, L3U) and " +
             "SST_cci (L3U, L3P, L4) product files given a time interval and a list of regions. An output " +
             "NetCDF file will be written for each region.\n" +
             "OPTIONS may be one or more of the following:\n";
 
-    public static final Parameter PARAM_SST_DEPTH = new Parameter("sstDepth", "DEPTH", SstDepth.skin + "",
-            "The SST depth. Must be one of " + Arrays.toString(
-                    SstDepth.values()) + ".");
-    public static final Parameter PARAM_REGION_LIST = new Parameter("regionList", "NAME=REGION[;...]",
+    private static final Parameter PARAM_SST_DEPTH = new Parameter("sstDepth", "DEPTH", SstDepth.skin + "",
+            "The SST depth. Must be one of " + Arrays.toString(SstDepth.values()) + ".");
+
+    private static final Parameter PARAM_REGION_LIST = new Parameter("regionList", "NAME=REGION[;...]",
             "Global=-180,90,180,-90",
             "A semicolon-separated list of NAME=REGION pairs. "
                     + "REGION may be given as coordinates in the format W,N,E,S "
@@ -88,42 +88,53 @@ public final class AveragingTool extends Tool {
                     + "Cells can be '0' or '1', where "
                     + "a '1' indicates that the region represented by the cell will be considered "
                     + "in the averaging process.");
-    public static final Parameter PARAM_START_DATE = new Parameter("startDate", "DATE", "1990-01-01",
+
+    private static final Parameter PARAM_START_DATE = new Parameter("startDate", "DATE", "1990-01-01",
             "The start date for the analysis given in the format YYYY-MM-DD");
-    public static final Parameter PARAM_END_DATE = new Parameter("endDate", "DATE", "2020-12-31",
+
+    private static final Parameter PARAM_END_DATE = new Parameter("endDate", "DATE", "2020-12-31",
             "The end date for the analysis given in the format YYYY-MM-DD");
-    public static final Parameter PARAM_CLIMATOLOGY_DIR = new Parameter("climatologyDir", "DIR", "./climatology",
+
+    private static final Parameter PARAM_CLIMATOLOGY_DIR = new Parameter("climatologyDir", "DIR", "./climatology",
             "The directory path to the reference climatology.");
-    public static final Parameter PARAM_TEMPORAL_RES = new Parameter("temporalRes", "NUM",
+
+    private static final Parameter PARAM_TEMPORAL_RES = new Parameter("temporalRes", "NUM",
             TemporalResolution.monthly + "",
             "The temporal resolution. Must be one of " + validTemporalResolutions() + ".");
-    public static final Parameter PARAM_PRODUCT_TYPE = new Parameter("productType", "NAME", null,
+
+    private static final Parameter PARAM_PRODUCT_TYPE = new Parameter("productType", "NAME", null,
             "The product type. Must be one of " + Arrays.toString(
                     ProductType.values()) + ".");
-    public static final Parameter PARAM_FILENAME_REGEX = new Parameter("filenameRegex", "REGEX", null,
+
+    private static final Parameter PARAM_FILENAME_REGEX = new Parameter("filenameRegex", "REGEX", null,
             "The input filename pattern. REGEX is Regular Expression that usually dependends on the parameter " +
                     "'productType'. E.g. the default value for the product type '" + ProductType.ARC_L3U + "' " +
                     "is '" + ProductType.ARC_L3U.getDefaultFilenameRegex() + "'. For example, if you only want " +
                     "to include daily (D) L3 AATSR (ATS) files with night observations only, dual view, 3 channel retrieval, " +
                     "bayes cloud screening (nD3b) you could use the regex \'ATS_AVG_3PAARC\\\\d{8}_D_nD3b[.]nc[.]gz\'.");
-    public static final Parameter PARAM_OUTPUT_DIR = new Parameter("outputDir", "DIR", ".", "The output directory.");
 
-    public static final Parameter PARAM_LUT1_FILE = new Parameter("lut1File", "FILE",
+    private static final Parameter PARAM_OUTPUT_DIR = new Parameter("outputDir", "DIR", ".", "The output directory.");
+
+    // @todo 1 tb/tb adapt default path 2014-11-14
+    private static final Parameter PARAM_LUT1_FILE = new Parameter("lut1File", "FILE",
             "./config/auxdata/coverage_uncertainty_parameters.nc",
             "A NetCDF file that provides lookup table 1.");
 
-    public static final Parameter PARAM_LUT2_FILE = new Parameter("lut2File", "FILE",
+    // @todo 1 tb/tb adapt default path 2014-11-14
+    private static final Parameter PARAM_LUT2_FILE = new Parameter("lut2File", "FILE",
             "./config/auxdata/RegionalAverage_LUT2.txt",
             "A plain text file that provides lookup table 2.");
 
-    public static final Parameter PARAM_WRITE_TEXT = new Parameter("writeText", null, null,
-            "Also writes results to a plain text file 'org.esa.cci.sst.tools.org.esa.cci.sst.tools.regavg-output-<date>.txt'.");
+    private static final Parameter PARAM_WRITE_TEXT = new Parameter("writeText", null, null,
+            "Also writes results to a plain text file 'regavg-output-<date>.txt'.");
+
     private ProductType productType;
 
     public static void main(String[] arguments) {
         new AveragingTool().run(arguments);
     }
 
+    // package access for testing only tb 2014-11-14
     static String validTemporalResolutions() {
         final String[] strings = new String[4];
 
@@ -164,7 +175,7 @@ public final class AveragingTool extends Tool {
 
     @Override
     protected Parameter[] getParameters() {
-        ArrayList<Parameter> paramList = new ArrayList<Parameter>();
+        ArrayList<Parameter> paramList = new ArrayList<>();
         paramList.addAll(Arrays.asList(
                 PARAM_SST_DEPTH,
                 PARAM_TEMPORAL_RES,
