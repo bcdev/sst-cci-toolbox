@@ -37,6 +37,7 @@
         <module>tools</module>
         <module>core</module>
         <module>regavg</module>
+        <module>regrid</module>
     </modules>
 
     <dependencyManagement>
