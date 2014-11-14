@@ -31,7 +31,6 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <openjpaversion>2.3.0</openjpaversion>
     </properties>
 
     <dependencies>
