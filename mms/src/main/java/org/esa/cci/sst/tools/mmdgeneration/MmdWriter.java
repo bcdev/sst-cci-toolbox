@@ -10,13 +10,14 @@ import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriter;
 import ucar.nc2.Variable;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-class MmdWriter {
+class MmdWriter implements Closeable {
 
     private final NetcdfFileWriter fileWriter;
 
@@ -56,7 +57,8 @@ class MmdWriter {
         fileWriter.write(variable, origin, array);
     }
 
-    void close() throws IOException {
+    @Override
+    public void close() throws IOException {
         fileWriter.flush();
         fileWriter.close();
     }
