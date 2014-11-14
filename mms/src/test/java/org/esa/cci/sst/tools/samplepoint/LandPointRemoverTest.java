@@ -54,5 +54,4 @@ public class LandPointRemoverTest {
                 .windowTitle(LandPointRemoverTest.class.getCanonicalName())
                 .plot();
     }
-
 }

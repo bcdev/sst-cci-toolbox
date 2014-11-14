@@ -202,9 +202,6 @@ public final class AveragingTool extends Tool {
         final String productTypeValue = configuration.getMandatoryStringValue(PARAM_PRODUCT_TYPE.getName(), PARAM_PRODUCT_TYPE.getDefaultValue());
         productType = ProductType.valueOf(productTypeValue);
 
-        RegionMaskList regionMaskList = parseRegionList(configuration);
-        boolean writeText = configuration.getBooleanValue(PARAM_WRITE_TEXT.getName());
-
         final String climatologyDirValue = configuration.getMandatoryStringValue(PARAM_CLIMATOLOGY_DIR.getName(), PARAM_CLIMATOLOGY_DIR.getDefaultValue());
         final String toolHome = configuration.getToolHome();
         final File climatologyDir = FileUtil.getExistingDirectory(climatologyDirValue, toolHome);
@@ -228,6 +225,7 @@ public final class AveragingTool extends Tool {
         final String temporalResValue = configuration.getMandatoryStringValue(PARAM_TEMPORAL_RES.getName(), PARAM_TEMPORAL_RES.getDefaultValue());
         final TemporalResolution temporalResolution = TemporalResolution.valueOf(temporalResValue);
 
+        final RegionMaskList regionMaskList = parseRegionList(configuration);
         final Date startDate = configuration.getMandatoryShortUtcDateValue(PARAM_START_DATE.getName(), PARAM_START_DATE.getDefaultValue());
         final Date endDate = configuration.getMandatoryShortUtcDateValue(PARAM_END_DATE.getName(), PARAM_END_DATE.getDefaultValue());
         final AveragingAggregator aggregator = new AveragingAggregator(regionMaskList, fileStore, climatology, lut1, lut2, sstDepth);
@@ -240,6 +238,7 @@ public final class AveragingTool extends Tool {
 
         final String outputDirString = configuration.getMandatoryStringValue(PARAM_OUTPUT_DIR.getName(), PARAM_OUTPUT_DIR.getDefaultValue());
         final File outputDir = FileUtil.getExistingDirectory(outputDirString, toolHome);
+        final boolean writeText = configuration.getBooleanValue(PARAM_WRITE_TEXT.getName());
         try {
             writeOutputs(outputDir, writeText, productType, filenameRegex,
                     sstDepth, startDate, endDate, temporalResolution, regionMaskList, timeSteps);

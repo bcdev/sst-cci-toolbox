@@ -33,7 +33,7 @@ import java.util.List;
  * @author Bettina Scholze
  * @author Ralf Quast
  */
-public class AveragingAggregator extends AbstractAggregator {
+class AveragingAggregator extends AbstractAggregator {
 
     private final AggregationContext context;
     private final RegionMaskList regionMaskList;
@@ -41,8 +41,8 @@ public class AveragingAggregator extends AbstractAggregator {
     private LUT1 lut1;
     private LUT2 lut2;
 
-    public AveragingAggregator(RegionMaskList regionMaskList, FileStore fileStore, Climatology climatology, LUT1 lut1,
-                               LUT2 lut2, SstDepth sstDepth) {
+    AveragingAggregator(RegionMaskList regionMaskList, FileStore fileStore, Climatology climatology, LUT1 lut1,
+                        LUT2 lut2, SstDepth sstDepth) {
         super(fileStore, climatology, sstDepth);
 
         this.context = new AggregationContext();

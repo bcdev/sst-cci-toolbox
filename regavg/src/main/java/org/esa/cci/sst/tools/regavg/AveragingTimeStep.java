@@ -10,13 +10,13 @@ import java.util.List;
  * {@author Bettina Scholze}
  * Date: 04.09.12 13:56
  */
-public class AveragingTimeStep implements TimeStep {
+class AveragingTimeStep implements TimeStep {
 
     private final Date startDate;
     private final Date endDate;
     private final List<RegionalAggregation> regionalAggregations;
 
-    public AveragingTimeStep(Date startDate, Date endDate, List<RegionalAggregation> regionalAggregations) {
+    AveragingTimeStep(Date startDate, Date endDate, List<RegionalAggregation> regionalAggregations) {
         this.startDate = startDate;
         this.endDate = endDate;
         this.regionalAggregations = regionalAggregations;
@@ -33,11 +33,14 @@ public class AveragingTimeStep implements TimeStep {
     }
 
     public Number[] getRegionalAggregationResults(int regionIndex) {
-        RegionalAggregation regionalAggregation = regionalAggregations.get(regionIndex);
+        final RegionalAggregation regionalAggregation = regionalAggregations.get(regionIndex);
+        if (regionalAggregation == null) {
+            return new Number[0];
+        }
         return regionalAggregation.getResults();
     }
 
-    public RegionalAggregation getRegionalAggregation(int regionIndex) {
+    RegionalAggregation getRegionalAggregation(int regionIndex) {
         return regionalAggregations.get(regionIndex);
     }
 }
