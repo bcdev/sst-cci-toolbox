@@ -17,6 +17,7 @@ package org.esa.cci.sst.common.cellgrid;/*
 import org.esa.cci.sst.grid.ArrayGrid;
 import org.esa.cci.sst.grid.Grid;
 import org.esa.cci.sst.grid.GridDef;
+import org.esa.cci.sst.grid.Mask;
 import org.junit.Test;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;

@@ -1,7 +1,7 @@
 package org.esa.cci.sst.tools.regavg;
 
 import org.esa.cci.sst.common.ProcessingLevel;
-import org.esa.cci.sst.common.file.ProductType;
+import org.esa.cci.sst.product.ProductType;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

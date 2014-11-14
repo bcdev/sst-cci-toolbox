@@ -17,11 +17,11 @@
 package org.esa.cci.sst.tools.regrid;
 
 import org.esa.cci.sst.aggregate.AggregationContext;
+import org.esa.cci.sst.auxiliary.Climatology;
 import org.esa.cci.sst.common.*;
-import org.esa.cci.sst.common.auxiliary.Climatology;
 import org.esa.cci.sst.common.SynopticUncertaintyProvider;
-import org.esa.cci.sst.common.file.FileStore;
-import org.esa.cci.sst.common.file.ProductType;
+import org.esa.cci.sst.file.FileStore;
+import org.esa.cci.sst.product.ProductType;
 import org.esa.cci.sst.grid.GridDef;
 import org.esa.cci.sst.grid.LUT;
 import org.esa.cci.sst.grid.RegionMaskList;

@@ -1,4 +1,4 @@
-package org.esa.cci.sst.common.cellgrid;/*
+package org.esa.cci.sst.grid;/*
  * Copyright (C) 2012 Brockmann Consult GmbH (info@brockmann-consult.de)
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -14,34 +14,31 @@ package org.esa.cci.sst.common.cellgrid;/*
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-import org.esa.cci.sst.grid.AbstractSamplePermuter;
-import org.esa.cci.sst.grid.Grid;
-
 /**
- * Decorator for swapping the left and right halves of an existing grid.
+ * Decorator for flipping an existing grid upside down.
  *
  * @author Ralf Quast
  */
-public final class XSwap extends AbstractSamplePermuter {
+public final class YFlip extends AbstractSamplePermuter {
 
     private final int h;
 
-    private XSwap(Grid grid) {
+    private YFlip(Grid grid) {
         super(grid);
-        h = getGridDef().getWidth() / 2;
+        h = getGridDef().getHeight();
     }
 
     public static Grid create(Grid grid) {
-        return new XSwap(grid);
+        return new YFlip(grid);
     }
 
     @Override
-    protected final int getSourceX(int x) { // swap left and right halves
-        return x < h ? x + h : x - h;
+    protected final int getSourceX(int x) {
+        return x;
     }
 
     @Override
     protected final int getSourceY(int y) {
-        return y;
+        return h - y - 1;
     }
 }

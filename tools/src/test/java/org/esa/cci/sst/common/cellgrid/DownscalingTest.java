@@ -15,6 +15,7 @@ package org.esa.cci.sst.common.cellgrid;/*
  */
 
 import org.esa.cci.sst.grid.ArrayGrid;
+import org.esa.cci.sst.grid.Downscaling;
 import org.esa.cci.sst.grid.Grid;
 import org.esa.cci.sst.grid.GridDef;
 import org.junit.Before;

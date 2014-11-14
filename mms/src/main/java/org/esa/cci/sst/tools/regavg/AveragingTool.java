@@ -19,14 +19,14 @@
 
 package org.esa.cci.sst.tools.regavg;
 
+import org.esa.cci.sst.auxiliary.Climatology;
 import org.esa.cci.sst.common.ProcessingLevel;
 import org.esa.cci.sst.grid.RegionMaskList;
 import org.esa.cci.sst.common.SstDepth;
 import org.esa.cci.sst.common.TemporalResolution;
-import org.esa.cci.sst.common.auxiliary.Climatology;
 import org.esa.cci.sst.grid.RegionMask;
-import org.esa.cci.sst.common.file.FileStore;
-import org.esa.cci.sst.common.file.ProductType;
+import org.esa.cci.sst.file.FileStore;
+import org.esa.cci.sst.product.ProductType;
 import org.esa.cci.sst.log.SstLogging;
 import org.esa.cci.sst.tools.regavg.auxiliary.LUT1;
 import org.esa.cci.sst.tools.regavg.auxiliary.LUT2;

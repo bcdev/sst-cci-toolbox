@@ -213,7 +213,7 @@ public abstract class Tool {
         System.out.printf("%s version %s%n", getName(), getVersion());
     }
 
-    private CommandLine parseCommandLine(String[] arguments) throws ParseException {
+    private CommandLine parseCommandLine(String[] arguments) throws org.apache.commons.cli.ParseException {
         CommandLineParser parser = new GnuParser();
         return parser.parse(options, arguments);
     }

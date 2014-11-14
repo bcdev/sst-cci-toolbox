@@ -1,13 +1,13 @@
 package org.esa.cci.sst.tools.regavg;
 
 import org.esa.cci.sst.aggregate.*;
+import org.esa.cci.sst.auxiliary.Climatology;
 import org.esa.cci.sst.cell.CellAggregationCell;
 import org.esa.cci.sst.cell.CellFactory;
 import org.esa.cci.sst.cell.CellGrid;
 import org.esa.cci.sst.common.*;
-import org.esa.cci.sst.common.auxiliary.Climatology;
-import org.esa.cci.sst.common.file.FileList;
-import org.esa.cci.sst.common.file.FileStore;
+import org.esa.cci.sst.file.FileList;
+import org.esa.cci.sst.file.FileStore;
 import org.esa.cci.sst.file.FileType;
 import org.esa.cci.sst.grid.Grid;
 import org.esa.cci.sst.grid.GridDef;

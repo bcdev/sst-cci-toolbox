@@ -1,4 +1,4 @@
-package org.esa.cci.sst.common.cellgrid;/*
+package org.esa.cci.sst.cell;/*
  * Copyright (C) 2012 Brockmann Consult GmbH (info@brockmann-consult.de)
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -14,34 +14,19 @@ package org.esa.cci.sst.common.cellgrid;/*
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-import org.esa.cci.sst.grid.AbstractSamplePermuter;
-import org.esa.cci.sst.grid.Grid;
+import org.esa.cci.sst.aggregate.AggregationContext;
+import org.esa.cci.sst.aggregate.SpatialAggregationCell;
 
-/**
- * Decorator for swapping the left and right halves of an existing grid.
- *
- * @author Ralf Quast
- */
-public final class XSwap extends AbstractSamplePermuter {
+public class SpatialAggregationCellFactory implements CellFactory<SpatialAggregationCell> {
 
-    private final int h;
+    private final AggregationContext context;
 
-    private XSwap(Grid grid) {
-        super(grid);
-        h = getGridDef().getWidth() / 2;
-    }
-
-    public static Grid create(Grid grid) {
-        return new XSwap(grid);
+    public SpatialAggregationCellFactory(AggregationContext context) {
+        this.context = context;
     }
 
     @Override
-    protected final int getSourceX(int x) { // swap left and right halves
-        return x < h ? x + h : x - h;
-    }
-
-    @Override
-    protected final int getSourceY(int y) {
-        return y;
+    public SpatialAggregationCell createCell(int cellX, int cellY) {
+        return new DefaultSpatialAggregationCell(context, cellX, cellY);
     }
 }
