@@ -246,8 +246,10 @@ Then use e.g. rsync to copy directories of data
 
 ## Copyright and licensing
 
-This software is under copyright 2010-2014 by Brockmann Consult GmbH and distributed under the GNU General Public
-License. Terms and conditions are described in the accompanying LICENSE.txt and NOTICE.txt files.
+This software is under copyright 2010-2014 by Brockmann Consult GmbH.
+
+This software is distributed under the GNU General Public License. Further terms and conditions are described in the
+accompanying LICENSE.txt and NOTICE.txt files.
 
 
 ## Contact information
