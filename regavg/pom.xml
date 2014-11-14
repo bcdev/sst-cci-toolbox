@@ -28,8 +28,6 @@
 
     <name>SST-CCI Regional Averaging Tool</name>
     <artifactId>sst-cci-regavg</artifactId>
-    <!-- @todo 2 tb/tb check version 2014-11-14 -->
-    <version>2.0-SNAPSHOT</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -44,124 +42,12 @@
             <version>1</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.esa-sst-cci</groupId>
-            <artifactId>sst-cci-core</artifactId>
-            <version>1</version>
-            <type>test-jar</type>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>edu.ucar</groupId>
-            <artifactId>netcdf</artifactId>
-        </dependency>
-
-        <!--
-           BEAM
-        -->
-        <dependency>
-            <groupId>org.esa.beam</groupId>
-            <artifactId>beam-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.esa.beam</groupId>
-            <artifactId>beam-gpf</artifactId>
-            <version>5.0.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.esa.beam</groupId>
-            <artifactId>beam-envisat-reader</artifactId>
-            <version>5.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.esa.beam</groupId>
-            <artifactId>beam-netcdf</artifactId>
-            <version>5.0.2</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>edu.ucar</groupId>
-                    <artifactId>netcdf</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <!--
-           PostgreSQL and PostGIS support
-        -->
-        <dependency>
-            <groupId>postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <version>9.0-801.jdbc4</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.postgis</groupId>
-            <artifactId>postgis</artifactId>
-            <version>1.5.2</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.openjpa</groupId>
-            <artifactId>openjpa-all</artifactId>
-            <version>${openjpaversion}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-        </dependency>
-
-        <!--
-           Other
-        -->
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>2.2.2</version>
-        </dependency>
-
-        <dependency>
-            <groupId>commons-cli</groupId>
-            <artifactId>commons-cli</artifactId>
-            <version>1.2</version>
-        </dependency>
-
         <!--
            Testing
         -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest-core</artifactId>
-            <version>1.3</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest-library</artifactId>
-            <version>1.3</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-module-junit4</artifactId>
-            <version>1.5.4</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-api-mockito</artifactId>
-            <version>1.5.4</version>
-            <scope>test</scope>
         </dependency>
 
     </dependencies>
@@ -191,19 +77,9 @@
                     <forkCount>0</forkCount>
                 </configuration>
             </plugin>
+
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>2.4</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>test-jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
+                <!-- @todo 1 tb/tb make new assembly -->
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>2.4</version>
                 <configuration>
@@ -214,47 +90,5 @@
             </plugin>
         </plugins>
     </build>
-
-    <profiles>
-        <profile>
-            <id>cems</id>
-            <activation>
-                <property>
-                    <name>env.HOSTNAME</name>
-                    <value>mms1.cems.rl.ac.uk</value>
-                </property>
-            </activation>
-            <properties>
-                <!-- Path to the MMS installation -->
-                <mms.home>/group_workspaces/cems2/esacci_sst/mms/software/sst-cci-mms-${project.version}</mms.home>
-                <!-- Path to the MMS source code -->
-                <mms.github>/group_workspaces/cems2/esacci_sst/mms/github/sst-cci-toolbox/mms</mms.github>
-                <!-- Path to the root directory of the MMS data archive -->
-                <mms.archive.root>/group_workspaces/cems2/esacci_sst/mms/archive</mms.archive.root>
-                <!-- Path to the root directory of the MMS data archive -->
-                <mms.tmpdir>/group_workspaces/cems2/esacci_sst/mms/tmp</mms.tmpdir>
-
-                <!-- Path to the JDK -->
-                <mms.jdk.home>/group_workspaces/cems2/esacci_sst/mms/software/jdk1.7.0_51</mms.jdk.home>
-                <!-- Path to the GBCS installation to use -->
-                <mms.gbcs.home>/group_workspaces/cems2/esacci_sst/software/gbcs</mms.gbcs.home>
-                <!-- The GBCS version to use -->
-                <mms.gbcs.version>v2.1.2</mms.gbcs.version>
-                <!-- The Intel compiler version to use -->
-                <mms.gbcs.intelversion>12.1.5</mms.gbcs.intelversion>
-                <!-- Path to the CDO installation to use -->
-                <mms.nwp.cdo.home>/group_workspaces/cems2/esacci_sst/software/cdo/1.6.4</mms.nwp.cdo.home>
-
-                <!-- Properties related to the PostgreSQL database -->
-                <mms.pg.host>130.246.142.93</mms.pg.host>
-                <mms.pg.port>5423</mms.pg.port>
-                <mms.pg.data>/data/mboettcher/mms/db/mmdb</mms.pg.data>
-                <mms.pg.home>/group_workspaces/cems2/esacci_sst/mms/software/support</mms.pg.home>
-                <mms.pg.log>/data/mboettcher/mms/db/log/mms.log</mms.pg.log>
-                <mms.pg.backup>/group_workspaces/cems2/esacci_sst/mms/backup</mms.pg.backup>
-            </properties>
-        </profile>
-
-    </profiles>
 
 </project>

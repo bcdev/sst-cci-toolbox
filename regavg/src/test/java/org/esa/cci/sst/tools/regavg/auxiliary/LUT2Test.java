@@ -5,7 +5,8 @@ import org.junit.Test;
 import java.io.File;
 import java.net.URL;
 
-import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.assertEquals;
+
 
 /**
  * @author Norman Fomferra
