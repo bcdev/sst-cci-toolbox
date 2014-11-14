@@ -1,4 +1,4 @@
-package org.esa.cci.sst.common.cellgrid;/*
+package org.esa.cci.sst.grid;/*
  * Copyright (C) 2012 Brockmann Consult GmbH (info@brockmann-consult.de)
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -13,9 +13,6 @@ package org.esa.cci.sst.common.cellgrid;/*
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, see http://www.gnu.org/licenses/
  */
-
-import org.esa.cci.sst.grid.Grid;
-import org.esa.cci.sst.grid.GridDef;
 
 /**
  * Decorator for interpolating an existing grid to higher resolution.

@@ -44,34 +44,16 @@
         </dependency>
 
         <dependency>
-            <groupId>edu.ucar</groupId>
-            <artifactId>netcdf</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>org.esa-sst-cci</groupId>
-            <artifactId>sst-cci-tools</artifactId>
-            <version>3.0-SNAPSHOT</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.esa.beam</groupId>
-                    <artifactId>beam-core</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>org.esa-sst-cci</groupId>
-            <artifactId>sst-cci-tools</artifactId>
-            <version>3.0-SNAPSHOT</version>
+            <artifactId>sst-cci-core</artifactId>
+            <version>1</version>
             <type>test-jar</type>
             <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.esa.beam</groupId>
-                    <artifactId>beam-core</artifactId>
-                </exclusion>
-            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>edu.ucar</groupId>
+            <artifactId>netcdf</artifactId>
         </dependency>
 
         <!--

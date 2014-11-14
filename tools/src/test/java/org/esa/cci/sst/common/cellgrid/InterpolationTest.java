@@ -14,10 +14,7 @@ package org.esa.cci.sst.common.cellgrid;/*
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-import org.esa.cci.sst.grid.ArrayGrid;
-import org.esa.cci.sst.grid.Downscaling;
-import org.esa.cci.sst.grid.Grid;
-import org.esa.cci.sst.grid.GridDef;
+import org.esa.cci.sst.grid.*;
 import org.junit.Before;
 import org.junit.Test;
 import ucar.ma2.Array;

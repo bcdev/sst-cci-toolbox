@@ -1,6 +1,5 @@
-package org.esa.cci.sst.common.file;
+package org.esa.cci.sst.file;
 
-import org.esa.cci.sst.file.FileTree;
 import org.esa.cci.sst.util.TimeUtil;
 import org.junit.Test;
 
