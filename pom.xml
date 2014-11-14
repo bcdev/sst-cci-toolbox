@@ -36,6 +36,7 @@
         <module>mms</module>
         <module>tools</module>
         <module>core</module>
+        <module>regavg</module>
     </modules>
 
     <dependencyManagement>

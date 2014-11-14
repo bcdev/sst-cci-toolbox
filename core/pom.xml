@@ -9,6 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
+    <name>SST-CCI Core Module</name>
     <artifactId>sst-cci-core</artifactId>
 
     <dependencies>

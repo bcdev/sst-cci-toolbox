@@ -84,7 +84,7 @@ public class AveragingAggregator extends AbstractAggregator {
                 SpatialResolution.DEGREE_5_00, temporalResolution);
         context.setSynopticUncertaintyProvider(synopticUncertaintyProvider);
 
-        final List<AveragingTimeStep> results = new ArrayList<AveragingTimeStep>();
+        final List<AveragingTimeStep> results = new ArrayList<>();
         final Calendar calendar = TimeUtil.createUtcCalendar(startDate);
 
         while (calendar.getTime().before(endDate) || calendar.getTime().equals(endDate)) {
@@ -215,7 +215,7 @@ public class AveragingAggregator extends AbstractAggregator {
             RegionMaskList regionMaskList,
             CellFactory<CellAggregationCell<AggregationCell>> cellFactory90,
             AggregationFactory<SameMonthAggregation<AggregationCell>> aggregationFactory) {
-        final List<RegionalAggregation> regionalAggregations = new ArrayList<RegionalAggregation>();
+        final List<RegionalAggregation> regionalAggregations = new ArrayList<>();
 
         for (final RegionMask regionMask : regionMaskList) {
             final CellGrid<? extends AggregationCell> regionCellGrid5 = getCellGridForRegion(sourceCellGrid5,

@@ -37,8 +37,7 @@ public class LUT2 {
     final double[][] weights;
 
     public static LUT2 read(File file) throws IOException {
-        FileReader fileReader = new FileReader(file);
-        try {
+        try (FileReader fileReader = new FileReader(file)) {
             LineNumberReader reader = new LineNumberReader(fileReader);
             reader.readLine();
             reader.readLine();
@@ -51,8 +50,6 @@ public class LUT2 {
                 parseLine(reader.readLine(), month, weights, 4);
             }
             return new LUT2(weights);
-        } finally {
-            fileReader.close();
         }
     }
 

@@ -28,9 +28,12 @@ import org.esa.cci.sst.grid.RegionMask;
 import org.esa.cci.sst.file.FileStore;
 import org.esa.cci.sst.product.ProductType;
 import org.esa.cci.sst.log.SstLogging;
+import org.esa.cci.sst.tool.Configuration;
+import org.esa.cci.sst.tool.Parameter;
+import org.esa.cci.sst.tool.Tool;
+import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.tools.regavg.auxiliary.LUT1;
 import org.esa.cci.sst.tools.regavg.auxiliary.LUT2;
-import org.esa.cci.sst.tool.*;
 import org.esa.cci.sst.util.FileUtil;
 import org.esa.cci.sst.util.TimeUtil;
 import ucar.ma2.Array;
@@ -62,11 +65,11 @@ public final class AveragingTool extends Tool {
 
     private static final String FILE_FORMAT_VERSION = "1.1";
 
-    private static final String TOOL_NAME = "regavg";
+    private static final String TOOL_NAME = "org/esa/cci/sst/tools/regavg";
     private static final String TOOL_VERSION = "2.0";
     private static final String TOOL_SYNTAX = TOOL_NAME + " [OPTIONS]";
     private static final String TOOL_HEADER = "\n" +
-            "The regavg tool is used to generate regional average time-series from ARC (L2P, L3U) and " +
+            "The org.esa.cci.sst.tools.regavg tool is used to generate regional average time-series from ARC (L2P, L3U) and " +
             "SST_cci (L3U, L3P, L4) product files given a time interval and a list of regions. An output " +
             "NetCDF file will be written for each region.\n" +
             "OPTIONS may be one or more of the following:\n";
@@ -114,7 +117,7 @@ public final class AveragingTool extends Tool {
             "A plain text file that provides lookup table 2.");
 
     public static final Parameter PARAM_WRITE_TEXT = new Parameter("writeText", null, null,
-            "Also writes results to a plain text file 'regavg-output-<date>.txt'.");
+            "Also writes results to a plain text file 'org.esa.cci.sst.tools.org.esa.cci.sst.tools.regavg-output-<date>.txt'.");
     private ProductType productType;
 
     public static void main(String[] arguments) {
@@ -431,7 +434,7 @@ public final class AveragingTool extends Tool {
     }
 
     private static String[] getNames(Variable[] variables) {
-        final List<String> names = new ArrayList<String>(variables.length);
+        final List<String> names = new ArrayList<>(variables.length);
         for (final Variable v : variables) {
             if (v != null) {
                 names.add(v.getShortName());
