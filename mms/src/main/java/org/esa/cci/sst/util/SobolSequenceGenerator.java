@@ -1,4 +1,3 @@
-package org.esa.cci.sst.util;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -17,6 +16,8 @@ package org.esa.cci.sst.util;
  *
  * NOTE: THIS FILE HAS BEEN MODIFIED BY BC TO SUIT PARTICULAR NEEDS.
  */
+
+package org.esa.cci.sst.util;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -139,7 +140,9 @@ public class SobolSequenceGenerator {
      * valid direction vector per line.
      *
      * @param is the input stream to read the direction vector from
+     *
      * @return the last dimension that has been read from the input stream
+     *
      * @throws java.io.IOException if the stream could not be read
      */
     private int initFromStream(final InputStream is) throws IOException {
@@ -238,6 +241,7 @@ public class SobolSequenceGenerator {
      * This operation can be performed in O(1).
      *
      * @param index the index in the sequence to skip to
+     *
      * @return the i-th point in the Sobol sequence
      */
     private double[] skipTo(final int index) {

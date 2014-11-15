@@ -1,4 +1,3 @@
-# -*- coding: UTF-8 -*-
 """Easy to use object-oriented thread pool framework.
 
 A thread pool is an object that maintains a pool of worker threads to perform
@@ -30,6 +29,7 @@ See the end of the module code for a brief, annotated usage example.
 
 Website : http://chrisarndt.de/projects/threadpool/
 
+NOTE: THIS FILE HAS BEEN MODIFIED BY BC TO SUIT PEP8 conventions.
 """
 
 __docformat__ = "restructuredtext en"
