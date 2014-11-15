@@ -1,4 +1,4 @@
-__author__ = 'ralf'
+__author__ = 'Ralf Quast'
 
 from netCDF4 import Dataset
 from netCDF4 import MFDataset
