@@ -1,10 +1,11 @@
 __author__ = 'Ralf Quast'
 
+import glob
+import os
+
 from netCDF4 import Dataset
 from netCDF4 import MFDataset
 
-import glob
-import os
 
 year = "2003"
 months = ["01", "03", "04", "05", "06"]
@@ -76,6 +77,8 @@ def open_mmd_dataset(month):
     print("opening file " + dataset_path)
     return Dataset(dataset_path)
 
+
+# noinspection PyShadowingNames
 def copy_mmd_dataset_writeable(old_mmd_dataset):
     dataset_path = old_mmd_dataset.filepath().replace(".nc", "-corrected.nc4")
     print("creating file " + dataset_path)
@@ -87,7 +90,8 @@ def copy_mmd_dataset_writeable(old_mmd_dataset):
     for variable_name in old_mmd_dataset.variables:
         print("  creating variable " + variable_name)
         old_variable = old_mmd_dataset.variables[variable_name]
-        new_variable = new_mmd_dataset.createVariable(variable_name, old_variable.dtype, dimensions=old_variable.dimensions, zlib=True)
+        new_variable = new_mmd_dataset.createVariable(variable_name, old_variable.dtype,
+                                                      dimensions=old_variable.dimensions, zlib=True)
         for attribute_name in old_variable.ncattrs():
             print("    creating attribute " + attribute_name)
             attribute_value = old_variable.getncattr(attribute_name)
@@ -99,6 +103,7 @@ def copy_mmd_dataset_writeable(old_mmd_dataset):
 
     return new_mmd_dataset
 
+
 def open_nwp_dataset(month, prefix):
     month_dir_path = os.path.join(nwp_path, month)
 
@@ -108,20 +113,25 @@ def open_nwp_dataset(month, prefix):
 
     return MFDataset(file_paths, aggdim="matchup")
 
+
+# noinspection PyShadowingNames
 def write_nwp_values(new_mmd_dataset, mmd_variable_name, mmd_values):
     print("  writing variable " + mmd_variable_name)
     new_variable = new_mmd_dataset.variables[mmd_variable_name]
     new_variable[:] = mmd_values
 
+
+# noinspection PyShadowingNames
 def copy_variable_values(old_mmd_dataset, new_mmd_dataset, mmd_variable_name):
     print("  copying variable " + mmd_variable_name)
     old_variable = old_mmd_dataset.variables[mmd_variable_name]
     new_variable = new_mmd_dataset.variables[mmd_variable_name]
     new_variable[:] = old_variable[:]
 
+
 if __name__ == "__main__":
-    for month in months:
-        old_mmd_dataset = open_mmd_dataset(month)
+    for m in months:
+        old_mmd_dataset = open_mmd_dataset(m)
         new_mmd_dataset = copy_mmd_dataset_writeable(old_mmd_dataset)
         mmd_matchup_ids = old_mmd_dataset.variables["matchup.id"][:]
 
@@ -132,9 +142,10 @@ if __name__ == "__main__":
                 mmd_variable_short_name = mmd_variable_name[pos + 1:]
                 if mmd_variable_prefix in variable_prefix_to_filename_prefix_mapping:
                     nwp_filename_prefix = variable_prefix_to_filename_prefix_mapping[mmd_variable_prefix]
-                    nwp_dataset = open_nwp_dataset(month, nwp_filename_prefix)
+                    nwp_dataset = open_nwp_dataset(m, nwp_filename_prefix)
                     if nwp_dataset is not None:
-                        nwp_variable_name = variable_prefix_mapping[mmd_variable_prefix] + "." + variable_name_mapping[mmd_variable_short_name]
+                        nwp_variable_name = variable_prefix_mapping[mmd_variable_prefix] + "." + variable_name_mapping[
+                            mmd_variable_short_name]
                         nwp_values = nwp_dataset.variables[nwp_variable_name][:]
                         mmd_values = old_mmd_dataset.variables[mmd_variable_name][:]
                         nwp_matchup_ids = nwp_dataset.variables["matchup.id"][:]
@@ -159,16 +170,5 @@ if __name__ == "__main__":
         new_mmd_dataset.close()
         old_mmd_dataset.close()
 
-        os.system("/usr/local/bin/nccopy -k2 " + new_mmd_dataset_path + " " + new_mmd_dataset_path.replace(".nc4", ".nc"))
-
-
-
-
-
-
-
-
-
-
-
-
+        os.system(
+            "/usr/local/bin/nccopy -k2 " + new_mmd_dataset_path + " " + new_mmd_dataset_path.replace(".nc4", ".nc"))
