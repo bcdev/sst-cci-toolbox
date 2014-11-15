@@ -1,4 +1,4 @@
-__author__ = 'boe'
+__author__ = 'Martin Boettcher'
 
 import glob
 import os
@@ -116,7 +116,7 @@ class PMonitor:
                     log_prefix = log_prefix[:-3]
             self._created += 1
             request = threadpool.WorkRequest(None, [call, self._created, parameters, None, outputs, None, log_prefix],
-                                             priority=priority, requestID=self._created)
+                                             priority=priority, request_id=self._created)
             for o in outputs:
                 if o in self._counts:
                     self._counts[o] += 1
@@ -128,7 +128,7 @@ class PMonitor:
                 if collating:
                     request.callable = self._process_step
                     request.args[3] = input_paths
-                    self._pool.putRequest(request)
+                    self._pool.put_request(request)
                     if self._delay is not None:
                         time.sleep(self._delay)
                 else:
@@ -141,11 +141,11 @@ class PMonitor:
                             request = threadpool.WorkRequest(self._process_step,
                                                              [call, self._created, parameters, input_paths[i:i + 1],
                                                               outputs, None, log_prefix],
-                                                             priority=priority, requestID=self._created)
+                                                             priority=priority, request_id=self._created)
                             for o in outputs:
                                 self._counts[o] += 1
                         if i == 0 or self._constraints_fulfilled(request):
-                            self._pool.putRequest(request)
+                            self._pool.put_request(request)
                             if self._delay is not None:
                                 time.sleep(self._delay)
                         else:
@@ -369,7 +369,7 @@ class PMonitor:
                     if task.callable == self._translate_step or task.callable == self._process_step:
                         task.callable = self._process_step
                         task.args[3] = input_paths
-                        self._pool.putRequest(task)
+                        self._pool.put_request(task)
                         if self._delay is not None:
                             time.sleep(self._delay)
                     else:
@@ -384,10 +384,10 @@ class PMonitor:
                                 task = threadpool.WorkRequest(self._process_step,
                                                               [task.args[0], self._created, task.args[2],
                                                                input_paths[i:i + 1], task.args[4], None, task.args[6]],
-                                                              priority=task.priority, requestID=self._created)
+                                                              priority=task.priority, request_id=self._created)
                                 self._counts[task.args[4][0]] += 1
                             if i == 0 or self._constraints_fulfilled(task):
-                                self._pool.putRequest(task)
+                                self._pool.put_request(task)
                                 if self._delay is not None:
                                     time.sleep(self._delay)
                             else:
