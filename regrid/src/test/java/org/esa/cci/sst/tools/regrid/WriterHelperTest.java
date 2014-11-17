@@ -18,89 +18,82 @@ import org.esa.cci.sst.common.SpatialResolution;
 import org.esa.cci.sst.grid.GridDef;
 import org.junit.Test;
 
-import java.util.Arrays;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertArrayEquals;
 
 public class WriterHelperTest {
+
+    private final float[] EXPECTED_LAT = new float[]{
+            85.0f,
+            75.0f,
+            65.0f,
+            55.0f,
+            45.0f,
+            35.0f,
+            25.0f,
+            15.0f,
+            5.0f,
+            -5.0f,
+            -15.0f,
+            -25.0f,
+            -35.0f,
+            -45.0f,
+            -55.0f,
+            -65.0f,
+            -75.0f,
+            -85.0f
+    };
+    private final float[] EXPECTED_LON = new float[]{
+            -175.0f,
+            -165.0f,
+            -155.0f,
+            -145.0f,
+            -135.0f,
+            -125.0f,
+            -115.0f,
+            -105.0f,
+            -95.0f,
+            -85.0f,
+            -75.0f,
+            -65.0f,
+            -55.0f,
+            -45.0f,
+            -35.0f,
+            -25.0f,
+            -15.0f,
+            -5.0f,
+            5.0f,
+            15.0f,
+            25.0f,
+            35.0f,
+            45.0f,
+            55.0f,
+            65.0f,
+            75.0f,
+            85.0f,
+            95.0f,
+            105.0f,
+            115.0f,
+            125.0f,
+            135.0f,
+            145.0f,
+            155.0f,
+            165.0f,
+            175.0f
+    };
 
     @Test
     public void testCreateLatData() throws Exception {
         final GridDef gridDef = SpatialResolution.DEGREE_10_00.getGridDef();
 
         final float[] latData = WriterHelper.createLatData(gridDef);
-        assertEquals(18, latData.length);
-
-        final float[] expected = new float[]{
-                85.0f,
-                75.0f,
-                65.0f,
-                55.0f,
-                45.0f,
-                35.0f,
-                25.0f,
-                15.0f,
-                5.0f,
-                -5.0f,
-                -15.0f,
-                -25.0f,
-                -35.0f,
-                -45.0f,
-                -55.0f,
-                -65.0f,
-                -75.0f,
-                -85.0f
-        };
-        assertTrue(Arrays.equals(expected, latData));
+        assertArrayEquals(EXPECTED_LAT, latData, 1e-8f);
     }
 
     @Test
     public void testCreateLonData() throws Exception {
-        GridDef gridDef = SpatialResolution.DEGREE_10_00.getGridDef();
+        final GridDef gridDef = SpatialResolution.DEGREE_10_00.getGridDef();
 
         final float[] lonData = WriterHelper.createLonData(gridDef);
-        assertEquals(36, lonData.length);
-
-        final float[] expected = new float[]{
-                -175.0f,
-                -165.0f,
-                -155.0f,
-                -145.0f,
-                -135.0f,
-                -125.0f,
-                -115.0f,
-                -105.0f,
-                -95.0f,
-                -85.0f,
-                -75.0f,
-                -65.0f,
-                -55.0f,
-                -45.0f,
-                -35.0f,
-                -25.0f,
-                -15.0f,
-                -5.0f,
-                5.0f,
-                15.0f,
-                25.0f,
-                35.0f,
-                45.0f,
-                55.0f,
-                65.0f,
-                75.0f,
-                85.0f,
-                95.0f,
-                105.0f,
-                115.0f,
-                125.0f,
-                135.0f,
-                145.0f,
-                155.0f,
-                165.0f,
-                175.0f
-        };
-        assertTrue(Arrays.equals(expected, lonData));
+        assertArrayEquals(EXPECTED_LON, lonData, 1e-8f);
     }
-
 }
