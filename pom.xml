@@ -36,7 +36,6 @@
         <module>assessment</module>
         <module>core</module>
         <module>mms</module>
-        <module>tools</module>
         <module>regavg</module>
         <module>regrid</module>
     </modules>
