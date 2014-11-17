@@ -115,14 +115,13 @@ public final class AveragingTool extends Tool {
 
     private static final Parameter PARAM_OUTPUT_DIR = new Parameter("outputDir", "DIR", ".", "The output directory.");
 
-    // @todo 1 tb/tb adapt default path 2014-11-14
     private static final Parameter PARAM_LUT1_FILE = new Parameter("lut1File", "FILE",
-            "./config/auxdata/coverage_uncertainty_parameters.nc",
+            "./auxdata/coverage_uncertainty_parameters.nc",
             "A NetCDF file that provides lookup table 1.");
 
     // @todo 1 tb/tb adapt default path 2014-11-14
     private static final Parameter PARAM_LUT2_FILE = new Parameter("lut2File", "FILE",
-            "./config/auxdata/RegionalAverage_LUT2.txt",
+            "./auxdata/RegionalAverage_LUT2.txt",
             "A plain text file that provides lookup table 2.");
 
     private static final Parameter PARAM_WRITE_TEXT = new Parameter("writeText", null, null,
