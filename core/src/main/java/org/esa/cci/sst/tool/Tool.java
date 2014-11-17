@@ -166,12 +166,9 @@ public abstract class Tool {
 
     private void loadConfig(String configPath, Properties properties) throws ToolException {
         try {
-            FileReader reader = new FileReader(configPath);
-            try {
+            try (FileReader reader = new FileReader(configPath)) {
                 properties.load(reader);
                 logger.info("Configuration '" + configPath + "' loaded");
-            } finally {
-                reader.close();
             }
         } catch (IOException e) {
             final String message = MessageFormat.format("Failed to load configuration from ''{0}'': {1}", configPath, e.getMessage());
@@ -198,7 +195,7 @@ public abstract class Tool {
     }
 
     private void printHelp() {
-        HelpFormatter helpFormatter = new HelpFormatter();
+        final HelpFormatter helpFormatter = new HelpFormatter();
         helpFormatter.setWidth(120);
         helpFormatter.printHelp(getSyntax(),
                 getHeader(),

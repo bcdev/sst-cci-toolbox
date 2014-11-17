@@ -101,12 +101,12 @@ public class RegriddingTool extends Tool {
 
     public static final Parameter PARAM_COVERAGE_UNCERTAINTY_FILE_STDDEV = new Parameter("coverageUncertainty.StdDev",
             "FILE",
-            "./config/auxdata/20070321-UKMO-L4HRfnd-GLOB-v01-fv02-OSTIARANanom_stdev.nc",
+            "./auxdata/20070321-UKMO-L4HRfnd-GLOB-v01-fv02-OSTIARANanom_stdev.nc",
             "A NetCDF file that provides lookup table 1/3 for coverage uncertainties.");
 
     public static final Parameter PARAM_COVERAGE_UNCERTAINTY_FILE_X0TIME = new Parameter("coverageUncertainty.x0Time",
             "FILE",
-            "./config/auxdata/x0_time.txt",
+            "./auxdata/x0_time.txt",
             "A txt file that provides lookup table 2/3 for coverage uncertainties.");
 
     public static final Parameter PARAM_COVERAGE_UNCERTAINTY_FILE_X0SPACE = new Parameter("coverageUncertainty.x0Space",
@@ -126,9 +126,7 @@ public class RegriddingTool extends Tool {
         final String productTypeValue = configuration.getMandatoryStringValue(PARAM_PRODUCT_TYPE.getName(), PARAM_PRODUCT_TYPE.getDefaultValue());
         productType = ProductType.valueOf(productTypeValue);
 
-
         final RegionMaskList regionMaskList = getRegionMaskList(configuration);
-
 
         final boolean totalUncertainty = configuration.getBooleanValue(PARAM_TOTAL_UNCERTAINTY.getName());
         final double maxTotalUncertainty = configuration.getDoubleValue(PARAM_MAX_TOTAL_UNCERTAINTY.getName(), 0.0);
