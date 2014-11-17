@@ -11,6 +11,7 @@ from workflow import SensorPair
 from workflow import Workflow
 
 
+
 # noinspection PyProtectedMember
 class WorkflowTests(unittest.TestCase):
     def test_period_construction(self):
