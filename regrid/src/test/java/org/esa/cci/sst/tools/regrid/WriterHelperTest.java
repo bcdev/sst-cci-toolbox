@@ -19,6 +19,7 @@ import org.esa.cci.sst.grid.GridDef;
 import org.junit.Test;
 
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
 public class WriterHelperTest {
 
@@ -95,5 +96,41 @@ public class WriterHelperTest {
 
         final float[] lonData = WriterHelper.createLonData(gridDef);
         assertArrayEquals(EXPECTED_LON, lonData, 1e-8f);
+    }
+
+    @Test
+    public void testCreateLatBoundsData() {
+        final GridDef gridDef = SpatialResolution.DEGREE_5_00.getGridDef();
+
+        final float[][] latBoundsData = WriterHelper.createLatBoundsData(gridDef);
+        assertEquals(36, latBoundsData.length);
+        assertEquals(2, latBoundsData[0].length);
+
+        assertEquals(85.0, latBoundsData[0][0], 1e-8);
+        assertEquals(90.0, latBoundsData[0][1], 1e-8);
+
+        assertEquals(0.0, latBoundsData[17][0], 1e-8);
+        assertEquals(5.0, latBoundsData[17][1], 1e-8);
+
+        assertEquals(-90.0, latBoundsData[35][0], 1e-8);
+        assertEquals(-85.0, latBoundsData[35][1], 1e-8);
+    }
+
+    @Test
+    public void testCreateLonBoundsData() {
+        final GridDef gridDef = SpatialResolution.DEGREE_5_00.getGridDef();
+
+        final float[][] lonBoundsData = WriterHelper.createLonBoundsData(gridDef);
+        assertEquals(72, lonBoundsData.length);
+        assertEquals(2, lonBoundsData[0].length);
+
+        assertEquals(-180.0, lonBoundsData[0][0], 1e-8);
+        assertEquals(-175.0, lonBoundsData[0][1], 1e-8);
+
+        assertEquals(-5.0, lonBoundsData[35][0], 1e-8);
+        assertEquals(0.0, lonBoundsData[35][1], 1e-8);
+
+        assertEquals(175.0, lonBoundsData[71][0], 1e-8);
+        assertEquals(180.0, lonBoundsData[71][1], 1e-8);
     }
 }
