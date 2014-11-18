@@ -16,6 +16,7 @@
 
 package org.esa.cci.sst.rules;
 
+import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.ReferenceObservation;
@@ -63,7 +64,8 @@ final class ObservationTime extends AbstractImplicitRule {
         final GeoPos geoPos = new GeoPos((float) lat, (float) lon);
         final long time;
         try {
-            final int scanLine = (int) reader.getGeoCoding(recordNo).getPixelPos(geoPos, null).y;
+            final GeoCoding geoCoding = reader.getGeoCoding(recordNo);
+            final int scanLine = (int) geoCoding.getPixelPos(geoPos, null).getY();
             time = reader.getTime(recordNo, scanLine);
         } catch (IOException e) {
             throw new RuleException("Cannot read time.", e);

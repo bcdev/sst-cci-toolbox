@@ -74,9 +74,7 @@ class NwpUtil {
         final int seventyTwoHours = 72 * 60 * 60;
         final int fortyEightHours = 48 * 60 * 60;
         final Date startDate = TimeUtil.secondsSince1978ToDate(startTime - seventyTwoHours);
-        System.out.println("startDate = " + startDate);
         final Date stopDate = TimeUtil.secondsSince1978ToDate(endTime + fortyEightHours);
-        System.out.println("stopDate = " + stopDate);
         final GregorianCalendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
         calendar.setTime(startDate);
         calendar.set(Calendar.HOUR_OF_DAY, 0);
