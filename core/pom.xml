@@ -23,6 +23,7 @@
         <groupId>org.esa-sst-cci</groupId>
         <version>1</version>
     </parent>
+
     <modelVersion>4.0.0</modelVersion>
 
     <name>SST-CCI Core Module</name>
@@ -73,6 +74,7 @@
                 <executions>
                     <execution>
                         <goals>
+                            <goal>jar</goal>
                             <goal>test-jar</goal>
                         </goals>
                     </execution>
@@ -80,6 +82,5 @@
             </plugin>
         </plugins>
     </build>
-
 
 </project>

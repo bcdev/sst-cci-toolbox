@@ -1,6 +1,0 @@
-# Changelog of the ESA SST-CCI Toolbox
-
-## Version 2.0, initial public release
-
-## Version 3.0,
-- reorganized project structure
