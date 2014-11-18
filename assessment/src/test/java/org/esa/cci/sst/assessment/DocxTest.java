@@ -16,26 +16,104 @@
 
 package org.esa.cci.sst.assessment;
 
+import org.docx4j.dml.wordprocessingDrawing.Inline;
+import org.docx4j.jaxb.Context;
 import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
+import org.docx4j.openpackaging.parts.WordprocessingML.BinaryPartAbstractImage;
+import org.docx4j.wml.Drawing;
+import org.docx4j.wml.ObjectFactory;
+import org.docx4j.wml.P;
+import org.docx4j.wml.R;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
+import java.net.URL;
+
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Ralf Quast
  */
+@Ignore
 public class DocxTest {
 
-    @Ignore
-    @Test
-    public void testDocx() throws Exception {
-        final File templateFile = new File("/Users/ralf/Desktop/Trends_and_Variability_Framework.docx");
-        final WordprocessingMLPackage template = WordprocessingMLPackage.load(templateFile);
+    private static WordprocessingMLPackage wordMLPackage;
 
-        template.getMainDocumentPart().addStyledParagraphOfText("Title", "Hello World!");
-        template.getMainDocumentPart().addStyledParagraphOfText("Heading1", "Hello World!");
-        template.getMainDocumentPart().addStyledParagraphOfText("Normal", "Hello World!");
-        template.save(new File("/Users/ralf/Desktop/car.docx"));
+    @BeforeClass
+    public static void setUp() throws Exception {
+        wordMLPackage = WordprocessingMLPackage.createPackage();
     }
+
+    @AfterClass
+    public static void tearDown() throws Exception {
+        wordMLPackage.save(new File("test.docx"));
+    }
+
+    @Test
+    public void testAddTitle() throws Exception {
+        final P p = addTitle(wordMLPackage, "This text shall have Title style.");
+
+        assertNotNull(p);
+    }
+
+    public static P addTitle(WordprocessingMLPackage wordMLPackage, String titleText) {
+        return wordMLPackage.getMainDocumentPart().addStyledParagraphOfText("Title", titleText);
+    }
+
+    @Test
+    public void testAddHeading1() throws Exception {
+        final P p = addHeading1(wordMLPackage, "This text shall have Heading 1 style.");
+
+        assertNotNull(p);
+    }
+
+    public static P addHeading1(WordprocessingMLPackage wordMLPackage, String headingText) {
+        return wordMLPackage.getMainDocumentPart().addStyledParagraphOfText("Heading1", headingText);
+    }
+
+    @Test
+    public void testAddNormal() throws Exception {
+        final P p = addNormal(wordMLPackage, "This text shall have Normal style.");
+
+        assertNotNull(p);
+    }
+
+    public static P addNormal(WordprocessingMLPackage wordMLPackage, String text) {
+        return wordMLPackage.getMainDocumentPart().addStyledParagraphOfText("Normal", text);
+    }
+
+    @Test
+    public void testAddImage() throws Exception {
+        final URL resource = getClass().getResource("newton-away-zoom.png");
+        assertNotNull(resource);
+
+        final P p = addImage(wordMLPackage, resource);
+        assertNotNull(p);
+    }
+
+    public static P addImage(WordprocessingMLPackage wordMLPackage, URL resource) throws Exception {
+        final File imageFile = new File(resource.toURI());
+        return addImage(wordMLPackage, imageFile);
+    }
+
+    public static P addImage(WordprocessingMLPackage wordMLPackage, File imageFile) throws Exception {
+        final BinaryPartAbstractImage imagePart = BinaryPartAbstractImage.createImagePart(wordMLPackage, imageFile);
+        final Inline inline = imagePart.createImageInline(imageFile.getName(), imageFile.getName(), 0, 0, true);
+
+        // add the inline in w:p/w:r/w:drawing
+        final ObjectFactory factory = Context.getWmlObjectFactory();
+        final P p = factory.createP();
+        final R r = factory.createR();
+        p.getContent().add(r);
+        final Drawing drawing = factory.createDrawing();
+        r.getContent().add(drawing);
+        drawing.getAnchorOrInline().add(inline);
+
+        wordMLPackage.getMainDocumentPart().addObject(p);
+        return p;
+    }
+
 }
