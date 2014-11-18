@@ -316,7 +316,7 @@ class NwpTool extends BasicTool {
 
             final ProcessRunner runner = new ProcessRunner();
             final String resolvedTemplate = ProcessRunner.resolveTemplate(CDO_NWP_TEMPLATE, properties);
-            final String path = ProcessRunner.writeExecutableScript(resolvedTemplate, "cdo", ".sh", true).getPath();
+            final String path = ProcessRunner.writeExecutableScript(resolvedTemplate, "cdo", ".sh", deleteOnExit).getPath();
             runner.execute(path);
 
             final NetcdfFile nwpFile = NetcdfFile.open(properties.getProperty("NWP_TIME_SERIES"));
