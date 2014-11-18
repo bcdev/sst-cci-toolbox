@@ -1,8 +1,0 @@
-The SST CCI products and the comparison data sets are presented on a range of different
-grids and also, in those cases where the data are presented as anomalies, relative to
-different climatological averages. In order to make a direct comparison, the data were
-first converted into anomalies relative to the MyOcean OSTIA reanalysis climatology for
-the period 1985-2007. The climatology was regridded from 0.05 degree latitude by 0.05
-degree longitude daily to have the same resolution as the data set being processed.
-Secondly a common mask was applied to the data. Again this was based on the MyOcean
-OSTIA reanalysis climatology.
