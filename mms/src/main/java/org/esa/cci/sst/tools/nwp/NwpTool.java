@@ -143,7 +143,7 @@ class NwpTool extends BasicTool {
             logger.info(
                     MessageFormat.format("extracting matchups from source file: {0}", sourceMmdLocation));
             final String sensorMmdLocation = writeSingleSensorMmdFile(sourceMmdLocation, sensorName, sensorPattern,
-                                                                      true);
+                                                                      deleteOnExit);
             logger.info(
                     MessageFormat.format("completed extracting matchups from source file: {0}", sourceMmdLocation));
 
