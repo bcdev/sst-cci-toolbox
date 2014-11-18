@@ -63,7 +63,7 @@ class NwpUtil {
                 if (currentTime < startTime) {
                     startTime = currentTime;
                 }
-                if (currentTime > endTime) { // using else if results is not correct, if there is a single time step only
+                if (currentTime > endTime) { // using else if is not correct, if there is a single time step only
                     endTime = currentTime;
                 }
             }

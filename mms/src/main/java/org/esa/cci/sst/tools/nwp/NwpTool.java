@@ -38,6 +38,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.text.MessageFormat;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -267,7 +269,9 @@ class NwpTool extends BasicTool {
         final NetcdfFile mmdFile = NetcdfFile.open(mmdFileLocation);
         try {
             final Variable timeVariable = NwpUtil.findVariable(mmdFile, sensorName + ".time");
+            logger.info("Determining NWP sub-directories...");
             final List<String> subDirectories = NwpUtil.getRelevantNwpDirs(timeVariable);
+            logger.info("Found NWP sub-directories: " + Arrays.toString(subDirectories.toArray(new String[subDirectories.size()])));
             final String sensorBasename = getSensorBasename(sensorName);
             final int nx = Integer.parseInt(dimensions.getProperty(sensorBasename + ".nx"));
             final int ny = Integer.parseInt(dimensions.getProperty(sensorBasename + ".ny"));
@@ -288,7 +292,7 @@ class NwpTool extends BasicTool {
             }
 
             final String geoFileLocation = writeSensorGeoFile(mmdFile, nwpNx, nwpNy, strideX, strideY,
-                                                              sensorName, true);
+                                                              sensorName, deleteOnExit);
 
             final Properties properties = new Properties();
             properties.setProperty("CDO", "cdo");
