@@ -55,10 +55,6 @@ class ProductReader extends AbstractProductReader {
     private final BoundaryCalculator bc;
     private final String dirtyMaskExpression;
 
-    ProductReader(String sensorName) {
-        this(sensorName, null);
-    }
-
     ProductReader(String sensorName, String dirtyMaskExpression) {
         super(sensorName,
               EnvisatConstants.ENVISAT_FORMAT_NAME,
