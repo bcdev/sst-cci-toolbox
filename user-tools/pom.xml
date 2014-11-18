@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <name>SST-CCI User Tools</name>
-    <artifactId>user-tools</artifactId>
+    <artifactId>sst-cci-user-tools</artifactId>
 
     <dependencies>
 
