@@ -601,8 +601,6 @@ class Workflow:
         self._execute_clearing(m)
         self._execute_plotting(m, sampling_prefix)
         self._execute_create_sub_mmd_files(m)
-        m.wait_for_completion()
-        self._execute_ingest_coincidences(m, sampling_prefix)
         self._execute_create_nwp_mmd_files(m)
         self._execute_create_matchup_nwp_mmd_files(m)
         self._execute_create_arc_mmd_files(m)
@@ -611,6 +609,8 @@ class Workflow:
         self._execute_ingest_nwp_mmd_files(m)
         self._execute_ingest_matchup_nwp_mmd_files(m)
         self._execute_ingest_arc_mmd_files(m)
+        m.wait_for_completion()
+        self._execute_ingest_coincidences(m, sampling_prefix)
         m.wait_for_completion()
         self._execute_create_final_mmd_files(m, mmdtype)
         if with_selection:
