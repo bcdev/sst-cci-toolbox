@@ -184,17 +184,6 @@
                 <artifactId>maven-release-plugin</artifactId>
                 <version>2.4.2</version>
             </plugin>
-            <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.4</version>
-                <!-- @todo 1 tb/tb change this 2014-11-18 -->
-                <configuration>
-                    <!--<descriptors>-->
-                    <!--<descriptor>regavg/assembly/bin.xml</descriptor>-->
-                    <!--<descriptor>regrid/assembly/bin.xml</descriptor>-->
-                    <!--</descriptors>-->
-                </configuration>
-            </plugin>
         </plugins>
         <extensions>
             <extension>
