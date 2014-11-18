@@ -112,6 +112,12 @@
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>2.4</version>
+                <configuration>
+                    <descriptors>
+                        <descriptor>regavg/assembly/bin.xml</descriptor>
+                        <descriptor>regrid/assembly/bin.xml</descriptor>
+                    </descriptors>
+                </configuration>
             </plugin>
         </plugins>
         <extensions>
