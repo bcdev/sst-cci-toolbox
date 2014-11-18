@@ -17,6 +17,8 @@
 package org.esa.cci.sst.assessment;
 
 import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
+import org.junit.Ignore;
+import org.junit.Test;
 
 import java.io.File;
 
@@ -25,7 +27,8 @@ import java.io.File;
  */
 public class DocxTest {
 
-    @org.junit.Test
+    @Ignore
+    @Test
     public void testDocx() throws Exception {
         final File templateFile = new File("/Users/ralf/Desktop/Trends_and_Variability_Framework.docx");
         final WordprocessingMLPackage template = WordprocessingMLPackage.load(templateFile);
