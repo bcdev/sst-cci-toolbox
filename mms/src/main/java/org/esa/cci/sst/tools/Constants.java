@@ -69,6 +69,15 @@ public class Constants {
     public static final byte MATCHUP_REFERENCE_FLAG_UNDEFINED = 4;
     public static final byte MATCHUP_REFERENCE_FLAG_DUPLICATE = 5;
 
+    public static final String MATCHUP_DATASET_ID = "matchup.dataset_id";
+    public static final String MATCHUP_ID = "matchup.id";
+    public static final String MATCHUP_TIME = "matchup.time";
+    public static final String MATCHUP_LONGITUDE = "matchup.longitude";
+    public static final String MATCHUP_LATITUDE = "matchup.latitude";
+    public static final String MATCHUP_INSITU_CALLSIGN = "matchup.insitu.callsign";
+    public static final String MATCHUP_INSITU_DATASET = "matchup.insitu.dataset";
+    public static final String MATCHUP_REFERENCE_FLAG = "matchup.reference_flag";
+
     private Constants() {
     }
 }
