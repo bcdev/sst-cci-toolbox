@@ -269,7 +269,7 @@ class NwpTool extends BasicTool {
         final NetcdfFile mmdFile = NetcdfFile.open(mmdFileLocation);
         try {
             final Variable timeVariable = NwpUtil.findVariable(mmdFile, sensorName + ".time");
-            logger.info("Determining NWP sub-directories...");
+            logger.info("Looking for relevant NWP sub-directories...");
             final List<String> subDirectories = NwpUtil.getRelevantNwpDirs(timeVariable);
             logger.info("Found NWP sub-directories: " + Arrays.toString(subDirectories.toArray(new String[subDirectories.size()])));
             final String sensorBasename = getSensorBasename(sensorName);
