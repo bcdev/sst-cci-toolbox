@@ -196,9 +196,8 @@ class NwpTool extends BasicTool {
         final NetcdfFile mmdFile = NetcdfFile.open(mmdFileLocation);
         final List<String> subDirectories = NwpUtil.getRelevantNwpDirs(NwpUtil.findVariable(mmdFile, "matchup.time"));
 
-
         try {
-            final String geoFileLocation = writeMatchupGeoFile(mmdFile, true);
+            final String geoFileLocation = writeMatchupGeoFile(mmdFile, deleteOnExit);
 
             final Properties properties = new Properties();
             properties.setProperty("CDO", cdoHome + "/bin/cdo");
