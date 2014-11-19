@@ -170,9 +170,6 @@ public class MmdTool extends BasicTool {
                     final ReferenceObservation referenceObservation = matchup.getRefObs();
                     final Observation observation = findObservation(sensorName, matchup, getPersistenceManager());
                     final List<Variable> variables = sensorMap.get(sensorName);
-                    for (Variable variable : variables) {
-                        logger.info("Found variable '" + variable.getShortName() + "'");
-                    }
                     for (final Variable variable : variables) {
                         if (observation != null) {
                             if (!isAccurateCoincidence(referenceObservation, observation)) {
