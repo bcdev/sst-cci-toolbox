@@ -36,7 +36,7 @@ public class MmdToolTest {
         assertEquals(toPath("here", "we", "are_now.nc"), netcdfFile.getLocation());
     }
 
-    @Test
+      @Test
     public void testCreateNetCDFWriter_withConfigurationDefaultValues() throws IOException {
         final Configuration configuration = new Configuration();
         configuration.put("mms.target.filename", "mmd.nc");

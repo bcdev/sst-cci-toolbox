@@ -16,10 +16,8 @@
 
 package org.esa.cci.sst.util;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -28,25 +26,27 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author Ralf Quast.
  */
+@SuppressWarnings("CollectionDeclaredAsConcreteClass")
 public class Cache<K, V> {
 
     private final int capacity;
-    private final List<V> itemList;
-    private final Map<K, V> itemMap;
+    private final LinkedList<K> keyList;
+    private Map<K, V> itemMap;
 
     public Cache(int capacity) {
         this.capacity = capacity;
-        itemList = new ArrayList<V>(capacity);
+        keyList = new LinkedList<>();
         itemMap = new ConcurrentHashMap<>(capacity);
     }
 
     public V add(K key, V item) {
         if (!itemMap.containsKey(key)) {
             itemMap.put(key, item);
-            itemList.add(item);
-            if (itemList.size() > capacity) {
-                final V removedItem = itemList.remove(0);
-                itemMap.values().remove(removedItem);
+            keyList.addLast(key);
+            if (keyList.size() > capacity) {
+                final K removedKey = keyList.removeFirst();
+                final V removedItem = itemMap.get(removedKey);
+                itemMap.remove(removedKey);
                 return removedItem;
             }
         }
@@ -58,21 +58,26 @@ public class Cache<K, V> {
     }
 
     public V get(K key) {
-        return itemMap.get(key);
+        final V result = itemMap.get(key);
+        if (result == null) {
+            throw new IllegalArgumentException("Object with key '" + key + "' not contained in cache");
+        }
+        return result;
     }
 
     public Collection<V> clear() {
-        final Collection<V> collection = new ArrayList<V>(itemList);
-        itemList.clear();
-        itemMap.clear();
+        final Collection<V> removedItems = itemMap.values();
 
-        return collection;
+        keyList.clear();
+        itemMap = new ConcurrentHashMap<>(capacity);
+
+        return removedItems;
     }
 
     public V remove(K key) {
         V item = itemMap.get(key);
         if (item != null) {
-            itemList.remove(item);
+            keyList.remove(key);
             itemMap.remove(key);
         }
         return item;

@@ -23,13 +23,7 @@ import org.esa.cci.sst.ColumnRegistry;
 import org.esa.cci.sst.Predicate;
 import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.common.ExtractDefinitionBuilder;
-import org.esa.cci.sst.data.Coincidence;
-import org.esa.cci.sst.data.DataFile;
-import org.esa.cci.sst.data.InsituObservation;
-import org.esa.cci.sst.data.Item;
-import org.esa.cci.sst.data.Matchup;
-import org.esa.cci.sst.data.Observation;
-import org.esa.cci.sst.data.ReferenceObservation;
+import org.esa.cci.sst.data.*;
 import org.esa.cci.sst.orm.ColumnStorage;
 import org.esa.cci.sst.orm.MatchupQueryParameter;
 import org.esa.cci.sst.orm.MatchupStorage;
@@ -54,14 +48,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.logging.Level;
 
 import static ucar.nc2.NetcdfFileWriter.Version;
@@ -182,7 +169,7 @@ public class MmdTool extends BasicTool {
                     final ReferenceObservation referenceObservation = matchup.getRefObs();
                     final Observation observation = findObservation(sensorName, matchup);
                     if (observation != null && observation.getDatafile() != null &&
-                        !observation.getDatafile().equals(previousDataFile)) {
+                            !observation.getDatafile().equals(previousDataFile)) {
                         if (previousDataFile != null) {
                             readerCache.closeReader(previousDataFile);
                         }
@@ -208,8 +195,8 @@ public class MmdTool extends BasicTool {
                         } else {
                             if (observation != null) {
                                 writeColumn(mmdWriter, variable, targetRecordNo, targetColumn, sourceColumn,
-                                            observation,
-                                            referenceObservation);
+                                        observation,
+                                        referenceObservation);
                             }
                         }
                     }
@@ -222,8 +209,8 @@ public class MmdTool extends BasicTool {
                     }
                 } catch (IOException e) {
                     final String message = MessageFormat.format("matchup {0}: {1}",
-                                                                matchup.getId(),
-                                                                e.getMessage());
+                            matchup.getId(),
+                            e.getMessage());
                     throw new ToolException(message, e, ToolException.TOOL_IO_ERROR);
                 }
             }
@@ -277,7 +264,7 @@ public class MmdTool extends BasicTool {
 
     private void initializeTargetColumns(Configuration config, ColumnStorage columnStorage) {
         final ColumnRegistryInitializer columnRegistryInitializer = new ColumnRegistryInitializer(columnRegistry,
-                                                                                                  columnStorage);
+                columnStorage);
         columnRegistryInitializer.initialize();
         registerTargetColumns(config);
     }
@@ -328,11 +315,11 @@ public class MmdTool extends BasicTool {
             }
         } catch (IOException e) {
             final String message = MessageFormat.format("matchup {0}: {1}", context.getMatchup().getId(),
-                                                        e.getMessage());
+                    e.getMessage());
             throw new ToolException(message, e, ToolException.TOOL_IO_ERROR);
         } catch (RuleException | InvalidRangeException e) {
             final String message = MessageFormat.format("matchup {0}: {1}", context.getMatchup().getId(),
-                                                        e.getMessage());
+                    e.getMessage());
             throw new ToolException(message, e, ToolException.TOOL_ERROR);
         }
     }
@@ -356,7 +343,7 @@ public class MmdTool extends BasicTool {
             if (sourceArray != null) {
                 if (logger.isLoggable(Level.FINE)) {
                     logger.fine(MessageFormat.format("source column: {0}, {1}", sourceColumn.getName(),
-                                                     sourceColumn.getRole()));
+                            sourceColumn.getRole()));
                 }
                 sourceColumn = reader.getColumn(role);
                 if (sourceColumn == null) {
@@ -450,7 +437,9 @@ public class MmdTool extends BasicTool {
         final String mmdFileName = config.getStringValue(Configuration.KEY_MMS_MMD_TARGET_FILENAME);
         final File mmdFile = new File(mmdDirPath, mmdFileName);
         if (mmdFile.exists()) {
-            mmdFile.delete();
+            if (!mmdFile.delete()) {
+                throw new IOException("unable to delete file: " + mmdFile.getAbsolutePath());
+            }
         }
         return NetcdfFileWriter.createNew(Version.netcdf4_classic, mmdFile.getPath());
     }
@@ -509,5 +498,4 @@ public class MmdTool extends BasicTool {
 
         return variableList;
     }
-
 }
