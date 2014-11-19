@@ -2,12 +2,12 @@ package org.esa.cci.sst.tools.mmdgeneration;
 
 
 import org.esa.cci.sst.ColumnRegistry;
-import org.esa.cci.sst.data.ColumnBuilder;
-import org.esa.cci.sst.data.Item;
+import org.esa.cci.sst.data.*;
 import org.esa.cci.sst.orm.MatchupQueryParameter;
+import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.tool.Configuration;
-import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.tool.ToolException;
+import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.util.TimeUtil;
 import org.junit.Test;
 import ucar.nc2.NetcdfFile;
@@ -20,6 +20,7 @@ import java.util.*;
 
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 public class MmdToolTest {
 
@@ -36,7 +37,7 @@ public class MmdToolTest {
         assertEquals(toPath("here", "we", "are_now.nc"), netcdfFile.getLocation());
     }
 
-      @Test
+    @Test
     public void testCreateNetCDFWriter_withConfigurationDefaultValues() throws IOException {
         final Configuration configuration = new Configuration();
         configuration.put("mms.target.filename", "mmd.nc");
@@ -263,6 +264,55 @@ public class MmdToolTest {
         assertEquals("Zenzi", nameArray[3]);
     }
 
+    @Test
+    public void testFindObservation_nonePresent() {
+        final Matchup matchup = createMatchupWithRefObs("different");
+        matchup.setCoincidences(new ArrayList<Coincidence>());
+
+        final Observation observation = MmdTool.findObservation("dont_care", matchup, null);
+        assertNull(observation);
+    }
+
+    @Test
+    public void testFindObservation_referenceObservation() {
+        final Matchup matchup = createMatchupWithRefObs("the_one");
+
+        final Observation observation = MmdTool.findObservation("the_one", matchup, null);
+        assertNotNull(observation);
+    }
+
+    @Test
+    public void testFindObservation_fromCoincidences() {
+        final Matchup matchup = createMatchupWithRefObs("different");
+        addCoincidence(matchup, "the_one");
+
+        final Observation result = MmdTool.findObservation("the_one", matchup, null);
+        assertNotNull(result);
+    }
+
+    @Test
+    public void testFindObservation_notInCoincidences_detaches() {
+        final Matchup matchup = createMatchupWithRefObs("different");
+
+        final List<Coincidence> coincidences = new ArrayList<>();
+        final Observation observation = new Observation();
+        observation.setSensor("also_different");
+
+        final Coincidence coincidence = new Coincidence();
+        coincidence.setObservation(observation);
+        coincidences.add(coincidence);
+        matchup.setCoincidences(coincidences);
+
+        final PersistenceManager persistenceManager = mock(PersistenceManager.class);
+
+        final Observation result = MmdTool.findObservation("the_one", matchup, persistenceManager);
+        assertNull(result);
+
+        verify(persistenceManager, times(1)).detach(observation);
+        verify(persistenceManager, times(1)).detach(coincidence);
+        verifyNoMoreInteractions(persistenceManager);
+    }
+
     private String toPath(String... pathComponents) {
         final StringBuilder stringBuilder = new StringBuilder();
         for (String component : pathComponents) {
@@ -279,5 +329,25 @@ public class MmdToolTest {
         assertEquals(year, utcCalendar.get(Calendar.YEAR));
         assertEquals(month - 1, utcCalendar.get(Calendar.MONTH));
         assertEquals(day, utcCalendar.get(Calendar.DAY_OF_MONTH));
+    }
+
+    private Matchup createMatchupWithRefObs(String refObsSensor) {
+        final Matchup matchup = new Matchup();
+        final ReferenceObservation refObs = new ReferenceObservation();
+        refObs.setSensor(refObsSensor);
+        matchup.setRefObs(refObs);
+        matchup.setCoincidences(new ArrayList<Coincidence>());
+        return matchup;
+    }
+
+    private void addCoincidence(Matchup matchup, String sensorName) {
+        final List<Coincidence> coincidences = new ArrayList<>();
+        final Observation observation = new Observation();
+        observation.setSensor(sensorName);
+
+        final Coincidence coincidence = new Coincidence();
+        coincidence.setObservation(observation);
+        coincidences.add(coincidence);
+        matchup.setCoincidences(coincidences);
     }
 }

@@ -31,6 +31,12 @@ class MmdWriter implements Closeable {
         return new MmdWriter(netcdfFileWriter);
     }
 
+    @Override
+    public void close() throws IOException {
+        fileWriter.flush();
+        fileWriter.close();
+    }
+
     MmdWriter(NetcdfFileWriter fileWriter) {
         this.fileWriter = fileWriter;
     }
@@ -55,12 +61,6 @@ class MmdWriter implements Closeable {
 
     void write(Variable variable, int[] origin, Array array) throws IOException, InvalidRangeException {
         fileWriter.write(variable, origin, array);
-    }
-
-    @Override
-    public void close() throws IOException {
-        fileWriter.flush();
-        fileWriter.close();
     }
 
     private void addVariables(List<Item> variableList) {

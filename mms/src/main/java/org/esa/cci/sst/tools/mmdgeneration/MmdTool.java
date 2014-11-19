@@ -167,7 +167,7 @@ public class MmdTool extends BasicTool {
 
                     final int targetRecordNo = recordNo;
                     final ReferenceObservation referenceObservation = matchup.getRefObs();
-                    final Observation observation = findObservation(sensorName, matchup);
+                    final Observation observation = findObservation(sensorName, matchup, getPersistenceManager());
                     if (observation != null && observation.getDatafile() != null &&
                             !observation.getDatafile().equals(previousDataFile)) {
                         if (previousDataFile != null) {
@@ -406,7 +406,8 @@ public class MmdTool extends BasicTool {
         }
     }
 
-    private Observation findObservation(String sensorName, Matchup matchup) {
+    // package access for testing only tb 2014-11-19
+    static Observation findObservation(String sensorName, Matchup matchup, PersistenceManager persistenceManager) {
         final ReferenceObservation referenceObservation = matchup.getRefObs();
         if (sensorName.equals(referenceObservation.getSensor())) {
             return referenceObservation;
@@ -416,8 +417,8 @@ public class MmdTool extends BasicTool {
             if (sensorName.equals(observation.getSensor())) {
                 return observation;
             } else {
-                getPersistenceManager().detach(observation);
-                getPersistenceManager().detach(coincidence);
+                persistenceManager.detach(observation);
+                persistenceManager.detach(coincidence);
             }
         }
         return null;
