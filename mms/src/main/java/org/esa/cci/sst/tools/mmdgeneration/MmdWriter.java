@@ -1,6 +1,7 @@
 package org.esa.cci.sst.tools.mmdgeneration;
 
 import org.esa.cci.sst.data.Item;
+import org.esa.cci.sst.log.SstLogging;
 import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.util.IoUtil;
 import ucar.ma2.Array;
@@ -19,6 +20,7 @@ import java.util.Set;
 
 class MmdWriter implements Closeable {
 
+    private static final String AVHRR_M02_TIME = "avhrr.m02.time";
     private final NetcdfFileWriter fileWriter;
 
     static boolean canOpen(String filePath) throws IOException {
@@ -65,6 +67,9 @@ class MmdWriter implements Closeable {
 
     private void addVariables(List<Item> variableList) {
         for (Item variable : variableList) {
+            if (variable.getName().equalsIgnoreCase(AVHRR_M02_TIME)) {
+                SstLogging.getLogger().info("Added avhrr.m02.time to netCDf file.");
+            }
             IoUtil.addVariable(fileWriter, variable);
         }
     }

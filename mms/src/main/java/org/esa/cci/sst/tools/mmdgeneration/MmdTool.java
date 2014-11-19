@@ -60,6 +60,8 @@ import static ucar.nc2.NetcdfFileWriter.Version;
  */
 public class MmdTool extends BasicTool {
 
+    private static final String AVHRR_M02_TIME = "avhrr.m02.time";
+
     private final ColumnRegistry columnRegistry;
     private Map<String, Integer> dimensionConfiguration;
     private final List<String> targetColumnNames;
@@ -175,9 +177,13 @@ public class MmdTool extends BasicTool {
                         }
                         previousDataFile = observation.getDatafile();
                     }
-                    for (final Variable variable : sensorMap.get(sensorName)) {
+                    final List<Variable> variables = sensorMap.get(sensorName);
+                    for (final Variable variable : variables) {
                         if (observation != null) {
                             if (!isAccurateCoincidence(referenceObservation, observation)) {
+                                if (variable.getShortName().equalsIgnoreCase(AVHRR_M02_TIME)) {
+                                    logger.info("NO accurate coincidence for Variable " + AVHRR_M02_TIME + "and observation " + observation.getId());
+                                }
                                 continue;
                             }
                         }
@@ -191,9 +197,15 @@ public class MmdTool extends BasicTool {
                                     .dimensionConfiguration(dimensionConfiguration)
                                     .configuration(getConfig())
                                     .build();
+                            if (variable.getShortName().equalsIgnoreCase(AVHRR_M02_TIME)) {
+                                logger.info("writing implicit column " + targetColumn.getName() + " for variable " + AVHRR_M02_TIME);
+                            }
                             writeImplicitColumn(mmdWriter, variable, targetRecordNo, targetColumn, context);
                         } else {
                             if (observation != null) {
+                                if (variable.getShortName().equalsIgnoreCase(AVHRR_M02_TIME)) {
+                                    logger.info("writing column " + targetColumn.getName() + " for variable " + AVHRR_M02_TIME + "and observation " + observation.getId());
+                                }
                                 writeColumn(mmdWriter, variable, targetRecordNo, targetColumn, sourceColumn,
                                         observation,
                                         referenceObservation);
@@ -371,8 +383,7 @@ public class MmdTool extends BasicTool {
             final Item column = columnRegistry.getColumn(name);
             final String dimensions = column.getDimensions();
             if (dimensions.isEmpty()) {
-                final String message = MessageFormat.format(
-                        "Expected at least one dimension for target column ''{0}''.", name);
+                final String message = MessageFormat.format("Expected at least one dimension for target column ''{0}''.", name);
                 throw new ToolException(message, ToolException.TOOL_CONFIGURATION_ERROR);
             }
             dimensionNames.addAll(Arrays.asList(dimensions.split("\\s")));
@@ -398,6 +409,13 @@ public class MmdTool extends BasicTool {
         final String configFilePath = config.getStringValue(Configuration.KEY_MMS_MMD_TARGET_VARIABLES);
         try {
             final List<String> names = columnRegistry.registerColumns(new File(configFilePath), predicate);
+
+            for (String name : names) {
+                if (AVHRR_M02_TIME.equalsIgnoreCase(name)) {
+                    logger.info("Registered column " + AVHRR_M02_TIME);
+                }
+            }
+
             targetColumnNames.addAll(names);
         } catch (FileNotFoundException e) {
             throw new ToolException(e.getMessage(), e, ToolException.CONFIGURATION_FILE_NOT_FOUND_ERROR);
