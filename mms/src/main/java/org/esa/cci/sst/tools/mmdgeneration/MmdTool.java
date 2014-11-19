@@ -152,7 +152,6 @@ public class MmdTool extends BasicTool {
         // loop over sensors, matchups ordered by sensor files, variables of sensor
         final PersistenceManager persistenceManager = getPersistenceManager();
         final MatchupStorage matchupStorage = persistenceManager.getMatchupStorage();
-        DataFile previousDataFile = null;
         final Configuration config = getConfig();
 
         for (String sensorName : sensorNames) {
@@ -170,19 +169,15 @@ public class MmdTool extends BasicTool {
                     final int targetRecordNo = recordNo;
                     final ReferenceObservation referenceObservation = matchup.getRefObs();
                     final Observation observation = findObservation(sensorName, matchup, getPersistenceManager());
-                    if (observation != null && observation.getDatafile() != null &&
-                            !observation.getDatafile().equals(previousDataFile)) {
-                        if (previousDataFile != null) {
-                            readerCache.closeReader(previousDataFile);
-                        }
-                        previousDataFile = observation.getDatafile();
-                    }
                     final List<Variable> variables = sensorMap.get(sensorName);
+                    for (Variable variable : variables) {
+                        logger.info("Found variable '" + variable.getShortName() + "'");
+                    }
                     for (final Variable variable : variables) {
                         if (observation != null) {
                             if (!isAccurateCoincidence(referenceObservation, observation)) {
                                 if (variable.getShortName().equalsIgnoreCase(AVHRR_M02_TIME)) {
-                                    logger.info("NO accurate coincidence for Variable " + AVHRR_M02_TIME + "and observation " + observation.getId());
+                                    logger.info("No accurate coincidence for Variable " + AVHRR_M02_TIME + "and observation " + observation.getId());
                                 }
                                 continue;
                             }
