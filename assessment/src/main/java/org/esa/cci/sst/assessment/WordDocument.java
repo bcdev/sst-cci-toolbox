@@ -108,7 +108,7 @@ public class WordDocument {
         final Text text = factory.createText();
         final JAXBElement<Text> textWrapped = factory.createRT(text);
         r.getContent().add(textWrapped);
-        text.setValue(label + " ");
+        text.setValue(label);
         text.setSpace("preserve");
         // Create object for fldSimple (wrapped in JAXBElement)
         final CTSimpleField simpleField = factory.createCTSimpleField();

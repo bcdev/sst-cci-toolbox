@@ -47,28 +47,28 @@ public class WordDocumentTest {
 
     @Test
     public void testAddTitle() throws Exception {
-        final P p = wordDocument.addTitle("This shall have Title style.");
+        final P p = wordDocument.addTitle("This Shall Be a Title.");
 
         assertNotNull(p);
     }
 
     @Test
     public void testAddHeading1() throws Exception {
-        final P p = wordDocument.addHeading1("This text shall have Heading 1 style.");
+        final P p = wordDocument.addHeading1("This shall be a Heading 1.");
 
         assertNotNull(p);
     }
 
     @Test
     public void testAddHeading2() throws Exception {
-        final P p = wordDocument.addHeading2("This text shall have Heading 2 style.");
+        final P p = wordDocument.addHeading2("This shall be a Heading 2.");
 
         assertNotNull(p);
     }
 
     @Test
     public void testAddNormal() throws Exception {
-        final P p = wordDocument.addParagraph("This text shall have Normal style.");
+        final P p = wordDocument.addParagraph("This shall be Normal text.");
 
         assertNotNull(p);
     }
@@ -84,14 +84,14 @@ public class WordDocumentTest {
 
     @Test
     public void testAddCaption() throws Exception {
-        final P p = wordDocument.addCaption("Figure ", "1", "This shall be a caption");
+        final P p = wordDocument.addCaption("Figure ", "1", "This shall be a Caption.");
 
         assertNotNull(p);
     }
 
     @Test
-    public void testAnotherCaption() throws Exception {
-        final P p = wordDocument.addCaption("Figure ", "2", "This shall be another caption");
+    public void testAddAnotherCaption() throws Exception {
+        final P p = wordDocument.addCaption("Figure ", "2", "This shall be another Caption.");
 
         assertNotNull(p);
     }
