@@ -1,22 +1,30 @@
 package org.esa.beam.dataio.cci.sst;
 
 import org.esa.beam.framework.dataio.DecodeQualification;
+import org.esa.beam.framework.dataio.ProductReader;
+import org.esa.beam.util.io.BeamFileFilter;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
-import java.net.URISyntaxException;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * @author Ralf Quast
  */
+@SuppressWarnings("InstanceofInterfaces")
 public class NcAvhrrGacProductReaderPlugInTest {
+
+    private NcAvhrrGacProductReaderPlugIn plugIn;
+
+    @Before
+    public void setUp() {
+        plugIn = new NcAvhrrGacProductReaderPlugIn();
+    }
 
     @Test
     public void testGetDecodeQualification() throws Exception {
-        final NcAvhrrGacProductReaderPlugIn plugIn = new NcAvhrrGacProductReaderPlugIn();
         final File file = new File("19910101000100-ESACCI-L1C-AVHRR11_G-fv01.0.nc");
 
         assertEquals(DecodeQualification.INTENDED, plugIn.getDecodeQualification(file));
@@ -34,4 +42,44 @@ public class NcAvhrrGacProductReaderPlugInTest {
         assertTrue(NcAvhrrGacProductReaderPlugIn.matches("20061031223900-ESACCI-L1C-AVHRRMTA_G-fv01.0.nc"));
     }
 
+    @Test
+    public void testCreateReaderInstance() {
+        final ProductReader reader = plugIn.createReaderInstance();
+        assertNotNull(reader);
+        assertTrue(reader instanceof NcAvhrrGacProductReader);
+    }
+
+    @Test
+    public void testGteFormatNames() {
+        final String[] formatNames = plugIn.getFormatNames();
+        assertEquals(1, formatNames.length);
+        assertEquals("AVHRR-GAC-NC", formatNames[0]);
+    }
+
+    @Test
+    public void testGetInputTypes() {
+        final Class[] inputTypes = plugIn.getInputTypes();
+        assertEquals(2, inputTypes.length);
+        assertEquals(String.class, inputTypes[0]);
+        assertEquals(File.class, inputTypes[1]);
+    }
+
+    @Test
+    public void testGetFileExtension() {
+        final String[] defaultFileExtensions = plugIn.getDefaultFileExtensions();
+        assertEquals(1, defaultFileExtensions.length);
+        assertEquals(".nc", defaultFileExtensions[0]);
+    }
+
+    @Test
+    public void testGetDescription() {
+         assertEquals("SST-CCI AVHRR-GAC L1c data products", plugIn.getDescription(null));
+    }
+
+    @Test
+    public void testGetProductFileFilter() {
+        final BeamFileFilter filter = plugIn.getProductFileFilter();
+        assertNotNull(filter);
+        assertEquals("AVHRR-GAC-NC",filter.getFormatName());
+    }
 }
