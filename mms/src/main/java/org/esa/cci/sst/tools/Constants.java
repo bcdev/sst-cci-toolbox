@@ -59,6 +59,8 @@ public class Constants {
     public static final String SENSOR_NAME_ORB_AVHRR_N17 = "orb_avhrr.n17";
     public static final String SENSOR_NAME_ORB_AVHRR_N18 = "orb_avhrr.n18";
     public static final String SENSOR_NAME_ORB_AVHRR_N19 = "orb_avhrr.n19";
+    public static final String SENSOR_NAME_ORB_AVHRR_M01 = "orb_avhrr.m01";
+    public static final String SENSOR_NAME_ORB_AVHRR_M02 = "orb_avhrr.m02";
 
     public static final String MASK_NAME_MMS_DIRTY = "mms_dirty";
 

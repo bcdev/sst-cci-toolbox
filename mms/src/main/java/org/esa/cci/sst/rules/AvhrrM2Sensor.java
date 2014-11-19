@@ -16,6 +16,8 @@
 
 package org.esa.cci.sst.rules;
 
+import org.esa.cci.sst.tools.Constants;
+
 /**
  * Sets the sensor to 'avhrr.m02'.
  *
@@ -24,6 +26,6 @@ package org.esa.cci.sst.rules;
 final class AvhrrM2Sensor extends SensorRule {
 
     AvhrrM2Sensor() {
-        super("avhrr.m02");
+        super(Constants.SENSOR_NAME_ORB_AVHRR_M02);
     }
 }
