@@ -38,7 +38,7 @@ import java.io.IOException;
 @SuppressWarnings({"UnusedDeclaration"})
 final class MatchupLine extends Rule {
 
-    private static final int FILL_VALUE = -1;
+    private static final int FILL_VALUE = Integer.MIN_VALUE;
 
     @Override
     public Item apply(Item sourceColumn) throws RuleException {
@@ -73,12 +73,10 @@ final class MatchupLine extends Rule {
             throw new RuleException("Unable to obtain geo-coding.", e);
         }
         final PixelPos pixelPos = geoCoding.getPixelPos(new GeoPos((float) lat, (float) lon), null);
-        // TODO - for new matchup-line rule:
-        // try {
-        //    observationReader.read("matchup_elem", new ExtractDefinitionBuilder().lat(lat).lon(lon).shape(new int[]{1, 1, 1}).build());
-        //} catch (IOException e) {
-        //    throw new RuleException(e);
-        //}
-        return (int) (pixelPos.getY() + observationReader.getLineSkip());
+        if (pixelPos.getY() > 0) {
+            return (int) (pixelPos.getY() + observationReader.getLineSkip());
+        } else {
+            return FILL_VALUE;
+        }
     }
 }

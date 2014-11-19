@@ -37,7 +37,7 @@ import java.io.IOException;
 @SuppressWarnings({"UnusedDeclaration"})
 final class MatchupElem extends Rule {
 
-    private static final short FILL_VALUE = -1;
+    private static final short FILL_VALUE = Short.MIN_VALUE;
 
     @Override
     public Item apply(Item sourceColumn) throws RuleException {
@@ -71,7 +71,11 @@ final class MatchupElem extends Rule {
             throw new RuleException("Unable to obtain geo-coding.", e);
         }
         final PixelPos pixelPos = geoCoding.getPixelPos(new GeoPos((float) lat, (float) lon), null);
-        return (short) pixelPos.getX();
+        if (pixelPos.getX() > 0) {
+            return (short) pixelPos.getX();
+        } else {
+            return FILL_VALUE;
+        }
     }
 
 }
