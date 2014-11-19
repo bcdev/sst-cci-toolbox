@@ -270,7 +270,7 @@ public class MmdTool extends BasicTool {
     }
 
     private boolean isAccurateCoincidence(ReferenceObservation refObs, Observation observation) throws IOException {
-        final Reader observationReader = readerCache.getReader(observation.getDatafile(), true);
+        final Reader observationReader = readerCache.getReader(observation.getDatafile());
         final GeoCoding geoCoding;
         try {
             geoCoding = observationReader.getGeoCoding(observation.getRecordNo());
@@ -327,7 +327,7 @@ public class MmdTool extends BasicTool {
     private void writeColumn(MmdWriter mmdWriter, Variable variable, int i, Item targetColumn, Item sourceColumn,
                              Observation observation, ReferenceObservation refObs) {
         try {
-            final Reader reader = readerCache.getReader(observation.getDatafile(), true);
+            final Reader reader = readerCache.getReader(observation.getDatafile());
             final String role = sourceColumn.getRole();
             final ExtractDefinitionBuilder builder = new ExtractDefinitionBuilder()
                     .referenceObservation(refObs)

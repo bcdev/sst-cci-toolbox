@@ -33,8 +33,6 @@ public final class ReaderCache {
     private final Configuration configuration;
     private final Logger logger;
 
-    private Reader cachedReader;
-
 
     public ReaderCache(int capacity, Configuration configuration, Logger logger) {
         this.readerCache = new Cache<>(capacity);
@@ -42,40 +40,26 @@ public final class ReaderCache {
         this.logger = logger;
     }
 
-    public Reader getReader(DataFile datafile, boolean useCache) throws IOException {
+    public Reader getReader(DataFile datafile) throws IOException {
         final String path = datafile.getPath();
         if (readerCache.contains(path)) {
             return readerCache.get(path);
-        } else if (cachedReader != null && cachedReader.getDatafile().getPath().equals(path)) {
-            return cachedReader;
         } else {
-            if (useCache) {
-                final Reader reader;
-                try {
-                    if (logger != null && logger.isLoggable(Level.INFO)) {
-                        final String message = MessageFormat.format("Opening input file ''{0}''.", path);
-                        logger.info(message);
-                    }
-                    reader = ReaderFactory.open(datafile, configuration);
-                } catch (Exception e) {
-                    throw new IOException(MessageFormat.format("Unable to open file ''{0}''.", path), e);
-                }
-                final Reader removedReader = readerCache.add(path, reader);
-                if (removedReader != null) {
-                    removedReader.close();
-                }
-                return reader;
-            } else {
-                if (cachedReader != null) {
-                    cachedReader.close();
-                }
+            final Reader reader;
+            try {
                 if (logger != null && logger.isLoggable(Level.INFO)) {
                     final String message = MessageFormat.format("Opening input file ''{0}''.", path);
                     logger.info(message);
                 }
-                cachedReader = ReaderFactory.open(datafile, configuration);
-                return cachedReader;
+                reader = ReaderFactory.open(datafile, configuration);
+            } catch (Exception e) {
+                throw new IOException(MessageFormat.format("Unable to open file ''{0}''.", path), e);
             }
+            final Reader removedReader = readerCache.add(path, reader);
+            if (removedReader != null) {
+                removedReader.close();
+            }
+            return reader;
         }
     }
 
@@ -86,9 +70,6 @@ public final class ReaderCache {
             if (removedReader != null) {
                 removedReader.close();
             }
-        } else if (cachedReader != null && cachedReader.getDatafile().getPath().equals(path)) {
-            cachedReader.close();
-            cachedReader = null;
         }
     }
 

@@ -141,7 +141,7 @@ public class ContextBuilder {
                 return null;
             }
             try {
-                return readerCache.getReader(observation.getDatafile(), true);
+                return readerCache.getReader(observation.getDatafile());
             } catch (IOException e) {
                 return null;
             }
