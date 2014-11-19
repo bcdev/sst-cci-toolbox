@@ -304,7 +304,7 @@ class SensorPair:
         """
         if not primary_sensor.get_period().is_intersecting(secondary_sensor.get_period()):
             raise exceptions.ValueError, "The periods of primary and secondary sensors do not overlap."
-        if not production_period is None:
+        if production_period is not None:
             if not primary_sensor.get_period().is_intersecting(production_period):
                 raise exceptions.ValueError, "The periods of primary sensor and production do not overlap."
             if not secondary_sensor.get_period().is_intersecting(production_period):
@@ -316,7 +316,7 @@ class SensorPair:
         else:
             self.name = primary_sensor.get_name()
         self.period = primary_sensor.get_period().get_intersection(secondary_sensor.get_period())
-        if not production_period is None:
+        if production_period is not None:
             self.period = self.period.get_intersection(production_period)
 
     def get_name(self):
@@ -596,25 +596,30 @@ class Workflow:
         else:
             sampling_prefix = 'dum'
         m = self.__get_monitor(hosts, calls, log_dir, simulation)
-        self._execute_ingest_sensor_data(m)
-        self._execute_sampling(m)
-        self._execute_clearing(m)
-        self._execute_plotting(m, sampling_prefix)
-        self._execute_create_sub_mmd_files(m)
-        self._execute_create_nwp_mmd_files(m)
-        self._execute_create_matchup_nwp_mmd_files(m)
-        self._execute_create_arc_mmd_files(m)
-        m.wait_for_completion()
-        self._execute_ingest_sub_mmd_files(m)
-        self._execute_ingest_nwp_mmd_files(m)
-        self._execute_ingest_matchup_nwp_mmd_files(m)
-        self._execute_ingest_arc_mmd_files(m)
-        m.wait_for_completion()
-        self._execute_ingest_coincidences(m, sampling_prefix)
-        m.wait_for_completion()
-        self._execute_create_final_mmd_files(m, mmdtype)
-        if with_selection:
-            self._execute_selection(m, mmdtype)
+
+        production_period = self.__get_effective_production_period()
+        date = production_period.get_start_date()
+
+        while date < production_period.get_end_date():
+            chunk = Period(date, _next_year(date))
+            self._execute_ingest_sensor_data(m, chunk)
+            self._execute_sampling(m, chunk)
+            self._execute_clearing(m, chunk)
+            self._execute_plotting(m, chunk, sampling_prefix)
+            self._execute_ingest_coincidences(m, chunk, sampling_prefix)
+            self._execute_create_sub_mmd_files(m, chunk)
+            self._execute_create_nwp_mmd_files(m, chunk)
+            self._execute_create_matchup_nwp_mmd_files(m, chunk)
+            self._execute_create_arc_mmd_files(m, chunk)
+            self._execute_ingest_sub_mmd_files(m, chunk)
+            self._execute_ingest_nwp_mmd_files(m, chunk)
+            self._execute_ingest_matchup_nwp_mmd_files(m, chunk)
+            self._execute_ingest_arc_mmd_files(m, chunk)
+            self._execute_create_final_mmd_files(m, chunk, mmdtype)
+            if with_selection:
+                self._execute_selection(m, chunk, mmdtype)
+            date = _next_year(date)
+            m.wait_for_completion()
         m.wait_for_completion_and_terminate()
 
     def _get_primary_sensors(self):
@@ -699,7 +704,7 @@ class Workflow:
         :type period: Period
         :type sensor: str
         """
-        if not sensor in multi_periods:
+        if sensor not in multi_periods:
             multi_periods[sensor] = MultiPeriod()
         multi_period = multi_periods[sensor]
         """:type : MultiPeriod"""
@@ -805,24 +810,24 @@ class Workflow:
                 preconditions.append('/smp/' + name + '/' + _pathformat(end_date))
         return preconditions
 
-    def _execute_ingest_sensor_data(self, monitor):
+    def _execute_ingest_sensor_data(self, monitor, chunk):
         """
 
         :type monitor: Monitor
         """
-        period = self.__get_effective_production_period()
-        date = period.get_start_date()
-        end_date = period.get_end_date()
-        while date < end_date:
-            (year, month) = _year_month(date)
-            job = Job('ingestion-start' + '-' + year + '-' + month,
-                      'ingestion-start.sh',
-                      ['/inp/' + _pathformat(date)],
-                      ['/obs/' + _pathformat(date),
-                       '/obs'],
-                      [year, month, self.get_usecase()])
-            monitor.execute(job)
-            date = _next_month(date)
+        period = self.__get_effective_production_period().get_intersection(chunk)
+        if period is not None:
+            date = period.get_start_date()
+            end_date = period.get_end_date()
+            while date < end_date:
+                (year, month) = _year_month(date)
+                job = Job('ingestion-start' + '-' + year + '-' + month,
+                          'ingestion-start.sh',
+                          ['/inp/' + _pathformat(date)],
+                          ['/obs/' + _pathformat(date)],
+                          [year, month, self.get_usecase()])
+                monitor.execute(job)
+                date = _next_month(date)
 
     @staticmethod
     def __compute_samples_skip(sensor_pair, date, m):
@@ -836,308 +841,336 @@ class Workflow:
         """
         return abs((sensor_pair.__hash__() * 31 + date.year) * 31 + date.month) * m
 
-    def _execute_sampling(self, monitor):
+    def _execute_sampling(self, monitor, chunk):
         """
 
         :type monitor: Monitor
+        :type chunk: Period
         """
         m = self.samples_per_month
 
         for sensor_pair in self._get_sensor_pairs():
             name = sensor_pair.get_name()
             """:type : str"""
-            period = sensor_pair.get_period()
-            date = period.get_start_date()
-            end_date = period.get_end_date()
-            while date < end_date:
-                (year, month) = _year_month(date)
-                n = self.__compute_samples_skip(sensor_pair, date, m)
-                job = Job('sampling-start' + '-' + year + '-' + month + '-' + name,
-                          'sampling-start.sh',
-                          ['/obs/' + _pathformat(_prev_month(date)),
-                           '/obs/' + _pathformat(date),
-                           '/obs/' + _pathformat(_next_month(date)),
-                           '/obs'],
-                          ['/smp/' + name + '/' + _pathformat(date)],
-                          [year, month, name, m, n, self.get_usecase()])
-                monitor.execute(job)
-                date = _next_month(date)
+            period = sensor_pair.get_period().get_intersection(chunk)
+            if period is not None:
+                date = period.get_start_date()
+                end_date = period.get_end_date()
+                while date < end_date:
+                    (year, month) = _year_month(date)
+                    n = self.__compute_samples_skip(sensor_pair, date, m)
+                    job = Job('sampling-start' + '-' + year + '-' + month + '-' + name,
+                              'sampling-start.sh',
+                              ['/obs/' + _pathformat(_prev_month(date)),
+                               '/obs/' + _pathformat(date),
+                               '/obs/' + _pathformat(_next_month(date))],
+                              ['/smp/' + name + '/' + _pathformat(date)],
+                              [year, month, name, m, n, self.get_usecase()])
+                    monitor.execute(job)
+                    date = _next_month(date)
 
-    def _execute_clearing(self, monitor):
+    def _execute_clearing(self, monitor, chunk):
         """
 
         :type monitor: Monitor
+        :type chunk: Period
         """
         for sensor_pair in self._get_sensor_pairs():
             sensor_1 = sensor_pair.get_primary_name()
             sensor_2 = sensor_pair.get_secondary_name()
             name = sensor_pair.get_name()
-            period = sensor_pair.get_period()
-            date = period.get_start_date()
-            end_date = period.get_end_date()
-            while date < end_date:
-                (year, month) = _year_month(date)
-                job = Job('clearsky-start' + '-' + year + '-' + month + '-' + name,
-                          'clearsky-start.sh',
-                          ['/smp/' + name + '/' + _pathformat(_prev_month(date)),
-                           '/smp/' + name + '/' + _pathformat(date),
-                           '/smp/' + name + '/' + _pathformat(_next_month(date))],
-                          ['/clr/' + name + '/' + _pathformat(date),
-                           '/clr/' + sensor_1 + '/' + _pathformat(date),
-                           '/clr/' + sensor_2 + '/' + _pathformat(date)],
-                          [year, month, name, self.get_usecase()])
-                monitor.execute(job)
-                date = _next_month(date)
+            period = sensor_pair.get_period().get_intersection(chunk)
+            if period is not None:
+                date = period.get_start_date()
+                end_date = period.get_end_date()
+                while date < end_date:
+                    (year, month) = _year_month(date)
+                    job = Job('clearsky-start' + '-' + year + '-' + month + '-' + name,
+                              'clearsky-start.sh',
+                              ['/smp/' + name + '/' + _pathformat(_prev_month(date)),
+                               '/smp/' + name + '/' + _pathformat(date),
+                               '/smp/' + name + '/' + _pathformat(_next_month(date))],
+                              ['/clr/' + name + '/' + _pathformat(date),
+                               '/clr/' + sensor_1 + '/' + _pathformat(date),
+                               '/clr/' + sensor_2 + '/' + _pathformat(date)],
+                              [year, month, name, self.get_usecase()])
+                    monitor.execute(job)
+                    date = _next_month(date)
 
-    def _execute_plotting(self, monitor, sampling_prefix):
+    def _execute_plotting(self, monitor, chunk, sampling_prefix):
         """
 
         :type monitor: Monitor
+        :type chunk: Period
         :type sampling_prefix: str
         """
         for sensor in self._get_primary_sensors_by_period():
             name = sensor.get_name()
-            period = sensor.get_period()
-            date = period.get_start_date()
-            end_date = period.get_end_date()
-            while date < end_date:
-                (year, month) = _year_month(date)
-                job = Job('mapplot-start' + '-' + year + '-' + month + '-' + name,
-                          'mapplot-start.sh',
-                          ['/clr/' + name + '/' + _pathformat(date)],
-                          ['/plt/' + name + '/' + _pathformat(date)],
-                          [year, month, sampling_prefix + '_' + name, 'lonlat', self.get_usecase()])
-                monitor.execute(job)
-                date = _next_month(date)
+            period = sensor.get_period().get_intersection(chunk)
+            if period is not None:
+                date = period.get_start_date()
+                end_date = period.get_end_date()
+                while date < end_date:
+                    (year, month) = _year_month(date)
+                    job = Job('mapplot-start' + '-' + year + '-' + month + '-' + name,
+                              'mapplot-start.sh',
+                              ['/clr/' + name + '/' + _pathformat(date)],
+                              ['/plt/' + name + '/' + _pathformat(date)],
+                              [year, month, sampling_prefix + '_' + name, 'lonlat', self.get_usecase()])
+                    monitor.execute(job)
+                    date = _next_month(date)
 
-    def _execute_ingest_coincidences(self, monitor, sampling_prefix):
+    def _execute_ingest_coincidences(self, monitor, chunk, sampling_prefix):
         """
 
         :type monitor: Monitor
+        :type chunk: Period
         :type sampling_prefix: str
         """
         for sensor in self._get_primary_sensors_by_period():
             name = sensor.get_name()
-            period = sensor.get_period()
-            date = period.get_start_date()
-            end_date = period.get_end_date()
-            while date < end_date:
-                (year, month) = _year_month(date)
-                job = Job('coincidence-start' + '-' + year + '-' + month + '-' + name,
-                          'coincidence-start.sh',
-                          ['/clr/' + name + '/' + _pathformat(date)],
-                          ['/con/' + name + '/' + _pathformat(date)],
-                          [year, month, sampling_prefix + '_' + name, self.get_usecase()])
-                monitor.execute(job)
-                date = _next_month(date)
+            period = sensor.get_period().get_intersection(chunk)
+            if period is not None:
+                date = period.get_start_date()
+                end_date = period.get_end_date()
+                while date < end_date:
+                    (year, month) = _year_month(date)
+                    job = Job('coincidence-start' + '-' + year + '-' + month + '-' + name,
+                              'coincidence-start.sh',
+                              ['/clr/' + name + '/' + _pathformat(date)],
+                              ['/con/' + name + '/' + _pathformat(date)],
+                              [year, month, sampling_prefix + '_' + name, self.get_usecase()])
+                    monitor.execute(job)
+                    date = _next_month(date)
 
-    def _execute_create_sub_mmd_files(self, monitor):
+    def _execute_create_sub_mmd_files(self, monitor, chunk):
         """
 
         :type monitor: Monitor
+        :type chunk: Period
         """
         for sensor in self._get_all_sensors_by_period():
             name = sensor.get_name()
-            period = sensor.get_period()
-            date = period.get_start_date()
-            end_date = period.get_end_date()
-            while date < end_date:
-                (year, month) = _year_month(date)
-                job = Job('sub-start' + '-' + year + '-' + month + '-' + name,
-                          'sub-start.sh',
-                          ['/clr/' + name + '/' + _pathformat(date)],
-                          ['/sub/' + name + '/' + _pathformat(date)],
-                          [year, month, name, 'sub', self.get_usecase()])
-                monitor.execute(job)
-                date = _next_month(date)
+            period = sensor.get_period().get_intersection(chunk)
+            if period is not None:
+                date = period.get_start_date()
+                end_date = period.get_end_date()
+                while date < end_date:
+                    (year, month) = _year_month(date)
+                    job = Job('sub-start' + '-' + year + '-' + month + '-' + name,
+                              'sub-start.sh',
+                              ['/clr/' + name + '/' + _pathformat(date)],
+                              ['/sub/' + name + '/' + _pathformat(date)],
+                              [year, month, name, 'sub', self.get_usecase()])
+                    monitor.execute(job)
+                    date = _next_month(date)
 
-    def _execute_create_nwp_mmd_files(self, monitor):
+    def _execute_create_nwp_mmd_files(self, monitor, chunk):
         """
 
         :type monitor: Monitor
+        :type chunk: Period
         """
         for sensor in self._get_all_sensors_by_period():
             name = sensor.get_name()
-            period = sensor.get_period()
-            date = period.get_start_date()
-            end_date = period.get_end_date()
-            while date < end_date:
-                (year, month) = _year_month(date)
-                job = Job('nwp-start' + '-' + year + '-' + month + '-' + name,
-                          'nwp-start.sh',
-                          ['/sub/' + name + '/' + _pathformat(date)],
-                          ['/nwp/' + name + '/' + _pathformat(date)],
-                          [year, month, name, self.get_usecase()])
-                monitor.execute(job)
-                date = _next_month(date)
+            period = sensor.get_period().get_intersection(chunk)
+            if period is not None:
+                date = period.get_start_date()
+                end_date = period.get_end_date()
+                while date < end_date:
+                    (year, month) = _year_month(date)
+                    job = Job('nwp-start' + '-' + year + '-' + month + '-' + name,
+                              'nwp-start.sh',
+                              ['/sub/' + name + '/' + _pathformat(date)],
+                              ['/nwp/' + name + '/' + _pathformat(date)],
+                              [year, month, name, self.get_usecase()])
+                    monitor.execute(job)
+                    date = _next_month(date)
 
-    def _execute_create_matchup_nwp_mmd_files(self, monitor):
+    def _execute_create_matchup_nwp_mmd_files(self, monitor, chunk):
         """
 
         :type monitor: Monitor
+        :type chunk: Period
         """
         for sensor in self._get_primary_sensors_by_period():
             name = sensor.get_name()
-            period = sensor.get_period()
-            date = period.get_start_date()
-            end_date = period.get_end_date()
-            while date < end_date:
-                (year, month) = _year_month(date)
-                job = Job('matchup_nwp-start' + '-' + year + '-' + month + '-' + name,
-                          'matchup-nwp-start.sh',
-                          ['/sub/' + name + '/' + _pathformat(date)],
-                          ['/nwp/' + name + '/' + _pathformat(date)],
-                          [year, month, name, self.get_usecase()])
-                monitor.execute(job)
-                date = _next_month(date)
+            period = sensor.get_period().get_intersection(chunk)
+            if period is not None:
+                date = period.get_start_date()
+                end_date = period.get_end_date()
+                while date < end_date:
+                    (year, month) = _year_month(date)
+                    job = Job('matchup_nwp-start' + '-' + year + '-' + month + '-' + name,
+                              'matchup-nwp-start.sh',
+                              ['/sub/' + name + '/' + _pathformat(date)],
+                              ['/nwp/' + name + '/' + _pathformat(date)],
+                              [year, month, name, self.get_usecase()])
+                    monitor.execute(job)
+                    date = _next_month(date)
 
-    def _execute_create_arc_mmd_files(self, monitor):
+    def _execute_create_arc_mmd_files(self, monitor, chunk):
         """
 
         :type monitor: Monitor
+        :type chunk: Period
         """
         for sensor in self._get_all_sensors_by_period():
             name = sensor.get_name()
-            period = sensor.get_period()
-            date = period.get_start_date()
-            end_date = period.get_end_date()
-            while date < end_date:
-                (year, month) = _year_month(date)
-                job = Job('gbcs-start' + '-' + year + '-' + month + '-' + name,
-                          'gbcs-start.sh',
-                          ['/nwp/' + name + '/' + _pathformat(date)],
-                          ['/arc/' + name + '/' + _pathformat(date)],
-                          [year, month, name, self.get_usecase()])
-                monitor.execute(job)
-                date = _next_month(date)
+            period = sensor.get_period().get_intersection(chunk)
+            if period is not None:
+                date = period.get_start_date()
+                end_date = period.get_end_date()
+                while date < end_date:
+                    (year, month) = _year_month(date)
+                    job = Job('gbcs-start' + '-' + year + '-' + month + '-' + name,
+                              'gbcs-start.sh',
+                              ['/nwp/' + name + '/' + _pathformat(date)],
+                              ['/arc/' + name + '/' + _pathformat(date)],
+                              [year, month, name, self.get_usecase()])
+                    monitor.execute(job)
+                    date = _next_month(date)
 
-    def _execute_ingest_sub_mmd_files(self, monitor):
+    def _execute_ingest_sub_mmd_files(self, monitor, chunk):
         """
 
         :type monitor: Monitor
+        :type chunk: Period
         """
         mmdtype = 'sub'
         for sensor in self._get_all_sensors_by_period():
             name = sensor.get_name()
-            period = sensor.get_period()
-            date = period.get_start_date()
-            end_date = period.get_end_date()
-            while date < end_date:
-                (year, month) = _year_month(date)
-                job = Job('reingestion-start' + '-' + year + '-' + month + '-' + name + '-' + mmdtype,
-                          'reingestion-start.sh',
-                          ['/sub/' + name + '/' + _pathformat(date)],
-                          ['/con/' + name + '/' + _pathformat(date)],
-                          [year, month, name, mmdtype, self.get_usecase()])
-                monitor.execute(job)
-                date = _next_month(date)
+            period = sensor.get_period().get_intersection(chunk)
+            if period is not None:
+                date = period.get_start_date()
+                end_date = period.get_end_date()
+                while date < end_date:
+                    (year, month) = _year_month(date)
+                    job = Job('reingestion-start' + '-' + year + '-' + month + '-' + name + '-' + mmdtype,
+                              'reingestion-start.sh',
+                              ['/sub/' + name + '/' + _pathformat(date)],
+                              ['/con/' + name + '/' + _pathformat(date)],
+                              [year, month, name, mmdtype, self.get_usecase()])
+                    monitor.execute(job)
+                    date = _next_month(date)
 
-    def _execute_ingest_nwp_mmd_files(self, monitor):
+    def _execute_ingest_nwp_mmd_files(self, monitor, chunk):
         """
 
         :type monitor: Monitor
+        :type chunk: Period
         """
         mmdtype = 'nwp'
         for sensor in self._get_all_sensors_by_period():
             name = sensor.get_name()
-            period = sensor.get_period()
-            date = period.get_start_date()
-            end_date = period.get_end_date()
-            while date < end_date:
-                (year, month) = _year_month(date)
-                job = Job('reingestion-start' + '-' + year + '-' + month + '-' + name + '-' + mmdtype,
-                          'reingestion-start.sh',
-                          ['/nwp/' + name + '/' + _pathformat(date)],
-                          ['/con/' + name + '/' + _pathformat(date)],
-                          [year, month, name, mmdtype, self.get_usecase()])
-                monitor.execute(job)
-                date = _next_month(date)
+            period = sensor.get_period().get_intersection(chunk)
+            if period is not None:
+                date = period.get_start_date()
+                end_date = period.get_end_date()
+                while date < end_date:
+                    (year, month) = _year_month(date)
+                    job = Job('reingestion-start' + '-' + year + '-' + month + '-' + name + '-' + mmdtype,
+                              'reingestion-start.sh',
+                              ['/nwp/' + name + '/' + _pathformat(date)],
+                              ['/con/' + name + '/' + _pathformat(date)],
+                              [year, month, name, mmdtype, self.get_usecase()])
+                    monitor.execute(job)
+                    date = _next_month(date)
 
-    def _execute_ingest_matchup_nwp_mmd_files(self, monitor):
+    def _execute_ingest_matchup_nwp_mmd_files(self, monitor, chunk):
         """
 
         :type monitor: Monitor
+        :type chunk: Period
         """
         for sensor in self._get_primary_sensors_by_period():
             name = sensor.get_name()
-            period = sensor.get_period()
-            date = period.get_start_date()
-            end_date = period.get_end_date()
-            while date < end_date:
-                (year, month) = _year_month(date)
-                job = Job('matchup-reingestion-start' + '-' + year + '-' + month + '-' + name,
-                          'matchup-reingestion-start.sh',
-                          ['/nwp/' + name + '/' + _pathformat(date)],
-                          ['/con/' + name + '/' + _pathformat(date)],
-                          [year, month, name, self.get_usecase()])
-                monitor.execute(job)
-                date = _next_month(date)
+            period = sensor.get_period().get_intersection(chunk)
+            if period is not None:
+                date = period.get_start_date()
+                end_date = period.get_end_date()
+                while date < end_date:
+                    (year, month) = _year_month(date)
+                    job = Job('matchup-reingestion-start' + '-' + year + '-' + month + '-' + name,
+                              'matchup-reingestion-start.sh',
+                              ['/nwp/' + name + '/' + _pathformat(date)],
+                              ['/con/' + name + '/' + _pathformat(date)],
+                              [year, month, name, self.get_usecase()])
+                    monitor.execute(job)
+                    date = _next_month(date)
 
-    def _execute_ingest_arc_mmd_files(self, monitor):
+    def _execute_ingest_arc_mmd_files(self, monitor, chunk):
         """
 
         :type monitor: Monitor
+        :type chunk: Period
         """
         mmdtype = 'arc'
         for sensor in self._get_all_sensors_by_period():
             name = sensor.get_name()
-            period = sensor.get_period()
-            date = period.get_start_date()
-            end_date = period.get_end_date()
-            while date < end_date:
-                (year, month) = _year_month(date)
-                job = Job('reingestion-start' + '-' + year + '-' + month + '-' + name + '-' + mmdtype,
-                          'reingestion-start.sh',
-                          ['/arc/' + name + '/' + _pathformat(date)],
-                          ['/con/' + name + '/' + _pathformat(date)],
-                          [year, month, name, mmdtype, self.get_usecase()])
-                monitor.execute(job)
-                date = _next_month(date)
+            period = sensor.get_period().get_intersection(chunk)
+            if period is not None:
+                date = period.get_start_date()
+                end_date = period.get_end_date()
+                while date < end_date:
+                    (year, month) = _year_month(date)
+                    job = Job('reingestion-start' + '-' + year + '-' + month + '-' + name + '-' + mmdtype,
+                              'reingestion-start.sh',
+                              ['/arc/' + name + '/' + _pathformat(date)],
+                              ['/con/' + name + '/' + _pathformat(date)],
+                              [year, month, name, mmdtype, self.get_usecase()])
+                    monitor.execute(job)
+                    date = _next_month(date)
 
-    def _execute_create_final_mmd_files(self, monitor, mmdtype):
+    def _execute_create_final_mmd_files(self, monitor, chunk, mmdtype):
         """
 
         :type monitor: Monitor
+        :type chunk: Period
         :type mmdtype: str
         """
         for sensor_pair in self._get_sensor_pairs():
             sensor_1 = sensor_pair.get_primary_name()
             sensor_2 = sensor_pair.get_secondary_name()
             name = sensor_pair.get_name()
-            period = sensor_pair.get_period()
-            date = period.get_start_date()
-            end_date = period.get_end_date()
-            while date < end_date:
-                (year, month) = _year_month(date)
-                job = Job('mmd-start' + '-' + year + '-' + month + '-' + name + '-' + mmdtype,
-                          'mmd-start.sh',
-                          ['/con/' + sensor_1 + '/' + _pathformat(date),
-                           '/con/' + sensor_2 + '/' + _pathformat(date)],
-                          ['/mmd/' + name + '/' + _pathformat(date)],
-                          [year, month, name, mmdtype, self.get_usecase()])
-                monitor.execute(job)
-                date = _next_month(date)
+            period = sensor_pair.get_period().get_intersection(chunk)
+            if period is not None:
+                date = period.get_start_date()
+                end_date = period.get_end_date()
+                while date < end_date:
+                    (year, month) = _year_month(date)
+                    job = Job('mmd-start' + '-' + year + '-' + month + '-' + name + '-' + mmdtype,
+                              'mmd-start.sh',
+                              ['/con/' + sensor_1 + '/' + _pathformat(date),
+                               '/con/' + sensor_2 + '/' + _pathformat(date)],
+                              ['/mmd/' + name + '/' + _pathformat(date)],
+                              [year, month, name, mmdtype, self.get_usecase()])
+                    monitor.execute(job)
+                    date = _next_month(date)
 
-    def _execute_selection(self, monitor, mmdtype):
+    def _execute_selection(self, monitor, chunk, mmdtype):
         """
 
         :type monitor: Monitor
+        :type chunk: Period
         :type mmdtype: str
         """
         for sensor_pair in self._get_sensor_pairs():
             name = sensor_pair.get_name()
-            period = sensor_pair.get_period()
-            date = period.get_start_date()
-            end_date = period.get_end_date()
-            while date < end_date:
-                (year, month) = _year_month(date)
-                job = Job('selection-start' + '-' + year + '-' + month + '-' + name + '-' + mmdtype,
-                          'selection-start.sh',
-                          ['/mmd/' + name + '/' + _pathformat(date)],
-                          ['/sel/' + name + '/' + _pathformat(date)],
-                          [year, month, name, mmdtype, self.get_usecase()])
-                monitor.execute(job)
-                date = _next_month(date)
+            period = sensor_pair.get_period().get_intersection(chunk)
+            if period is not None:
+                date = period.get_start_date()
+                end_date = period.get_end_date()
+                while date < end_date:
+                    (year, month) = _year_month(date)
+                    job = Job('selection-start' + '-' + year + '-' + month + '-' + name + '-' + mmdtype,
+                              'selection-start.sh',
+                              ['/mmd/' + name + '/' + _pathformat(date)],
+                              ['/sel/' + name + '/' + _pathformat(date)],
+                              [year, month, name, mmdtype, self.get_usecase()])
+                    monitor.execute(job)
+                    date = _next_month(date)
+
 
 def _pathformat(date):
     """
@@ -1170,6 +1203,15 @@ def _next_month(date):
         return datetime.date(date.year, date.month + 1, 1)
     else:
         return datetime.date(date.year + 1, 1, 1)
+
+
+def _next_year(date):
+    """
+
+    :type date: datetime.date
+    :rtype : datetime.date
+    """
+    return datetime.date(date.year + 1, 1, 1)
 
 
 def _year_month(date):
