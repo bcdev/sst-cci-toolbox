@@ -14,14 +14,18 @@ package org.esa.cci.sst.assessment;/*
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
+import org.docx4j.TraversalUtil;
 import org.docx4j.dml.wordprocessingDrawing.Inline;
+import org.docx4j.finders.ClassFinder;
 import org.docx4j.jaxb.Context;
 import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
 import org.docx4j.openpackaging.parts.WordprocessingML.BinaryPartAbstractImage;
+import org.docx4j.openpackaging.parts.WordprocessingML.MainDocumentPart;
 import org.docx4j.wml.BooleanDefaultTrue;
 import org.docx4j.wml.CTBookmark;
 import org.docx4j.wml.CTMarkupRange;
 import org.docx4j.wml.CTSimpleField;
+import org.docx4j.wml.ContentAccessor;
 import org.docx4j.wml.Drawing;
 import org.docx4j.wml.ObjectFactory;
 import org.docx4j.wml.P;
@@ -30,11 +34,13 @@ import org.docx4j.wml.PPrBase;
 import org.docx4j.wml.R;
 import org.docx4j.wml.RPr;
 import org.docx4j.wml.Text;
+import org.jvnet.jaxb2_commons.ppp.Child;
 
 import javax.xml.bind.JAXBElement;
 import java.io.File;
 import java.math.BigInteger;
 import java.net.URL;
+import java.util.List;
 
 /**
  * A facade representing a Microsoft Word document.
@@ -69,23 +75,12 @@ public class WordDocument {
         return wordMLPackage.getMainDocumentPart().addStyledParagraphOfText("Normal", text);
     }
 
-    public P addFigure(URL resource) throws Exception {
-        final File imageFile = new File(resource.toURI());
-        return addFigure(imageFile);
-    }
-
-    public P addFigure(File imageFile) throws Exception {
-        final BinaryPartAbstractImage imagePart = BinaryPartAbstractImage.createImagePart(wordMLPackage, imageFile);
-        final Inline inline = imagePart.createImageInline(imageFile.getName(), imageFile.getName(), 0, 0, true);
-
-        // Add the inline in w:p/w:r/w:drawing
+    public P addFigure(Drawing drawing) throws Exception {
         final ObjectFactory factory = Context.getWmlObjectFactory();
         final P p = factory.createP();
         final R r = factory.createR();
         p.getContent().add(r);
-        final Drawing drawing = factory.createDrawing();
         r.getContent().add(drawing);
-        drawing.getAnchorOrInline().add(inline);
 
         wordMLPackage.getMainDocumentPart().addObject(p);
         return p;
@@ -108,7 +103,7 @@ public class WordDocument {
         final Text text = factory.createText();
         final JAXBElement<Text> textWrapped = factory.createRT(text);
         r.getContent().add(textWrapped);
-        text.setValue(label);
+        text.setValue(label + " ");
         text.setSpace("preserve");
         // Create object for fldSimple (wrapped in JAXBElement)
         final CTSimpleField simpleField = factory.createCTSimpleField();
@@ -151,5 +146,64 @@ public class WordDocument {
 
         wordMLPackage.getMainDocumentPart().addObject(p);
         return p;
+    }
+
+    public Drawing createDrawing(URL resource) throws Exception {
+        final File imageFile = new File(resource.toURI());
+        return createFigure(imageFile);
+    }
+
+    public Drawing createFigure(File imageFile) throws Exception {
+        final ObjectFactory factory = Context.getWmlObjectFactory();
+        final Drawing drawing = factory.createDrawing();
+        final BinaryPartAbstractImage imagePart = BinaryPartAbstractImage.createImagePart(wordMLPackage, imageFile);
+        final Inline inline = imagePart.createImageInline(imageFile.getName(), imageFile.getName(), 0, 0, true);
+        drawing.getAnchorOrInline().add(inline);
+
+        return drawing;
+    }
+
+    public ContentAccessor findVariable(String variable) {
+        final MainDocumentPart documentPart = wordMLPackage.getMainDocumentPart();
+        final ClassFinder finder = new ClassFinder(P.class);
+        new TraversalUtil(documentPart.getContent(), finder);
+
+        for (final Object o : finder.results) {
+            if (o instanceof P) {
+                final P p = (P) o;
+                final List<Object> c1 = p.getContent();
+                if (c1.size() == 1) {
+                    final Object o1 = c1.get(0);
+                    if (o1 instanceof R) {
+                        final R r = (R) o1;
+                        final List<Object> c2 = r.getContent();
+                        if (c2.size() == 1) {
+                            final Object o2 = c2.get(0);
+                            if (o2 instanceof Text) {
+                                final Text t = (Text) o2;
+                                if (variable.equalsIgnoreCase(t.getValue())) {
+                                    return r;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public Text replaceVariable(String variable, Child child) {
+        final ContentAccessor contentAccessor = findVariable(variable);
+
+        if (contentAccessor != null) {
+            final List<Object> content = contentAccessor.getContent();
+            final Text removed = (Text) content.remove(0);
+            content.add(child);
+            return removed;
+        }
+
+        return null;
     }
 }
