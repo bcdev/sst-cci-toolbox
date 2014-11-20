@@ -619,7 +619,6 @@ class Workflow:
             if with_selection:
                 self._execute_selection(m, chunk, mmdtype)
             date = _next_year(date)
-            m.wait_for_completion()
         m.wait_for_completion_and_terminate()
 
     def _get_primary_sensors(self):
