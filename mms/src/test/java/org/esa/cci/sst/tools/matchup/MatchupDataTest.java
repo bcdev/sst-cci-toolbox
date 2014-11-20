@@ -26,6 +26,10 @@ public class MatchupDataTest {
         final List<IO_Observation> relatedObservations = matchupData.getRelatedObservations();
         assertNotNull(relatedObservations);
         assertTrue(relatedObservations.isEmpty());
+
+        final List<IO_Observation> insituObservations = matchupData.getInsituObservations();
+        assertNotNull(insituObservations);
+        assertTrue(insituObservations.isEmpty());
     }
 
     @Test
@@ -38,5 +42,29 @@ public class MatchupDataTest {
 
         referenceObservations = matchupData.getReferenceObservations();
         assertEquals(1, referenceObservations.size());
+    }
+
+    @Test
+    public void testAdd_relatedObservation() {
+        List<IO_Observation> relatedObservations = matchupData.getRelatedObservations();
+        assertEquals(0, relatedObservations.size());
+
+        final IO_Observation io_oObs = new IO_Observation();
+        matchupData.addRelated(io_oObs);
+
+        relatedObservations = matchupData.getRelatedObservations();
+        assertEquals(1, relatedObservations.size());
+    }
+
+    @Test
+    public void testAdd_insituObservation() {
+        List<IO_Observation> insituObservations = matchupData.getInsituObservations();
+        assertEquals(0, insituObservations.size());
+
+        final IO_Observation io_oObs = new IO_Observation();
+        matchupData.addInsitu(io_oObs);
+
+        insituObservations = matchupData.getInsituObservations();
+        assertEquals(1, insituObservations.size());
     }
 }
