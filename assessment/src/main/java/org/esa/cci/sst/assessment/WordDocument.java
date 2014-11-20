@@ -1,4 +1,4 @@
-package org.esa.cci.sst.assessment;/*
+/*
  * Copyright (c) 2014 Brockmann Consult GmbH (info@brockmann-consult.de)
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -13,6 +13,8 @@ package org.esa.cci.sst.assessment;/*
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, see http://www.gnu.org/licenses/
  */
+
+package org.esa.cci.sst.assessment;
 
 import org.docx4j.TraversalUtil;
 import org.docx4j.dml.wordprocessingDrawing.Inline;
