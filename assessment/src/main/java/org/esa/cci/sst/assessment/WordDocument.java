@@ -34,7 +34,6 @@ import org.docx4j.wml.PPrBase;
 import org.docx4j.wml.R;
 import org.docx4j.wml.RPr;
 import org.docx4j.wml.Text;
-import org.jvnet.jaxb2_commons.ppp.Child;
 
 import javax.xml.bind.JAXBElement;
 import java.io.File;
@@ -51,30 +50,78 @@ public class WordDocument {
 
     private final WordprocessingMLPackage wordMLPackage;
 
+    /**
+     * Creates a new empty Word document.
+     *
+     * @throws Exception if an error occurred.
+     */
     public WordDocument() throws Exception {
         this.wordMLPackage = WordprocessingMLPackage.createPackage();
     }
 
-    public void save(File file) throws Exception {
-        wordMLPackage.save(file);
+    /**
+     * Saves this Word document to a target file.
+     *
+     * @param targetFile The target file.
+     *
+     * @throws Exception if on error occurred.
+     */
+    public void save(File targetFile) throws Exception {
+        wordMLPackage.save(targetFile);
     }
 
-    public P addTitle(String titleText) {
-        return wordMLPackage.getMainDocumentPart().addStyledParagraphOfText("Title", titleText);
+    /**
+     * Adds a title to this Word document.
+     *
+     * @param text The title text.
+     *
+     * @return the enclosing "paragraph" element.
+     */
+    public P addTitle(String text) {
+        return wordMLPackage.getMainDocumentPart().addStyledParagraphOfText("Title", text);
     }
 
-    public P addHeading1(String headingText) {
-        return wordMLPackage.getMainDocumentPart().addStyledParagraphOfText("Heading1", headingText);
+    /**
+     * Adds a first-level heading to this Word document.
+     *
+     * @param text The heading text.
+     *
+     * @return the enclosing "paragraph" element.
+     */
+    public P addHeading1(String text) {
+        return wordMLPackage.getMainDocumentPart().addStyledParagraphOfText("Heading1", text);
     }
 
-    public P addHeading2(String headingText) {
-        return wordMLPackage.getMainDocumentPart().addStyledParagraphOfText("Heading2", headingText);
+    /**
+     * Adds a second-level heading to this Word document.
+     *
+     * @param text The heading text.
+     *
+     * @return the enclosing "paragraph" element.
+     */
+    public P addHeading2(String text) {
+        return wordMLPackage.getMainDocumentPart().addStyledParagraphOfText("Heading2", text);
     }
 
+
+    /**
+     * Adds a new paragraph this Word document.
+     *
+     * @param text The paragraph text.
+     *
+     * @return the enclosing "paragraph" element.
+     */
     public P addParagraph(String text) {
         return wordMLPackage.getMainDocumentPart().addStyledParagraphOfText("Normal", text);
     }
 
+    /**
+     * Adds a new figure this Word document.
+     *
+     * @param drawing The figure's drawing.
+     *
+     * @return the enclosing "paragraph" element.
+     */
     public P addFigure(Drawing drawing) throws Exception {
         final ObjectFactory factory = Context.getWmlObjectFactory();
         final P p = factory.createP();
@@ -86,7 +133,16 @@ public class WordDocument {
         return p;
     }
 
-    public P addCaption(String label, String number, String captionText) {
+    /**
+     * Adds a new caption this Word document.
+     *
+     * @param label  The caption's label (e.g. "Figure").
+     * @param number The caption's number (e.g. "1" or "1.1").
+     * @param text   The caption's text.
+     *
+     * @return the enclosing "paragraph" element.
+     */
+    public P addCaption(String label, String number, String text) {
         final ObjectFactory factory = new ObjectFactory();
         final P p = factory.createP();
         // Create object for pPr
@@ -100,11 +156,11 @@ public class WordDocument {
         final R r = factory.createR();
         p.getContent().add(r);
         // Create object for t (wrapped in JAXBElement)
-        final Text text = factory.createText();
-        final JAXBElement<Text> textWrapped = factory.createRT(text);
+        final Text t = factory.createText();
+        final JAXBElement<Text> textWrapped = factory.createRT(t);
         r.getContent().add(textWrapped);
-        text.setValue(label + " ");
-        text.setSpace("preserve");
+        t.setValue(label + " ");
+        t.setSpace("preserve");
         // Create object for fldSimple (wrapped in JAXBElement)
         final CTSimpleField simpleField = factory.createCTSimpleField();
         final JAXBElement<CTSimpleField> simpleFieldWrapped = factory.createPFldSimple(simpleField);
@@ -120,18 +176,18 @@ public class WordDocument {
         final BooleanDefaultTrue booleanDefaultTrue = factory.createBooleanDefaultTrue();
         rpr.setNoProof(booleanDefaultTrue);
         // Create object for t (wrapped in JAXBElement)
-        final Text text2 = factory.createText();
-        final JAXBElement<Text> textWrapped2 = factory.createRT(text2);
+        final Text t2 = factory.createText();
+        final JAXBElement<Text> textWrapped2 = factory.createRT(t2);
         r2.getContent().add(textWrapped2);
-        text2.setValue(number);
+        t2.setValue(number);
         // Create object for r
         final R r3 = factory.createR();
         p.getContent().add(r3);
         // Create object for t (wrapped in JAXBElement)
-        final Text text3 = factory.createText();
-        final JAXBElement<Text> textWrapped3 = factory.createRT(text3);
+        final Text t3 = factory.createText();
+        final JAXBElement<Text> textWrapped3 = factory.createRT(t3);
         r3.getContent().add(textWrapped3);
-        text3.setValue(": " + captionText);
+        t3.setValue(": " + text);
         // Create object for bookmarkStart (wrapped in JAXBElement)
         final CTBookmark bookmark = factory.createCTBookmark();
         final JAXBElement<CTBookmark> bookmarkWrapped = factory.createPBookmarkStart(bookmark);
@@ -148,11 +204,29 @@ public class WordDocument {
         return p;
     }
 
+    /**
+     * Creates a new drawing from a resource.
+     *
+     * @param resource The resource.
+     *
+     * @return the drawing.
+     *
+     * @throws Exception if an error occurred.
+     */
     public Drawing createDrawing(URL resource) throws Exception {
         final File imageFile = new File(resource.toURI());
         return createDrawing(imageFile);
     }
 
+    /**
+     * Creates a new drawing from an image file.
+     *
+     * @param imageFile The image file.
+     *
+     * @return the drawing.
+     *
+     * @throws Exception if an error occurred.
+     */
     public Drawing createDrawing(File imageFile) throws Exception {
         final ObjectFactory factory = Context.getWmlObjectFactory();
         final Drawing drawing = factory.createDrawing();
@@ -163,6 +237,13 @@ public class WordDocument {
         return drawing;
     }
 
+    /**
+     * Traverses this Word document and looks for the first occurrence of a "template variable".
+     *
+     * @param variable The template variable.
+     *
+     * @return the enclosing "run" element or {@code null}, if the requested template variable has not been found.
+     */
     public ContentAccessor findVariable(String variable) {
         final MainDocumentPart documentPart = wordMLPackage.getMainDocumentPart();
         final ClassFinder finder = new ClassFinder(P.class);
@@ -194,6 +275,14 @@ public class WordDocument {
         return null;
     }
 
+    /**
+     * Traverses this Word document and replaces the first occurrence of a "template variable" with a drawing.
+     *
+     * @param variable The template variable.
+     * @param drawing  The drawing.
+     *
+     * @return the replaced "text" element or {@code null}, if the requested template variable has not been found.
+     */
     public Text replaceVariable(String variable, Drawing drawing) {
         final ContentAccessor contentAccessor = findVariable(variable);
 
