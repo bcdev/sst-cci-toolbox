@@ -3,8 +3,7 @@ package org.esa.cci.sst.tools.matchup;
 
 import java.util.Date;
 
-class IO_RefObs {
-
+class IO_Observation {
     private int id;
     private String name;
     private String sensor;
@@ -13,9 +12,6 @@ class IO_RefObs {
     private Date time;
     private double timeRadius;
     private String location;
-    private String point;
-    private byte dataset;
-    private byte referenceFlag;
 
     public int getId() {
         return id;
@@ -79,29 +75,5 @@ class IO_RefObs {
 
     public void setLocation(String location) {
         this.location = location;
-    }
-
-    public String getPoint() {
-        return point;
-    }
-
-    public void setPoint(String point) {
-        this.point = point;
-    }
-
-    public byte getDataset() {
-        return dataset;
-    }
-
-    public void setDataset(byte dataset) {
-        this.dataset = dataset;
-    }
-
-    public byte getReferenceFlag() {
-        return referenceFlag;
-    }
-
-    public void setReferenceFlag(byte referenceFlag) {
-        this.referenceFlag = referenceFlag;
     }
 }

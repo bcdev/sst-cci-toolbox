@@ -14,8 +14,8 @@ import static org.junit.Assert.*;
 
 public class MatchupIOTest {
 
-    private static final String EMPTY_FILE = "{\"referenceObservations\":[]}";
-    private static final String ONE_REF_OBS_FILE = "{\"referenceObservations\":[{\"id\":12,\"name\":\"13\",\"sensor\":\"14\",\"filePath\":\"15\",\"sensorId\":16,\"time\":17,\"timeRadius\":18.18,\"location\":\"19\",\"point\":\"20\",\"dataset\":21,\"referenceFlag\":22}]}";
+    private static final String EMPTY_FILE = "{\"referenceObservations\":[],\"relatedObservations\":[]}";
+    private static final String ONE_REF_OBS_FILE = "{\"referenceObservations\":[{\"id\":12,\"name\":\"13\",\"sensor\":\"14\",\"filePath\":\"15\",\"sensorId\":16,\"time\":17,\"timeRadius\":18.18,\"location\":\"19\",\"point\":\"20\",\"dataset\":21,\"referenceFlag\":22}],\"relatedObservations\":[]}";
 
     @Test
     public void testWriteEmptyMatchupData() throws IOException {
@@ -34,7 +34,7 @@ public class MatchupIOTest {
         final MatchupData matchupData = MatchupIO.read(inputStream);
         assertNotNull(matchupData);
 
-        final List<IO_RefObs> referenceObservations = matchupData.getReferenceObservations();
+        final List<IO_RefObservation> referenceObservations = matchupData.getReferenceObservations();
         assertNotNull(referenceObservations);
         assertTrue(referenceObservations.isEmpty());
     }
@@ -43,7 +43,7 @@ public class MatchupIOTest {
     public void testWriteMatchupData_oneReferenceObservation() throws IOException, SQLException {
         final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         final MatchupData matchupData = new MatchupData();
-        final IO_RefObs io_refObs = new IO_RefObs();
+        final IO_RefObservation io_refObs = new IO_RefObservation();
         io_refObs.setId(12);
         io_refObs.setName("13");
         io_refObs.setSensor("14");
@@ -69,9 +69,9 @@ public class MatchupIOTest {
         final MatchupData matchupData = MatchupIO.read(inputStream);
         assertNotNull(matchupData);
 
-        final List<IO_RefObs> referenceObservations = matchupData.getReferenceObservations();
+        final List<IO_RefObservation> referenceObservations = matchupData.getReferenceObservations();
         assertEquals(1, referenceObservations.size());
-        final IO_RefObs io_refObs = referenceObservations.get(0);
+        final IO_RefObservation io_refObs = referenceObservations.get(0);
         assertEquals(12, io_refObs.getId());
         assertEquals("13", io_refObs.getName());
         assertEquals("14", io_refObs.getSensor());

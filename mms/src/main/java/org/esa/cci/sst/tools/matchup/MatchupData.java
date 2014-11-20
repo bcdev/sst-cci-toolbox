@@ -6,21 +6,31 @@ import java.util.List;
 
 class MatchupData {
 
-    private List<IO_RefObs> referenceObservations;
+    private List<IO_RefObservation> referenceObservations;
+    private List<IO_Observation> relatedObservations;
 
     MatchupData() {
         referenceObservations = new ArrayList<>();
+        relatedObservations = new ArrayList<>();
     }
 
-    public List<IO_RefObs> getReferenceObservations() {
+    public List<IO_RefObservation> getReferenceObservations() {
         return referenceObservations;
     }
 
-    public void setReferenceObservations(List<IO_RefObs> referenceObservations) {
+    public void setReferenceObservations(List<IO_RefObservation> referenceObservations) {
         this.referenceObservations = referenceObservations;
     }
 
-    public void add(IO_RefObs io_refObs) {
+    public void add(IO_RefObservation io_refObs) {
         referenceObservations.add(io_refObs);
+    }
+
+    public List<IO_Observation> getRelatedObservations() {
+        return relatedObservations;
+    }
+
+    public void setRelatedObservations(List<IO_Observation> relatedObservations) {
+        this.relatedObservations = relatedObservations;
     }
 }
