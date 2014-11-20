@@ -150,10 +150,10 @@ public class WordDocument {
 
     public Drawing createDrawing(URL resource) throws Exception {
         final File imageFile = new File(resource.toURI());
-        return createFigure(imageFile);
+        return createDrawing(imageFile);
     }
 
-    public Drawing createFigure(File imageFile) throws Exception {
+    public Drawing createDrawing(File imageFile) throws Exception {
         final ObjectFactory factory = Context.getWmlObjectFactory();
         final Drawing drawing = factory.createDrawing();
         final BinaryPartAbstractImage imagePart = BinaryPartAbstractImage.createImagePart(wordMLPackage, imageFile);
@@ -194,13 +194,13 @@ public class WordDocument {
         return null;
     }
 
-    public Text replaceVariable(String variable, Child child) {
+    public Text replaceVariable(String variable, Drawing drawing) {
         final ContentAccessor contentAccessor = findVariable(variable);
 
         if (contentAccessor != null) {
             final List<Object> content = contentAccessor.getContent();
             final Text removed = (Text) content.remove(0);
-            content.add(child);
+            content.add(drawing);
             return removed;
         }
 
