@@ -252,14 +252,14 @@ public class WordDocument {
         for (final Object o : finder.results) {
             if (o instanceof P) {
                 final P p = (P) o;
-                final List<Object> c1 = p.getContent();
-                if (c1.size() == 1) {
-                    final Object o1 = c1.get(0);
+                final List<Object> c = p.getContent();
+                if (c.size() == 1) {
+                    final Object o1 = c.get(0);
                     if (o1 instanceof R) {
                         final R r = (R) o1;
-                        final List<Object> c2 = r.getContent();
-                        if (c2.size() == 1) {
-                            final Object o2 = c2.get(0);
+                        final List<Object> c1 = r.getContent();
+                        if (c1.size() == 1) {
+                            final Object o2 = c1.get(0);
                             if (o2 instanceof Text) {
                                 final Text t = (Text) o2;
                                 if (variable.equalsIgnoreCase(t.getValue())) {
