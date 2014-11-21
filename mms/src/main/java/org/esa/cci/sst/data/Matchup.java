@@ -16,13 +16,7 @@
 
 package org.esa.cci.sst.data;
 
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.List;
 
 /**
@@ -35,19 +29,19 @@ import java.util.List;
 @Table(name = "mm_matchup")
 public class Matchup {
 
-    private int id;
+    private long id;
     private ReferenceObservation refObs;
     private List<Coincidence> coincidences;
     private long pattern;
     private boolean invalid;
 
     @Id
-    public int getId() {
+    public long getId() {
         return id;
     }
 
     // important: this is not public API
-    public void setId(int id) {
+    public void setId(long id) {
         this.id = id;
     }
 

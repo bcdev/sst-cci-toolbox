@@ -38,7 +38,7 @@ class MatchupId extends AbstractImplicitRule {
     @Override
     public Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
         final Array targetArray = Array.factory(DATA_TYPE, SHAPE);
-        targetArray.setInt(0, getContext().getMatchup().getId());
+        targetArray.setLong(0, getContext().getMatchup().getId());
         return targetArray;
     }
 }

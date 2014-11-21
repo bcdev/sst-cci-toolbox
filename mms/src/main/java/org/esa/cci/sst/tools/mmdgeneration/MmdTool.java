@@ -112,7 +112,7 @@ public class MmdTool extends BasicTool {
             initialize();
 
             final Configuration config = getConfig();
-            final Map<Integer, Integer> matchupIdToRecordIndexMap = createMatchupIdToRecordIndexMap();
+            final Map<Long, Integer> matchupIdToRecordIndexMap = createMatchupIdToRecordIndexMap();
             matchupCount = matchupIdToRecordIndexMap.size();
             final NetcdfFileWriter writer = createNetCDFWriter(config);
             mmdWriter = prepareMmdWriter(writer);
@@ -142,7 +142,7 @@ public class MmdTool extends BasicTool {
      * @param mmdWriter                 The MMD writer.
      * @param matchupIdToRecordIndexMap The mapping from matchup ID to MMD record index.
      */
-    void writeMmdFile(MmdWriter mmdWriter, Map<Integer, Integer> matchupIdToRecordIndexMap) {
+    void writeMmdFile(MmdWriter mmdWriter, Map<Long, Integer> matchupIdToRecordIndexMap) {
         final List<Variable> mmdVariables = mmdWriter.getVariables();
 
         // group variables by sensors
@@ -237,7 +237,7 @@ public class MmdTool extends BasicTool {
         return matchups;
     }
 
-    private Map<Integer, Integer> createMatchupIdToRecordIndexMap() {
+    private Map<Long, Integer> createMatchupIdToRecordIndexMap() {
         final Configuration config = getConfig();
         final PersistenceManager persistenceManager = getPersistenceManager();
         final MatchupStorage matchupStorage = persistenceManager.getMatchupStorage();
@@ -245,7 +245,7 @@ public class MmdTool extends BasicTool {
         final List<Matchup> matchups = matchupStorage.get(queryParameter);
         logger.info(String.format("%d matchups retrieved", matchups.size()));
 
-        final Map<Integer, Integer> matchupIdToRecordIndexMap = new HashMap<>(matchups.size());
+        final Map<Long, Integer> matchupIdToRecordIndexMap = new HashMap<>(matchups.size());
         for (int i = 0; i < matchups.size(); ++i) {
             matchupIdToRecordIndexMap.put(matchups.get(i).getId(), i);
         }

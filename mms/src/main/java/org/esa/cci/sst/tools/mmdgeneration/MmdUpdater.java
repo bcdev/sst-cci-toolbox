@@ -67,11 +67,11 @@ public class MmdUpdater extends BasicTool {
         mmdTool.setCommandLineArgs(args);
         mmdTool.initialize();
         final String mmdLocation = getConfig().getStringValue("mms.mmdupdate.mmd");
-        final Map<Integer, Integer> recordOfMatchupMap = createInvertedIndexOfMatchups(mmdLocation, null);
+        final Map<Long, Integer> recordOfMatchupMap = createInvertedIndexOfMatchups(mmdLocation, null);
         mmdTool.writeMmdFile(mmdWriter, recordOfMatchupMap);
     }
 
-    private Map<Integer, Integer> createInvertedIndexOfMatchups(String path, File archiveRoot) {
+    private Map<Long, Integer> createInvertedIndexOfMatchups(String path, File archiveRoot) {
         try {
             final String fileLocation;
             if (archiveRoot == null || path.startsWith(File.separator)) {
@@ -88,9 +88,9 @@ public class MmdUpdater extends BasicTool {
             }
             int noOfRecords = matchupIds.getShape()[0];
             final Array matchupId = matchupIds.read(new int[]{0}, matchupIds.getShape());
-            final Map<Integer, Integer> recordOfMatchupMap = new HashMap<>();
+            final Map<Long, Integer> recordOfMatchupMap = new HashMap<>();
             for (int recordNo = 0; recordNo < noOfRecords; ++recordNo) {
-                int matchupIdx = matchupId.getInt(recordNo);
+                final long matchupIdx = matchupId.getLong(recordNo);
                 recordOfMatchupMap.put(matchupIdx, recordNo);
             }
             ncFile.close();
