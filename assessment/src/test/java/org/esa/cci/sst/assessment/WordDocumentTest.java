@@ -16,16 +16,20 @@
 
 package org.esa.cci.sst.assessment;
 
+import org.docx4j.wml.Drawing;
 import org.docx4j.wml.P;
+import org.docx4j.wml.R;
+import org.docx4j.wml.Text;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
-import java.net.URL;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 
 /**
  * @author Ralf Quast
@@ -67,33 +71,56 @@ public class WordDocumentTest {
     }
 
     @Test
-    public void testAddNormal() throws Exception {
-        final P p = wordDocument.addParagraph("This shall be Normal text.");
+    public void testAddParagraph() throws Exception {
+        final P p = wordDocument.addParagraph("This shall be normal text.");
 
         assertNotNull(p);
     }
 
     @Test
     public void testAddFigure() throws Exception {
-        final URL resource = getClass().getResource("newton-away-zoom.png");
-        assertNotNull(resource);
-
-        final P p = wordDocument.addFigure(resource);
+        final Drawing drawing = wordDocument.createDrawing(getClass().getResource("newton-away.png"));
+        final P p = wordDocument.addFigure(drawing);
         assertNotNull(p);
     }
 
     @Test
     public void testAddCaption() throws Exception {
-        final P p = wordDocument.addCaption("Figure ", "1", "This shall be a Caption.");
+        final P p = wordDocument.addCaption("Figure", "1", "This shall be a Caption.");
 
         assertNotNull(p);
     }
 
     @Test
     public void testAddAnotherCaption() throws Exception {
-        final P p = wordDocument.addCaption("Figure ", "2", "This shall be another Caption.");
+        final P p = wordDocument.addCaption("Figure", "2", "This shall be another Caption.");
 
         assertNotNull(p);
     }
 
+    @Test
+    public void testFindVariable() throws Exception {
+        final P p = wordDocument.addParagraph("${find.me}");
+
+        assertSame(p.getContent().get(0), wordDocument.findVariable("${find.me}"));
+        assertSame(p.getContent().get(0), wordDocument.findVariable("${FIND.ME}"));
+    }
+
+    @Test
+    public void testReplaceVariableWithDrawing() throws Exception {
+        final P p = wordDocument.addParagraph("${replace.me}");
+        final R r = (R) p.getContent().get(0);
+
+        assertSame(r, wordDocument.findVariable("${replace.me}"));
+
+        final Drawing drawing = wordDocument.createDrawing(getClass().getResource("newton-home.png"));
+        final Text variableText = (Text) r.getContent().get(0);
+        final Text replacedText = wordDocument.replaceVariable("${replace.me}", drawing);
+
+        assertNull(wordDocument.findVariable("${replace.me}"));
+        assertSame(variableText, replacedText);
+        assertSame(drawing, r.getContent().get(0));
+
+        wordDocument.addCaption("Figure", "3", "The figure above is a replacement.");
+    }
 }
