@@ -30,5 +30,5 @@ public class MatchupIO {
 
 - ReferenceObservation
 -- SERIALIZE: create DataFile from filePath and sensorId fields
--- SERIALIZE: location to/from PGgeomezty
+-- SERIALIZE: location to/from PGgeometry
  */
