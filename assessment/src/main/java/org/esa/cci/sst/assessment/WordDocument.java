@@ -27,6 +27,7 @@ import org.docx4j.wml.BooleanDefaultTrue;
 import org.docx4j.wml.CTBookmark;
 import org.docx4j.wml.CTMarkupRange;
 import org.docx4j.wml.CTSimpleField;
+import org.docx4j.wml.ContentAccessor;
 import org.docx4j.wml.Drawing;
 import org.docx4j.wml.ObjectFactory;
 import org.docx4j.wml.P;
@@ -301,12 +302,13 @@ public class WordDocument {
      *
      * @param variable The template variable.
      *
-     * @return the enclosing "paragraph" removed or {@code null}, if the  template variable has not been found.
+     * @return the enclosing "paragraph" removed or {@code null}, if the  template variable has not been removed.
      */
     public P removeVariable(String variable) {
         final P p = findVariable(variable);
         if (p != null) {
-            final boolean removed = wordMLPackage.getMainDocumentPart().getContent().remove(p);
+            final List<?> parent = (List<?>) p.getParent();
+            final boolean removed = parent.remove(p);
             if (removed) {
                 return p;
             }
