@@ -1,6 +1,7 @@
 package org.esa.cci.sst.tools.matchup;
 
 
+import org.esa.cci.sst.data.Sensor;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -30,6 +31,10 @@ public class MatchupDataTest {
         final List<IO_Observation> insituObservations = matchupData.getInsituObservations();
         assertNotNull(insituObservations);
         assertTrue(insituObservations.isEmpty());
+
+        final List<Sensor> sensors = matchupData.getSensors();
+        assertNotNull(sensors);
+        assertTrue(sensors.isEmpty());
     }
 
     @Test
@@ -66,5 +71,17 @@ public class MatchupDataTest {
 
         insituObservations = matchupData.getInsituObservations();
         assertEquals(1, insituObservations.size());
+    }
+
+    @SuppressWarnings("deprecation")
+    @Test
+    public void testAdd_sensor() {
+        List<Sensor> sensors = matchupData.getSensors();
+        assertEquals(0, sensors.size());
+
+        matchupData.add(new Sensor());
+
+        sensors = matchupData.getSensors();
+        assertEquals(1, sensors.size());
     }
 }

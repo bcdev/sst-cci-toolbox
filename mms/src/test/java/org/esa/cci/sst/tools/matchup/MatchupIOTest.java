@@ -1,6 +1,7 @@
 package org.esa.cci.sst.tools.matchup;
 
 
+import org.esa.cci.sst.data.Sensor;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
@@ -11,14 +12,14 @@ import java.util.Date;
 import java.util.List;
 
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertEquals;
 
 public class MatchupIOTest {
 
-    private static final String EMPTY_FILE = "{\"referenceObservations\":[],\"relatedObservations\":[],\"insituObservations\":[]}";
-    private static final String ONE_REF_OBS_FILE = "{\"referenceObservations\":[{\"id\":12,\"name\":\"13\",\"sensor\":\"14\",\"filePath\":\"15\",\"sensorId\":16,\"time\":17,\"timeRadius\":18.18,\"location\":\"19\",\"point\":\"20\",\"dataset\":21,\"referenceFlag\":22}],\"relatedObservations\":[],\"insituObservations\":[]}";
-    private static final String ONE_REL_OBS_FILE = "{\"referenceObservations\":[],\"relatedObservations\":[{\"id\":23,\"name\":\"24\",\"sensor\":\"25\",\"filePath\":\"26\",\"sensorId\":27,\"time\":28,\"timeRadius\":29.29,\"location\":\"30\"}],\"insituObservations\":[]}";
-    private static final String ONE_INSITU_OBS_FILE = "{\"referenceObservations\":[],\"relatedObservations\":[],\"insituObservations\":[{\"id\":31,\"name\":\"32\",\"sensor\":\"33\",\"filePath\":\"34\",\"sensorId\":35,\"time\":36,\"timeRadius\":37.37,\"location\":\"38\"}]}";
+    private static final String EMPTY_FILE = "{\"referenceObservations\":[],\"relatedObservations\":[],\"insituObservations\":[],\"sensors\":[]}";
+    private static final String ONE_REF_OBS_FILE = "{\"referenceObservations\":[{\"id\":12,\"name\":\"13\",\"sensor\":\"14\",\"filePath\":\"15\",\"sensorId\":16,\"time\":17,\"timeRadius\":18.18,\"location\":\"19\",\"point\":\"20\",\"dataset\":21,\"referenceFlag\":22}],\"relatedObservations\":[],\"insituObservations\":[],\"sensors\":[]}";
+    private static final String ONE_REL_OBS_FILE = "{\"referenceObservations\":[],\"relatedObservations\":[{\"id\":23,\"name\":\"24\",\"sensor\":\"25\",\"filePath\":\"26\",\"sensorId\":27,\"time\":28,\"timeRadius\":29.29,\"location\":\"30\"}],\"insituObservations\":[],\"sensors\":[]}";
+    private static final String ONE_INSITU_OBS_FILE = "{\"referenceObservations\":[],\"relatedObservations\":[],\"insituObservations\":[{\"id\":31,\"name\":\"32\",\"sensor\":\"33\",\"filePath\":\"34\",\"sensorId\":35,\"time\":36,\"timeRadius\":37.37,\"location\":\"38\"}],\"sensors\":[]}";
+    private static final String ONE_SENSOR_FILE = "{\"referenceObservations\":[],\"relatedObservations\":[],\"insituObservations\":[],\"sensors\":[{\"id\":39,\"name\":\"40\",\"pattern\":41,\"observationType\":\"42\"}]}";
 
     @Test
     public void testWriteEmptyMatchupData() throws IOException {
@@ -166,5 +167,39 @@ public class MatchupIOTest {
         assertEquals(36, insitu.getTime().getTime());
         assertEquals(37.37, insitu.getTimeRadius(), 1e-8);
         assertEquals("38", insitu.getLocation());
+    }
+
+    @SuppressWarnings("deprecation")
+    @Test
+    public void testWrite_oneSensor() throws IOException {
+        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        final MatchupData matchupData = new MatchupData();
+
+        final Sensor sensor = new Sensor();
+        sensor.setId(39);
+        sensor.setName("40");
+        sensor.setPattern(41);
+        sensor.setObservationType("42");
+        matchupData.add(sensor);
+
+        MatchupIO.write(matchupData, outputStream);
+
+        assertEquals(ONE_SENSOR_FILE, outputStream.toString());
+    }
+
+    @Test
+    public void testRead_oneSensor() throws IOException {
+        final ByteArrayInputStream inputStream = new ByteArrayInputStream(ONE_SENSOR_FILE.getBytes());
+
+        final MatchupData matchupData = MatchupIO.read(inputStream);
+        assertNotNull(matchupData);
+
+        final List<Sensor> sensors = matchupData.getSensors();
+        assertEquals(1, sensors.size());
+        final Sensor sensor = sensors.get(0);
+        assertEquals(39, sensor.getId());
+        assertEquals("40", sensor.getName());
+        assertEquals(41, sensor.getPattern());
+        assertEquals("42", sensor.getObservationType());
     }
 }

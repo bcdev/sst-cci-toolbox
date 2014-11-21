@@ -25,8 +25,7 @@ public class MatchupIO {
 - internal ID generator to generate file-unique id's to resolve references later.
 - generate serializable classes from the classes passed in
 
-- add Sensor list
--- connect sensor per Id with referenceObservation
+- connect sensor per Id with referenceObservation
 
 - ReferenceObservation
 -- SERIALIZE: create DataFile from filePath and sensorId fields

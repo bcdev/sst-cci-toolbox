@@ -1,5 +1,7 @@
 package org.esa.cci.sst.tools.matchup;
 
+import org.esa.cci.sst.data.Sensor;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,11 +12,13 @@ class MatchupData {
     private List<IO_RefObservation> referenceObservations;
     private List<IO_Observation> relatedObservations;
     private List<IO_Observation> insituObservations;
+    private List<Sensor> sensors;
 
     MatchupData() {
         referenceObservations = new ArrayList<>();
         relatedObservations = new ArrayList<>();
         insituObservations = new ArrayList<>();
+        sensors = new ArrayList<>();
     }
 
     public List<IO_RefObservation> getReferenceObservations() {
@@ -51,5 +55,13 @@ class MatchupData {
 
     public void addInsitu(IO_Observation io_oObs) {
         insituObservations.add(io_oObs);
+    }
+
+    public List<Sensor> getSensors() {
+        return sensors;
+    }
+
+    public void add(Sensor sensor) {
+        sensors.add(sensor);
     }
 }
