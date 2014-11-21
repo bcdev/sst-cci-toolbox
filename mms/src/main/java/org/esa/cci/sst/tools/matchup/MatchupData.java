@@ -13,12 +13,14 @@ class MatchupData {
     private List<IO_Observation> relatedObservations;
     private List<IO_Observation> insituObservations;
     private List<Sensor> sensors;
+    private List<IO_Matchup> matchups;
 
     MatchupData() {
         referenceObservations = new ArrayList<>();
         relatedObservations = new ArrayList<>();
         insituObservations = new ArrayList<>();
         sensors = new ArrayList<>();
+        matchups = new ArrayList<>();
     }
 
     public List<IO_RefObservation> getReferenceObservations() {
@@ -63,5 +65,13 @@ class MatchupData {
 
     public void add(Sensor sensor) {
         sensors.add(sensor);
+    }
+
+    public List<IO_Matchup> getMatchups() {
+        return matchups;
+    }
+
+    public void add(IO_Matchup matchup) {
+        matchups.add(matchup);
     }
 }

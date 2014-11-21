@@ -8,6 +8,7 @@ import org.junit.Test;
 import java.util.List;
 
 import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class MatchupDataTest {
 
@@ -35,6 +36,10 @@ public class MatchupDataTest {
         final List<Sensor> sensors = matchupData.getSensors();
         assertNotNull(sensors);
         assertTrue(sensors.isEmpty());
+
+        final List<IO_Matchup> matchups = matchupData.getMatchups();
+        assertNotNull(matchups);
+        assertTrue(matchups.isEmpty());
     }
 
     @Test
@@ -83,5 +88,16 @@ public class MatchupDataTest {
 
         sensors = matchupData.getSensors();
         assertEquals(1, sensors.size());
+    }
+
+    @Test
+    public void testAdd_matchup() {
+        List<IO_Matchup> matchups = matchupData.getMatchups();
+        assertEquals(0, matchups.size());
+
+        matchupData.add(new IO_Matchup());
+
+        matchups = matchupData.getMatchups();
+        assertEquals(1, matchups.size());
     }
 }

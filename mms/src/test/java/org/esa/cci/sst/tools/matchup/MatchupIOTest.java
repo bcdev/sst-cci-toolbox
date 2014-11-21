@@ -15,11 +15,12 @@ import static org.junit.Assert.*;
 
 public class MatchupIOTest {
 
-    private static final String EMPTY_FILE = "{\"referenceObservations\":[],\"relatedObservations\":[],\"insituObservations\":[],\"sensors\":[]}";
-    private static final String ONE_REF_OBS_FILE = "{\"referenceObservations\":[{\"id\":12,\"name\":\"13\",\"sensor\":\"14\",\"filePath\":\"15\",\"sensorId\":16,\"time\":17,\"timeRadius\":18.18,\"location\":\"19\",\"point\":\"20\",\"dataset\":21,\"referenceFlag\":22}],\"relatedObservations\":[],\"insituObservations\":[],\"sensors\":[]}";
-    private static final String ONE_REL_OBS_FILE = "{\"referenceObservations\":[],\"relatedObservations\":[{\"id\":23,\"name\":\"24\",\"sensor\":\"25\",\"filePath\":\"26\",\"sensorId\":27,\"time\":28,\"timeRadius\":29.29,\"location\":\"30\"}],\"insituObservations\":[],\"sensors\":[]}";
-    private static final String ONE_INSITU_OBS_FILE = "{\"referenceObservations\":[],\"relatedObservations\":[],\"insituObservations\":[{\"id\":31,\"name\":\"32\",\"sensor\":\"33\",\"filePath\":\"34\",\"sensorId\":35,\"time\":36,\"timeRadius\":37.37,\"location\":\"38\"}],\"sensors\":[]}";
-    private static final String ONE_SENSOR_FILE = "{\"referenceObservations\":[],\"relatedObservations\":[],\"insituObservations\":[],\"sensors\":[{\"id\":39,\"name\":\"40\",\"pattern\":41,\"observationType\":\"42\"}]}";
+    private static final String EMPTY_FILE = "{\"referenceObservations\":[],\"relatedObservations\":[],\"insituObservations\":[],\"sensors\":[],\"matchups\":[]}";
+    private static final String ONE_REF_OBS_FILE = "{\"referenceObservations\":[{\"id\":12,\"name\":\"13\",\"sensor\":\"14\",\"filePath\":\"15\",\"sensorId\":16,\"time\":17,\"timeRadius\":18.18,\"location\":\"19\",\"point\":\"20\",\"dataset\":21,\"referenceFlag\":22}],\"relatedObservations\":[],\"insituObservations\":[],\"sensors\":[],\"matchups\":[]}";
+    private static final String ONE_REL_OBS_FILE = "{\"referenceObservations\":[],\"relatedObservations\":[{\"id\":23,\"name\":\"24\",\"sensor\":\"25\",\"filePath\":\"26\",\"sensorId\":27,\"time\":28,\"timeRadius\":29.29,\"location\":\"30\"}],\"insituObservations\":[],\"sensors\":[],\"matchups\":[]}";
+    private static final String ONE_INSITU_OBS_FILE = "{\"referenceObservations\":[],\"relatedObservations\":[],\"insituObservations\":[{\"id\":31,\"name\":\"32\",\"sensor\":\"33\",\"filePath\":\"34\",\"sensorId\":35,\"time\":36,\"timeRadius\":37.37,\"location\":\"38\"}],\"sensors\":[],\"matchups\":[]}";
+    private static final String ONE_SENSOR_FILE = "{\"referenceObservations\":[],\"relatedObservations\":[],\"insituObservations\":[],\"sensors\":[{\"id\":39,\"name\":\"40\",\"pattern\":41,\"observationType\":\"42\"}],\"matchups\":[]}";
+    private static final String ONE_MATCHUP_FILE = "{\"referenceObservations\":[],\"relatedObservations\":[],\"insituObservations\":[],\"sensors\":[],\"matchups\":[{\"id\":43,\"refObsId\":44,\"coincidences\":[{\"id\":45,\"timeDifference\":46.46,\"observationId\":47,\"insitu\":false},{\"id\":48,\"timeDifference\":49.49,\"observationId\":50,\"insitu\":true}],\"pattern\":51,\"invalid\":false}]}";
 
     @Test
     public void testWriteEmptyMatchupData() throws IOException {
@@ -41,6 +42,8 @@ public class MatchupIOTest {
         final List<IO_RefObservation> referenceObservations = matchupData.getReferenceObservations();
         assertNotNull(referenceObservations);
         assertTrue(referenceObservations.isEmpty());
+
+        // @todo 2 tb/tb add tests for other properties 2014-11-21
     }
 
     @Test
@@ -201,5 +204,64 @@ public class MatchupIOTest {
         assertEquals("40", sensor.getName());
         assertEquals(41, sensor.getPattern());
         assertEquals("42", sensor.getObservationType());
+    }
+
+    @Test
+    public void testWrite_oneMatchupWithTwoCoincidences() throws IOException {
+        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        final MatchupData matchupData = new MatchupData();
+
+        final IO_Matchup matchup = new IO_Matchup();
+        matchup.setId(43);
+        matchup.setRefObsId(44);
+        matchup.setPattern(51);
+        matchup.setInvalid(false);
+        final IO_Coincidence coincidence_1 = new IO_Coincidence();
+        coincidence_1.setId(45);
+        coincidence_1.setTimeDifference(46.46);
+        coincidence_1.setObservationId(47);
+        coincidence_1.setInsitu(false);
+        matchup.add(coincidence_1);
+        final IO_Coincidence coincidence_2 = new IO_Coincidence();
+        coincidence_2.setId(48);
+        coincidence_2.setTimeDifference(49.49);
+        coincidence_2.setObservationId(50);
+        coincidence_2.setInsitu(true);
+        matchup.add(coincidence_2);
+        matchupData.add(matchup);
+
+        MatchupIO.write(matchupData, outputStream);
+
+        assertEquals(ONE_MATCHUP_FILE, outputStream.toString());
+    }
+
+    @Test
+    public void testRead_oneMatchupWithTwoCoincidences() throws IOException {
+        final ByteArrayInputStream inputStream = new ByteArrayInputStream(ONE_MATCHUP_FILE.getBytes());
+
+        final MatchupData matchupData = MatchupIO.read(inputStream);
+        assertNotNull(matchupData);
+
+        final List<IO_Matchup> matchups = matchupData.getMatchups();
+        assertEquals(1, matchups.size());
+        final IO_Matchup matchup = matchups.get(0);
+        assertEquals(43, matchup.getId());
+        assertEquals(44, matchup.getRefObsId());
+        assertEquals(51, matchup.getPattern());
+        assertFalse(matchup.isInvalid());
+
+        final List<IO_Coincidence> coincidences = matchup.getCoincidences();
+        assertEquals(2, coincidences.size());
+        IO_Coincidence coincidence = coincidences.get(0);
+        assertEquals(45, coincidence.getId());
+        assertEquals(46.46, coincidence.getTimeDifference(), 1e-8);
+        assertEquals(47, coincidence.getObservationId());
+        assertFalse(coincidence.isInsitu());
+
+        coincidence = coincidences.get(1);
+        assertEquals(48, coincidence.getId());
+        assertEquals(49.49, coincidence.getTimeDifference(), 1e-8);
+        assertEquals(50, coincidence.getObservationId());
+        assertTrue(coincidence.isInsitu());
     }
 }
