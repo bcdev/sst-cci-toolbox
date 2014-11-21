@@ -27,7 +27,6 @@ import org.docx4j.wml.BooleanDefaultTrue;
 import org.docx4j.wml.CTBookmark;
 import org.docx4j.wml.CTMarkupRange;
 import org.docx4j.wml.CTSimpleField;
-import org.docx4j.wml.ContentAccessor;
 import org.docx4j.wml.Drawing;
 import org.docx4j.wml.ObjectFactory;
 import org.docx4j.wml.P;
@@ -73,7 +72,7 @@ public class WordDocument {
     }
 
     /**
-     * Adds a title to this Word document.
+     * Adds a title to the Word document.
      *
      * @param text The title text.
      *
@@ -84,7 +83,7 @@ public class WordDocument {
     }
 
     /**
-     * Adds a first-level heading to this Word document.
+     * Adds a first-level heading to the Word document.
      *
      * @param text The heading text.
      *
@@ -95,7 +94,7 @@ public class WordDocument {
     }
 
     /**
-     * Adds a second-level heading to this Word document.
+     * Adds a second-level heading to the Word document.
      *
      * @param text The heading text.
      *
@@ -107,7 +106,7 @@ public class WordDocument {
 
 
     /**
-     * Adds a new paragraph this Word document.
+     * Adds a new paragraph the Word document.
      *
      * @param text The paragraph text.
      *
@@ -118,7 +117,7 @@ public class WordDocument {
     }
 
     /**
-     * Adds a new figure this Word document.
+     * Adds a new figure the Word document.
      *
      * @param drawing The figure's drawing.
      *
@@ -136,7 +135,7 @@ public class WordDocument {
     }
 
     /**
-     * Adds a new caption this Word document.
+     * Adds a new caption the Word document.
      *
      * @param label  The caption's label (e.g. "Figure").
      * @param number The caption's number (e.g. "1" or "1.1").
@@ -207,6 +206,26 @@ public class WordDocument {
     }
 
     /**
+     * Add a "variable" to the Word document.
+     *
+     * @param variable The variable.
+     *
+     * @return the enclosing "paragraph" element.
+     */
+    public P addVariable(String variable) {
+        final ObjectFactory factory = Context.getWmlObjectFactory();
+        final P p = factory.createP();
+        final R r = factory.createR();
+        final Text text = factory.createText();
+        text.setValue(variable);
+        p.getContent().add(r);
+        r.getContent().add(text);
+
+        wordMLPackage.getMainDocumentPart().addObject(p);
+        return p;
+    }
+
+    /**
      * Creates a new drawing from a resource.
      *
      * @param resource The resource.
@@ -240,13 +259,13 @@ public class WordDocument {
     }
 
     /**
-     * Traverses this Word document and looks for the first occurrence of a "template variable".
+     * Traverses a Word document and looks for the first occurrence of a "template variable".
      *
      * @param variable The template variable.
      *
-     * @return the enclosing "run" element or {@code null}, if the requested template variable has not been found.
+     * @return the enclosing "paragraph" element or {@code null}, if the requested template variable has not been found.
      */
-    public ContentAccessor findVariable(String variable) {
+    public P findVariable(String variable) {
         final MainDocumentPart documentPart = wordMLPackage.getMainDocumentPart();
         final ClassFinder finder = new ClassFinder(P.class);
         new TraversalUtil(documentPart.getContent(), finder);
@@ -265,7 +284,7 @@ public class WordDocument {
                             if (o2 instanceof Text) {
                                 final Text t = (Text) o2;
                                 if (variable.equalsIgnoreCase(t.getValue())) {
-                                    return r;
+                                    return p;
                                 }
                             }
                         }
@@ -278,21 +297,40 @@ public class WordDocument {
     }
 
     /**
-     * Traverses this Word document and replaces the first occurrence of a "template variable" with a drawing.
+     * Traverses a Word document and removes the first occurrence of a given "template variable".
+     *
+     * @param variable The template variable.
+     *
+     * @return the enclosing "paragraph" removed or {@code null}, if the  template variable has not been found.
+     */
+    public P removeVariable(String variable) {
+        final P p = findVariable(variable);
+        if (p != null) {
+            final boolean removed = wordMLPackage.getMainDocumentPart().getContent().remove(p);
+            if (removed) {
+                return p;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Traverses a Word document and replaces the first occurrence of a "template variable" with a drawing.
      *
      * @param variable The template variable.
      * @param drawing  The drawing.
      *
-     * @return the replaced "text" element or {@code null}, if the requested template variable has not been found.
+     * @return the replaced "text" or {@code null}, if the requested template variable has not been found.
      */
     public Text replaceVariable(String variable, Drawing drawing) {
-        final ContentAccessor contentAccessor = findVariable(variable);
+        final P p = findVariable(variable);
 
-        if (contentAccessor != null) {
-            final List<Object> content = contentAccessor.getContent();
-            final Text removed = (Text) content.remove(0);
-            content.add(drawing);
-            return removed;
+        if (p != null) {
+            final List<Object> c = p.getContent();
+            final R r = (R) c.get(0);
+            final List<Object> c1 = r.getContent();
+            c1.add(drawing);
+            return (Text) c1.remove(0);
         }
 
         return null;

@@ -27,6 +27,7 @@ import org.junit.Test;
 
 import java.io.File;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
@@ -34,7 +35,6 @@ import static org.junit.Assert.assertSame;
 /**
  * @author Ralf Quast
  */
-@Ignore
 public class WordDocumentTest {
 
     private static WordDocument wordDocument;
@@ -100,25 +100,33 @@ public class WordDocumentTest {
 
     @Test
     public void testFindVariable() throws Exception {
-        final P p = wordDocument.addParagraph("${find.me}");
+        final P p = wordDocument.addVariable("${find.me}");
 
-        assertSame(p.getContent().get(0), wordDocument.findVariable("${find.me}"));
-        assertSame(p.getContent().get(0), wordDocument.findVariable("${FIND.ME}"));
+        assertSame(p, wordDocument.findVariable("${find.me}"));
+        assertSame(p, wordDocument.findVariable("${FIND.ME}"));
+    }
+
+    @Test
+    public void testRemoveVariable() throws Exception {
+        final P p = wordDocument.addVariable("${remove.me}");
+
+        assertSame(p, wordDocument.removeVariable("${remove.me}"));
+        assertNull(wordDocument.findVariable("${remove.me}"));
     }
 
     @Test
     public void testReplaceVariableWithDrawing() throws Exception {
-        final P p = wordDocument.addParagraph("${replace.me}");
-        final R r = (R) p.getContent().get(0);
+        final P p = wordDocument.addVariable("${replace.me}");
 
-        assertSame(r, wordDocument.findVariable("${replace.me}"));
+        assertSame(p, wordDocument.findVariable("${replace.me}"));
 
         final Drawing drawing = wordDocument.createDrawing(getClass().getResource("newton-home.png"));
-        final Text variableText = (Text) r.getContent().get(0);
-        final Text replacedText = wordDocument.replaceVariable("${replace.me}", drawing);
 
+        assertEquals("${replace.me}", wordDocument.replaceVariable("${replace.me}", drawing).getValue());
         assertNull(wordDocument.findVariable("${replace.me}"));
-        assertSame(variableText, replacedText);
+
+        final R r = (R) p.getContent().get(0);
+
         assertSame(drawing, r.getContent().get(0));
 
         wordDocument.addCaption("Figure", "3", "The figure above is a replacement.");
