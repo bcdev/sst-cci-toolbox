@@ -43,7 +43,21 @@ public class MatchupIOTest {
         assertNotNull(referenceObservations);
         assertTrue(referenceObservations.isEmpty());
 
-        // @todo 2 tb/tb add tests for other properties 2014-11-21
+        final List<IO_Observation> insituObservations = matchupData.getInsituObservations();
+        assertNotNull(insituObservations);
+        assertTrue(insituObservations.isEmpty());
+
+        final List<IO_Observation> relatedObservations = matchupData.getRelatedObservations();
+        assertNotNull(relatedObservations);
+        assertTrue(relatedObservations.isEmpty());
+
+        final List<IO_Matchup> matchups = matchupData.getMatchups();
+        assertNotNull(matchups);
+        assertTrue(matchups.isEmpty());
+
+        final List<Sensor> sensors = matchupData.getSensors();
+        assertNotNull(sensors);
+        assertTrue(sensors.isEmpty());
     }
 
     @Test
