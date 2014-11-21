@@ -13,7 +13,7 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
-public class MatchupIOTest {
+public class MatchupIOTest_readWrite {
 
     private static final String EMPTY_FILE = "{\"referenceObservations\":[],\"relatedObservations\":[],\"insituObservations\":[],\"sensors\":[],\"matchups\":[]}";
     private static final String ONE_REF_OBS_FILE = "{\"referenceObservations\":[{\"id\":12,\"name\":\"13\",\"sensor\":\"14\",\"filePath\":\"15\",\"sensorId\":16,\"time\":17,\"timeRadius\":18.18,\"location\":\"19\",\"point\":\"20\",\"dataset\":21,\"referenceFlag\":22}],\"relatedObservations\":[],\"insituObservations\":[],\"sensors\":[],\"matchups\":[]}";
