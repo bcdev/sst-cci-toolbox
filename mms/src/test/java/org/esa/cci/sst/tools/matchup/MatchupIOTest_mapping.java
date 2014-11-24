@@ -116,8 +116,31 @@ public class MatchupIOTest_mapping {
         final IO_Matchup io_matchup = new IO_Matchup();
         io_matchup.setId(2);
         io_matchup.setPattern(3);
+        io_matchup.setRefObsId(4);
         io_matchup.setInvalid(false);
         matchupData.add(io_matchup);
+
+        final IO_RefObservation io_refObs = new IO_RefObservation();
+        io_refObs.setId(4);
+        io_refObs.setName("5");
+        io_refObs.setSensor("6");
+        io_refObs.setFilePath("7");
+        io_refObs.setSensorId(8);
+        io_refObs.setRecordNo(12);
+        io_refObs.setTime(new Date(13));
+        io_refObs.setTimeRadius(14.14);
+        io_refObs.setLocation("POLYGON((3 3,3 5,5 5,5 3,3 3))");
+        io_refObs.setPoint("POINT(15 16)");
+        io_refObs.setDataset((byte) 17);
+        io_refObs.setReferenceFlag((byte) 18);
+        matchupData.add(io_refObs);
+
+        final Sensor sensor = new Sensor();
+        sensor.setId(8);
+        sensor.setName("9");
+        sensor.setPattern(10);
+        sensor.setObservationType("11");
+        matchupData.add(sensor);
 
         final List<Matchup> matchups = MatchupIO.restore(matchupData);
         assertEquals(1, matchups.size());
@@ -125,8 +148,34 @@ public class MatchupIOTest_mapping {
         assertEquals(2, matchup.getId());
         assertEquals(3, matchup.getPattern());
         assertFalse(matchup.isInvalid());
+
+        final ReferenceObservation refObs = matchup.getRefObs();
+        assertNotNull(refObs);
+        assertEquals(4, refObs.getId());
+        assertEquals("5", refObs.getName());
+        assertEquals("6", refObs.getSensor());
+
+        final DataFile datafile = refObs.getDatafile();
+        assertNotNull(datafile);
+        assertEquals("7", datafile.getPath());
+        final Sensor resultSensor = datafile.getSensor();
+        assertNotNull(resultSensor);
+        assertEquals(8, resultSensor.getId());
+        assertEquals("9", resultSensor.getName());
+        assertEquals(10, resultSensor.getPattern());
+        assertEquals("11", resultSensor.getObservationType());
+
+        assertEquals(12, refObs.getRecordNo());
+        assertEquals(13, refObs.getTime().getTime());
+        assertEquals(14.14, refObs.getTimeRadius(), 1e-8);
+        assertEquals("POLYGON((3 3,3 5,5 5,5 3,3 3))", refObs.getLocation().getValue());
+        assertEquals("POINT(15 16)", refObs.getPoint().getValue());
+        assertEquals(17, refObs.getDataset());
+        assertEquals(18, refObs.getReferenceFlag());
     }
 
-    // @todo test that two refObs using the same sensor refer to the same object
-    // @todo test that two different sensors are both added
+    // @todo test exception when refobs id is not present
+    // @todo test exception when sensor id is not present
+    // @todo test exception when location has invalid geometry string
+    // @todo test exception when point has invalid geometry string
 }

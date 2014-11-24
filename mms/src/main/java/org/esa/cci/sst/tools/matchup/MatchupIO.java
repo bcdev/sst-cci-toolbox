@@ -6,10 +6,13 @@ import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.data.Sensor;
+import org.esa.cci.sst.tool.ToolException;
+import org.postgis.PGgeometry;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,9 +50,54 @@ public class MatchupIO {
         final List<IO_Matchup> matchups = matchupData.getMatchups();
         for (final IO_Matchup io_matchup : matchups) {
             final Matchup matchup = createMatchup(io_matchup);
+
+            final ReferenceObservation refoObs = getRefObs(io_matchup.getRefObsId(), matchupData);
+            matchup.setRefObs(refoObs);
+
             resultList.add(matchup);
         }
         return resultList;
+    }
+
+    private static ReferenceObservation getRefObs(int refObsId, MatchupData matchupData) {
+        final List<IO_RefObservation> ioRefObsList = matchupData.getReferenceObservations();
+        for (final IO_RefObservation io_refobs : ioRefObsList) {
+            if (io_refobs.getId() == refObsId) {
+                final ReferenceObservation result = new ReferenceObservation();
+                result.setId(refObsId);
+                result.setName(io_refobs.getName());
+                result.setSensor(io_refobs.getSensor());
+
+                final DataFile dataFile = new DataFile();
+                dataFile.setPath(io_refobs.getFilePath());
+                final Sensor sensor = getSensor(io_refobs.getSensorId(), matchupData);
+                dataFile.setSensor(sensor);
+                result.setDatafile(dataFile);
+
+                result.setRecordNo(io_refobs.getRecordNo());
+                result.setTime(io_refobs.getTime());
+                result.setTimeRadius(io_refobs.getTimeRadius());
+
+                result.setLocation(createGeometry(io_refobs.getLocation()));
+                result.setPoint(createGeometry(io_refobs.getPoint()));
+
+                result.setDataset(io_refobs.getDataset());
+                result.setReferenceFlag(io_refobs.getReferenceFlag());
+
+                return result;
+            }
+        }
+        return null;
+    }
+
+    private static Sensor getSensor(int sensorId, MatchupData matchupData) {
+        final List<Sensor> sensors = matchupData.getSensors();
+        for (final Sensor io_sensor : sensors) {
+            if (io_sensor.getId() == sensorId) {
+                return io_sensor;
+            }
+        }
+        return null;
     }
 
     private static IO_RefObservation createIO_RefObs(IdGenerator idGenerator, MatchupData matchupData, Matchup matchup) {
@@ -79,8 +127,8 @@ public class MatchupIO {
         final List<Sensor> sensorList = matchupData.getSensors();
         for (final Sensor storedSensor : sensorList) {
             if (storedSensor.getName().equals(sensor.getName())
-            && storedSensor.getPattern() == sensor.getPattern()
-            && storedSensor.getObservationType().equals(sensor.getObservationType())) {
+                    && storedSensor.getPattern() == sensor.getPattern()
+                    && storedSensor.getObservationType().equals(sensor.getObservationType())) {
                 return storedSensor.getId();
             }
         }
@@ -105,6 +153,14 @@ public class MatchupIO {
         io_matchup.setPattern(matchup.getPattern());
         io_matchup.setInvalid(matchup.isInvalid());
         return io_matchup;
+    }
+
+    private static PGgeometry createGeometry(String wkt) {
+        try {
+            return new PGgeometry(wkt);
+        } catch (SQLException e) {
+            throw new ToolException("Error reading matchup-file, invalid WKT: " + wkt, e, ToolException.TOOL_INTERNAL_ERROR);
+        }
     }
 }
 
