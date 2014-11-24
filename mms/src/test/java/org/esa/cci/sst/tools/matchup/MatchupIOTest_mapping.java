@@ -4,6 +4,7 @@ import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.data.Sensor;
+import org.esa.cci.sst.tool.ToolException;
 import org.junit.Before;
 import org.junit.Test;
 import org.postgis.PGgeometry;
@@ -174,8 +175,96 @@ public class MatchupIOTest_mapping {
         assertEquals(18, refObs.getReferenceFlag());
     }
 
-    // @todo test exception when refobs id is not present
-    // @todo test exception when sensor id is not present
-    // @todo test exception when location has invalid geometry string
-    // @todo test exception when point has invalid geometry string
+    @Test
+    public void testRestore_oneMatchup_invalidRefObsId() {
+        final MatchupData matchupData = new MatchupData();
+        final IO_Matchup io_matchup = new IO_Matchup();
+        io_matchup.setRefObsId(16);
+        matchupData.add(io_matchup);
+
+        final IO_RefObservation io_refObs = new IO_RefObservation();
+        io_refObs.setId(17);
+        matchupData.add(io_refObs);
+
+        try {
+            MatchupIO.restore(matchupData);
+            fail("ToolException expected");
+        } catch (ToolException expected){
+        }
+    }
+
+    @Test
+    public void testRestore_oneMatchup_invalidSensorId() {
+        final MatchupData matchupData = new MatchupData();
+        final IO_Matchup io_matchup = new IO_Matchup();
+        io_matchup.setRefObsId(16);
+        matchupData.add(io_matchup);
+
+        final IO_RefObservation io_refObs = new IO_RefObservation();
+        io_refObs.setId(16);
+        io_refObs.setLocation("POLYGON((3 3,3 5,5 5,5 3,3 3))");
+        io_refObs.setPoint("POINT(15 16)");
+        io_refObs.setSensorId(-99);
+        matchupData.add(io_refObs);
+
+        final Sensor sensor = new Sensor();
+        sensor.setId(75);
+        matchupData.add(sensor);
+
+        try {
+            MatchupIO.restore(matchupData);
+            fail("ToolException expected");
+        } catch (ToolException expected){
+        }
+    }
+
+    @Test
+    public void testRestore_oneMatchup_invalidLocationString() {
+        final MatchupData matchupData = new MatchupData();
+        final IO_Matchup io_matchup = new IO_Matchup();
+        io_matchup.setRefObsId(16);
+        matchupData.add(io_matchup);
+
+        final IO_RefObservation io_refObs = new IO_RefObservation();
+        io_refObs.setId(16);
+        io_refObs.setLocation("in the Baltic Sea");
+        io_refObs.setPoint("POINT(15 16)");
+        io_refObs.setSensorId(75);
+        matchupData.add(io_refObs);
+
+        final Sensor sensor = new Sensor();
+        sensor.setId(75);
+        matchupData.add(sensor);
+
+        try {
+            MatchupIO.restore(matchupData);
+            fail("ToolException expected");
+        } catch (ToolException expected){
+        }
+    }
+
+    @Test
+    public void testRestore_oneMatchup_invalidPointString() {
+        final MatchupData matchupData = new MatchupData();
+        final IO_Matchup io_matchup = new IO_Matchup();
+        io_matchup.setRefObsId(16);
+        matchupData.add(io_matchup);
+
+        final IO_RefObservation io_refObs = new IO_RefObservation();
+        io_refObs.setId(16);
+        io_refObs.setLocation("POLYGON((3 3,3 5,5 5,5 3,3 3))");
+        io_refObs.setPoint("Big Ben");
+        io_refObs.setSensorId(75);
+        matchupData.add(io_refObs);
+
+        final Sensor sensor = new Sensor();
+        sensor.setId(75);
+        matchupData.add(sensor);
+
+        try {
+            MatchupIO.restore(matchupData);
+            fail("ToolException expected");
+        } catch (ToolException expected){
+        }
+    }
 }

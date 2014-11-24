@@ -87,7 +87,7 @@ public class MatchupIO {
                 return result;
             }
         }
-        return null;
+        throw new ToolException("ReferenceObservation with id '" + refObsId + "'not found", ToolException.TOOL_INTERNAL_ERROR);
     }
 
     private static Sensor getSensor(int sensorId, MatchupData matchupData) {
@@ -97,7 +97,7 @@ public class MatchupIO {
                 return io_sensor;
             }
         }
-        return null;
+        throw new ToolException("Sensor with id '" + sensorId + "'not found", ToolException.TOOL_INTERNAL_ERROR);
     }
 
     private static IO_RefObservation createIO_RefObs(IdGenerator idGenerator, MatchupData matchupData, Matchup matchup) {
@@ -164,12 +164,3 @@ public class MatchupIO {
     }
 }
 
-/*
-
-
-- connect sensor per Id with referenceObservation
-
-- ReferenceObservation
--- SERIALIZE: create DataFile from filePath and sensorId fields
--- SERIALIZE: location to/from PGgeometry
- */
