@@ -16,9 +16,9 @@ import static org.junit.Assert.*;
 public class MatchupIOTest_readWrite {
 
     private static final String EMPTY_FILE = "{\"referenceObservations\":[],\"relatedObservations\":[],\"insituObservations\":[],\"sensors\":[],\"matchups\":[]}";
-    private static final String ONE_REF_OBS_FILE = "{\"referenceObservations\":[{\"id\":12,\"name\":\"13\",\"sensor\":\"14\",\"filePath\":\"15\",\"sensorId\":16,\"time\":17,\"timeRadius\":18.18,\"location\":\"19\",\"point\":\"20\",\"dataset\":21,\"referenceFlag\":22}],\"relatedObservations\":[],\"insituObservations\":[],\"sensors\":[],\"matchups\":[]}";
-    private static final String ONE_REL_OBS_FILE = "{\"referenceObservations\":[],\"relatedObservations\":[{\"id\":23,\"name\":\"24\",\"sensor\":\"25\",\"filePath\":\"26\",\"sensorId\":27,\"time\":28,\"timeRadius\":29.29,\"location\":\"30\"}],\"insituObservations\":[],\"sensors\":[],\"matchups\":[]}";
-    private static final String ONE_INSITU_OBS_FILE = "{\"referenceObservations\":[],\"relatedObservations\":[],\"insituObservations\":[{\"id\":31,\"name\":\"32\",\"sensor\":\"33\",\"filePath\":\"34\",\"sensorId\":35,\"time\":36,\"timeRadius\":37.37,\"location\":\"38\"}],\"sensors\":[],\"matchups\":[]}";
+    private static final String ONE_REF_OBS_FILE = "{\"referenceObservations\":[{\"id\":12,\"name\":\"13\",\"sensor\":\"14\",\"filePath\":\"15\",\"sensorId\":16,\"time\":17,\"timeRadius\":18.18,\"location\":\"19\",\"recordNo\":23,\"point\":\"20\",\"dataset\":21,\"referenceFlag\":22}],\"relatedObservations\":[],\"insituObservations\":[],\"sensors\":[],\"matchups\":[]}";
+    private static final String ONE_REL_OBS_FILE = "{\"referenceObservations\":[],\"relatedObservations\":[{\"id\":23,\"name\":\"24\",\"sensor\":\"25\",\"filePath\":\"26\",\"sensorId\":27,\"time\":28,\"timeRadius\":29.29,\"location\":\"30\",\"recordNo\":31}],\"insituObservations\":[],\"sensors\":[],\"matchups\":[]}";
+    private static final String ONE_INSITU_OBS_FILE = "{\"referenceObservations\":[],\"relatedObservations\":[],\"insituObservations\":[{\"id\":31,\"name\":\"32\",\"sensor\":\"33\",\"filePath\":\"34\",\"sensorId\":35,\"time\":36,\"timeRadius\":37.37,\"location\":\"38\",\"recordNo\":39}],\"sensors\":[],\"matchups\":[]}";
     private static final String ONE_SENSOR_FILE = "{\"referenceObservations\":[],\"relatedObservations\":[],\"insituObservations\":[],\"sensors\":[{\"id\":39,\"name\":\"40\",\"pattern\":41,\"observationType\":\"42\"}],\"matchups\":[]}";
     private static final String ONE_MATCHUP_FILE = "{\"referenceObservations\":[],\"relatedObservations\":[],\"insituObservations\":[],\"sensors\":[],\"matchups\":[{\"id\":43,\"refObsId\":44,\"coincidences\":[{\"id\":45,\"timeDifference\":46.46,\"observationId\":47,\"insitu\":false},{\"id\":48,\"timeDifference\":49.49,\"observationId\":50,\"insitu\":true}],\"pattern\":51,\"invalid\":false}]}";
 
@@ -76,6 +76,7 @@ public class MatchupIOTest_readWrite {
         io_refObs.setPoint("20");
         io_refObs.setDataset((byte) 21);
         io_refObs.setReferenceFlag((byte) 22);
+        io_refObs.setRecordNo(23);
         matchupData.add(io_refObs);
 
         MatchupIO.write(matchupData, outputStream);
@@ -119,6 +120,7 @@ public class MatchupIOTest_readWrite {
         related.setTime(new Date(28));
         related.setTimeRadius(29.29);
         related.setLocation("30");
+        related.setRecordNo(31);
         matchupData.addRelated(related);
 
         MatchupIO.write(matchupData, outputStream);
@@ -159,6 +161,7 @@ public class MatchupIOTest_readWrite {
         insitu.setTime(new Date(36));
         insitu.setTimeRadius(37.37);
         insitu.setLocation("38");
+        insitu.setRecordNo(39);
         matchupData.addInsitu(insitu);
 
         MatchupIO.write(matchupData, outputStream);

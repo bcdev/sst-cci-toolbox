@@ -2,7 +2,10 @@ package org.esa.cci.sst.tools.matchup;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Matchup;
+import org.esa.cci.sst.data.ReferenceObservation;
+import org.esa.cci.sst.data.Sensor;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -10,6 +13,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("deprecation")
 public class MatchupIO {
 
     // package access for testing only tb 2014-11-21
@@ -28,8 +32,29 @@ public class MatchupIO {
         final MatchupData matchupData = new MatchupData();
 
         for (final Matchup matchup : matchups) {
-            final IO_Matchup io_matchup = createIO_Matchup(idGenerator, matchup);
+            final IO_Matchup io_matchup = createIO_Matchup(matchup, idGenerator);
             matchupData.add(io_matchup);
+
+            final ReferenceObservation refObs = matchup.getRefObs();
+            final IO_RefObservation io_refObs = new IO_RefObservation();
+            io_refObs.setId(idGenerator.next());
+            io_refObs.setName(refObs.getName());
+            io_refObs.setSensor(refObs.getSensor());
+            final DataFile datafile = refObs.getDatafile();
+            io_refObs.setFilePath(datafile.getPath());
+            // ----------------------------------------
+            final Sensor sensor = datafile.getSensor();
+            sensor.setId(idGenerator.next());
+            matchupData.add(sensor);
+            // ----------------------------------------
+            io_refObs.setRecordNo(refObs.getRecordNo());
+            io_refObs.setTime(refObs.getTime());
+            io_refObs.setTimeRadius(refObs.getTimeRadius());
+            io_refObs.setLocation(refObs.getLocation().getValue());
+            io_refObs.setPoint(refObs.getPoint().getValue());
+            io_refObs.setDataset(refObs.getDataset());
+            io_refObs.setReferenceFlag(refObs.getReferenceFlag());
+            matchupData.add(io_refObs);
         }
         return matchupData;
     }
@@ -53,7 +78,7 @@ public class MatchupIO {
         return matchup;
     }
 
-    private static IO_Matchup createIO_Matchup(IdGenerator idGenerator, Matchup matchup) {
+    private static IO_Matchup createIO_Matchup(Matchup matchup, IdGenerator idGenerator) {
         final IO_Matchup io_matchup = new IO_Matchup();
         io_matchup.setId(idGenerator.nextUnique());
         io_matchup.setPattern(matchup.getPattern());

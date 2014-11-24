@@ -12,6 +12,7 @@ class IO_Observation {
     private Date time;
     private double timeRadius;
     private String location;
+    private int recordNo;
 
     public int getId() {
         return id;
@@ -75,5 +76,13 @@ class IO_Observation {
 
     public void setLocation(String location) {
         this.location = location;
+    }
+
+    public int getRecordNo() {
+        return recordNo;
+    }
+
+    public void setRecordNo(int recordNo) {
+        this.recordNo = recordNo;
     }
 }
