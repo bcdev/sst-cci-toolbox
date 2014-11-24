@@ -618,6 +618,7 @@ class Workflow:
             self._execute_create_final_mmd_files(m, chunk, mmdtype)
             if with_selection:
                 self._execute_selection(m, chunk, mmdtype)
+            m.wait_for_completion()
             date = _next_year(date)
         m.wait_for_completion_and_terminate()
 
