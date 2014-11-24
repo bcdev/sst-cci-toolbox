@@ -4,7 +4,7 @@ usecase = 'mms4'
 mmdtype = 'mmd4'
 
 w = Workflow(usecase)
-w.add_primary_sensor('avhrr.n10', '1986-11-17', '1991-09-17')
+#w.add_primary_sensor('avhrr.n10', '1986-11-17', '1991-09-17')
 w.add_primary_sensor('avhrr.n11', '1988-11-08', '1995-01-01')
 w.add_primary_sensor('avhrr.n12', '1991-09-16', '1998-12-15')
 w.add_primary_sensor('avhrr.n14', '1995-01-01', '2000-01-01')
@@ -18,4 +18,4 @@ w.add_primary_sensor('avhrr.n19', '2009-02-06', '2014-01-01')
 w.add_primary_sensor('avhrr.m02', '2006-10-30', '2014-01-01')
 w.set_samples_per_month(0)
 
-w.run(mmdtype, calls=[('sampling-start.sh', 1), ('sub-start.sh', 12), ('coincidence-start.sh', 6), ('reingestion-start.sh', 12), ('matchup-reingestion-start.sh', 3), ('mmd-start.sh', 12)], with_history=True)
+w.run(mmdtype, calls=[('sampling-start.sh', 1), ('clearsky-start.sh', 6),('sub-start.sh', 12), ('coincidence-start.sh', 6), ('reingestion-start.sh', 6), ('matchup-reingestion-start.sh', 2), ('mmd-start.sh', 12)], with_history=True)
