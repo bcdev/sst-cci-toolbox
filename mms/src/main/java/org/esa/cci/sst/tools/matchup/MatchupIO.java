@@ -25,17 +25,45 @@ public class MatchupIO {
     }
 
     public static MatchupData map(List<Matchup> matchups, IdGenerator idGenerator) {
-        return new MatchupData();
+        final MatchupData matchupData = new MatchupData();
+
+        for (final Matchup matchup : matchups) {
+            final IO_Matchup io_matchup = createIO_Matchup(idGenerator, matchup);
+            matchupData.add(io_matchup);
+        }
+        return matchupData;
     }
 
     public static List<Matchup> restore(MatchupData matchupData) {
-        return new ArrayList<>();
+        final ArrayList<Matchup> resultList = new ArrayList<>();
+
+        final List<IO_Matchup> matchups = matchupData.getMatchups();
+        for (final IO_Matchup io_matchup : matchups) {
+            final Matchup matchup = createMatchup(io_matchup);
+            resultList.add(matchup);
+        }
+        return resultList;
+    }
+
+    private static Matchup createMatchup(IO_Matchup io_matchup) {
+        final Matchup matchup = new Matchup();
+        matchup.setId(io_matchup.getId());
+        matchup.setPattern(io_matchup.getPattern());
+        matchup.setInvalid(io_matchup.isInvalid());
+        return matchup;
+    }
+
+    private static IO_Matchup createIO_Matchup(IdGenerator idGenerator, Matchup matchup) {
+        final IO_Matchup io_matchup = new IO_Matchup();
+        io_matchup.setId(idGenerator.nextUnique());
+        io_matchup.setPattern(matchup.getPattern());
+        io_matchup.setInvalid(matchup.isInvalid());
+        return io_matchup;
     }
 }
 
 /*
-- Inject IDGenerator class to create unique IDs for Matchups
-- generate serializable classes from the classes passed in
+
 
 - connect sensor per Id with referenceObservation
 
