@@ -35,25 +35,7 @@ public class MatchupIO {
             final IO_Matchup io_matchup = createIO_Matchup(matchup, idGenerator);
             matchupData.add(io_matchup);
 
-            final ReferenceObservation refObs = matchup.getRefObs();
-            final IO_RefObservation io_refObs = new IO_RefObservation();
-            io_refObs.setId(idGenerator.next());
-            io_refObs.setName(refObs.getName());
-            io_refObs.setSensor(refObs.getSensor());
-            final DataFile datafile = refObs.getDatafile();
-            io_refObs.setFilePath(datafile.getPath());
-            // ----------------------------------------
-            final Sensor sensor = datafile.getSensor();
-            sensor.setId(idGenerator.next());
-            matchupData.add(sensor);
-            // ----------------------------------------
-            io_refObs.setRecordNo(refObs.getRecordNo());
-            io_refObs.setTime(refObs.getTime());
-            io_refObs.setTimeRadius(refObs.getTimeRadius());
-            io_refObs.setLocation(refObs.getLocation().getValue());
-            io_refObs.setPoint(refObs.getPoint().getValue());
-            io_refObs.setDataset(refObs.getDataset());
-            io_refObs.setReferenceFlag(refObs.getReferenceFlag());
+            final IO_RefObservation io_refObs = createIO_RefObs(idGenerator, matchupData, matchup);
             matchupData.add(io_refObs);
         }
         return matchupData;
@@ -68,6 +50,45 @@ public class MatchupIO {
             resultList.add(matchup);
         }
         return resultList;
+    }
+
+    private static IO_RefObservation createIO_RefObs(IdGenerator idGenerator, MatchupData matchupData, Matchup matchup) {
+        final ReferenceObservation refObs = matchup.getRefObs();
+        final IO_RefObservation io_refObs = new IO_RefObservation();
+        io_refObs.setId(idGenerator.next());
+        io_refObs.setName(refObs.getName());
+        io_refObs.setSensor(refObs.getSensor());
+        final DataFile datafile = refObs.getDatafile();
+        io_refObs.setFilePath(datafile.getPath());
+
+        final int sensorId = addSensor(datafile.getSensor(), matchupData, idGenerator);
+        io_refObs.setSensorId(sensorId);
+
+        io_refObs.setRecordNo(refObs.getRecordNo());
+        io_refObs.setTime(refObs.getTime());
+        io_refObs.setTimeRadius(refObs.getTimeRadius());
+        io_refObs.setLocation(refObs.getLocation().getValue());
+        io_refObs.setPoint(refObs.getPoint().getValue());
+        io_refObs.setDataset(refObs.getDataset());
+        io_refObs.setReferenceFlag(refObs.getReferenceFlag());
+        return io_refObs;
+    }
+
+    // package access for testing only tb 2014-11-24
+    static int addSensor(Sensor sensor, MatchupData matchupData, IdGenerator idGenerator) {
+        final List<Sensor> sensorList = matchupData.getSensors();
+        for (final Sensor storedSensor : sensorList) {
+            if (storedSensor.getName().equals(sensor.getName())
+            && storedSensor.getPattern() == sensor.getPattern()
+            && storedSensor.getObservationType().equals(sensor.getObservationType())) {
+                return storedSensor.getId();
+            }
+        }
+
+        sensor.setId(idGenerator.next());
+        matchupData.add(sensor);
+
+        return sensor.getId();
     }
 
     private static Matchup createMatchup(IO_Matchup io_matchup) {

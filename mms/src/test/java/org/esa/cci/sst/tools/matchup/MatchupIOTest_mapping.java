@@ -84,7 +84,7 @@ public class MatchupIOTest_mapping {
         assertEquals("2", io_refObs.getName());
         assertEquals("3", io_refObs.getSensor());
         assertEquals("4", io_refObs.getFilePath());
-        assertEquals(0, io_refObs.getSensorId());
+        assertEquals(1, io_refObs.getSensorId());
         assertEquals(8, io_refObs.getRecordNo());
         assertEquals(9, io_refObs.getTime().getTime());
         assertEquals(10.1, io_refObs.getTimeRadius(), 1e-8);
