@@ -577,7 +577,7 @@ class Workflow:
                 raise exceptions.ValueError, "Periods of sensor '" + name + "' must not intersect."
         self.secondary_sensors.add(Sensor(name, period))
 
-    def run(self, mmdtype, hosts=list([('localhost', 6)]), calls=list(), log_dir='trace',
+    def run(self, mmdtype, hosts=list([('localhost', 12)]), calls=list(), log_dir='trace',
             with_history=False,
             with_selection=False,
             simulation=False):
