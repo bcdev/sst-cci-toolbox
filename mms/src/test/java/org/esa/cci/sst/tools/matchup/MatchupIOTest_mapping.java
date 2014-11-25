@@ -159,20 +159,6 @@ public class MatchupIOTest_mapping {
         assertEquals(3, io_sensor.getId());
     }
 
-    private Matchup createMatchupWithRefobsAndSensor() throws SQLException {
-        final Matchup matchup = new Matchup();
-        final ReferenceObservation refObs = new ReferenceObservation();
-        final DataFile datafile = new DataFile();
-        final Sensor sensor = new Sensor();
-        sensor.setName("default");
-        datafile.setSensor(sensor);
-        refObs.setDatafile(datafile);
-        refObs.setLocation(new PGgeometry("POLYGON(0 0,1 0,1 1,0 1,0 0))"));
-        refObs.setPoint(new PGgeometry("POINT(19 -11)"));
-        matchup.setRefObs(refObs);
-        return matchup;
-    }
-
     @Test
     public void testRestore_emptyObject() {
         final MatchupData matchupData = new MatchupData();
@@ -336,5 +322,65 @@ public class MatchupIOTest_mapping {
             fail("ToolException expected");
         } catch (ToolException expected){
         }
+    }
+
+    @Test
+    public void testRestore_oneMatchup_oneRelatedCoincidence() throws SQLException {
+        final MatchupData matchupData = new MatchupData();
+        final IO_Matchup io_matchup = new IO_Matchup();
+        io_matchup.setRefObsId(12);
+        matchupData.add(io_matchup);
+
+        final IO_RefObservation io_refObs = new IO_RefObservation();
+        io_refObs.setId(12);
+        io_refObs.setSensorId(13);
+        io_refObs.setLocation("POLYGON((0 0,1 0,1 1,0 1,0 0))");
+        io_refObs.setPoint("POINT(11 13)");
+        matchupData.add(io_refObs);
+
+        Sensor sensor = new Sensor();
+        sensor.setId(13);
+        matchupData.add(sensor);
+
+        sensor = new Sensor();
+        sensor.setId(14);
+        sensor.setName("related");
+        matchupData.add(sensor);
+
+        final IO_Coincidence io_coincidence = new IO_Coincidence();
+        io_coincidence.setObservationId(15);
+        io_coincidence.setTimeDifference(16.16);
+        io_matchup.add(io_coincidence);
+
+        final IO_Observation io_observation = new IO_Observation();
+        io_observation.setId(15);
+        // @todo 1 tb/tb add data and test 2014-11-25
+        matchupData.addRelated(io_observation);
+
+        final List<Matchup> matchups = MatchupIO.restore(matchupData);
+        assertEquals(1, matchups.size());
+
+        final Matchup matchup = matchups.get(0);
+        final List<Coincidence> coincidences = matchup.getCoincidences();
+        assertEquals(1, coincidences.size());
+        final Coincidence coincidence = coincidences.get(0);
+        assertEquals(16.16, coincidence.getTimeDifference(), 1e-8);
+        final Observation observation = coincidence.getObservation();
+        assertTrue(observation instanceof RelatedObservation);
+
+    }
+
+    private Matchup createMatchupWithRefobsAndSensor() throws SQLException {
+        final Matchup matchup = new Matchup();
+        final ReferenceObservation refObs = new ReferenceObservation();
+        final DataFile datafile = new DataFile();
+        final Sensor sensor = new Sensor();
+        sensor.setName("default");
+        datafile.setSensor(sensor);
+        refObs.setDatafile(datafile);
+        refObs.setLocation(new PGgeometry("POLYGON(0 0,1 0,1 1,0 1,0 0))"));
+        refObs.setPoint(new PGgeometry("POINT(19 -11)"));
+        matchup.setRefObs(refObs);
+        return matchup;
     }
 }

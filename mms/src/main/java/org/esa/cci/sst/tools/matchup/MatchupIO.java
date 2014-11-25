@@ -39,7 +39,7 @@ public class MatchupIO {
             matchupData.add(io_refObs);
 
             final List<Coincidence> coincidences = matchup.getCoincidences();
-            for(final Coincidence coincidence : coincidences) {
+            for (final Coincidence coincidence : coincidences) {
                 final IO_Coincidence io_coincidence = new IO_Coincidence();
 
                 final Observation observation = coincidence.getObservation();
@@ -77,9 +77,36 @@ public class MatchupIO {
             final ReferenceObservation refoObs = getRefObs(io_matchup.getRefObsId(), matchupData);
             matchup.setRefObs(refoObs);
 
+            final List<IO_Coincidence> io_coincidences = io_matchup.getCoincidences();
+            final List<Coincidence> coincidences = new ArrayList<>();
+            for (final IO_Coincidence io_coincidence : io_coincidences) {
+                final Coincidence coincidence = new Coincidence();
+                coincidence.setTimeDifference(io_coincidence.getTimeDifference());
+                Observation observation;
+                if (io_coincidence.isInsitu()) {
+                    observation = null;  // @todo 1 tb/tb add real functionality
+                } else {
+                    observation = getRelatedObservation(io_coincidence.getObservationId(), matchupData);
+                }
+                coincidence.setObservation(observation);
+                coincidences.add(coincidence);
+            }
+            matchup.setCoincidences(coincidences);
+
             resultList.add(matchup);
         }
         return resultList;
+    }
+
+    private static Observation getRelatedObservation(int observationId, MatchupData matchupData) {
+        final List<IO_Observation> relatedObservations = matchupData.getRelatedObservations();
+        for (final IO_Observation observation: relatedObservations) {
+            if (observation.getId() == observationId){
+                final RelatedObservation relatedObservation = new RelatedObservation();
+                return relatedObservation;
+            }
+        }
+        return null;
     }
 
     private static ReferenceObservation getRefObs(int refObsId, MatchupData matchupData) {
