@@ -2,10 +2,7 @@ package org.esa.cci.sst.tools.matchup;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.esa.cci.sst.data.DataFile;
-import org.esa.cci.sst.data.Matchup;
-import org.esa.cci.sst.data.ReferenceObservation;
-import org.esa.cci.sst.data.Sensor;
+import org.esa.cci.sst.data.*;
 import org.esa.cci.sst.tool.ToolException;
 import org.postgis.PGgeometry;
 
@@ -40,6 +37,32 @@ public class MatchupIO {
 
             final IO_RefObservation io_refObs = createIO_RefObs(idGenerator, matchupData, matchup);
             matchupData.add(io_refObs);
+
+            final List<Coincidence> coincidences = matchup.getCoincidences();
+            for(final Coincidence coincidence : coincidences) {
+                final IO_Coincidence io_coincidence = new IO_Coincidence();
+
+                final Observation observation = coincidence.getObservation();
+                final int observationId = idGenerator.next();
+                if (observation instanceof RelatedObservation) {
+                    final IO_Observation io_observation = new IO_Observation();
+                    io_observation.setId(observationId);
+                    io_observation.setName(observation.getName());
+                    io_observation.setSensor(observation.getSensor());
+                    final DataFile datafile = observation.getDatafile();
+                    io_observation.setFilePath(datafile.getPath());
+                    final int sensorId = addSensor(datafile.getSensor(), matchupData, idGenerator);
+                    io_observation.setSensorId(sensorId);
+                    io_observation.setRecordNo(observation.getRecordNo());
+                    io_observation.setTime(((RelatedObservation) observation).getTime());
+                    io_observation.setTimeRadius(((RelatedObservation) observation).getTimeRadius());
+                    io_observation.setLocation(((RelatedObservation) observation).getLocation().getValue());
+                    matchupData.addRelated(io_observation);
+                }
+                io_coincidence.setObservationId(observationId);
+                io_coincidence.setTimeDifference(coincidence.getTimeDifference());
+                io_matchup.add(io_coincidence);
+            }
         }
         return matchupData;
     }

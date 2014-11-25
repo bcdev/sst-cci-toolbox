@@ -1,9 +1,6 @@
 package org.esa.cci.sst.tools.matchup;
 
-import org.esa.cci.sst.data.DataFile;
-import org.esa.cci.sst.data.Matchup;
-import org.esa.cci.sst.data.ReferenceObservation;
-import org.esa.cci.sst.data.Sensor;
+import org.esa.cci.sst.data.*;
 import org.esa.cci.sst.tool.ToolException;
 import org.junit.Before;
 import org.junit.Test;
@@ -101,6 +98,79 @@ public class MatchupIOTest_mapping {
         assertEquals("5", mappedSensor.getName());
         assertEquals(6, sensor.getPattern());
         assertEquals("7", sensor.getObservationType());
+    }
+
+    @Test
+    public void testMap_oneMatchup_oneRelatedCoincidence() throws SQLException {
+        final List<Matchup> matchups = new ArrayList<>();
+        final Matchup matchup = createMatchupWithRefobsAndSensor();
+
+        final List<Coincidence> coincidences = new ArrayList<>();
+        final Coincidence coincidence = new Coincidence();
+        coincidence.setTimeDifference(127.127);
+        coincidences.add(coincidence);
+
+        final RelatedObservation relatedObservation = new RelatedObservation();
+        relatedObservation.setName("128");
+        relatedObservation.setSensor("129");
+        final Sensor sensor = new Sensor();
+        sensor.setName("related");
+        sensor.setPattern(131);
+        sensor.setObservationType("132");
+        final DataFile dataFile = new DataFile("130", sensor);
+        relatedObservation.setDatafile(dataFile);
+        relatedObservation.setRecordNo(133);
+        relatedObservation.setTime(new Date(134));
+        relatedObservation.setTimeRadius(135.135);
+        relatedObservation.setLocation(new PGgeometry("POLYGON((10 10,11 10,11 11,10 11,10 10))"));
+        coincidence.setObservation(relatedObservation);
+        matchup.setCoincidences(coincidences);
+
+        matchups.add(matchup);
+
+        final MatchupData matchupData = MatchupIO.map(matchups, idGenerator);
+        final List<IO_Matchup> io_matchups = matchupData.getMatchups();
+        assertEquals(1, io_matchups.size());
+        final IO_Matchup io_matchup = io_matchups.get(0);
+
+        final List<IO_Coincidence> io_coincidences = io_matchup.getCoincidences();
+        assertEquals(1, io_coincidences.size());
+        final IO_Coincidence io_coincidence = io_coincidences.get(0);
+        assertEquals(127.127, io_coincidence.getTimeDifference(), 1e-8);
+        assertEquals(2, io_coincidence.getObservationId());
+        assertFalse(io_coincidence.isInsitu());
+
+        final List<IO_Observation> relatedObservations = matchupData.getRelatedObservations();
+        assertEquals(1, relatedObservations.size());
+        final IO_Observation io_observation = relatedObservations.get(0);
+        assertEquals(2, io_observation.getId());
+        assertEquals("128", io_observation.getName());
+        assertEquals("129", io_observation.getSensor());
+        assertEquals("130", io_observation.getFilePath());
+        assertEquals(3, io_observation.getSensorId());
+        assertEquals(133, io_observation.getRecordNo());
+        assertEquals(134, io_observation.getTime().getTime());
+        assertEquals(135.135, io_observation.getTimeRadius(), 1e-8);
+        assertEquals("POLYGON((10 10,11 10,11 11,10 11,10 10))", io_observation.getLocation());
+
+        final List<Sensor> sensors = matchupData.getSensors();
+        assertEquals(2, sensors.size());    // first results from the referenceObservation
+        final Sensor io_sensor = sensors.get(1);
+        assertEquals(3, io_sensor.getId());
+    }
+
+    private Matchup createMatchupWithRefobsAndSensor() throws SQLException {
+        final Matchup matchup = new Matchup();
+        final ReferenceObservation refObs = new ReferenceObservation();
+        final DataFile datafile = new DataFile();
+        final Sensor sensor = new Sensor();
+        sensor.setName("default");
+        datafile.setSensor(sensor);
+        refObs.setDatafile(datafile);
+        refObs.setLocation(new PGgeometry("POLYGON(0 0,1 0,1 1,0 1,0 0))"));
+        refObs.setPoint(new PGgeometry("POINT(19 -11)"));
+        matchup.setRefObs(refObs);
+        return matchup;
     }
 
     @Test

@@ -17,6 +17,7 @@
 package org.esa.cci.sst.data;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -34,6 +35,11 @@ public class Matchup {
     private List<Coincidence> coincidences;
     private long pattern;
     private boolean invalid;
+
+
+    public Matchup() {
+        coincidences = new ArrayList<>();
+    }
 
     @Id
     public long getId() {
