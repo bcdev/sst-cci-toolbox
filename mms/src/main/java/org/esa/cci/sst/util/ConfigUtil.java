@@ -31,4 +31,13 @@ public class ConfigUtil {
         }
         return new TimeRange(startDate, stopDate);
     }
+
+
+    public static Month getCenterMonth(String startKey, String stopKey, Configuration config) {
+        final TimeRange timeRange = getTimeRange(startKey, stopKey, config);
+        final Date centerDate = TimeUtil.getCenterTime(timeRange.getStartDate(), timeRange.getStopDate());
+        final int year = TimeUtil.getYear(centerDate);
+        final int month = TimeUtil.getMonth(centerDate);
+        return new Month(year, month);
+    }
 }

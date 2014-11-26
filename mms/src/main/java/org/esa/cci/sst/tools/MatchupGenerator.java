@@ -180,19 +180,14 @@ public class MatchupGenerator extends BasicTool {
                 logInfo(logger, "Starting writing matchups and coincidences...");
 
                 final String[] sensorNamesArray = createSensorNamesArray(hasInsitu);
-                // @todo 2 tb/tb the following segment is now being repeated for the third time: extract method and test! 2014-11-26
-                final TimeRange timeRange = ConfigUtil.getTimeRange(Configuration.KEY_MMS_SAMPLING_START_TIME,
+                final Month centerMonth = ConfigUtil.getCenterMonth(Configuration.KEY_MMS_SAMPLING_START_TIME,
                         Configuration.KEY_MMS_SAMPLING_STOP_TIME,
                         getConfig());
-                final Date centerDate = TimeUtil.getCenterTime(timeRange.getStartDate(), timeRange.getStopDate());
-                final int year = TimeUtil.getYear(centerDate);
-                final int month = TimeUtil.getMonth(centerDate);
 
-                final String outputFilePath = createOutputFilePath(archiveRootPath, sensorNamesArray, year, month);
+                final String outputFilePath = createOutputFilePath(archiveRootPath, sensorNamesArray, centerMonth.getYear(), centerMonth.getMonth());
                 final File outFile = new File(outputFilePath);
                 outFile.createNewFile();    // @todo 2 tb/tb test and eventually create helper method 2014-11-26
                 MatchupIO.write(matchups, new FileOutputStream(outFile), getConfig());
-
 
                 logInfo(logger, "Finished writing matchups and coincidences...");
             } catch (Exception e) {

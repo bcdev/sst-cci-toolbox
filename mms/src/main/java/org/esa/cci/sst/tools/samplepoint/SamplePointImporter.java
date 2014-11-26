@@ -2,15 +2,14 @@ package org.esa.cci.sst.tools.samplepoint;
 
 import org.esa.cci.sst.tool.Configuration;
 import org.esa.cci.sst.util.ConfigUtil;
+import org.esa.cci.sst.util.Month;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.SamplingPointIO;
-import org.esa.cci.sst.util.TimeUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -28,12 +27,11 @@ public class SamplePointImporter {
         usecaseRootPath = ConfigUtil.getUsecaseRootPath(config);
         sensorName = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR);
 
-        final TimeRange timeRange = ConfigUtil.getTimeRange(Configuration.KEY_MMS_SAMPLING_START_TIME,
+        final Month centerMonth = ConfigUtil.getCenterMonth(Configuration.KEY_MMS_SAMPLING_START_TIME,
                 Configuration.KEY_MMS_SAMPLING_STOP_TIME,
                 config);
-        final Date centerDate = TimeUtil.getCenterTime(timeRange.getStartDate(), timeRange.getStopDate());
-        year = TimeUtil.getYear(centerDate);
-        month = TimeUtil.getMonth(centerDate);
+        year = centerMonth.getYear();
+        month = centerMonth.getMonth();
     }
 
     public void setLogger(Logger logger) {

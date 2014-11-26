@@ -98,4 +98,17 @@ public class ConfigUtilTest {
             assertEquals("Configuration error: stop is before start", expected.getMessage());
         }
     }
+
+    @Test
+    public void testGetCenterMonth() {
+        final Configuration config = new Configuration();
+        config.put("start", "1980-01-01T00:00:00Z");
+        config.put("stop", "1980-02-01T00:00:00Z");
+
+        final Month month = ConfigUtil.getCenterMonth("start", "stop", config);
+        assertNotNull(month);
+
+        assertEquals(1980, month.getYear());
+        assertEquals(1, month.getMonth());
+    }
 }
