@@ -16,6 +16,7 @@ import org.postgis.PGgeometry;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Query;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.logging.Level;
@@ -23,6 +24,7 @@ import java.util.logging.Logger;
 
 public class MatchupGenerator extends BasicTool {
 
+    private static final DecimalFormat monthFormat = new DecimalFormat("00");
     private String sensorName1;
     private String sensorName2;
     private int subSceneWidth1;
@@ -291,6 +293,32 @@ public class MatchupGenerator extends BasicTool {
         r.setDataset(samplingPoint.getInsituDatasetId().getValue());
         r.setReferenceFlag(Constants.MATCHUP_REFERENCE_FLAG_UNDEFINED);
         return r;
+    }
+
+    static String createOutputFilePath(String archiveRoot, String[] sensorNames, int year, int month) {
+        final StringBuilder stringBuilder = new StringBuilder(256);
+        stringBuilder.append(archiveRoot);
+        stringBuilder.append("/clean/");
+
+        final StringBuilder sensorTagBuilder = new StringBuilder(64);
+        sensorTagBuilder.append(sensorNames[0]);
+        for (int i = 1; i < sensorNames.length; i++ ){
+            sensorTagBuilder.append(',');
+            sensorTagBuilder.append(sensorNames[i]);
+        }
+        final String sensorTag = sensorTagBuilder.toString();
+
+        stringBuilder.append(sensorTag);
+        stringBuilder.append('/');
+        stringBuilder.append(year);
+        stringBuilder.append('/');
+        stringBuilder.append(sensorTag);
+        stringBuilder.append("-clean-");
+        stringBuilder.append(year);
+        stringBuilder.append('-');
+        stringBuilder.append(monthFormat.format(month));
+        stringBuilder.append(".json");
+        return stringBuilder.toString();
     }
 
     private static Coincidence createCoincidence(Matchup matchup, RelatedObservation o2) {

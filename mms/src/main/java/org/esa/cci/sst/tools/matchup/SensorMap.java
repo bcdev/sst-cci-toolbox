@@ -8,6 +8,17 @@ public class SensorMap {
 
     private static Map<String, Integer> sensorNameMap;
 
+    /*
+    IMPORTANT!!!
+
+    If you need to add new sensors or rename things, please ALWAYS append the changes to the list.
+
+    The name/id mapping implemented here is used heavily during processing - and things may break
+    if the existing mapping is changed.
+
+    tb 2014-11-26
+     */
+
     static {
         sensorNameMap = new HashMap<>();
         sensorNameMap.put("aai", 1);

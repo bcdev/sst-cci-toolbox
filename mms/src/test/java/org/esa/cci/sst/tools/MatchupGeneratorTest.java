@@ -33,7 +33,6 @@ public class MatchupGeneratorTest {
             MatchupGenerator.createSensorShortName("history", "avhrr.full_resolution");
             fail("IllegalArgumentException expected");
         } catch (IllegalArgumentException expected) {
-            //
         }
     }
 
@@ -259,5 +258,18 @@ public class MatchupGeneratorTest {
         assertSame(matchup, coincidence.getMatchup());
         assertSame(relatedObservation, coincidence.getObservation());
         assertEquals(5000, coincidence.getTimeDifference(), 1e-8);
+    }
+
+    @Test
+    public void testCreateOutputFilePath() {
+        assertEquals("/archive/root/clean/avhrr_orb.n10,history/2008/avhrr_orb.n10,history-clean-2008-08.json",
+                MatchupGenerator.createOutputFilePath("/archive/root", new String[]{"avhrr_orb.n10", "history"}, 2008, 8));
+
+
+        assertEquals("/archive/root/clean/orb_avhrr.n18/1995/orb_avhrr.n18-clean-1995-11.json",
+                MatchupGenerator.createOutputFilePath("/archive/root", new String[]{"orb_avhrr.n18"}, 1995, 11));
+
+        assertEquals("/archive/root/clean/amsre,avhrr.m01,history/2006/amsre,avhrr.m01,history-clean-2006-02.json",
+                MatchupGenerator.createOutputFilePath("/archive/root", new String[]{"amsre", "avhrr.m01", "history"}, 2006, 2));
     }
 }
