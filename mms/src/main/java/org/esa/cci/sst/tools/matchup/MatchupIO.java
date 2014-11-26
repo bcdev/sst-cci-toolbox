@@ -86,7 +86,7 @@ public class MatchupIO {
                 coincidence.setTimeDifference(io_coincidence.getTimeDifference());
                 Observation observation;
                 if (io_coincidence.isInsitu()) {
-                    observation = null;  // @todo 1 tb/tb add real functionality
+                    observation = getInsituObservation(io_coincidence.getObservationId(), matchupData);
                 } else {
                     observation = getRelatedObservation(io_coincidence.getObservationId(), matchupData);
                 }
@@ -105,6 +105,33 @@ public class MatchupIO {
         for (final IO_Observation observation : relatedObservations) {
             if (observation.getId() == observationId) {
                 final RelatedObservation relatedObservation = new RelatedObservation();
+                relatedObservation.setName(observation.getName());
+                relatedObservation.setSensor(observation.getSensor());
+
+                final DataFile dataFile = new DataFile();
+                dataFile.setPath(observation.getFilePath());
+                final Sensor sensor = getSensor(observation.getSensorId(), matchupData);
+                dataFile.setSensor(sensor);
+                relatedObservation.setDatafile(dataFile);
+
+                relatedObservation.setTime(observation.getTime());
+                relatedObservation.setTimeRadius(observation.getTimeRadius());
+
+                final PGgeometry location = createGeometry(observation.getLocation());
+                relatedObservation.setLocation(location);
+
+                relatedObservation.setRecordNo(observation.getRecordNo());
+                return relatedObservation;
+            }
+        }
+        throw new ToolException("RelatedObservation with id '" + observationId + "'not found", ToolException.TOOL_INTERNAL_ERROR);
+    }
+
+    private static Observation getInsituObservation(int observationId, MatchupData matchupData) {
+        final List<IO_Observation> insituObservations = matchupData.getInsituObservations();
+        for (final IO_Observation observation : insituObservations) {
+            if (observation.getId() == observationId) {
+                final InsituObservation relatedObservation = new InsituObservation();
                 relatedObservation.setName(observation.getName());
                 relatedObservation.setSensor(observation.getSensor());
 
