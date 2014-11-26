@@ -11,10 +11,7 @@ import org.postgis.PGgeometry;
 import org.postgis.Point;
 
 import javax.persistence.EntityTransaction;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
-import java.util.Stack;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -101,33 +98,9 @@ public class MatchupGeneratorTest {
     }
 
     @Test
-    public void testPersistReferenceObservations() {
-        final Stack<EntityTransaction> transactionStack = new Stack<>();
-        final EntityTransaction transaction = mock(EntityTransaction.class);
-        final PersistenceManager persistenceManager = mock(PersistenceManager.class);
-
-        final List<ReferenceObservation> observations = new ArrayList<>();
-        observations.add(new ReferenceObservation());
-        observations.add(new ReferenceObservation());
-
-        when(persistenceManager.transaction()).thenReturn(transaction);
-
-        MatchupGenerator.persistReferenceObservations(observations, persistenceManager, transactionStack);
-
-        verify(persistenceManager, times(1)).transaction();
-        verify(persistenceManager, times(2)).persist(any(ReferenceObservation.class));
-        verify(persistenceManager, times(1)).commit();
-        verifyNoMoreInteractions(persistenceManager);
-
-        assertEquals(1, transactionStack.size());
-        assertSame(transaction, transactionStack.pop());
-    }
-
-    @Test
     public void testDefineMatchupPattern_twoSensors() {
         final String primarySensorname = "atsr.3";
         final String secondarySensorname = "atsr.2";
-        final Stack<EntityTransaction> transactionStack = new Stack<>();
         final Sensor primarySensor = new SensorBuilder().name(primarySensorname).pattern(10).build();
         final Sensor secondarySensor = new SensorBuilder().name(secondarySensorname).pattern(100).build();
 
@@ -141,7 +114,7 @@ public class MatchupGeneratorTest {
         when(storage.getSensor("orb_atsr.3")).thenReturn(primarySensor);
         when(storage.getSensor("orb_atsr.2")).thenReturn(secondarySensor);
 
-        final long pattern = MatchupGenerator.defineMatchupPattern(primarySensorname, secondarySensorname, 1000000L, persistenceManager, transactionStack);
+        final long pattern = MatchupGenerator.defineMatchupPattern(primarySensorname, secondarySensorname, 1000000L, persistenceManager);
 
         assertEquals(1000000L | 10L | 100L, pattern);
 
@@ -153,15 +126,11 @@ public class MatchupGeneratorTest {
         verify(storage, times(1)).getSensor("orb_atsr.3");
         verify(storage, times(1)).getSensor("orb_atsr.2");
         verifyNoMoreInteractions(storage);
-
-        assertEquals(1, transactionStack.size());
-        assertSame(transaction, transactionStack.pop());
     }
 
     @Test
     public void testDefineMatchupPattern_onlyPrimarySensor() {
         final String primarySensorname = "atsr.3";
-        final Stack<EntityTransaction> transactionStack = new Stack<>();
         final Sensor primarySensor = new SensorBuilder().name(primarySensorname).pattern(10).build();
 
         final EntityTransaction transaction = mock(EntityTransaction.class);
@@ -173,7 +142,7 @@ public class MatchupGeneratorTest {
 
         when(storage.getSensor("orb_atsr.3")).thenReturn(primarySensor);
 
-        final long pattern = MatchupGenerator.defineMatchupPattern(primarySensorname, null, 1000000L, persistenceManager, transactionStack);
+        final long pattern = MatchupGenerator.defineMatchupPattern(primarySensorname, null, 1000000L, persistenceManager);
 
         assertEquals(1000000L | 10L, pattern);
 
@@ -184,9 +153,6 @@ public class MatchupGeneratorTest {
 
         verify(storage, times(1)).getSensor("orb_atsr.3");
         verifyNoMoreInteractions(storage);
-
-        assertEquals(1, transactionStack.size());
-        assertSame(transaction, transactionStack.pop());
     }
 
     @Test

@@ -5,6 +5,7 @@ import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.orm.Storage;
 import org.esa.cci.sst.tool.Configuration;
 import org.esa.cci.sst.tool.ToolException;
+import org.esa.cci.sst.tools.matchup.MatchupIO;
 import org.esa.cci.sst.tools.mmdgeneration.DimensionConfigurationInitializer;
 import org.esa.cci.sst.tools.samplepoint.DirtySubsceneRemover;
 import org.esa.cci.sst.tools.samplepoint.OverlapRemover;
@@ -13,8 +14,9 @@ import org.esa.cci.sst.tools.samplepoint.TimeRange;
 import org.esa.cci.sst.util.*;
 import org.postgis.PGgeometry;
 
-import javax.persistence.EntityTransaction;
 import javax.persistence.Query;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.MessageFormat;
@@ -35,6 +37,7 @@ public class MatchupGenerator extends BasicTool {
     private boolean overlappingWanted;
     private long referenceSensorPattern;
     private String referenceSensorName;
+    private String archiveRootPath;
 
     public MatchupGenerator() {
         super("matchup-generator", "1.0");
@@ -89,6 +92,9 @@ public class MatchupGenerator extends BasicTool {
             subSceneWidth2 = map.get(SensorNames.getDimensionNameX(sensorName2));
             subSceneHeight2 = map.get(SensorNames.getDimensionNameY(sensorName2));
         }
+
+        archiveRootPath = config.getStringValue(Configuration.KEY_MMS_ARCHIVE_ROOT);
+
     }
 
     private void run() throws IOException {
@@ -105,15 +111,16 @@ public class MatchupGenerator extends BasicTool {
         createMatchups(logger, samples);
     }
 
-    static void createMatchups(List<SamplingPoint> samples, String referenceSensorName, String primarySensorName,
-                               String secondarySensorName, long referenceSensorPattern, PersistenceManager pm,
-                               Storage storage, Logger logger) {
+    void createMatchups(List<SamplingPoint> samples, String referenceSensorName, String primarySensorName,
+                        String secondarySensorName, long referenceSensorPattern, PersistenceManager pm,
+                        Storage storage, Logger logger) {
         if (!samples.isEmpty()) {
-            final Stack<EntityTransaction> rollbackStack = new Stack<>();
             try {
+                boolean hasInsitu = false;
+
                 // create reference observations
                 logInfo(logger, "Starting creating reference observations...");
-                rollbackStack.push(pm.transaction());
+                pm.transaction();
                 final String sensorShortName = createSensorShortName(referenceSensorName, primarySensorName);
                 final List<ReferenceObservation> referenceObservations = createReferenceObservations(samples,
                         sensorShortName,
@@ -121,18 +128,17 @@ public class MatchupGenerator extends BasicTool {
                 pm.commit();
                 logInfo(logger, "Finished creating reference observations");
 
-                logInfo(logger, "Starting persisting reference observations...");
-                persistReferenceObservations(referenceObservations, pm, rollbackStack);
-                logInfo(logger, "Finished persisting reference observations");
-
                 logInfo(logger, "Starting creating matchup pattern ...");
-                final long matchupPattern = defineMatchupPattern(primarySensorName, secondarySensorName,
-                        referenceSensorPattern, pm, rollbackStack);
+                final long matchupPattern = defineMatchupPattern(primarySensorName,
+                        secondarySensorName,
+                        referenceSensorPattern,
+                        pm);
                 logInfo(logger, MessageFormat.format("Matchup pattern: {0}", Long.toHexString(matchupPattern)));
 
                 // create matchups and coincidences
                 logInfo(logger, "Starting creating matchups and coincidences...");
-                rollbackStack.push(pm.transaction());
+                pm.transaction();
+
                 final List<Matchup> matchups = new ArrayList<>(referenceObservations.size());
                 final List<Coincidence> coincidences = new ArrayList<>(samples.size());
                 final List<InsituObservation> insituObservations = new ArrayList<>(samples.size());
@@ -163,6 +169,7 @@ public class MatchupGenerator extends BasicTool {
                         insituCoincidence.setTimeDifference(Math.abs(p.getReferenceTime() - p.getTime()) / 1000.0);
 
                         coincidences.add(insituCoincidence);
+                        hasInsitu = true;
                     }
                 }
                 pm.commit();
@@ -170,26 +177,25 @@ public class MatchupGenerator extends BasicTool {
                 logInfo(logger, "Finished creating matchups and coincidences");
 
                 // persist matchups and coincidences
-                logInfo(logger, "Starting persisting matchups and coincidences...");
+                logInfo(logger, "Starting writing matchups and coincidences...");
 
-                rollbackStack.push(pm.transaction());
-                for (InsituObservation insituObservation : insituObservations) {
-                    storage.store(insituObservation);
-                }
-                for (Matchup m : matchups) {
-                    pm.persist(m);
-                }
-                for (Coincidence c : coincidences) {
-                    pm.persist(c);
-                }
-                pm.commit();
+                final String[] sensorNamesArray = createSensorNamesArray(hasInsitu);
+                // @todo 2 tb/tb the following segment is now being repeated for the third time: extract method and test! 2014-11-26
+                final TimeRange timeRange = ConfigUtil.getTimeRange(Configuration.KEY_MMS_SAMPLING_START_TIME,
+                        Configuration.KEY_MMS_SAMPLING_STOP_TIME,
+                        getConfig());
+                final Date centerDate = TimeUtil.getCenterTime(timeRange.getStartDate(), timeRange.getStopDate());
+                final int year = TimeUtil.getYear(centerDate);
+                final int month = TimeUtil.getMonth(centerDate);
 
-                logInfo(logger, "Finished persisting matchups and coincidences...");
+                final String outputFilePath = createOutputFilePath(archiveRootPath, sensorNamesArray, year, month);
+                final File outFile = new File(outputFilePath);
+                outFile.createNewFile();    // @todo 2 tb/tb test and eventually create helper method 2014-11-26
+                MatchupIO.write(matchups, new FileOutputStream(outFile), getConfig());
+
+
+                logInfo(logger, "Finished writing matchups and coincidences...");
             } catch (Exception e) {
-                while (!rollbackStack.isEmpty()) {
-                    logInfo(logger, "Rolling back transaction ...");
-                    rollbackStack.pop().rollback();
-                }
                 throw new ToolException(e.getMessage(), e, ToolException.TOOL_ERROR);
             }
         }
@@ -222,10 +228,10 @@ public class MatchupGenerator extends BasicTool {
 
     // package access for testing only tb 2014-04-03
     static long defineMatchupPattern(String primarySensorName, String secondarySensorName, long referenceSensorPattern,
-                                     PersistenceManager pm, Stack<EntityTransaction> rollbackStack) {
+                                     PersistenceManager pm) {
         long matchupPattern;
         final Storage storage = pm.getStorage();
-        rollbackStack.push(pm.transaction());
+        pm.transaction();
 
         final String primaryOrbitName = SensorNames.getOrbitName(primarySensorName);
         final Sensor primarySensor = storage.getSensor(primaryOrbitName);
@@ -252,16 +258,6 @@ public class MatchupGenerator extends BasicTool {
         insituObservation.setTime(new Date(p.getTime()));
         insituObservation.setTimeRadius(Math.abs(p.getReferenceTime() - p.getTime()) / 1000.0);
         return insituObservation;
-    }
-
-    // package access for testing only tb 2014-04-03
-    static void persistReferenceObservations(List<ReferenceObservation> referenceObservations, PersistenceManager pm,
-                                             Stack<EntityTransaction> rollbackStack) {
-        rollbackStack.push(pm.transaction());
-        for (final ReferenceObservation r : referenceObservations) {
-            pm.persist(r);
-        }
-        pm.commit();
     }
 
     static String createSensorShortName(String referenceSensorName, String primarySensorName) {
@@ -302,7 +298,7 @@ public class MatchupGenerator extends BasicTool {
 
         final StringBuilder sensorTagBuilder = new StringBuilder(64);
         sensorTagBuilder.append(sensorNames[0]);
-        for (int i = 1; i < sensorNames.length; i++ ){
+        for (int i = 1; i < sensorNames.length; i++) {
             sensorTagBuilder.append(',');
             sensorTagBuilder.append(sensorNames[i]);
         }
@@ -319,6 +315,19 @@ public class MatchupGenerator extends BasicTool {
         stringBuilder.append(monthFormat.format(month));
         stringBuilder.append(".json");
         return stringBuilder.toString();
+    }
+
+    private String[] createSensorNamesArray(boolean hasInsitu) {
+        final ArrayList<String> sensorNamesList = new ArrayList<>();
+        sensorNamesList.add(sensorName1);
+        if (sensorName2 != null) {
+            sensorNamesList.add(sensorName2);
+        }
+        if (hasInsitu) {
+            sensorNamesList.add("history");
+        }
+
+        return sensorNamesList.toArray(new String[sensorNamesList.size()]);
     }
 
     private static Coincidence createCoincidence(Matchup matchup, RelatedObservation o2) {
