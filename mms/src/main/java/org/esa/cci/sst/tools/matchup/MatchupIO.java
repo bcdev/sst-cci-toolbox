@@ -28,6 +28,7 @@ public class MatchupIO {
         return mapper.readValue(inputStream, MatchupData.class);
     }
 
+    @SuppressWarnings("InstanceofInterfaces")
     public static MatchupData map(List<Matchup> matchups, IdGenerator idGenerator) {
         final MatchupData matchupData = new MatchupData();
 
@@ -103,6 +104,22 @@ public class MatchupIO {
         for (final IO_Observation observation: relatedObservations) {
             if (observation.getId() == observationId){
                 final RelatedObservation relatedObservation = new RelatedObservation();
+                relatedObservation.setName(observation.getName());
+                relatedObservation.setSensor(observation.getSensor());
+
+                final DataFile dataFile = new DataFile();
+                dataFile.setPath(observation.getFilePath());
+                final Sensor sensor = getSensor(observation.getSensorId(), matchupData);
+                dataFile.setSensor(sensor);
+                relatedObservation.setDatafile(dataFile);
+
+                relatedObservation.setTime(observation.getTime());
+                relatedObservation.setTimeRadius(observation.getTimeRadius());
+
+                final PGgeometry location = createGeometry(observation.getLocation());
+                relatedObservation.setLocation(location);
+
+                relatedObservation.setRecordNo(observation.getRecordNo());
                 return relatedObservation;
             }
         }

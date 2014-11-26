@@ -354,7 +354,14 @@ public class MatchupIOTest_mapping {
 
         final IO_Observation io_observation = new IO_Observation();
         io_observation.setId(15);
-        // @todo 1 tb/tb add data and test 2014-11-25
+        io_observation.setName("16");
+        io_observation.setSensor("17");
+        io_observation.setFilePath("18");
+        io_observation.setSensorId(14);
+        io_observation.setTime(new Date(19));
+        io_observation.setTimeRadius(20.2);
+        io_observation.setLocation("POLYGON((2 2,2 3,3 3,3 2,2 2))");
+        io_observation.setRecordNo(21);
         matchupData.addRelated(io_observation);
 
         final List<Matchup> matchups = MatchupIO.restore(matchupData);
@@ -367,8 +374,24 @@ public class MatchupIOTest_mapping {
         assertEquals(16.16, coincidence.getTimeDifference(), 1e-8);
         final Observation observation = coincidence.getObservation();
         assertTrue(observation instanceof RelatedObservation);
+        assertEquals("16", observation.getName());
+        assertEquals("17", observation.getSensor());
 
+        final DataFile datafile = observation.getDatafile();
+        assertNotNull(datafile);
+        assertEquals("18", datafile.getPath());
+        final Sensor restoredSensor = datafile.getSensor();
+        assertNotNull(restoredSensor);
+        assertEquals(14, sensor.getId());
+        assertEquals("related", sensor.getName());
+
+        assertEquals(19, ((RelatedObservation) observation).getTime().getTime());
+        assertEquals(20.2, ((RelatedObservation) observation).getTimeRadius(), 1e-8);
+        assertEquals("POLYGON((2 2,2 3,3 3,3 2,2 2))", ((RelatedObservation) observation).getLocation().getValue());
+        assertEquals(21, observation.getRecordNo());
     }
+
+    // @todo test exception on invalid observation ID
 
     private Matchup createMatchupWithRefobsAndSensor() throws SQLException {
         final Matchup matchup = new Matchup();
