@@ -350,6 +350,7 @@ public class MatchupIOTest_mapping {
         final IO_Coincidence io_coincidence = new IO_Coincidence();
         io_coincidence.setObservationId(15);
         io_coincidence.setTimeDifference(16.16);
+        io_coincidence.setInsitu(false);
         io_matchup.add(io_coincidence);
 
         final IO_Observation io_observation = new IO_Observation();
@@ -391,7 +392,38 @@ public class MatchupIOTest_mapping {
         assertEquals(21, observation.getRecordNo());
     }
 
-    // @todo test exception on invalid observation ID
+    @Test
+    public void testRestore_oneMatchup_invalidRelatedObservationId() {
+        final MatchupData matchupData = new MatchupData();
+        final IO_Matchup io_matchup = new IO_Matchup();
+        io_matchup.setRefObsId(12);
+        matchupData.add(io_matchup);
+
+        final IO_RefObservation io_refObs = new IO_RefObservation();
+        io_refObs.setId(12);
+        io_refObs.setSensorId(13);
+        io_refObs.setLocation("POLYGON((0 0,1 0,1 1,0 1,0 0))");
+        io_refObs.setPoint("POINT(11 13)");
+        matchupData.add(io_refObs);
+
+        Sensor sensor = new Sensor();
+        sensor.setId(13);
+        matchupData.add(sensor);
+
+        final IO_Coincidence io_coincidence = new IO_Coincidence();
+        io_coincidence.setObservationId(-99);
+        io_matchup.add(io_coincidence);
+
+        final IO_Observation io_observation = new IO_Observation();
+        io_observation.setId(15);
+        matchupData.addRelated(io_observation);
+
+        try {
+            MatchupIO.restore(matchupData);
+            fail("ToolException expected");
+        } catch (ToolException expected) {
+        }
+    }
 
     private Matchup createMatchupWithRefobsAndSensor() throws SQLException {
         final Matchup matchup = new Matchup();

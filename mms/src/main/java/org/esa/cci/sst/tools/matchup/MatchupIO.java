@@ -46,18 +46,19 @@ public class MatchupIO {
                 final Observation observation = coincidence.getObservation();
                 final int observationId = idGenerator.next();
                 if (observation instanceof RelatedObservation) {
+                    final RelatedObservation relatedObservation = (RelatedObservation) observation;
                     final IO_Observation io_observation = new IO_Observation();
                     io_observation.setId(observationId);
-                    io_observation.setName(observation.getName());
-                    io_observation.setSensor(observation.getSensor());
-                    final DataFile datafile = observation.getDatafile();
+                    io_observation.setName(relatedObservation.getName());
+                    io_observation.setSensor(relatedObservation.getSensor());
+                    final DataFile datafile = relatedObservation.getDatafile();
                     io_observation.setFilePath(datafile.getPath());
                     final int sensorId = addSensor(datafile.getSensor(), matchupData, idGenerator);
                     io_observation.setSensorId(sensorId);
-                    io_observation.setRecordNo(observation.getRecordNo());
-                    io_observation.setTime(((RelatedObservation) observation).getTime());
-                    io_observation.setTimeRadius(((RelatedObservation) observation).getTimeRadius());
-                    io_observation.setLocation(((RelatedObservation) observation).getLocation().getValue());
+                    io_observation.setRecordNo(relatedObservation.getRecordNo());
+                    io_observation.setTime(relatedObservation.getTime());
+                    io_observation.setTimeRadius(relatedObservation.getTimeRadius());
+                    io_observation.setLocation(relatedObservation.getLocation().getValue());
                     matchupData.addRelated(io_observation);
                 }
                 io_coincidence.setObservationId(observationId);
@@ -69,7 +70,7 @@ public class MatchupIO {
     }
 
     public static List<Matchup> restore(MatchupData matchupData) {
-        final ArrayList<Matchup> resultList = new ArrayList<>();
+        final List<Matchup> resultList = new ArrayList<>();
 
         final List<IO_Matchup> matchups = matchupData.getMatchups();
         for (final IO_Matchup io_matchup : matchups) {
@@ -101,8 +102,8 @@ public class MatchupIO {
 
     private static Observation getRelatedObservation(int observationId, MatchupData matchupData) {
         final List<IO_Observation> relatedObservations = matchupData.getRelatedObservations();
-        for (final IO_Observation observation: relatedObservations) {
-            if (observation.getId() == observationId){
+        for (final IO_Observation observation : relatedObservations) {
+            if (observation.getId() == observationId) {
                 final RelatedObservation relatedObservation = new RelatedObservation();
                 relatedObservation.setName(observation.getName());
                 relatedObservation.setSensor(observation.getSensor());
@@ -123,7 +124,7 @@ public class MatchupIO {
                 return relatedObservation;
             }
         }
-        return null;
+        throw new ToolException("RelatedObservation with id '" + observationId + "'not found", ToolException.TOOL_INTERNAL_ERROR);
     }
 
     private static ReferenceObservation getRefObs(int refObsId, MatchupData matchupData) {
