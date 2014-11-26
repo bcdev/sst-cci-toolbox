@@ -1,21 +1,63 @@
 {"referenceObservations": [
     {
         "id": 12,
-        "name": "13",
-        "sensor": "14",
-        "filePath": "15",
-        "sensorId": 16,
-        "time": 17,
-        "timeRadius": 18.18,
-        "location": "19",
-        "recordNo": 23,
-        "point": "20",
-        "dataset": 21,
-        "referenceFlag": 22
+        "name": "ref_obs_1",
+        "sensor": "orb_atsr.3",
+        "filePath": "/archive/sensor/atsr.3/the_file",
+        "sensorId": 0,
+        "time": 1417010817173,
+        "timeRadius": 12000.0,
+        "location": "POLYGON((10 10, 10 11, 11 11,11 10, 10 10))",
+        "recordNo": 101,
+        "point": "POINT(10.5 10.5)",
+        "dataset": 11,
+        "referenceFlag": 8
     }
 ],
-    "relatedObservations": [],
+    "relatedObservations": [
+        {
+            "id": 23,
+            "name": "related_obs_1",
+            "sensor": "orb_atsr.2",
+            "filePath": "/archive/sensor/atsr.2/the_other_file",
+            "sensorId": 1,
+            "time": 1417010917173,
+            "timeRadius": 8000.0,
+            "location": "POLYGON((11 11, 11 12, 12 12,12 11, 11 11))",
+            "recordNo": 27
+        }
+    ],
     "insituObservations": [],
-    "sensors": [],
-    "matchups": []
+
+    "sensors": [
+        {
+            "id": 0,
+            "name": "orb_atsr.3",
+            "pattern": 20,
+            "observationType": "satellite observation"
+        },
+        {
+            "id": 1,
+            "name": "orb_atsr.2",
+            "pattern": 20,
+            "observationType": "satellite observation"
+        }
+    ],
+
+    "matchups": [
+        {
+            "id": 2005060908000000001,
+            "refObsId": 12,
+            "coincidences": [
+                {
+                    "id": 3,
+                    "timeDifference": 4000.0,
+                    "observationId": 23,
+                    "insitu": false
+                }
+            ],
+            "pattern": 28,
+            "invalid": false
+        }
+    ]
 }

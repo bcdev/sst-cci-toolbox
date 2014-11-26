@@ -2,6 +2,8 @@ package org.esa.cci.sst.tools.matchup;
 
 import org.junit.Test;
 
+import java.util.Date;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
@@ -32,6 +34,7 @@ public class SensorMapTest {
 
     @Test
     public void testNameForId_throwsOnInvalidId() {
+        System.out.println(new Date().getTime());
         try {
             SensorMap.nameForId(-17);
             fail("IllegalArgumentException expected");
