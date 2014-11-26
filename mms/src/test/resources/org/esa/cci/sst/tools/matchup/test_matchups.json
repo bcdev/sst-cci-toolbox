@@ -1,0 +1,21 @@
+{"referenceObservations": [
+    {
+        "id": 12,
+        "name": "13",
+        "sensor": "14",
+        "filePath": "15",
+        "sensorId": 16,
+        "time": 17,
+        "timeRadius": 18.18,
+        "location": "19",
+        "recordNo": 23,
+        "point": "20",
+        "dataset": 21,
+        "referenceFlag": 22
+    }
+],
+    "relatedObservations": [],
+    "insituObservations": [],
+    "sensors": [],
+    "matchups": []
+}

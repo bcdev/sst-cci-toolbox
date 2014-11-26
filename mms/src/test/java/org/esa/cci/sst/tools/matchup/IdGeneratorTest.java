@@ -4,7 +4,6 @@ import org.esa.cci.sst.tool.Configuration;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 public class IdGeneratorTest {
 
@@ -50,21 +49,5 @@ public class IdGeneratorTest {
 
         assertEquals(2009074003000000000L, idGenerator.nextUnique());
         assertEquals(2009074003000000001L, idGenerator.nextUnique());
-    }
-
-    @Test
-    public void testIdForSensor() {
-         assertEquals(3, IdGenerator.idForSensor("history"));
-         assertEquals(24, IdGenerator.idForSensor("orb_avhrr.n16"));
-         assertEquals(56, IdGenerator.idForSensor("iasi.m02"));
-    }
-
-    @Test
-    public void testIdForSensor_throwsOnIllegalSensorName() {
-        try {
-            IdGenerator.idForSensor("Tinnef");
-            fail("IllegalArgumentException expected");
-        }   catch (IllegalArgumentException expected) {
-        }
     }
 }

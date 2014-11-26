@@ -27,7 +27,7 @@ public class MatchupIOTest_readWrite {
         final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         final MatchupData matchupData = new MatchupData();
 
-        MatchupIO.write(matchupData, outputStream);
+        MatchupIO.writeMapped(matchupData, outputStream);
 
         assertEquals(EMPTY_FILE, outputStream.toString());
     }
@@ -36,7 +36,7 @@ public class MatchupIOTest_readWrite {
     public void testReadEmptyStream() throws IOException {
         final ByteArrayInputStream inputStream = new ByteArrayInputStream(EMPTY_FILE.getBytes());
 
-        final MatchupData matchupData = MatchupIO.read(inputStream);
+        final MatchupData matchupData = MatchupIO.readMapped(inputStream);
         assertNotNull(matchupData);
 
         final List<IO_RefObservation> referenceObservations = matchupData.getReferenceObservations();
@@ -79,7 +79,7 @@ public class MatchupIOTest_readWrite {
         io_refObs.setRecordNo(23);
         matchupData.add(io_refObs);
 
-        MatchupIO.write(matchupData, outputStream);
+        MatchupIO.writeMapped(matchupData, outputStream);
 
         assertEquals(ONE_REF_OBS_FILE, outputStream.toString());
     }
@@ -88,7 +88,7 @@ public class MatchupIOTest_readWrite {
     public void testReadMatchupData_oneReferenceObservation() throws IOException {
         final ByteArrayInputStream inputStream = new ByteArrayInputStream(ONE_REF_OBS_FILE.getBytes());
 
-        final MatchupData matchupData = MatchupIO.read(inputStream);
+        final MatchupData matchupData = MatchupIO.readMapped(inputStream);
         assertNotNull(matchupData);
 
         final List<IO_RefObservation> referenceObservations = matchupData.getReferenceObservations();
@@ -123,7 +123,7 @@ public class MatchupIOTest_readWrite {
         related.setRecordNo(31);
         matchupData.addRelated(related);
 
-        MatchupIO.write(matchupData, outputStream);
+        MatchupIO.writeMapped(matchupData, outputStream);
 
         assertEquals(ONE_REL_OBS_FILE, outputStream.toString());
     }
@@ -132,7 +132,7 @@ public class MatchupIOTest_readWrite {
     public void testReadMatchupData_oneRelatedObservation() throws IOException, SQLException {
         final ByteArrayInputStream inputStream = new ByteArrayInputStream(ONE_REL_OBS_FILE.getBytes());
 
-        final MatchupData matchupData = MatchupIO.read(inputStream);
+        final MatchupData matchupData = MatchupIO.readMapped(inputStream);
         assertNotNull(matchupData);
 
         final List<IO_Observation> relatedObservations = matchupData.getRelatedObservations();
@@ -164,7 +164,7 @@ public class MatchupIOTest_readWrite {
         insitu.setRecordNo(39);
         matchupData.addInsitu(insitu);
 
-        MatchupIO.write(matchupData, outputStream);
+        MatchupIO.writeMapped(matchupData, outputStream);
 
         assertEquals(ONE_INSITU_OBS_FILE, outputStream.toString());
     }
@@ -173,7 +173,7 @@ public class MatchupIOTest_readWrite {
     public void testReadMatchupData_oneInsituObservation() throws IOException, SQLException {
         final ByteArrayInputStream inputStream = new ByteArrayInputStream(ONE_INSITU_OBS_FILE.getBytes());
 
-        final MatchupData matchupData = MatchupIO.read(inputStream);
+        final MatchupData matchupData = MatchupIO.readMapped(inputStream);
         assertNotNull(matchupData);
 
         final List<IO_Observation> insituObservations = matchupData.getInsituObservations();
@@ -202,7 +202,7 @@ public class MatchupIOTest_readWrite {
         sensor.setObservationType("42");
         matchupData.add(sensor);
 
-        MatchupIO.write(matchupData, outputStream);
+        MatchupIO.writeMapped(matchupData, outputStream);
 
         assertEquals(ONE_SENSOR_FILE, outputStream.toString());
     }
@@ -211,7 +211,7 @@ public class MatchupIOTest_readWrite {
     public void testRead_oneSensor() throws IOException {
         final ByteArrayInputStream inputStream = new ByteArrayInputStream(ONE_SENSOR_FILE.getBytes());
 
-        final MatchupData matchupData = MatchupIO.read(inputStream);
+        final MatchupData matchupData = MatchupIO.readMapped(inputStream);
         assertNotNull(matchupData);
 
         final List<Sensor> sensors = matchupData.getSensors();
@@ -247,7 +247,7 @@ public class MatchupIOTest_readWrite {
         matchup.add(coincidence_2);
         matchupData.add(matchup);
 
-        MatchupIO.write(matchupData, outputStream);
+        MatchupIO.writeMapped(matchupData, outputStream);
 
         assertEquals(ONE_MATCHUP_FILE, outputStream.toString());
     }
@@ -256,7 +256,7 @@ public class MatchupIOTest_readWrite {
     public void testRead_oneMatchupWithTwoCoincidences() throws IOException {
         final ByteArrayInputStream inputStream = new ByteArrayInputStream(ONE_MATCHUP_FILE.getBytes());
 
-        final MatchupData matchupData = MatchupIO.read(inputStream);
+        final MatchupData matchupData = MatchupIO.readMapped(inputStream);
         assertNotNull(matchupData);
 
         final List<IO_Matchup> matchups = matchupData.getMatchups();

@@ -3,11 +3,12 @@ package org.esa.cci.sst.tools.matchup;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.esa.cci.sst.data.*;
+import org.esa.cci.sst.tool.Configuration;
 import org.esa.cci.sst.tool.ToolException;
 import org.postgis.PGgeometry;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -16,20 +17,34 @@ import java.util.List;
 @SuppressWarnings("deprecation")
 public class MatchupIO {
 
+    public static void write(List<Matchup> matchups, OutputStream outputStream, Configuration configuration) throws IOException {
+        final IdGenerator idGenerator = IdGenerator.create(configuration);
+
+        final MatchupData matchupData = map(matchups, idGenerator);
+        writeMapped(matchupData, outputStream);
+    }
+
+    public static List<Matchup> read(InputStream inputStream) throws IOException {
+        final MatchupData matchupData = readMapped(inputStream);
+
+        return restore(matchupData);
+    }
+
     // package access for testing only tb 2014-11-21
-    static void write(MatchupData matchupData, OutputStream outputStream) throws IOException {
+    static void writeMapped(MatchupData matchupData, OutputStream outputStream) throws IOException {
         final ObjectMapper mapper = new ObjectMapper();
         mapper.writeValue(outputStream, matchupData);
     }
 
     // package access for testing only tb 2014-11-21
-    static MatchupData read(ByteArrayInputStream inputStream) throws IOException {
+    static MatchupData readMapped(InputStream inputStream) throws IOException {
         final ObjectMapper mapper = new ObjectMapper();
         return mapper.readValue(inputStream, MatchupData.class);
     }
 
     @SuppressWarnings("InstanceofInterfaces")
-    public static MatchupData map(List<Matchup> matchups, IdGenerator idGenerator) {
+    // package access for testing only tb 2014-11-26
+    static MatchupData map(List<Matchup> matchups, IdGenerator idGenerator) {
         final MatchupData matchupData = new MatchupData();
 
         for (final Matchup matchup : matchups) {
@@ -63,7 +78,8 @@ public class MatchupIO {
         return matchupData;
     }
 
-    public static List<Matchup> restore(MatchupData matchupData) {
+    // package access for testing only tb 2014-11-26
+    static List<Matchup> restore(MatchupData matchupData) {
         final List<Matchup> resultList = new ArrayList<>();
 
         final List<IO_Matchup> matchups = matchupData.getMatchups();
