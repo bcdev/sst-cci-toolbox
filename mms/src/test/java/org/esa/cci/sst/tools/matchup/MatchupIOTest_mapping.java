@@ -13,7 +13,7 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
-@SuppressWarnings("deprecation")
+@SuppressWarnings({"deprecation", "InstanceofInterfaces"})
 public class MatchupIOTest_mapping {
 
     private IdGenerator idGenerator;
@@ -151,6 +151,65 @@ public class MatchupIOTest_mapping {
         assertEquals(133, io_observation.getRecordNo());
         assertEquals(134, io_observation.getTime().getTime());
         assertEquals(135.135, io_observation.getTimeRadius(), 1e-8);
+        assertEquals("POLYGON((10 10,11 10,11 11,10 11,10 10))", io_observation.getLocation());
+
+        final List<Sensor> sensors = matchupData.getSensors();
+        assertEquals(2, sensors.size());    // first results from the referenceObservation
+        final Sensor io_sensor = sensors.get(1);
+        assertEquals(3, io_sensor.getId());
+    }
+
+    @Test
+    public void testMap_oneMatchup_oneInsituCoincidence() throws SQLException {
+        final List<Matchup> matchups = new ArrayList<>();
+        final Matchup matchup = createMatchupWithRefobsAndSensor();
+
+        final List<Coincidence> coincidences = new ArrayList<>();
+        final Coincidence coincidence = new Coincidence();
+        coincidence.setTimeDifference(227.227);
+        coincidences.add(coincidence);
+
+        final InsituObservation insituObservation = new InsituObservation();
+        insituObservation.setName("228");
+        insituObservation.setSensor("229");
+        final Sensor sensor = new Sensor();
+        sensor.setName("insitu");
+        sensor.setPattern(231);
+        sensor.setObservationType("232");
+        final DataFile dataFile = new DataFile("230", sensor);
+        insituObservation.setDatafile(dataFile);
+        insituObservation.setRecordNo(233);
+        insituObservation.setTime(new Date(234));
+        insituObservation.setTimeRadius(235.235);
+        insituObservation.setLocation(new PGgeometry("POLYGON((10 10,11 10,11 11,10 11,10 10))"));
+        coincidence.setObservation(insituObservation);
+        matchup.setCoincidences(coincidences);
+
+        matchups.add(matchup);
+
+        final MatchupData matchupData = MatchupIO.map(matchups, idGenerator);
+        final List<IO_Matchup> io_matchups = matchupData.getMatchups();
+        assertEquals(1, io_matchups.size());
+        final IO_Matchup io_matchup = io_matchups.get(0);
+
+        final List<IO_Coincidence> io_coincidences = io_matchup.getCoincidences();
+        assertEquals(1, io_coincidences.size());
+        final IO_Coincidence io_coincidence = io_coincidences.get(0);
+        assertEquals(227.227, io_coincidence.getTimeDifference(), 1e-8);
+        assertEquals(2, io_coincidence.getObservationId());
+        assertTrue(io_coincidence.isInsitu());
+
+        final List<IO_Observation> insituObservations = matchupData.getInsituObservations();
+        assertEquals(1, insituObservations.size());
+        final IO_Observation io_observation = insituObservations.get(0);
+        assertEquals(2, io_observation.getId());
+        assertEquals("228", io_observation.getName());
+        assertEquals("229", io_observation.getSensor());
+        assertEquals("230", io_observation.getFilePath());
+        assertEquals(3, io_observation.getSensorId());
+        assertEquals(233, io_observation.getRecordNo());
+        assertEquals(234, io_observation.getTime().getTime());
+        assertEquals(235.235, io_observation.getTimeRadius(), 1e-8);
         assertEquals("POLYGON((10 10,11 10,11 11,10 11,10 10))", io_observation.getLocation());
 
         final List<Sensor> sensors = matchupData.getSensors();

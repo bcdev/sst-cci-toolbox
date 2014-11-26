@@ -45,20 +45,14 @@ public class MatchupIO {
 
                 final Observation observation = coincidence.getObservation();
                 final int observationId = idGenerator.next();
-                if (observation instanceof RelatedObservation) {
+                if (observation instanceof InsituObservation) {
+                    final InsituObservation insituObservation = (InsituObservation) observation;
+                    final IO_Observation io_observation = createIO_Observation(idGenerator, matchupData, observationId, insituObservation);
+                    matchupData.addInsitu(io_observation);
+                    io_coincidence.setInsitu(true);
+                } else {
                     final RelatedObservation relatedObservation = (RelatedObservation) observation;
-                    final IO_Observation io_observation = new IO_Observation();
-                    io_observation.setId(observationId);
-                    io_observation.setName(relatedObservation.getName());
-                    io_observation.setSensor(relatedObservation.getSensor());
-                    final DataFile datafile = relatedObservation.getDatafile();
-                    io_observation.setFilePath(datafile.getPath());
-                    final int sensorId = addSensor(datafile.getSensor(), matchupData, idGenerator);
-                    io_observation.setSensorId(sensorId);
-                    io_observation.setRecordNo(relatedObservation.getRecordNo());
-                    io_observation.setTime(relatedObservation.getTime());
-                    io_observation.setTimeRadius(relatedObservation.getTimeRadius());
-                    io_observation.setLocation(relatedObservation.getLocation().getValue());
+                    final IO_Observation io_observation = createIO_Observation(idGenerator, matchupData, observationId, relatedObservation);
                     matchupData.addRelated(io_observation);
                 }
                 io_coincidence.setObservationId(observationId);
@@ -98,6 +92,22 @@ public class MatchupIO {
             resultList.add(matchup);
         }
         return resultList;
+    }
+
+    private static IO_Observation createIO_Observation(IdGenerator idGenerator, MatchupData matchupData, int observationId, RelatedObservation relatedObservation) {
+        final IO_Observation io_observation = new IO_Observation();
+        io_observation.setId(observationId);
+        io_observation.setName(relatedObservation.getName());
+        io_observation.setSensor(relatedObservation.getSensor());
+        final DataFile datafile = relatedObservation.getDatafile();
+        io_observation.setFilePath(datafile.getPath());
+        final int sensorId = addSensor(datafile.getSensor(), matchupData, idGenerator);
+        io_observation.setSensorId(sensorId);
+        io_observation.setRecordNo(relatedObservation.getRecordNo());
+        io_observation.setTime(relatedObservation.getTime());
+        io_observation.setTimeRadius(relatedObservation.getTimeRadius());
+        io_observation.setLocation(relatedObservation.getLocation().getValue());
+        return io_observation;
     }
 
     private static Observation getRelatedObservation(int observationId, MatchupData matchupData) {
