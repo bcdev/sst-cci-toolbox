@@ -601,7 +601,7 @@ class Workflow:
         date = production_period.get_start_date()
 
         while date < production_period.get_end_date():
-            chunk = Period(date, _next_chunk_start(date))
+            chunk = Period(date, _next_year_start(date))
             self._execute_ingest_sensor_data(m, chunk)
             self._execute_sampling(m, chunk)
             self._execute_clearing(m, chunk)
@@ -619,7 +619,7 @@ class Workflow:
             if with_selection:
                 self._execute_selection(m, chunk, mmdtype)
             m.wait_for_completion()
-            date = _next_chunk_start(date)
+            date = _next_year_start(date)
         m.wait_for_completion_and_terminate()
 
     def _get_primary_sensors(self):
@@ -1205,13 +1205,13 @@ def _next_month(date):
         return datetime.date(date.year + 1, 1, 1)
 
 
-def _next_chunk_start(date):
+def _next_year_start(date):
     """
 
     :type date: datetime.date
     :rtype : datetime.date
     """
-    return datetime.date(date.year + 2, 1, 1)
+    return datetime.date(date.year + 1, 1, 1)
 
 
 def _year_month(date):
