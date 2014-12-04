@@ -17,5 +17,4 @@ w.add_primary_sensor('atsr.2', '1996-07-01', '2003-06-23')
 w.add_primary_sensor('atsr.3', '2002-05-20', '2012-04-09')
 w.set_samples_per_month(0)
 
-# todo - the sampling tool fails when sampling from in-situ data with higher concurrency
-w.run(mmdtype, calls=[('sampling-start.sh', 1)], with_history=True)
+w.run(mmdtype, calls=[('sampling-start', 1), ('coincidence-start.sh', 3)], with_history=True)
