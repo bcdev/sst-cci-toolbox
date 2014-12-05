@@ -577,7 +577,7 @@ class Workflow:
                 raise exceptions.ValueError, "Periods of sensor '" + name + "' must not intersect."
         self.secondary_sensors.add(Sensor(name, period))
 
-    def run(self, mmdtype, hosts=list([('localhost', 6)]), calls=list(), log_dir='trace',
+    def run(self, mmdtype, hosts=list([('localhost', 12)]), calls=list(), log_dir='trace',
             with_history=False,
             with_selection=False,
             simulation=False):
@@ -601,7 +601,7 @@ class Workflow:
         date = production_period.get_start_date()
 
         while date < production_period.get_end_date():
-            chunk = Period(date, _next_year(date))
+            chunk = Period(date, _next_year_start(date))
             self._execute_ingest_sensor_data(m, chunk)
             self._execute_sampling(m, chunk)
             self._execute_clearing(m, chunk)
@@ -618,8 +618,7 @@ class Workflow:
             self._execute_create_final_mmd_files(m, chunk, mmdtype)
             if with_selection:
                 self._execute_selection(m, chunk, mmdtype)
-            m.wait_for_completion()
-            date = _next_year(date)
+            date = _next_year_start(date)
         m.wait_for_completion_and_terminate()
 
     def _get_primary_sensors(self):
@@ -1205,7 +1204,7 @@ def _next_month(date):
         return datetime.date(date.year + 1, 1, 1)
 
 
-def _next_year(date):
+def _next_year_start(date):
     """
 
     :type date: datetime.date
