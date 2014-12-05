@@ -16,19 +16,9 @@
 
 package org.esa.cci.sst.rules;
 
-import org.esa.beam.framework.datamodel.GeoPos;
-import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
-import org.esa.cci.sst.data.Observation;
-import org.esa.cci.sst.data.ReferenceObservation;
-import org.esa.cci.sst.reader.Reader;
-import org.postgis.Point;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
-
-import java.io.IOException;
-import java.util.Date;
-import java.util.Map;
 
 /**
  * Sets the detector temperature.

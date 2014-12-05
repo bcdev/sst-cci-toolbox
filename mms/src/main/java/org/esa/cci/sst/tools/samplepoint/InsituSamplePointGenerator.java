@@ -15,7 +15,6 @@ import org.esa.cci.sst.reader.ReaderFactory;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.TimeUtil;
 
-import javax.persistence.EntityTransaction;
 import javax.persistence.PersistenceException;
 import java.io.File;
 import java.io.IOException;

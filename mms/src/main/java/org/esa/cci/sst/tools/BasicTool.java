@@ -23,19 +23,18 @@ import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.orm.Storage;
 import org.esa.cci.sst.tool.Configuration;
 import org.esa.cci.sst.tool.ToolException;
-import org.esa.cci.sst.util.TimeUtil;
 
 import javax.media.jai.JAI;
 import javax.persistence.Query;
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.text.MessageFormat;
-import java.util.Date;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.TimeZone;
-import java.util.logging.Formatter;
 import java.util.logging.Level;
-import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
 /**
@@ -74,7 +73,6 @@ public abstract class BasicTool {
         JAI.getDefaultInstance().getTileCache().setMemoryCapacity(1024 * 1024 * 1024);
 
         GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis();
-
     }
 
     protected BasicTool(String name, String version) {
