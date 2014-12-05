@@ -112,68 +112,6 @@ public class JpaStorageTest {
     }
 
     @Test
-    public void testStoreDataFileWithTransaction() {
-        final String sql = "select f from DataFile f where f.path = ?1";
-        final String path = "/left/of/rome";
-        final DataFile dataFile = createDataFile(path);
-
-        when(persistenceManager.pick(sql, path)).thenReturn(dataFile);
-
-        final int storedId = jpaStorage.storeWithTransaction(dataFile);
-        assertEquals(ID, storedId);
-
-        verify(persistenceManager, times(1)).persist(dataFile);
-        verify(persistenceManager, times(1)).pick(sql, path);
-        verify(persistenceManager, times(1)).pick("select s from Sensor s where s.name = ?1", "cloud");
-        verify(persistenceManager, times(2)).transaction();
-        verify(persistenceManager, times(2)).commit();
-        verifyNoMoreInteractions(persistenceManager);
-    }
-
-    @Test
-    public void testStoreDataFileWithTransaction_getDataFileFails() {
-        final String path = "/left/of/rome";
-        final String sql = "select f from DataFile f where f.path = ?1";
-        final DataFile dataFile = createDataFile(path);
-
-        doThrow(new PersistenceException(null, null, null, true)).when(persistenceManager).pick(sql, path);
-
-        try {
-            jpaStorage.storeWithTransaction(dataFile);
-            fail("ToolException expected");
-        } catch (ToolException expected) {
-        }
-
-        verify(persistenceManager, times(2)).transaction();
-        verify(persistenceManager, times(1)).persist(dataFile);
-        verify(persistenceManager, times(1)).commit();
-        verify(persistenceManager, times(1)).pick(sql, path);
-        verify(persistenceManager, times(1)).rollback();
-        verify(persistenceManager, times(1)).pick("select s from Sensor s where s.name = ?1", "cloud");
-        verifyNoMoreInteractions(persistenceManager);
-    }
-
-    @Test
-    public void testStoreDataFileWithTransaction_persistFails() {
-        final String path = "/left/of/rome";
-        final DataFile dataFile = createDataFile(path);
-
-        doThrow(new PersistenceException(null, null, null, true)).when(persistenceManager).persist(dataFile);
-
-        try {
-            jpaStorage.storeWithTransaction(dataFile);
-            fail("ToolException expected");
-        } catch (ToolException expected) {
-        }
-
-        verify(persistenceManager, times(1)).transaction();
-        verify(persistenceManager, times(1)).persist(dataFile);
-        verify(persistenceManager, times(1)).pick("select s from Sensor s where s.name = ?1", "cloud");
-        verify(persistenceManager, times(1)).rollback();
-        verifyNoMoreInteractions(persistenceManager);
-    }
-
-    @Test
     public void testGetObservation() {
         final int id = 8876;
         final String name = "TestObservation";
