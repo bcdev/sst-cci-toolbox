@@ -21,6 +21,7 @@ import org.apache.commons.lang.StringUtils;
 import org.esa.cci.sst.tool.ToolException;
 
 import java.io.File;
+import java.io.IOException;
 
 public class FileUtil {
 
@@ -49,6 +50,15 @@ public class FileUtil {
             }
         }
         return dir;
+    }
+
+    public static File createNewFile(String filePath) throws IOException {
+        final File file = new File(filePath);
+        if (!file.createNewFile()) {
+            final String message = String.format("Unable to create file '%s'", filePath);
+            throw new ToolException(message, ToolException.TOOL_IO_ERROR);
+        }
+        return file;
     }
 
     // package access for testing only tb 2014-11-11

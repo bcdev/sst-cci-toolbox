@@ -18,7 +18,6 @@ package org.esa.cci.sst.tools;
 
 import com.bc.ceres.core.Assert;
 import org.esa.cci.sst.data.*;
-import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.orm.Storage;
 import org.esa.cci.sst.tool.Configuration;
 import org.esa.cci.sst.tool.ToolException;
@@ -107,24 +106,6 @@ public class MatchupTool extends BasicTool {
                     + " and abs(extract(epoch from o.time) - extract(epoch from timestamp ?2)) <= o.timeRadius"
                     + " order by abs(extract(epoch from o.time) - extract(epoch from timestamp ?2))";
 
-    private static final String DUPLICATES_QUERY = "update mm_observation o set referenceflag = 5 " +
-            "where o.sensor=?1 " +
-            "and o.time >= ?2 and o.time < ?3 " +
-            "and o.dataset != 6 and o.dataset != 7 " +
-            "and exists ( select p.id from mm_observation p " +
-            "where p.sensor = o.sensor and p.name = o.name " +
-            "and p.time > o.time - interval '00:02:00' and p.time < o.time + interval '00:02:00' " +
-            "and (p.timeradius < o.timeradius or (p.timeradius = o.timeradius and p.id < o.id)) )";
-
-    private static final String DUPLICATES_DELETE_QUERY = "delete from mm_observation o " +
-            "where o.sensor=?1 " +
-            "and o.time >= ?2 and o.time < ?3 " +
-            "and o.dataset != 6 and o.dataset != 7 " +
-            "and exists ( select p.id from mm_observation p " +
-            "where p.sensor = o.sensor and p.name = o.name " +
-            "and p.time > o.time - interval '00:02:00' and p.time < o.time + interval '00:02:00' " +
-            "and (p.timeradius < o.timeradius or (p.timeradius = o.timeradius and p.id < o.id)) )";
-
     private static final int CHUNK_SIZE = 1024; //*16;
 
     private static final String ATSR_MD = "atsr_md";
@@ -185,18 +166,6 @@ public class MatchupTool extends BasicTool {
     private void run() {
         final Configuration config = getConfig();
 
-        if (config.getBooleanValue("mms.matchup.cleanup")) {
-            cleanup();
-        } else if (config.getBooleanValue("mms.matchup.cleanupinterval")) {
-            cleanupInterval();
-        }
-
-        if (config.getBooleanValue("mms.matchup.markduplicates")) {
-            markDuplicates();
-        } else if (config.getBooleanValue("mms.matchup.dropduplicates")) {
-            dropDuplicates();
-        }
-
         if (config.getBooleanValue("mms.matchup.atsr_md")) {
             findAtsrMultiSensorMatchups();
         }
@@ -228,110 +197,6 @@ public class MatchupTool extends BasicTool {
         findRelatedObservations(primarySensor);
     }
 
-    /**
-     * Sets reference flag of observations to 5
-     * if there are other observations for same sensor and call sign and satellite orbit
-     * with lower temporal distance of in-situ measurement
-     */
-    private void markDuplicates() {
-        final PersistenceManager persistenceManager = getPersistenceManager();
-
-        try {
-            persistenceManager.transaction();
-            Query query = persistenceManager.createNativeQuery(DUPLICATES_QUERY);
-            query.setParameter(2, timeRange.getStartDate());
-            query.setParameter(3, timeRange.getStopDate());
-
-            final StopWatch stopWatch = new StopWatch();
-            stopWatch.start();
-            query.setParameter(1, ATSR_MD);
-            query.executeUpdate();
-            stopWatch.stop();
-            logger.info(MessageFormat.format("{0} duplicates determined in {1} ms.", ATSR_MD, stopWatch.getElapsedMillis()));
-
-            persistenceManager.commit();
-            persistenceManager.transaction();
-
-            stopWatch.start();
-            query.setParameter(1, METOP);
-            query.executeUpdate();
-            stopWatch.stop();
-            logger.info(MessageFormat.format("{0} duplicates determined in {1} ms.", METOP, stopWatch.getElapsedMillis()));
-
-            persistenceManager.commit();
-            persistenceManager.transaction();
-
-            stopWatch.start();
-            query.setParameter(1, SEVIRI);
-            query.executeUpdate();
-            stopWatch.stop();
-            logger.info(MessageFormat.format("{0} duplicates determined in {1} ms.", SEVIRI, stopWatch.getElapsedMillis()));
-
-            persistenceManager.commit();
-            persistenceManager.transaction();
-
-            stopWatch.start();
-            query.setParameter(1, AVHRR_MD);
-            query.executeUpdate();
-            stopWatch.stop();
-            logger.info(MessageFormat.format("{0} duplicates determined in {1} ms.", AVHRR_MD, stopWatch.getElapsedMillis()));
-
-            persistenceManager.commit();
-        } catch (Exception e) {
-            persistenceManager.rollback();
-            throw new ToolException(e.getMessage(), e, ToolException.TOOL_ERROR);
-        }
-    }
-
-    private void dropDuplicates() {
-        final PersistenceManager persistenceManager = getPersistenceManager();
-
-        try {
-            persistenceManager.transaction();
-            Query query = persistenceManager.createNativeQuery(DUPLICATES_DELETE_QUERY);
-            query.setParameter(2, timeRange.getStartDate());
-            query.setParameter(3, timeRange.getStopDate());
-
-            final StopWatch stopWatch = new StopWatch();
-            stopWatch.start();
-            query.setParameter(1, ATSR_MD);
-            query.executeUpdate();
-            stopWatch.stop();
-            logger.info(MessageFormat.format("{0} duplicates dropped in {1} ms.", ATSR_MD, stopWatch.getElapsedMillis()));
-
-            persistenceManager.commit();
-            persistenceManager.transaction();
-
-            stopWatch.start();
-            query.setParameter(1, METOP);
-            query.executeUpdate();
-            stopWatch.stop();
-            logger.info(MessageFormat.format("{0} duplicates dropped in {1} ms.", METOP, stopWatch.getElapsedMillis()));
-
-            persistenceManager.commit();
-            persistenceManager.transaction();
-
-            stopWatch.start();
-            query.setParameter(1, SEVIRI);
-            query.executeUpdate();
-            stopWatch.stop();
-            logger.info(MessageFormat.format("{0} duplicates dropped in {1} ms.", SEVIRI, stopWatch.getElapsedMillis()));
-
-            persistenceManager.commit();
-            persistenceManager.transaction();
-
-            stopWatch.start();
-            query.setParameter(1, AVHRR_MD);
-            query.executeUpdate();
-            stopWatch.stop();
-            logger.info(MessageFormat.format("{0} duplicates dropped in {1} ms.", AVHRR_MD, stopWatch.getElapsedMillis()));
-
-            persistenceManager.commit();
-        } catch (Exception e) {
-            persistenceManager.rollback();
-            throw new ToolException(e.getMessage(), e, ToolException.TOOL_ERROR);
-        }
-    }
 
     private void setTimeRange() {
         timeRange = ConfigUtil.getTimeRange(Configuration.KEY_MMS_MATCHUP_START_TIME,
@@ -843,35 +708,4 @@ public class MatchupTool extends BasicTool {
         coincidence.setTimeDifference(timeDifference);
         return coincidence;
     }
-
-    private void cleanup() {
-        getPersistenceManager().transaction();
-
-        Query delete = getPersistenceManager().createQuery("delete from Coincidence c");
-        delete.executeUpdate();
-        delete = getPersistenceManager().createQuery("delete from Matchup m");
-        delete.executeUpdate();
-
-        getPersistenceManager().commit();
-    }
-
-    private void cleanupInterval() {
-        getPersistenceManager().transaction();
-
-        final Date startDate = timeRange.getStartDate();
-        final Date stopDate = timeRange.getStopDate();
-        Query delete = getPersistenceManager().createNativeQuery(
-                "delete from mm_coincidence c where exists ( select r.id from mm_observation r where c.matchup_id = r.id and r.time >= ?1 and r.time < ?2 )");
-        delete.setParameter(1, startDate);
-        delete.setParameter(2, stopDate);
-        delete.executeUpdate();
-        delete = getPersistenceManager().createNativeQuery(
-                "delete from mm_matchup m where exists ( select r from mm_observation r where m.refobs_id = r.id and r.time >= ?1 and r.time < ?2 )");
-        delete.setParameter(1, startDate);
-        delete.setParameter(2, stopDate);
-        delete.executeUpdate();
-
-        getPersistenceManager().commit();
-    }
-
 }
