@@ -212,10 +212,12 @@ public class ObservationFinder {
             this.searchTimeFuture = searchTimeFuture;
         }
 
+        // search time range into the future in seconds
         public int getSearchTimeFuture() {
             return searchTimeFuture;
         }
 
+        // search time range into the past in seconds
         public void setSearchTimePast(int searchTimePast) {
             this.searchTimePast = searchTimePast;
         }
