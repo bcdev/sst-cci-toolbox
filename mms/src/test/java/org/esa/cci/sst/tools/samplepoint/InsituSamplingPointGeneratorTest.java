@@ -307,7 +307,6 @@ public class InsituSamplingPointGeneratorTest {
         samplingPoints.add(new SamplingPoint());
 
         final int id = 98;
-        InsituSamplePointGenerator.setFileProperties(samplingPoints, id, (byte) 9, "Charlotte");
 
         final InsituDatasetId expected = InsituDatasetId.create((byte) 9);
         assertEquals(id, samplingPoints.get(0).getInsituReference());

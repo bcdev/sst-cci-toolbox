@@ -61,31 +61,6 @@ class JpaStorage implements Storage {
     }
 
     @Override
-    public int storeWithTransaction(DataFile dataFile) {
-        try {
-            persistenceManager.transaction();
-            final Sensor sensor = getSensor(dataFile.getSensor().getName());
-            dataFile.setSensor(sensor);
-            persistenceManager.persist(dataFile);
-            persistenceManager.commit();
-        } catch (Exception e) {
-            e.printStackTrace();
-            persistenceManager.rollback();
-            throw new ToolException("Database error", e, ToolException.TOOL_DB_ERROR);
-        }
-
-        try {
-            persistenceManager.transaction();
-            final DataFile picked = getDatafile(dataFile.getPath());
-            persistenceManager.commit();
-            return picked.getId();
-        } catch (Exception e) {
-            persistenceManager.rollback();
-            throw new ToolException("Database error", e, ToolException.TOOL_DB_ERROR);
-        }
-    }
-
-    @Override
     public Observation getObservation(int id) {
         return (Observation) persistenceManager.pick("select o from Observation o where o.id = ?1", id);
     }

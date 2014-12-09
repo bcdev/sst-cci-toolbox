@@ -18,7 +18,6 @@ import javax.persistence.Query;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.text.DecimalFormat;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.logging.Level;
@@ -26,7 +25,6 @@ import java.util.logging.Logger;
 
 public class MatchupGenerator extends BasicTool {
 
-    private static final DecimalFormat monthFormat = new DecimalFormat("00");
     private String sensorName1;
     private String sensorName2;
     private int subSceneWidth1;
@@ -94,7 +92,6 @@ public class MatchupGenerator extends BasicTool {
         }
 
         archiveRootPath = config.getStringValue(Configuration.KEY_MMS_ARCHIVE_ROOT);
-
     }
 
     private void run() throws IOException {
@@ -184,9 +181,8 @@ public class MatchupGenerator extends BasicTool {
                         Configuration.KEY_MMS_SAMPLING_STOP_TIME,
                         getConfig());
 
-                final String outputFilePath = createOutputFilePath(archiveRootPath, sensorNamesArray, centerMonth.getYear(), centerMonth.getMonth());
-                final File outFile = new File(outputFilePath);
-                outFile.createNewFile();    // @todo 2 tb/tb test and eventually create helper method 2014-11-26
+                final String outputFilePath = ArchiveUtils.createCleanFilePath(archiveRootPath, sensorNamesArray, centerMonth.getYear(), centerMonth.getMonth());
+                final File outFile = FileUtil.createNewFile(outputFilePath);
                 MatchupIO.write(matchups, new FileOutputStream(outFile), getConfig());
 
                 logInfo(logger, "Finished writing matchups and coincidences...");
@@ -284,32 +280,6 @@ public class MatchupGenerator extends BasicTool {
         r.setDataset(samplingPoint.getInsituDatasetId().getValue());
         r.setReferenceFlag(Constants.MATCHUP_REFERENCE_FLAG_UNDEFINED);
         return r;
-    }
-
-    static String createOutputFilePath(String archiveRoot, String[] sensorNames, int year, int month) {
-        final StringBuilder stringBuilder = new StringBuilder(256);
-        stringBuilder.append(archiveRoot);
-        stringBuilder.append("/clean/");
-
-        final StringBuilder sensorTagBuilder = new StringBuilder(64);
-        sensorTagBuilder.append(sensorNames[0]);
-        for (int i = 1; i < sensorNames.length; i++) {
-            sensorTagBuilder.append(',');
-            sensorTagBuilder.append(sensorNames[i]);
-        }
-        final String sensorTag = sensorTagBuilder.toString();
-
-        stringBuilder.append(sensorTag);
-        stringBuilder.append('/');
-        stringBuilder.append(year);
-        stringBuilder.append('/');
-        stringBuilder.append(sensorTag);
-        stringBuilder.append("-clean-");
-        stringBuilder.append(year);
-        stringBuilder.append('-');
-        stringBuilder.append(monthFormat.format(month));
-        stringBuilder.append(".json");
-        return stringBuilder.toString();
     }
 
     private String[] createSensorNamesArray(boolean hasInsitu) {

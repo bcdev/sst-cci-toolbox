@@ -22,8 +22,6 @@ import org.esa.cci.sst.data.Item;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
 import ucar.nc2.Attribute;
-import ucar.nc2.Group;
-import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.NetcdfFileWriter;
 import ucar.nc2.Variable;
 
@@ -88,7 +86,7 @@ public class IoUtil {
     private static void setFlagValues(final Variable variable, final ColumnBuilder cb) {
         final Attribute attribute = variable.findAttribute("flag_values");
         if (attribute != null) {
-            if(attribute.getDataType().equals(DataType.STRING) || attribute.getDataType().equals(DataType.CHAR) ) {
+            if (attribute.getDataType().equals(DataType.STRING) || attribute.getDataType().equals(DataType.CHAR)) {
                 final String stringValue = attribute.getStringValue();
                 cb.flagValues(stringValue);
             } else {

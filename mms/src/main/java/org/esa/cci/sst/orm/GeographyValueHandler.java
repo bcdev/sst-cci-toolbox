@@ -25,7 +25,6 @@ import org.apache.openjpa.jdbc.schema.Column;
 import org.apache.openjpa.jdbc.schema.ColumnIO;
 import org.apache.openjpa.jdbc.sql.DBDictionary;
 import org.postgis.PGgeometry;
-import org.postgresql.ds.common.PGObjectFactory;
 import org.postgresql.util.PGobject;
 
 import java.sql.SQLException;
@@ -35,7 +34,7 @@ import java.sql.Types;
  * Mapping between PGGeometry Java objects and GEOGRAPHY database entries.
  * This mapping is used in the ReferenceObservation class in the annotation of the
  * corresponding field's getter. Note that there are in fact two "conversions"
- *  involved: JPA and JDBC. This handler only performs the JPA mapping.
+ * involved: JPA and JDBC. This handler only performs the JPA mapping.
  *
  * @author Martin Boettcher
  */
@@ -60,7 +59,7 @@ public class GeographyValueHandler extends AbstractValueHandler {
         col.setSize(-1);
         col.setTypeIdentifier(DBIdentifier.newColumnDefinition("GEOGRAPHY(GEOMETRY,4326)"));
         col.setType(Types.BINARY);  // essential in order not to use BLOB
-        return new Column[] {col};
+        return new Column[]{col};
     }
 
     @Override

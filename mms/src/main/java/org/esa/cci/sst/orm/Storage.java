@@ -29,8 +29,6 @@ public interface Storage {
 
     void store(DataFile dataFile);
 
-    int storeWithTransaction(DataFile dataFile);
-
     Observation getObservation(int id);
 
     RelatedObservation getRelatedObservation(int id);
