@@ -30,10 +30,6 @@ class CommandBuilder {
     private final SortedMap<String, String> options;
     private String execute;
 
-    CommandBuilder() {
-        this("");
-    }
-
     CommandBuilder(String execute) {
         this.execute = execute;
         this.options = new TreeMap<>();
