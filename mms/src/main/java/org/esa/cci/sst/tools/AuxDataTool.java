@@ -1,17 +1,27 @@
 package org.esa.cci.sst.tools;
 
 import org.apache.commons.lang.StringUtils;
+import org.esa.cci.sst.data.Coincidence;
+import org.esa.cci.sst.data.GlobalObservation;
 import org.esa.cci.sst.data.Matchup;
+import org.esa.cci.sst.data.RelatedObservation;
+import org.esa.cci.sst.orm.PersistenceManager;
+import org.esa.cci.sst.orm.Storage;
 import org.esa.cci.sst.tool.Configuration;
 import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.tools.matchup.MatchupIO;
+import org.esa.cci.sst.tools.overlap.PolarOrbitingPolygon;
 import org.esa.cci.sst.tools.samplepoint.ObservationFinder;
 import org.esa.cci.sst.util.ConfigUtil;
 import org.esa.cci.sst.util.FileUtil;
 import org.esa.cci.sst.util.Month;
+import org.postgis.Geometry;
+import org.postgis.PGgeometry;
+import org.postgis.Point;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -75,23 +85,64 @@ public class AuxDataTool extends BasicTool {
     private void run() throws IOException {
         final List<Matchup> matchups = loadMatchups();
 
-        final ObservationFinder observationFinder = new ObservationFinder(getPersistenceManager());
+        final Storage storage = getStorage();
+        final PersistenceManager persistenceManager = getPersistenceManager();
+
         for (final Matchup matchup : matchups) {
             final Date matchupTime = matchup.getRefObs().getTime();
             final long matchupMillis = matchupTime.getTime();
 
-            final ObservationFinder.Parameter aaiParameter = createQueryParameter(matchupMillis, aaiTimeDeltaSeconds, aaiSensorName);
-            final ObservationFinder.Parameter seaiceParameter = createQueryParameter(matchupMillis, seaiceTimeDeltaSeconds, seaiceSensorName);
+            final List<Coincidence> coincidences = matchup.getCoincidences();
 
-            // @todo 1 tb/tb extend method to accept ONE geometry: observationFinder.findObservations();
-            // query database using ObservationFinder
-            // if results
-            // -- create coincidence
-            // -- add to matchup
+            try {
+                persistenceManager.transaction();
+
+                addAerosolCoincidence(storage, coincidences, matchupMillis);
+                addSeaiceCoincidence(storage, matchupMillis, coincidences, matchup);
+
+            } finally {
+                persistenceManager.commit();
+            }
         }
 
+        storeMatchups(matchups);
+    }
 
-        // store matchups (find new filenamne pattern)
+    private void addSeaiceCoincidence(Storage storage, long matchupMillis, List<Coincidence> coincidences, Matchup matchup) {
+        final PGgeometry matchupPoint = matchup.getRefObs().getPoint();
+        final Point point = matchupPoint.getGeometry().getPoint(0);
+        final double lat = point.getY();
+        final double lon = point.getX();
+        if (Math.abs(lat) > 30.0) {
+            final Date seaiceStartDate = new Date(matchupMillis - seaiceTimeDeltaSeconds * 1000);
+            final Date seaiceStopDate = new Date(matchupMillis + seaiceTimeDeltaSeconds * 1000);
+
+            final List<RelatedObservation> seaiceObservations = storage.getRelatedObservations(seaiceSensorName, seaiceStartDate, seaiceStopDate);
+            for (final RelatedObservation seaiceObservation : seaiceObservations) {
+                final Geometry location = seaiceObservation.getLocation().getGeometry();
+                final PolarOrbitingPolygon polarOrbitingPolygon = new PolarOrbitingPolygon(0, 0, location);
+                if (polarOrbitingPolygon.isPointInPolygon(lat, lon)) {
+                    final Coincidence coincidence = new Coincidence();
+                    coincidence.setObservation(seaiceObservation);
+                    coincidence.setTimeDifference(matchupMillis - seaiceObservation.getTime().getTime());
+                    coincidences.add(coincidence);
+                }
+            }
+        }
+    }
+
+    private void addAerosolCoincidence(Storage storage, List<Coincidence> coincidences, long matchupMillis) {
+        final Date aaiStartDate = new Date(matchupMillis - aaiTimeDeltaSeconds * 1000);
+        final Date aaiStopDate = new Date(matchupMillis + aaiTimeDeltaSeconds * 1000);
+        final List<GlobalObservation> aaiObservations = storage.getGlobalObservations(aaiSensorName, aaiStartDate, aaiStopDate);
+        if (aaiObservations.size() > 0) {
+            // @todo 2 tb/tb what shall we do if we have more than one result? 2014-12-10
+            final GlobalObservation aaiObservation = aaiObservations.get(0);
+            final Coincidence coincidence = new Coincidence();
+            coincidence.setObservation(aaiObservation);
+            coincidence.setTimeDifference(matchupMillis - aaiObservation.getTime().getTime());
+            coincidences.add(coincidence);
+        }
     }
 
     private List<Matchup> loadMatchups() throws IOException {
@@ -99,10 +150,21 @@ public class AuxDataTool extends BasicTool {
                 Configuration.KEY_MMS_SAMPLING_STOP_TIME,
                 getConfig());
         final String[] sensorNamesArray = createSensorNamesArray();
-        final String outputFilePath = ArchiveUtils.createCleanFilePath(archiveRootPath, sensorNamesArray, centerMonth.getYear(), centerMonth.getMonth());
+        final String inputFilePath = ArchiveUtils.createCleanFilePath(archiveRootPath, sensorNamesArray, centerMonth.getYear(), centerMonth.getMonth());
+        final File inFile = new File(inputFilePath);
+
+        return MatchupIO.read(new FileInputStream(inFile));
+    }
+
+    private void storeMatchups(List<Matchup> matchups) throws IOException {
+        final Month centerMonth = ConfigUtil.getCenterMonth(Configuration.KEY_MMS_SAMPLING_START_TIME,
+                Configuration.KEY_MMS_SAMPLING_STOP_TIME,
+                getConfig());
+        final String[] sensorNamesArray = createSensorNamesArray();
+        final String outputFilePath = ArchiveUtils.createCleanEnvFilePath(archiveRootPath, sensorNamesArray, centerMonth.getYear(), centerMonth.getMonth());
         final File outFile = FileUtil.createNewFile(outputFilePath);
 
-        return MatchupIO.read(new FileInputStream(outFile));
+        MatchupIO.write(matchups, new FileOutputStream(outFile), getConfig());
     }
 
     private String[] createSensorNamesArray() {

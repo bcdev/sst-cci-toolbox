@@ -35,6 +35,8 @@ public interface Storage {
 
     List<RelatedObservation> getRelatedObservations(String sensorName, Date startDate, Date stopDate);
 
+    List<GlobalObservation> getGlobalObservations(String sensorName, Date startDate, Date stopDate);
+
     ReferenceObservation getReferenceObservation(int id);
 
     Sensor getSensor(String sensorName);

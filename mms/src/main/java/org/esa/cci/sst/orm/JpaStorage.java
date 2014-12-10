@@ -107,12 +107,18 @@ class JpaStorage implements Storage {
 
     @Override
     public List<RelatedObservation> getRelatedObservations(String sensorName, Date startDate, Date stopDate) {
-        final String s1 = TimeUtil.formatCcsdsUtcFormat(startDate);
-        final String s2 = TimeUtil.formatCcsdsUtcFormat(stopDate);
-        final String queryString = SENSOR_OBSERVATION_QUERY_TEMPLATE_STRING
-                .replaceAll("\\?2", "'" + s1 + "'")
-                .replaceAll("\\?3", "'" + s2 + "'");
+        final String queryString = createObservationQueryTemplateString(startDate, stopDate);
         final Query query = persistenceManager.createNativeQuery(queryString, RelatedObservation.class);
+        query.setParameter(1, sensorName);
+
+        //noinspection unchecked
+        return query.getResultList();
+    }
+
+    @Override
+    public List<GlobalObservation> getGlobalObservations(String sensorName, Date startDate, Date stopDate) {
+        final String queryString = createObservationQueryTemplateString(startDate, stopDate);
+        final Query query = persistenceManager.createNativeQuery(queryString, GlobalObservation.class);
         query.setParameter(1, sensorName);
 
         //noinspection unchecked
@@ -122,5 +128,13 @@ class JpaStorage implements Storage {
     @Override
     public void store(InsituObservation insituObservation) {
         persistenceManager.persist(insituObservation);
+    }
+
+    private String createObservationQueryTemplateString(Date startDate, Date stopDate) {
+        final String startDateString = TimeUtil.formatCcsdsUtcFormat(startDate);
+        final String stopDateString = TimeUtil.formatCcsdsUtcFormat(stopDate);
+        return SENSOR_OBSERVATION_QUERY_TEMPLATE_STRING
+                .replaceAll("\\?2", "'" + startDateString + "'")
+                .replaceAll("\\?3", "'" + stopDateString + "'");
     }
 }

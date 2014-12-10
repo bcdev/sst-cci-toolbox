@@ -174,6 +174,34 @@ public class JpaStorageTest {
     }
 
     @Test
+    public void testGetGlobalObservations() throws ParseException {
+        final Date startDate = TimeUtil.parseCcsdsUtcFormat("2011-02-01T13:00:00Z");
+        final Date stoptDate = TimeUtil.parseCcsdsUtcFormat("2011-02-05T17:00:00Z");
+        final String sensorName = "Zollstock";
+        final String sql = "select o.id from mm_observation o where o.sensor = ?1 and o.time >= timestamp '2011-02-01T13:00:00Z' and o.time < timestamp '2011-02-05T17:00:00Z' order by o.time, o.id";
+
+        final List<GlobalObservation> observations = new ArrayList<>();
+        final GlobalObservation observation = new GlobalObservation();
+        observation.setName("tested thing");
+        observations.add(observation);
+
+        final Query query = mock(Query.class);
+        when(query.getResultList()).thenReturn(observations);
+        when(persistenceManager.createNativeQuery(sql, GlobalObservation.class)).thenReturn(query);
+
+        final List<GlobalObservation> storedObservations = jpaStorage.getGlobalObservations(sensorName, startDate, stoptDate);
+        assertNotNull(storedObservations);
+        assertEquals(1, storedObservations.size());
+
+        verify(persistenceManager, times(1)).createNativeQuery(sql, GlobalObservation.class);
+        verifyNoMoreInteractions(persistenceManager);
+
+        verify(query, times(1)).setParameter(1, sensorName);
+        verify(query, times(1)).getResultList();
+        verifyNoMoreInteractions(query);
+    }
+
+    @Test
     public void testGetReferenceObservation() {
         final String sql = "select o from ReferenceObservation o where o.id = ?1";
         final int id = 2286;
