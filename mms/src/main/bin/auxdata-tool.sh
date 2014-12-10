@@ -7,7 +7,7 @@ fi
 
 ${mms.jdk.home}/bin/java \
     -Dmms.home="${mms.home}" \
-    -Xms8G -Xmx8G ${MMS_OPTIONS} \
+    -Xms4G -Xmx4G ${MMS_OPTIONS} \
     -javaagent:"${mms.home}/lib/openjpa-all-${openjpaversion}.jar" \
     -classpath "${mms.home}/lib/*" \
-    org.esa.cci.sst.tools.MatchupTool "$@"
+    org.esa.cci.sst.tools.AuxDataTool "$@"
