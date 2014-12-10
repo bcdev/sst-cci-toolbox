@@ -26,7 +26,6 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author Ralf Quast.
  */
-@SuppressWarnings("CollectionDeclaredAsConcreteClass")
 public class Cache<K, V> {
 
     private final int capacity;
