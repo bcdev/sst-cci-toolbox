@@ -18,7 +18,6 @@ package org.esa.beam.dataio.cci.sst;
 
 import org.esa.beam.dataio.netcdf.util.DataTypeUtils;
 import org.esa.beam.dataio.netcdf.util.MetadataUtils;
-import org.esa.beam.dataio.netcdf.util.TimeUtils;
 import org.esa.beam.framework.datamodel.Band;
 import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.MetadataElement;
@@ -52,7 +51,8 @@ public final class Amsr2ProductReader extends NetcdfProductReaderTemplate {
     private static final String TEMPLATE_VARIABLE_NAME;
     private static final String LAT_BAND_NAME = "latitude";
     private static final String LON_BAND_NAME = "longitude";
-    private static final String PIXEL_DATA_QUALITY_BAND_NAME = "pixel_data_quality";
+    private static final String PIXEL_DATA_QUALITY_BAND_NAME = "pixel_data_quality_6";
+    private static final String LAND_OCEAN_FLAG_BAND_NAME = "land_ocean_flag_6";
 
     static {
         TEMPLATE_VARIABLE_NAME = NetcdfFile.makeValidCDLName("Brightness_Temperature_(res06,10.7GHz,H)");
@@ -77,7 +77,10 @@ public final class Amsr2ProductReader extends NetcdfProductReaderTemplate {
                 if (variableName.contains("89A")) { // latitude and longitude
                     addBand(product, variable);
                 }
-                if (variableName.equals("Pixel_Data_Quality_89")) { // TODO - use Pixel_Data_Quality_6_to_36 instead?
+                if (variableName.equals("Pixel_Data_Quality_6_to_36")) {
+                    addBand(product, variable);
+                }
+                if (variableName.equals("Land_Ocean_Flag_6_to_36")) {
                     addBand(product, variable);
                 }
                 if (variableName.contains("Time")) { // scan time
@@ -92,7 +95,6 @@ public final class Amsr2ProductReader extends NetcdfProductReaderTemplate {
     private void addBand(Product product, Variable variable) {
         final String sourceName = variable.getFullNameEscaped();
         final String targetName = toBandName(sourceName);
-        nameMapping.put(targetName, sourceName);
         final Band band = product.addBand(targetName, DataTypeUtils.getRasterDataType(variable));
         final Attribute scaleFactor = variable.findAttribute("SCALE_FACTOR");
         if (scaleFactor != null) {
@@ -102,6 +104,7 @@ public final class Amsr2ProductReader extends NetcdfProductReaderTemplate {
         if (unit != null) {
             band.setUnit(unit.getStringValue());
         }
+        nameMapping.put(targetName, sourceName);
     }
 
     private String toBandName(String variableName) {
@@ -113,6 +116,9 @@ public final class Amsr2ProductReader extends NetcdfProductReaderTemplate {
         }
         if (variableName.startsWith("Pixel")) {
             return PIXEL_DATA_QUALITY_BAND_NAME;
+        }
+        if (variableName.startsWith("Land")) {
+            return LAND_OCEAN_FLAG_BAND_NAME;
         }
         return variableName
                 .replace("res06,", "")
@@ -169,13 +175,15 @@ public final class Amsr2ProductReader extends NetcdfProductReaderTemplate {
             } else {
                 return new OddVariableOpImage(variable, bufferType, w, h, tileSize);
             }
-        } else {
+        } else if (variable.getRank() == 1) {
             return new ScanLineVariableOpImage(variable, bufferType, w, h, tileSize, ResolutionLevel.MAXRES) {
                 @Override
                 protected int getIndexY(int rank) {
                     return rank - 1;
                 }
             };
+        } else {
+            return new VariableOpImage(variable, bufferType, w, h, tileSize);
         }
     }
 
