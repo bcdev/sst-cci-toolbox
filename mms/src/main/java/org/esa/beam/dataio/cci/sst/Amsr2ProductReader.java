@@ -51,7 +51,8 @@ public final class Amsr2ProductReader extends NetcdfProductReaderTemplate {
     private static final String TEMPLATE_VARIABLE_NAME;
     private static final String LAT_BAND_NAME = "latitude";
     private static final String LON_BAND_NAME = "longitude";
-    private static final String PIXEL_DATA_QUALITY_BAND_NAME = "pixel_data_quality_6";
+    private static final String PIXEL_DATA_QUALITY_6_BAND_NAME = "pixel_data_quality_6";
+    private static final String PIXEL_DATA_QUALITY_89_BAND_NAME = "pixel_data_quality_89";
     private static final String LAND_OCEAN_FLAG_BAND_NAME = "land_ocean_flag_6";
 
     static {
@@ -78,6 +79,9 @@ public final class Amsr2ProductReader extends NetcdfProductReaderTemplate {
                     addBand(product, variable);
                 }
                 if (variableName.equals("Pixel_Data_Quality_6_to_36")) {
+                    addBand(product, variable);
+                }
+                if (variableName.equals("Pixel_Data_Quality_89")) {
                     addBand(product, variable);
                 }
                 if (variableName.equals("Land_Ocean_Flag_6_to_36")) {
@@ -114,8 +118,11 @@ public final class Amsr2ProductReader extends NetcdfProductReaderTemplate {
         if (variableName.startsWith("Longitude")) {
             return LON_BAND_NAME;
         }
-        if (variableName.startsWith("Pixel")) {
-            return PIXEL_DATA_QUALITY_BAND_NAME;
+        if (variableName.startsWith("Pixel") && variableName.endsWith("36")) {
+            return PIXEL_DATA_QUALITY_6_BAND_NAME;
+        }
+        if (variableName.startsWith("Pixel") && variableName.endsWith("89")) {
+            return PIXEL_DATA_QUALITY_89_BAND_NAME;
         }
         if (variableName.startsWith("Land")) {
             return LAND_OCEAN_FLAG_BAND_NAME;
