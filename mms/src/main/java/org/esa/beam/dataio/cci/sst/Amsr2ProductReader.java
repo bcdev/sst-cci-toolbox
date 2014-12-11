@@ -52,6 +52,7 @@ public class Amsr2ProductReader extends NetcdfProductReaderTemplate {
     private static final String TEMPLATE_VARIABLE_NAME;
     private static final String LAT_BAND_NAME = "latitude";
     private static final String LON_BAND_NAME = "longitude";
+    private static final String PIXEL_DATA_QUALITY_BAND_NAME = "pixel_data_quality";
 
     static {
         TEMPLATE_VARIABLE_NAME = NetcdfFile.makeValidCDLName("Brightness_Temperature_(res06,10.7GHz,H)");
@@ -74,6 +75,9 @@ public class Amsr2ProductReader extends NetcdfProductReaderTemplate {
                 }
             } else {
                 if (variableName.contains("89A")) { // latitude and longitude
+                    addBand(product, variable);
+                }
+                if (variableName.equals("Pixel_Data_Quality_89")) { // TODO - use Pixel_Data_Quality_6_to_36 instead?
                     addBand(product, variable);
                 }
                 if (variableName.contains("Time")) { // scan time
@@ -106,6 +110,9 @@ public class Amsr2ProductReader extends NetcdfProductReaderTemplate {
         }
         if (variableName.startsWith("Longitude")) {
             return LON_BAND_NAME;
+        }
+        if (variableName.startsWith("Pixel")) {
+            return PIXEL_DATA_QUALITY_BAND_NAME;
         }
         return variableName
                 .replace("res06,", "")
