@@ -59,15 +59,15 @@ abstract class ImageVariableOpImage extends SingleBandedOpImage {
         final int indexX = getIndexX(rank);
         final int indexY = getIndexY(rank);
 
-        shape[indexX] = getSourceWidth(rectangle.width);
-        shape[indexY] = getSourceHeight(rectangle.height);
+        shape[indexX] = getSourceShapeX(rectangle.width);
+        shape[indexY] = getSourceShapeY(rectangle.height);
 
-        origin[indexX] = getSourceX(rectangle.x) + getSourceOriginX();
-        origin[indexY] = getSourceY(rectangle.y) + getSourceOriginY();
+        origin[indexX] = getSourceOriginX(rectangle.x) + getSourceOriginX();
+        origin[indexY] = getSourceOriginY(rectangle.y) + getSourceOriginY();
 
         final double scale = getScale();
-        stride[indexX] = (int) scale;
-        stride[indexY] = (int) scale;
+        stride[indexX] = (int) scale * getSourceStrideX();
+        stride[indexY] = (int) scale * getSourceStrideY();
 
         Array array;
         synchronized (variable.getParentGroup().getNetcdfFile()) {
@@ -79,6 +79,22 @@ abstract class ImageVariableOpImage extends SingleBandedOpImage {
             }
         }
         tile.setDataElements(rectangle.x, rectangle.y, rectangle.width, rectangle.height, transformStorage(array));
+    }
+
+    protected int getSourceOriginX(int x) {
+        return getSourceX(x);
+    }
+
+    protected int getSourceOriginY(int y) {
+        return getSourceY(y);
+    }
+
+    protected int getSourceShapeX(int width) {
+        return getSourceWidth(width);
+    }
+
+    protected int getSourceShapeY(int height) {
+        return getSourceHeight(height);
     }
 
     /**
@@ -121,6 +137,14 @@ abstract class ImageVariableOpImage extends SingleBandedOpImage {
      */
     protected int getSourceOriginY() {
         return 0;
+    }
+
+    protected int getSourceStrideY() {
+        return 1;
+    }
+
+    protected int getSourceStrideX() {
+        return 1;
     }
 
     /**
