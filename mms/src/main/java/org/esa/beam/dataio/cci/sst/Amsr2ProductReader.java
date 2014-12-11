@@ -47,7 +47,7 @@ import java.util.Map;
 /**
  * @author Ralf Quast
  */
-public class Amsr2ProductReader extends NetcdfProductReaderTemplate {
+public final class Amsr2ProductReader extends NetcdfProductReaderTemplate {
 
     private static final String TEMPLATE_VARIABLE_NAME;
     private static final String LAT_BAND_NAME = "latitude";
