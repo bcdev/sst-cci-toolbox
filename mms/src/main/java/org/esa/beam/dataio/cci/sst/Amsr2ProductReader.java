@@ -29,6 +29,7 @@ import org.esa.beam.jai.ImageManager;
 import org.esa.beam.jai.ResolutionLevel;
 import org.esa.beam.util.PixelLocatorFactory;
 import org.esa.cci.sst.util.TimeUtil;
+import ucar.ma2.Array;
 import ucar.nc2.Attribute;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
@@ -51,7 +52,7 @@ public final class Amsr2ProductReader extends NetcdfProductReaderTemplate {
     private static final String TEMPLATE_VARIABLE_NAME;
     private static final String LAT_BAND_NAME = "latitude";
     private static final String LON_BAND_NAME = "longitude";
-    private static final String PIXEL_DATA_QUALITY_6_BAND_NAME = "pixel_data_quality_6";
+    private static final String PIXEL_DATA_QUALITY_6_TO_36_BAND_NAME = "pixel_data_quality_6_to_36";
     private static final String PIXEL_DATA_QUALITY_89_BAND_NAME = "pixel_data_quality_89";
     private static final String LAND_OCEAN_FLAG_BAND_NAME = "land_ocean_flag_6";
 
@@ -72,23 +73,23 @@ public final class Amsr2ProductReader extends NetcdfProductReaderTemplate {
             final String variableName = variable.getShortName();
             if (Arrays.equals(shape, variable.getShape())) {
                 if (variableName.contains("res06") || !variableName.startsWith("Brightness")) {
-                    addBand(product, variable);
+                    addBand(product, variable, DataTypeUtils.getRasterDataType(variable));
                 }
             } else {
                 if (variableName.contains("89A")) { // latitude and longitude
-                    addBand(product, variable);
+                    addBand(product, variable, DataTypeUtils.getRasterDataType(variable));
                 }
                 if (variableName.equals("Pixel_Data_Quality_6_to_36")) {
-                    addBand(product, variable);
+                    addBand(product, variable, ProductData.TYPE_UINT16);
                 }
                 if (variableName.equals("Pixel_Data_Quality_89")) {
-                    addBand(product, variable);
+                    addBand(product, variable, DataTypeUtils.getRasterDataType(variable));
                 }
                 if (variableName.equals("Land_Ocean_Flag_6_to_36")) {
-                    addBand(product, variable);
+                    addBand(product, variable, DataTypeUtils.getRasterDataType(variable));
                 }
                 if (variableName.contains("Time")) { // scan time
-                    addBand(product, variable);
+                    addBand(product, variable, DataTypeUtils.getRasterDataType(variable));
                 }
             }
         }
@@ -96,13 +97,16 @@ public final class Amsr2ProductReader extends NetcdfProductReaderTemplate {
         product.addBand("solar_azimuth_angle", "(earth_azimuth - sun_azimuth + 180.0) % 360.0");
     }
 
-    private void addBand(Product product, Variable variable) {
+    private void addBand(Product product, Variable variable, int dataType) {
         final String sourceName = variable.getFullNameEscaped();
         final String targetName = toBandName(sourceName);
-        final Band band = product.addBand(targetName, DataTypeUtils.getRasterDataType(variable));
+        final Band band = product.addBand(targetName, dataType);
         final Attribute scaleFactor = variable.findAttribute("SCALE_FACTOR");
         if (scaleFactor != null) {
-            band.setScalingFactor(scaleFactor.getNumericValue().doubleValue());
+            final double value = scaleFactor.getNumericValue().doubleValue();
+            if (value != 1.0) {
+                band.setScalingFactor(value);
+            }
         }
         final Attribute unit = variable.findAttribute("UNIT");
         if (unit != null) {
@@ -119,7 +123,7 @@ public final class Amsr2ProductReader extends NetcdfProductReaderTemplate {
             return LON_BAND_NAME;
         }
         if (variableName.startsWith("Pixel") && variableName.endsWith("36")) {
-            return PIXEL_DATA_QUALITY_6_BAND_NAME;
+            return PIXEL_DATA_QUALITY_6_TO_36_BAND_NAME;
         }
         if (variableName.startsWith("Pixel") && variableName.endsWith("89")) {
             return PIXEL_DATA_QUALITY_89_BAND_NAME;
@@ -178,9 +182,13 @@ public final class Amsr2ProductReader extends NetcdfProductReaderTemplate {
 
         if (variable.getRank() == 2) {
             if (Arrays.equals(shape, variable.getShape())) {
-                return new VariableOpImage(variable, bufferType, w, h, tileSize);
+                return new DefaultOpImage(variable, bufferType, w, h, tileSize);
             } else {
-                return new OddVariableOpImage(variable, bufferType, w, h, tileSize);
+                if (PIXEL_DATA_QUALITY_6_TO_36_BAND_NAME.equalsIgnoreCase(band.getName())) {
+                    return new UShortFromUByteOpImage(variable, bufferType, w, h, tileSize);
+                } else {
+                    return new OddColumnsOpImage(variable, bufferType, w, h, tileSize);
+                }
             }
         } else if (variable.getRank() == 1) {
             return new ScanLineVariableOpImage(variable, bufferType, w, h, tileSize, ResolutionLevel.MAXRES) {
@@ -190,7 +198,7 @@ public final class Amsr2ProductReader extends NetcdfProductReaderTemplate {
                 }
             };
         } else {
-            return new VariableOpImage(variable, bufferType, w, h, tileSize);
+            return new DefaultOpImage(variable, bufferType, w, h, tileSize);
         }
     }
 
@@ -219,9 +227,9 @@ public final class Amsr2ProductReader extends NetcdfProductReaderTemplate {
         super.close();
     }
 
-    private static final class VariableOpImage extends ImageVariableOpImage {
+    private static final class DefaultOpImage extends ImageVariableOpImage {
 
-        public VariableOpImage(Variable variable, int bufferType, int w, int h, Dimension tileSize) {
+        public DefaultOpImage(Variable variable, int bufferType, int w, int h, Dimension tileSize) {
             super(variable, bufferType, w, h, tileSize, ResolutionLevel.MAXRES);
         }
 
@@ -236,9 +244,9 @@ public final class Amsr2ProductReader extends NetcdfProductReaderTemplate {
         }
     }
 
-    private static final class OddVariableOpImage extends ImageVariableOpImage {
+    private static final class OddColumnsOpImage extends ImageVariableOpImage {
 
-        public OddVariableOpImage(Variable variable, int bufferType, int w, int h, Dimension tileSize) {
+        public OddColumnsOpImage(Variable variable, int bufferType, int w, int h, Dimension tileSize) {
             super(variable, bufferType, w, h, tileSize, ResolutionLevel.MAXRES);
         }
 
@@ -270,6 +278,51 @@ public final class Amsr2ProductReader extends NetcdfProductReaderTemplate {
         @Override
         protected final int getSourceShapeX(int width) {
             return super.getSourceShapeX(width) * 2;
+        }
+    }
+
+    private static final class UShortFromUByteOpImage extends ImageVariableOpImage {
+
+        public UShortFromUByteOpImage(Variable variable, int bufferType, int w, int h, Dimension tileSize) {
+            super(variable, bufferType, w, h, tileSize, ResolutionLevel.MAXRES);
+        }
+
+        @Override
+        protected int getIndexX(int rank) {
+            return rank - 1;
+        }
+
+        @Override
+        protected int getIndexY(int rank) {
+            return rank - 2;
+        }
+
+        @Override
+        protected int getSourceOriginX() {
+            return 0;
+        }
+
+        @Override
+        protected int getSourceOriginX(int x) {
+            return super.getSourceOriginX(x) * 2;
+        }
+
+        @Override
+        protected final int getSourceShapeX(int width) {
+            return super.getSourceShapeX(width) * 2;
+        }
+
+        @Override
+        protected Object transformStorage(Array array) {
+            final byte[] bytes = (byte[]) array.getStorage();
+            final short[] shorts = new short[bytes.length >> 1];
+
+            for (int i = 0; i < shorts.length; ++i) {
+                final byte hi = bytes[i * 2];
+                final byte lo = bytes[i * 2 + 1];
+                shorts[i] = (short) ((lo & 0xFF) | (hi & 0xFF) << 8);
+            }
+            return shorts;
         }
     }
 }
