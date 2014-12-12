@@ -138,7 +138,6 @@ public class MatchupGenerator extends BasicTool {
 
                 final List<Matchup> matchups = new ArrayList<>(referenceObservations.size());
                 final List<Coincidence> coincidences = new ArrayList<>(samples.size());
-                final List<InsituObservation> insituObservations = new ArrayList<>(samples.size());
                 for (int i = 0; i < samples.size(); i++) {
                     final SamplingPoint p = samples.get(i);
                     final ReferenceObservation r = referenceObservations.get(i);
@@ -160,7 +159,6 @@ public class MatchupGenerator extends BasicTool {
                         final int datafileId = p.getInsituReference();
                         final DataFile insituDatafile = storage.getDatafile(datafileId);
                         final InsituObservation insituObservation = createInsituObservation(p, insituDatafile);
-                        insituObservations.add(insituObservation);
 
                         final Coincidence insituCoincidence = createCoincidence(matchup, insituObservation);
                         insituCoincidence.setTimeDifference(Math.abs(p.getReferenceTime() - p.getTime()) / 1000.0);
@@ -168,6 +166,7 @@ public class MatchupGenerator extends BasicTool {
                         coincidences.add(insituCoincidence);
                         hasInsitu = true;
                     }
+                    matchup.setCoincidences(coincidences);
                 }
                 pm.commit();
 

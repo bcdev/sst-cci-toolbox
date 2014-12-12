@@ -113,6 +113,7 @@ public class MatchupIOTest_mapping {
         final RelatedObservation relatedObservation = new RelatedObservation();
         relatedObservation.setName("128");
         relatedObservation.setSensor("129");
+        relatedObservation.setId(198);
         final Sensor sensor = new Sensor();
         sensor.setName("related");
         sensor.setPattern(131);
@@ -137,17 +138,17 @@ public class MatchupIOTest_mapping {
         assertEquals(1, io_coincidences.size());
         final IO_Coincidence io_coincidence = io_coincidences.get(0);
         assertEquals(127.127, io_coincidence.getTimeDifference(), 1e-8);
-        assertEquals(2, io_coincidence.getObservationId());
+        assertEquals(198, io_coincidence.getObservationId());
         assertFalse(io_coincidence.isInsitu());
 
         final List<IO_Observation> relatedObservations = matchupData.getRelatedObservations();
         assertEquals(1, relatedObservations.size());
         final IO_Observation io_observation = relatedObservations.get(0);
-        assertEquals(2, io_observation.getId());
+        assertEquals(198, io_observation.getId());
         assertEquals("128", io_observation.getName());
         assertEquals("129", io_observation.getSensor());
         assertEquals("130", io_observation.getFilePath());
-        assertEquals(3, io_observation.getSensorId());
+        assertEquals(2, io_observation.getSensorId());
         assertEquals(133, io_observation.getRecordNo());
         assertEquals(134, io_observation.getTime().getTime());
         assertEquals(135.135, io_observation.getTimeRadius(), 1e-8);
@@ -156,7 +157,7 @@ public class MatchupIOTest_mapping {
         final List<Sensor> sensors = matchupData.getSensors();
         assertEquals(2, sensors.size());    // first results from the referenceObservation
         final Sensor io_sensor = sensors.get(1);
-        assertEquals(3, io_sensor.getId());
+        assertEquals(2, io_sensor.getId());
     }
 
     @Test
@@ -172,6 +173,7 @@ public class MatchupIOTest_mapping {
         final InsituObservation insituObservation = new InsituObservation();
         insituObservation.setName("228");
         insituObservation.setSensor("229");
+        insituObservation.setId(207);
         final Sensor sensor = new Sensor();
         sensor.setName("insitu");
         sensor.setPattern(231);
@@ -196,17 +198,17 @@ public class MatchupIOTest_mapping {
         assertEquals(1, io_coincidences.size());
         final IO_Coincidence io_coincidence = io_coincidences.get(0);
         assertEquals(227.227, io_coincidence.getTimeDifference(), 1e-8);
-        assertEquals(2, io_coincidence.getObservationId());
+        assertEquals(207, io_coincidence.getObservationId());
         assertTrue(io_coincidence.isInsitu());
 
         final List<IO_Observation> insituObservations = matchupData.getInsituObservations();
         assertEquals(1, insituObservations.size());
         final IO_Observation io_observation = insituObservations.get(0);
-        assertEquals(2, io_observation.getId());
+        assertEquals(207, io_observation.getId());
         assertEquals("228", io_observation.getName());
         assertEquals("229", io_observation.getSensor());
         assertEquals("230", io_observation.getFilePath());
-        assertEquals(3, io_observation.getSensorId());
+        assertEquals(2, io_observation.getSensorId());
         assertEquals(233, io_observation.getRecordNo());
         assertEquals(234, io_observation.getTime().getTime());
         assertEquals(235.235, io_observation.getTimeRadius(), 1e-8);
@@ -215,7 +217,7 @@ public class MatchupIOTest_mapping {
         final List<Sensor> sensors = matchupData.getSensors();
         assertEquals(2, sensors.size());    // first results from the referenceObservation
         final Sensor io_sensor = sensors.get(1);
-        assertEquals(3, io_sensor.getId());
+        assertEquals(2, io_sensor.getId());
     }
 
     @Test

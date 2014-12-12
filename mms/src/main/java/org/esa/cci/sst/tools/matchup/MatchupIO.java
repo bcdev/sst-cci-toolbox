@@ -59,7 +59,7 @@ public class MatchupIO {
                 final IO_Coincidence io_coincidence = new IO_Coincidence();
 
                 final Observation observation = coincidence.getObservation();
-                final int observationId = idGenerator.next();
+                final int observationId = observation.getId();
                 if (observation instanceof InsituObservation) {
                     final InsituObservation insituObservation = (InsituObservation) observation;
                     final IO_Observation io_observation = createIO_Observation(idGenerator, matchupData, observationId, insituObservation);
