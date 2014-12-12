@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Brockmann Consult GmbH (info@brockmann-consult.de)
+ * Copyright (c) 2014 Brockmann Consult GmbH (info@brockmann-consult.de)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -27,48 +27,41 @@ import java.io.IOException;
 import java.util.Locale;
 
 /**
- * The BEAM reader plugin for Ocean & Sea Ice SAF data products.
- *
- * @author Thomas Storm
+ * @author Ralf Quast
  */
-public class HdfOsiProductReaderPlugIn implements ProductReaderPlugIn {
+public class Amsr2ProductReaderPlugIn implements ProductReaderPlugIn {
 
+    /**
+     * The AMSR2 product file name pattern.
+     */
+    public static final String AMSR2_FILE_NAME_PATTERN = "GW1AM2_[0-9]{12}_...._L1SGRTBR_[0-9]{7}\\.h5";
     /**
      * The format name.
      */
-    public static final String FORMAT_NAME = "OSI-SAF-HDF";
+    public static final String FORMAT_NAME = "AMSR2_L1R";
     /**
-     * The FIle extension.
+     * The file extension.
      */
-    public static final String FILE_EXTENSION_HDF = ".hdf";
+    public static final String FILE_EXTENSION_H5 = ".h5";
 
     @Override
-    public DecodeQualification getDecodeQualification(Object input) {
-        final File file = new File(input.toString());
-        if (!file.getName().endsWith(FILE_EXTENSION_HDF)) {
+    public DecodeQualification getDecodeQualification(Object o) {
+        final File file;
+        if (o instanceof File) {
+            file = (File) o;
+        } else if (o instanceof String) {
+            file = new File((String) o);
+        } else {
             return DecodeQualification.UNABLE;
         }
-        final String fileName = file.getName();
-        if (!fileName.startsWith("ice_conc_") && !fileName.startsWith("ice_edge_") &&
-            !fileName.startsWith("ice_type_") && !fileName.startsWith("multi_conc_") &&
-            !fileName.startsWith("multi_edge_") && !fileName.startsWith("multi_type_")) {
+        if (!file.getName().matches(AMSR2_FILE_NAME_PATTERN)) {
             return DecodeQualification.UNABLE;
         }
-        NetcdfFile netcdfFile = null;
         try {
-            netcdfFile = NetcdfFile.open(file.getAbsolutePath());
-            if (netcdfFile.findVariable("Header") != null) {
+            if (NetcdfFile.canOpen(file.getPath())) {
                 return DecodeQualification.INTENDED;
             }
-        } catch (Exception ignored) {
-        } finally {
-            if (netcdfFile != null) {
-                try {
-                    netcdfFile.close();
-                } catch (IOException e) {
-                    // ignore
-                }
-            }
+        } catch (IOException ignored) {
         }
         return DecodeQualification.UNABLE;
     }
@@ -80,7 +73,7 @@ public class HdfOsiProductReaderPlugIn implements ProductReaderPlugIn {
 
     @Override
     public ProductReader createReaderInstance() {
-        return new HdfOsiProductReader(this);
+        return new Amsr2ProductReader(this);
     }
 
     @Override
@@ -90,12 +83,12 @@ public class HdfOsiProductReaderPlugIn implements ProductReaderPlugIn {
 
     @Override
     public String[] getDefaultFileExtensions() {
-        return new String[]{FILE_EXTENSION_HDF};
+        return new String[]{FILE_EXTENSION_H5};
     }
 
     @Override
     public String getDescription(Locale locale) {
-        return "Ocean & Sea Ice Science Application Facility (OSI SAF) data products.";
+        return "AMSR2 Level-1R data products.";
     }
 
     @Override

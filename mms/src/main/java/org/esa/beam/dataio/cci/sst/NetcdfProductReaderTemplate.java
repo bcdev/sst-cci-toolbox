@@ -96,7 +96,7 @@ abstract class NetcdfProductReaderTemplate extends AbstractProductReader impleme
     }
 
     @Override
-    public final void close() throws IOException {
+    public void close() throws IOException {
         if (netcdfFile != null) {
             try {
                 netcdfFile.close();

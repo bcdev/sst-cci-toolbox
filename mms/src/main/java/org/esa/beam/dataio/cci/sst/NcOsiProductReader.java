@@ -52,7 +52,7 @@ public class NcOsiProductReader extends NetcdfProductReaderTemplate {
 
     private static final double KM = 1000.0;
 
-    protected NcOsiProductReader(ProductReaderPlugIn readerPlugIn) {
+    public NcOsiProductReader(ProductReaderPlugIn readerPlugIn) {
         super(readerPlugIn);
     }
 
