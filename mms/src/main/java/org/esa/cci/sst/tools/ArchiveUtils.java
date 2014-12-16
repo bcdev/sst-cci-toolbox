@@ -44,7 +44,7 @@ public class ArchiveUtils {
         return stringBuilder.toString();
     }
 
-    static String[] createSensorNamesArray(String sensorName1, String sensorName2, String insituSensorName) {
+    public static String[] createSensorNamesArray(String sensorName1, String sensorName2, String insituSensorName) {
         final ArrayList<String> sensorNamesList = new ArrayList<>();
         sensorNamesList.add(sensorName1);
         if (StringUtils.isNotBlank(sensorName2)) {

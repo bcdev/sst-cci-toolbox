@@ -23,12 +23,7 @@ import org.esa.cci.sst.ColumnRegistry;
 import org.esa.cci.sst.Predicate;
 import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.common.ExtractDefinitionBuilder;
-import org.esa.cci.sst.data.Coincidence;
-import org.esa.cci.sst.data.InsituObservation;
-import org.esa.cci.sst.data.Item;
-import org.esa.cci.sst.data.Matchup;
-import org.esa.cci.sst.data.Observation;
-import org.esa.cci.sst.data.ReferenceObservation;
+import org.esa.cci.sst.data.*;
 import org.esa.cci.sst.orm.ColumnStorage;
 import org.esa.cci.sst.orm.MatchupQueryParameter;
 import org.esa.cci.sst.orm.MatchupStorage;
@@ -42,7 +37,9 @@ import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.tools.ArchiveUtils;
 import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tools.Constants;
+import org.esa.cci.sst.tools.matchup.MatchupIO;
 import org.esa.cci.sst.util.ConfigUtil;
+import org.esa.cci.sst.util.Month;
 import org.esa.cci.sst.util.ReaderCache;
 import org.postgis.Point;
 import ucar.ma2.Array;
@@ -50,19 +47,10 @@ import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFileWriter;
 import ucar.nc2.Variable;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.text.MessageFormat;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.logging.Level;
 
 import static ucar.nc2.NetcdfFileWriter.Version;
@@ -85,6 +73,7 @@ public class MmdTool extends BasicTool {
     private String sensorName2;
     private String usecaseRootPath;
     private String insituSensorName;
+    private List<Matchup> matchupList;
 
     public MmdTool() {
         super("mmd-tool.sh", "0.1");
@@ -153,9 +142,11 @@ public class MmdTool extends BasicTool {
 
         try {
             final Configuration config = getConfig();
-            final Map<Long, Integer> matchupIdToRecordIndexMap = createMatchupIdToRecordIndexMap();
-            matchupCount = matchupIdToRecordIndexMap.size();
-            // TODO - write single file per sensor
+
+            matchupList = readMatchupList();
+            matchupCount = matchupList.size();
+            final Map<Long, Integer> matchupIdToRecordIndexMap = createMatchupIdToRecordIndexMap(matchupList);
+
             final NetcdfFileWriter writer = createNetCDFWriter(config);
             mmdWriter = prepareMmdWriter(writer);
             if (matchupCount == 0) {
@@ -170,6 +161,29 @@ public class MmdTool extends BasicTool {
                 }
             }
         }
+    }
+
+    private List<Matchup> readMatchupList() throws IOException {
+        final String[] namesArray = ArchiveUtils.createSensorNamesArray(sensorName1, sensorName2, insituSensorName);
+        final Month centerMonth = ConfigUtil.getCenterMonth(Configuration.KEY_MMS_SAMPLING_START_TIME,
+                Configuration.KEY_MMS_SAMPLING_STOP_TIME,
+                getConfig());
+        final String typedPath = ArchiveUtils.createTypedPath(usecaseRootPath, namesArray, centerMonth.getYear(), centerMonth.getMonth(), inputType);
+        final File inputDirectory = new File(typedPath).getParentFile();
+        if (!inputDirectory.isDirectory()) {
+            throw new ToolException(MessageFormat.format("Directory ''{0}'' does not exist", inputDirectory.getAbsolutePath()), ToolException.TOOL_IO_ERROR);
+        }
+        final File[] inputFiles = inputDirectory.listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                return name.contains(sensorName1) && name.endsWith(".json");
+            }
+        });
+        final List<Matchup> matchupList = new ArrayList<>();
+        for (File inputFile : inputFiles) {
+            matchupList.addAll(MatchupIO.read(new FileInputStream(inputFile)));
+        }
+        return matchupList;
     }
 
     /**
@@ -220,16 +234,16 @@ public class MmdTool extends BasicTool {
                             } else {
                                 if (observation != null) {
                                     writeColumn(mmdWriter, variable, targetRecordNo, targetColumn, sourceColumn,
-                                                observation,
-                                                referenceObservation);
+                                            observation,
+                                            referenceObservation);
                                 }
                             }
                         }
                     }
                 } catch (IOException e) {
                     final String message = MessageFormat.format("matchup {0}: {1}",
-                                                                matchup.getId(),
-                                                                e.getMessage());
+                            matchup.getId(),
+                            e.getMessage());
                     throw new ToolException(message, e, ToolException.TOOL_IO_ERROR);
                 }
             }
@@ -252,21 +266,10 @@ public class MmdTool extends BasicTool {
         return matchups;
     }
 
-    private Map<Long, Integer> createMatchupIdToRecordIndexMap() {
-        final Configuration config = getConfig();
-        final PersistenceManager persistenceManager = getPersistenceManager();
-        final MatchupStorage matchupStorage = persistenceManager.getMatchupStorage();
-
-        // TODO - read matchup's from clean-env or clean file
-        final MatchupQueryParameter queryParameter = createMatchupQueryParameter(config);
-        final List<Matchup> matchups = matchupStorage.get(queryParameter);
-        logger.info(String.format("%d matchups retrieved", matchups.size()));
-
-        //ArchiveUtils.createTypedPath(usecaseRootPath, );
-
-        final Map<Long, Integer> matchupIdToRecordIndexMap = new HashMap<>(matchups.size());
-        for (int i = 0; i < matchups.size(); ++i) {
-            matchupIdToRecordIndexMap.put(matchups.get(i).getId(), i);
+    private static Map<Long, Integer> createMatchupIdToRecordIndexMap(List<Matchup> matchupList) {
+        final Map<Long, Integer> matchupIdToRecordIndexMap = new HashMap<>(matchupList.size());
+        for (int i = 0; i < matchupList.size(); ++i) {
+            matchupIdToRecordIndexMap.put(matchupList.get(i).getId(), i);
         }
         return matchupIdToRecordIndexMap;
     }
@@ -287,7 +290,7 @@ public class MmdTool extends BasicTool {
 
     private void initializeTargetColumns(Configuration config, ColumnStorage columnStorage) {
         final ColumnRegistryInitializer columnRegistryInitializer = new ColumnRegistryInitializer(columnRegistry,
-                                                                                                  columnStorage);
+                columnStorage);
         columnRegistryInitializer.initialize();
         registerTargetColumns(config);
     }
@@ -338,11 +341,11 @@ public class MmdTool extends BasicTool {
             }
         } catch (IOException e) {
             final String message = MessageFormat.format("matchup {0}: {1}", context.getMatchup().getId(),
-                                                        e.getMessage());
+                    e.getMessage());
             throw new ToolException(message, e, ToolException.TOOL_IO_ERROR);
         } catch (RuleException | InvalidRangeException e) {
             final String message = MessageFormat.format("matchup {0}: {1}", context.getMatchup().getId(),
-                                                        e.getMessage());
+                    e.getMessage());
             throw new ToolException(message, e, ToolException.TOOL_ERROR);
         }
     }
@@ -366,7 +369,7 @@ public class MmdTool extends BasicTool {
             if (sourceArray != null) {
                 if (logger.isLoggable(Level.FINE)) {
                     logger.fine(MessageFormat.format("source column: {0}, {1}", sourceColumn.getName(),
-                                                     sourceColumn.getRole()));
+                            sourceColumn.getRole()));
                 }
                 sourceColumn = reader.getColumn(role);
                 if (sourceColumn == null) {
