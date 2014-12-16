@@ -35,7 +35,7 @@ public class MatchupGenerator extends BasicTool {
     private boolean overlappingWanted;
     private long referenceSensorPattern;
     private String referenceSensorName;
-    private String archiveRootPath;
+    private String usecaseRootPath;
 
     public MatchupGenerator() {
         super("matchup-generator", "1.0");
@@ -91,7 +91,7 @@ public class MatchupGenerator extends BasicTool {
             subSceneHeight2 = map.get(SensorNames.getDimensionNameY(sensorName2));
         }
 
-        archiveRootPath = config.getStringValue(Configuration.KEY_MMS_ARCHIVE_ROOT);
+        usecaseRootPath = ConfigUtil.getUsecaseRootPath(config);
     }
 
     private void run() throws IOException {
@@ -180,7 +180,7 @@ public class MatchupGenerator extends BasicTool {
                         Configuration.KEY_MMS_SAMPLING_STOP_TIME,
                         getConfig());
 
-                final String outputFilePath = ArchiveUtils.createCleanFilePath(archiveRootPath, sensorNamesArray, centerMonth.getYear(), centerMonth.getMonth());
+                final String outputFilePath = ArchiveUtils.createCleanFilePath(usecaseRootPath, sensorNamesArray, centerMonth.getYear(), centerMonth.getMonth());
                 final File outFile = FileUtil.createNewFile(outputFilePath);
                 MatchupIO.write(matchups, new FileOutputStream(outFile), getConfig());
 

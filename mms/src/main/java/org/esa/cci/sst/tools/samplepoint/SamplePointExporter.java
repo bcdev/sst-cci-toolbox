@@ -44,12 +44,12 @@ public class SamplePointExporter {
             logWarning("List of sampling points still contains points out of expected time range: " + samplingPoints.size());
         }
 
-        final String archiveRootPath = ConfigUtil.getUsecaseRootPath(config);
+        final String usecaseRootPath = ConfigUtil.getUsecaseRootPath(config);
         final String sensorName = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR);
 
-        writeSamplingPoints(pointsMonthBefore, monthBefore, archiveRootPath, sensorName, 'a');
-        writeSamplingPoints(pointsCenterMonth, centerMonth, archiveRootPath, sensorName, 'b');
-        writeSamplingPoints(pointsMonthAfter, monthAfter, archiveRootPath, sensorName, 'c');
+        writeSamplingPoints(pointsMonthBefore, monthBefore, usecaseRootPath, sensorName, 'a');
+        writeSamplingPoints(pointsCenterMonth, centerMonth, usecaseRootPath, sensorName, 'b');
+        writeSamplingPoints(pointsMonthAfter, monthAfter, usecaseRootPath, sensorName, 'c');
     }
 
     private void writeSamplingPoints(List<SamplingPoint> points, TimeRange timeRange, String archiveRootPath,
