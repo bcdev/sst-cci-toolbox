@@ -51,8 +51,9 @@ public class Configuration {
     public static final String KEY_MMS_MMD_SENSORS = "mms.mmd.sensors";
     public static final String KEY_MMS_MMD_READER_CACHE_SIZE = "mms.target.readercachesize";
     public static final String KEY_MMS_MMD_TARGET_START_TIME = "mms.target.startTime";
-    public static final String KEY_MMS_MMD_TARGET_STOP_TIME = "mms.target.stopTime";
+    public static final String KEY_MMS_MMD_INPUT_TYPE = "mms.mmd.inputtype";
 
+    public static final String KEY_MMS_MMD_TARGET_STOP_TIME = "mms.target.stopTime";
     public static final String KEY_MMS_SAMPLING_GENERATOR = "mms.sampling.generator";
     public static final String KEY_MMS_SAMPLING_SENSOR = "mms.sampling.sensor";
     public static final String KEY_MMS_SAMPLING_START_TIME = "mms.sampling.startTime";
@@ -72,8 +73,8 @@ public class Configuration {
     public static final String KEY_MMS_SAMPLING_INSITU_SOURCE_DIR = "mms.sampling.insitu.inputdirectory";
     public static final String KEY_MMS_SAMPLING_LAND_WANTED = "mms.sampling.landwanted";
     public static final String KEY_MMS_SAMPLING_CLOUDS_WANTED = "mms.sampling.cloudswanted";
-    public static final String KEY_MMS_SAMPLING_OVERLAPPING_WANTED = "mms.sampling.overlappingwanted";
 
+    public static final String KEY_MMS_SAMPLING_OVERLAPPING_WANTED = "mms.sampling.overlappingwanted";
     public static final String KEY_MMS_MAPPLOT_STATEGY = "mms.mapplot.strategy";
     public static final String KEY_MMS_MAPPLOT_TARGET_DIR = "mms.mapplot.target.dir";
     public static final String KEY_MMS_MAPPLOT_TARGET_FILENAME = "mms.mapplot.target.filename";
@@ -81,23 +82,23 @@ public class Configuration {
     public static final String KEY_MMS_MAPPLOT_SHOW = "mms.mapplot.show";
     public static final String KEY_MMS_MAPPLOT_STOP_TIME = "mms.mapplot.stoptime";
     public static final String KEY_MMS_MAPPLOT_START_TIME = "mms.mapplot.starttime";
-    public static final String KEY_MMS_MAPPLOT_SENSOR = "mms.mapplot.sensor";
 
+    public static final String KEY_MMS_MAPPLOT_SENSOR = "mms.mapplot.sensor";
     public static final String KEY_MMS_NWP_CDO_HOME = "mms.nwp.cdo.home";
     public static final String KEY_MMS_NWP_MMD_SOURCE = "mms.nwp.mmd.source";
     public static final String KEY_MMS_NWP_NWP_SOURCE = "mms.nwp.nwp.source";
     public static final String KEY_MMS_NWP_FOR_SENSOR = "mms.nwp.forsensor";
     public static final String KEY_MMS_NWP_SENSOR = "mms.nwp.sensor";
-    public static final String KEY_MMS_NWP_NWP_TARGET = "mms.nwp.nwp.target";
 
+    public static final String KEY_MMS_NWP_NWP_TARGET = "mms.nwp.nwp.target";
     public static final String KEY_MMS_GBCS_INTELVERSION = "mms.gbcs.intelversion";
     public static final String KEY_MMS_GBCS_VERSION = "mms.gbcs.version";
     public static final String KEY_MMS_GBCS_HOME = "mms.gbcs.home";
     public static final String KEY_MMS_GBCS_MMD_SOURCE = "mms.gbcs.mmd.source";
     public static final String KEY_MMS_GBCS_NWP_SOURCE = "mms.gbcs.nwp.source";
     public static final String KEY_MMS_GBCS_MMD_TARGET = "mms.gbcs.mmd.target";
-    public static final String KEY_MMS_GBCS_SENSOR = "mms.gbcs.sensor";
 
+    public static final String KEY_MMS_GBCS_SENSOR = "mms.gbcs.sensor";
     public static final String KEY_MMS_REINGESTION_LOCATED = "mms.reingestion.located";
     public static final String KEY_MMS_REINGESTION_OVERWRITE = "mms.reingestion.overwrite";
     public static final String KEY_MMS_REINGESTION_PATTERN = "mms.reingestion.pattern";

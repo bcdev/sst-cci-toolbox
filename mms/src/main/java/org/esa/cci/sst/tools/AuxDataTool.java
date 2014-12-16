@@ -1,6 +1,5 @@
 package org.esa.cci.sst.tools;
 
-import org.apache.commons.lang.StringUtils;
 import org.esa.cci.sst.data.Coincidence;
 import org.esa.cci.sst.data.GlobalObservation;
 import org.esa.cci.sst.data.Matchup;
@@ -23,7 +22,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -149,7 +147,8 @@ public class AuxDataTool extends BasicTool {
         final Month centerMonth = ConfigUtil.getCenterMonth(Configuration.KEY_MMS_SAMPLING_START_TIME,
                 Configuration.KEY_MMS_SAMPLING_STOP_TIME,
                 getConfig());
-        final String[] sensorNamesArray = createSensorNamesArray();
+        final String[] sensorNamesArray = ArchiveUtils.createSensorNamesArray(sensorName1, sensorName2,
+                                                                              insituSensorName);
         final String inputFilePath = ArchiveUtils.createCleanFilePath(archiveRootPath, sensorNamesArray, centerMonth.getYear(), centerMonth.getMonth());
         final File inFile = new File(inputFilePath);
 
@@ -160,24 +159,12 @@ public class AuxDataTool extends BasicTool {
         final Month centerMonth = ConfigUtil.getCenterMonth(Configuration.KEY_MMS_SAMPLING_START_TIME,
                 Configuration.KEY_MMS_SAMPLING_STOP_TIME,
                 getConfig());
-        final String[] sensorNamesArray = createSensorNamesArray();
+        final String[] sensorNamesArray = ArchiveUtils.createSensorNamesArray(sensorName1, sensorName2,
+                                                                              insituSensorName);
         final String outputFilePath = ArchiveUtils.createCleanEnvFilePath(archiveRootPath, sensorNamesArray, centerMonth.getYear(), centerMonth.getMonth());
         final File outFile = FileUtil.createNewFile(outputFilePath);
 
         MatchupIO.write(matchups, new FileOutputStream(outFile), getConfig());
-    }
-
-    private String[] createSensorNamesArray() {
-        final ArrayList<String> sensorNamesList = new ArrayList<>();
-        sensorNamesList.add(sensorName1);
-        if (sensorName2 != null) {
-            sensorNamesList.add(sensorName2);
-        }
-        if (StringUtils.isNotBlank(insituSensorName)) {
-            sensorNamesList.add("history");
-        }
-
-        return sensorNamesList.toArray(new String[sensorNamesList.size()]);
     }
 
     // package access for testing only tb 2014-12-08

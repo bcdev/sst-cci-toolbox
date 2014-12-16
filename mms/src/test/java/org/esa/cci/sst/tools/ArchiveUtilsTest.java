@@ -31,4 +31,40 @@ public class ArchiveUtilsTest {
         assertEquals("/archive/root/clean-env/amsre,avhrr.m01,history/2006/amsre,avhrr.m01,history-clean-env-2006-02.json",
                 ArchiveUtils.createCleanEnvFilePath("/archive/root", new String[]{"amsre", "avhrr.m01", "history"}, 2006, 2));
     }
+
+    @Test
+    public void testCreateSensorNamesArray_OneSensor() throws Exception {
+        final String[] sensorNames = ArchiveUtils.createSensorNamesArray("ralf", null, null);
+
+        assertEquals(1, sensorNames.length);
+        assertEquals("ralf", sensorNames[0]);
+    }
+
+    @Test
+    public void testCreateSensorNamesArray_OneSensorWithInsitu() throws Exception {
+        final String[] sensorNames = ArchiveUtils.createSensorNamesArray("ralf", null, "prisemut");
+
+        assertEquals(2, sensorNames.length);
+        assertEquals("ralf", sensorNames[0]);
+        assertEquals("history", sensorNames[1]);
+    }
+
+    @Test
+    public void testCreateSensorNamesArray_TwoSensors() throws Exception {
+        final String[] sensorNames = ArchiveUtils.createSensorNamesArray("ralf", "tom", null);
+
+        assertEquals(2, sensorNames.length);
+        assertEquals("ralf", sensorNames[0]);
+        assertEquals("tom", sensorNames[1]);
+    }
+
+    @Test
+    public void testCreateSensorNamesArray_TwoSensorsWithInsitu() throws Exception {
+        final String[] sensorNames = ArchiveUtils.createSensorNamesArray("ralf", "tom", "prisemut");
+
+        assertEquals(3, sensorNames.length);
+        assertEquals("ralf", sensorNames[0]);
+        assertEquals("tom", sensorNames[1]);
+        assertEquals("history", sensorNames[2]);
+    }
 }

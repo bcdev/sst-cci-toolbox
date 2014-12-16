@@ -1,7 +1,10 @@
 package org.esa.cci.sst.tools;
 
 
+import org.apache.commons.lang.StringUtils;
+
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 
 public class ArchiveUtils {
 
@@ -15,7 +18,7 @@ public class ArchiveUtils {
         return createTypedPath(archiveRoot, sensorNames, year, month, "clean-env");
     }
 
-    private static String createTypedPath(String archiveRoot, String[] sensorNames, int year, int month, String type) {
+    public static String createTypedPath(String archiveRoot, String[] sensorNames, int year, int month, String type) {
         final StringBuilder stringBuilder = new StringBuilder(256);
         stringBuilder.append(archiveRoot);
         stringBuilder.append("/" + type + "/");
@@ -39,5 +42,18 @@ public class ArchiveUtils {
         stringBuilder.append(monthFormat.format(month));
         stringBuilder.append(".json");
         return stringBuilder.toString();
+    }
+
+    static String[] createSensorNamesArray(String sensorName1, String sensorName2, String insituSensorName) {
+        final ArrayList<String> sensorNamesList = new ArrayList<>();
+        sensorNamesList.add(sensorName1);
+        if (StringUtils.isNotBlank(sensorName2)) {
+            sensorNamesList.add(sensorName2);
+        }
+        if (StringUtils.isNotBlank(insituSensorName)) {
+            sensorNamesList.add("history");
+        }
+
+        return sensorNamesList.toArray(new String[sensorNamesList.size()]);
     }
 }

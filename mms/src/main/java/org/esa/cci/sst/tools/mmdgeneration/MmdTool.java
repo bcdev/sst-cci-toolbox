@@ -23,7 +23,12 @@ import org.esa.cci.sst.ColumnRegistry;
 import org.esa.cci.sst.Predicate;
 import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.common.ExtractDefinitionBuilder;
-import org.esa.cci.sst.data.*;
+import org.esa.cci.sst.data.Coincidence;
+import org.esa.cci.sst.data.InsituObservation;
+import org.esa.cci.sst.data.Item;
+import org.esa.cci.sst.data.Matchup;
+import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.orm.ColumnStorage;
 import org.esa.cci.sst.orm.MatchupQueryParameter;
 import org.esa.cci.sst.orm.MatchupStorage;
@@ -34,8 +39,10 @@ import org.esa.cci.sst.rules.Converter;
 import org.esa.cci.sst.rules.RuleException;
 import org.esa.cci.sst.tool.Configuration;
 import org.esa.cci.sst.tool.ToolException;
+import org.esa.cci.sst.tools.ArchiveUtils;
 import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tools.Constants;
+import org.esa.cci.sst.util.ConfigUtil;
 import org.esa.cci.sst.util.ReaderCache;
 import org.postgis.Point;
 import ucar.ma2.Array;
@@ -48,7 +55,14 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.text.ParseException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.logging.Level;
 
 import static ucar.nc2.NetcdfFileWriter.Version;
@@ -60,14 +74,17 @@ import static ucar.nc2.NetcdfFileWriter.Version;
  */
 public class MmdTool extends BasicTool {
 
-    private static final String AVHRR_M02_TIME = "avhrr.m02.time";
-
     private final ColumnRegistry columnRegistry;
     private Map<String, Integer> dimensionConfiguration;
     private final List<String> targetColumnNames;
 
     private ReaderCache readerCache;
     private int matchupCount;
+    private String inputType;
+    private String sensorName1;
+    private String sensorName2;
+    private String usecaseRootPath;
+    private String insituSensorName;
 
     public MmdTool() {
         super("mmd-tool.sh", "0.1");
@@ -84,7 +101,21 @@ public class MmdTool extends BasicTool {
      */
     public static void main(String[] args) {
         final MmdTool tool = new MmdTool();
-        tool.run(args);
+        try {
+            final boolean ok = tool.setCommandLineArgs(args);
+            if (!ok) {
+                tool.printHelp();
+                return;
+            }
+            tool.initialize();
+            tool.run();
+        } catch (ToolException e) {
+            tool.getErrorHandler().terminate(e);
+        } catch (Exception e) {
+            tool.getErrorHandler().terminate(new ToolException(e.getMessage(), e, ToolException.UNKNOWN_ERROR));
+        } finally {
+            tool.cleanup();
+        }
     }
 
     @Override
@@ -92,47 +123,52 @@ public class MmdTool extends BasicTool {
         super.initialize();
 
         final Configuration config = getConfig();
+
+        inputType = config.getStringValue(Configuration.KEY_MMS_MMD_INPUT_TYPE);
+        final int readerCacheSize = config.getIntValue(Configuration.KEY_MMS_MMD_READER_CACHE_SIZE, 10);
+
+        final String[] sensorNames = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR).split(",", 2);
+        sensorName1 = sensorNames[0];
+        if (sensorNames.length > 1) {
+            sensorName2 = sensorNames[1];
+        }
+        insituSensorName = config.getOptionalStringValue(Configuration.KEY_MMS_SAMPLING_INSITU_SENSOR);
+
+        usecaseRootPath = ConfigUtil.getUsecaseRootPath(config);
+
+        readerCache = new ReaderCache(readerCacheSize, config, logger);
+
         initializeTargetColumns(config, getPersistenceManager().getColumnStorage());
         final Set<String> dimensionNames = getDimensionNames(targetColumnNames, columnRegistry);
         dimensionConfiguration = DimensionConfigurationInitializer.initialize(dimensionNames, config);
-
-        final int readerCacheSize = config.getIntValue(Configuration.KEY_MMS_MMD_READER_CACHE_SIZE, 10);
-        readerCache = new ReaderCache(readerCacheSize, config, logger);
     }
 
-    private void run(String[] args) {
+    private void cleanup() {
+        readerCache.clear();
+        getPersistenceManager().close();
+    }
+
+    private void run() throws IOException {
         MmdWriter mmdWriter = null;
 
         try {
-            final boolean performWork = setCommandLineArgs(args);
-            if (!performWork) {
-                return;
-            }
-
-            initialize();
-
             final Configuration config = getConfig();
             final Map<Long, Integer> matchupIdToRecordIndexMap = createMatchupIdToRecordIndexMap();
             matchupCount = matchupIdToRecordIndexMap.size();
+            // TODO - write single file per sensor
             final NetcdfFileWriter writer = createNetCDFWriter(config);
             mmdWriter = prepareMmdWriter(writer);
             if (matchupCount == 0) {
                 return;
             }
             writeMmdFile(mmdWriter, matchupIdToRecordIndexMap);
-        } catch (ToolException e) {
-            getErrorHandler().terminate(e);
-        } catch (Throwable t) {
-            getErrorHandler().terminate(new ToolException(t.getMessage(), t, ToolException.UNKNOWN_ERROR));
         } finally {
-            readerCache.clear();
             if (mmdWriter != null) {
                 try {
                     mmdWriter.close();
                 } catch (IOException ignored) {
                 }
             }
-            getPersistenceManager().close();
         }
     }
 
@@ -151,70 +187,49 @@ public class MmdTool extends BasicTool {
 
         // loop over sensors, matchups ordered by sensor files, variables of sensor
         final PersistenceManager persistenceManager = getPersistenceManager();
-        final MatchupStorage matchupStorage = persistenceManager.getMatchupStorage();
         final Configuration config = getConfig();
+        final MatchupStorage matchupStorage = persistenceManager.getMatchupStorage();
 
         for (String sensorName : sensorNames) {
+            // TODO - use list already loaded
             final List<Matchup> matchups = getMatchupsFromDb(matchupStorage, config, sensorName);
 
             for (final Matchup matchup : matchups) {
                 try {
-                    final Integer recordNo = matchupIdToRecordIndexMap.get(matchup.getId());
-                    if (recordNo == null) {
-                        logger.warning(
-                                String.format("skipping matchup %s for update - not found in MMD", matchup.getId()));
-                        continue;
-                    }
 
-                    final int targetRecordNo = recordNo;
-                    final ReferenceObservation referenceObservation = matchup.getRefObs();
+                    // TODO - get observation from list loaded
                     final Observation observation = findObservation(sensorName, matchup, getPersistenceManager());
+
+                    final ReferenceObservation referenceObservation = matchup.getRefObs();
                     final List<Variable> variables = sensorMap.get(sensorName);
                     for (final Variable variable : variables) {
-                        if (observation != null) {
-                            if (!isAccurateCoincidence(referenceObservation, observation)) {
-                                if (variable.getShortName().equalsIgnoreCase(AVHRR_M02_TIME)) {
-                                    logger.info("No accurate coincidence for Variable " + AVHRR_M02_TIME + "and observation " + observation.getId());
+                        if (observation == null || isAccurateCoincidence(referenceObservation, observation)) {
+                            final Item targetColumn = columnRegistry.getColumn(variable.getShortName());
+                            final Item sourceColumn = columnRegistry.getSourceColumn(targetColumn);
+                            final int targetRecordNo = matchupIdToRecordIndexMap.get(matchup.getId());
+
+                            if ("Implicit".equals(sourceColumn.getName())) {
+                                final Context context = new ContextBuilder(readerCache)
+                                        .matchup(matchup)
+                                        .observation(observation)
+                                        .targetVariable(variable)
+                                        .dimensionConfiguration(dimensionConfiguration)
+                                        .configuration(getConfig())
+                                        .build();
+                                writeImplicitColumn(mmdWriter, variable, targetRecordNo, targetColumn, context);
+                            } else {
+                                if (observation != null) {
+                                    writeColumn(mmdWriter, variable, targetRecordNo, targetColumn, sourceColumn,
+                                                observation,
+                                                referenceObservation);
                                 }
-                                continue;
                             }
                         }
-                        final Item targetColumn = columnRegistry.getColumn(variable.getShortName());
-                        final Item sourceColumn = columnRegistry.getSourceColumn(targetColumn);
-                        if ("Implicit".equals(sourceColumn.getName())) {
-                            final Context context = new ContextBuilder(readerCache)
-                                    .matchup(matchup)
-                                    .observation(observation)
-                                    .targetVariable(variable)
-                                    .dimensionConfiguration(dimensionConfiguration)
-                                    .configuration(getConfig())
-                                    .build();
-                            if (variable.getShortName().equalsIgnoreCase(AVHRR_M02_TIME)) {
-                                logger.info("writing implicit column " + targetColumn.getName() + " for variable " + AVHRR_M02_TIME);
-                            }
-                            writeImplicitColumn(mmdWriter, variable, targetRecordNo, targetColumn, context);
-                        } else {
-                            if (observation != null) {
-                                if (variable.getShortName().equalsIgnoreCase(AVHRR_M02_TIME)) {
-                                    logger.info("writing column " + targetColumn.getName() + " for variable " + AVHRR_M02_TIME + "and observation " + observation.getId());
-                                }
-                                writeColumn(mmdWriter, variable, targetRecordNo, targetColumn, sourceColumn,
-                                        observation,
-                                        referenceObservation);
-                            }
-                        }
-                    }
-                    persistenceManager.detach(matchup);
-                    if (observation != null) {
-                        persistenceManager.detach(observation);
-                    }
-                    if (referenceObservation != null) {
-                        persistenceManager.detach(referenceObservation);
                     }
                 } catch (IOException e) {
                     final String message = MessageFormat.format("matchup {0}: {1}",
-                            matchup.getId(),
-                            e.getMessage());
+                                                                matchup.getId(),
+                                                                e.getMessage());
                     throw new ToolException(message, e, ToolException.TOOL_IO_ERROR);
                 }
             }
@@ -241,9 +256,13 @@ public class MmdTool extends BasicTool {
         final Configuration config = getConfig();
         final PersistenceManager persistenceManager = getPersistenceManager();
         final MatchupStorage matchupStorage = persistenceManager.getMatchupStorage();
+
+        // TODO - read matchup's from clean-env or clean file
         final MatchupQueryParameter queryParameter = createMatchupQueryParameter(config);
         final List<Matchup> matchups = matchupStorage.get(queryParameter);
         logger.info(String.format("%d matchups retrieved", matchups.size()));
+
+        //ArchiveUtils.createTypedPath(usecaseRootPath, );
 
         final Map<Long, Integer> matchupIdToRecordIndexMap = new HashMap<>(matchups.size());
         for (int i = 0; i < matchups.size(); ++i) {
@@ -268,7 +287,7 @@ public class MmdTool extends BasicTool {
 
     private void initializeTargetColumns(Configuration config, ColumnStorage columnStorage) {
         final ColumnRegistryInitializer columnRegistryInitializer = new ColumnRegistryInitializer(columnRegistry,
-                columnStorage);
+                                                                                                  columnStorage);
         columnRegistryInitializer.initialize();
         registerTargetColumns(config);
     }
@@ -319,11 +338,11 @@ public class MmdTool extends BasicTool {
             }
         } catch (IOException e) {
             final String message = MessageFormat.format("matchup {0}: {1}", context.getMatchup().getId(),
-                    e.getMessage());
+                                                        e.getMessage());
             throw new ToolException(message, e, ToolException.TOOL_IO_ERROR);
         } catch (RuleException | InvalidRangeException e) {
             final String message = MessageFormat.format("matchup {0}: {1}", context.getMatchup().getId(),
-                    e.getMessage());
+                                                        e.getMessage());
             throw new ToolException(message, e, ToolException.TOOL_ERROR);
         }
     }
@@ -347,7 +366,7 @@ public class MmdTool extends BasicTool {
             if (sourceArray != null) {
                 if (logger.isLoggable(Level.FINE)) {
                     logger.fine(MessageFormat.format("source column: {0}, {1}", sourceColumn.getName(),
-                            sourceColumn.getRole()));
+                                                     sourceColumn.getRole()));
                 }
                 sourceColumn = reader.getColumn(role);
                 if (sourceColumn == null) {
@@ -375,7 +394,8 @@ public class MmdTool extends BasicTool {
             final Item column = columnRegistry.getColumn(name);
             final String dimensions = column.getDimensions();
             if (dimensions.isEmpty()) {
-                final String message = MessageFormat.format("Expected at least one dimension for target column ''{0}''.", name);
+                final String message = MessageFormat.format(
+                        "Expected at least one dimension for target column ''{0}''.", name);
                 throw new ToolException(message, ToolException.TOOL_CONFIGURATION_ERROR);
             }
             dimensionNames.addAll(Arrays.asList(dimensions.split("\\s")));
@@ -401,13 +421,6 @@ public class MmdTool extends BasicTool {
         final String configFilePath = config.getStringValue(Configuration.KEY_MMS_MMD_TARGET_VARIABLES);
         try {
             final List<String> names = columnRegistry.registerColumns(new File(configFilePath), predicate);
-
-            for (String name : names) {
-                if (AVHRR_M02_TIME.equalsIgnoreCase(name)) {
-                    logger.info("Registered column " + AVHRR_M02_TIME);
-                }
-            }
-
             targetColumnNames.addAll(names);
         } catch (FileNotFoundException e) {
             throw new ToolException(e.getMessage(), e, ToolException.CONFIGURATION_FILE_NOT_FOUND_ERROR);
