@@ -7,7 +7,7 @@ month=$2
 sensor=$3
 usecase=$4
 
-task="coincidence"
+task="auxdata"
 jobname="${task}-${year}-${month}-${sensor}"
 command="${task}-run.sh ${year} ${month} ${sensor} ${usecase}"
 

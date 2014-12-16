@@ -17,4 +17,4 @@ w.add_primary_sensor('atsr.2', '1996-07-01', '2003-06-23')
 w.add_primary_sensor('atsr.3', '2002-05-20', '2012-04-09')
 w.set_samples_per_month(300000)
 
-w.run(mmdtype, calls=[('coincidence-start.sh', 3)])
+w.run(mmdtype)

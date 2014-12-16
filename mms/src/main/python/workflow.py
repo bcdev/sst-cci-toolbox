@@ -606,7 +606,7 @@ class Workflow:
             self._execute_sampling(m, chunk)
             self._execute_clearing(m, chunk)
             #self._execute_plotting(m, chunk, sampling_prefix)
-            #self._execute_ingest_coincidences(m, chunk, sampling_prefix)
+            self._execute_auxdata_coincidences(m, chunk, sampling_prefix)
             #self._execute_create_sub_mmd_files(m, chunk)
             #self._execute_create_nwp_mmd_files(m, chunk)
             #self._execute_create_matchup_nwp_mmd_files(m, chunk)
@@ -919,7 +919,7 @@ class Workflow:
                     monitor.execute(job)
                     date = _next_month(date)
 
-    def _execute_ingest_coincidences(self, monitor, chunk, sampling_prefix):
+    def _execute_auxdata_coincidences(self, monitor, chunk, sampling_prefix):
         """
 
         :type monitor: Monitor
@@ -934,8 +934,8 @@ class Workflow:
                 end_date = period.get_end_date()
                 while date < end_date:
                     (year, month) = _year_month(date)
-                    job = Job('coincidence-start' + '-' + year + '-' + month + '-' + name,
-                              'coincidence-start.sh',
+                    job = Job('auxdata-start' + '-' + year + '-' + month + '-' + name,
+                              'auxdata-start.sh',
                               ['/clr/' + name + '/' + _pathformat(date)],
                               ['/con/' + name + '/' + _pathformat(date)],
                               [year, month, sampling_prefix + '_' + name, self.get_usecase()])
