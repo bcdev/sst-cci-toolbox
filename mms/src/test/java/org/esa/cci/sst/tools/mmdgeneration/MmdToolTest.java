@@ -269,7 +269,7 @@ public class MmdToolTest {
         final Matchup matchup = createMatchupWithRefObs("different");
         matchup.setCoincidences(new ArrayList<Coincidence>());
 
-        final Observation observation = MmdTool.findObservation("dont_care", matchup, null);
+        final Observation observation = MmdTool.findObservation("dont_care", matchup);
         assertNull(observation);
     }
 
@@ -277,7 +277,7 @@ public class MmdToolTest {
     public void testFindObservation_referenceObservation() {
         final Matchup matchup = createMatchupWithRefObs("the_one");
 
-        final Observation observation = MmdTool.findObservation("the_one", matchup, null);
+        final Observation observation = MmdTool.findObservation("the_one", matchup);
         assertNotNull(observation);
     }
 
@@ -286,7 +286,7 @@ public class MmdToolTest {
         final Matchup matchup = createMatchupWithRefObs("different");
         addCoincidence(matchup, "the_one");
 
-        final Observation result = MmdTool.findObservation("the_one", matchup, null);
+        final Observation result = MmdTool.findObservation("the_one", matchup);
         assertNotNull(result);
     }
 
@@ -305,11 +305,11 @@ public class MmdToolTest {
 
         final PersistenceManager persistenceManager = mock(PersistenceManager.class);
 
-        final Observation result = MmdTool.findObservation("the_one", matchup, persistenceManager);
+        final Observation result = MmdTool.findObservation("the_one", matchup);
         assertNull(result);
 
-        verify(persistenceManager, times(1)).detach(observation);
-        verify(persistenceManager, times(1)).detach(coincidence);
+        verify(persistenceManager, times(0)).detach(observation);
+        verify(persistenceManager, times(0)).detach(coincidence);
         verifyNoMoreInteractions(persistenceManager);
     }
 
