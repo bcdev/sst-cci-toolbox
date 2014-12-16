@@ -51,7 +51,7 @@ public class MatchupIOTest_sensors {
         sensor = createSensor();
         sensor.setName("different");
         id = MatchupIO.addSensor(sensor, matchupData, idGenerator);
-        assertEquals(2, id);
+        assertEquals(1, id);
         assertEquals(2, matchupData.getSensors().size());
     }
 
@@ -66,7 +66,7 @@ public class MatchupIOTest_sensors {
         sensor = createSensor();
         sensor.setPattern(-99);
         id = MatchupIO.addSensor(sensor, matchupData, idGenerator);
-        assertEquals(2, id);
+        assertEquals(1, id);
         assertEquals(2, matchupData.getSensors().size());
     }
 
@@ -81,7 +81,7 @@ public class MatchupIOTest_sensors {
         sensor = createSensor();
         sensor.setObservationType("different");
         id = MatchupIO.addSensor(sensor, matchupData, idGenerator);
-        assertEquals(2, id);
+        assertEquals(1, id);
         assertEquals(2, matchupData.getSensors().size());
     }
 
@@ -90,6 +90,7 @@ public class MatchupIOTest_sensors {
         sensor.setName("bla");
         sensor.setPattern(9);
         sensor.setObservationType("blub");
+        sensor.setId(1);
         return sensor;
     }
 }

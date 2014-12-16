@@ -64,7 +64,6 @@ public class Sensor {
      *
      * @deprecated no replacement.
      */
-    @Deprecated
     public void setId(int id) {
         this.id = id;
     }

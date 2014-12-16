@@ -254,7 +254,7 @@ public class MatchupIO {
             }
         }
 
-        sensor.setId(idGenerator.next());
+        //sensor.setId(idGenerator.next());
         matchupData.add(sensor);
 
         return sensor.getId();

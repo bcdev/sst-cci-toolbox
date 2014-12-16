@@ -51,6 +51,7 @@ public class MatchupIOTest_mapping {
         sensor.setName("5");
         sensor.setPattern(6);
         sensor.setObservationType("7");
+        sensor.setId(1);
         dataFile.setSensor(sensor);
         referenceObservation.setDatafile(dataFile);
         referenceObservation.setRecordNo(8);
@@ -118,6 +119,7 @@ public class MatchupIOTest_mapping {
         sensor.setName("related");
         sensor.setPattern(131);
         sensor.setObservationType("132");
+        sensor.setId(2);
         final DataFile dataFile = new DataFile("130", sensor);
         relatedObservation.setDatafile(dataFile);
         relatedObservation.setRecordNo(133);
@@ -178,6 +180,7 @@ public class MatchupIOTest_mapping {
         sensor.setName("insitu");
         sensor.setPattern(231);
         sensor.setObservationType("232");
+        sensor.setId(2);
         final DataFile dataFile = new DataFile("230", sensor);
         insituObservation.setDatafile(dataFile);
         insituObservation.setRecordNo(233);
