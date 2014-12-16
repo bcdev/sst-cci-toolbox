@@ -1,6 +1,13 @@
 package org.esa.cci.sst.tools;
 
-import org.esa.cci.sst.data.*;
+import org.esa.cci.sst.data.Coincidence;
+import org.esa.cci.sst.data.DataFile;
+import org.esa.cci.sst.data.InsituObservation;
+import org.esa.cci.sst.data.Matchup;
+import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.data.ReferenceObservation;
+import org.esa.cci.sst.data.RelatedObservation;
+import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.orm.Storage;
 import org.esa.cci.sst.tool.Configuration;
@@ -11,15 +18,26 @@ import org.esa.cci.sst.tools.samplepoint.DirtySubsceneRemover;
 import org.esa.cci.sst.tools.samplepoint.OverlapRemover;
 import org.esa.cci.sst.tools.samplepoint.SamplePointImporter;
 import org.esa.cci.sst.tools.samplepoint.TimeRange;
-import org.esa.cci.sst.util.*;
+import org.esa.cci.sst.util.ConfigUtil;
+import org.esa.cci.sst.util.GeometryUtil;
+import org.esa.cci.sst.util.Month;
+import org.esa.cci.sst.util.SamplingPoint;
+import org.esa.cci.sst.util.SensorNames;
+import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.PGgeometry;
 
 import javax.persistence.Query;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -120,16 +138,16 @@ public class MatchupGenerator extends BasicTool {
                 pm.transaction();
                 final String sensorShortName = createSensorShortName(referenceSensorName, primarySensorName);
                 final List<ReferenceObservation> referenceObservations = createReferenceObservations(samples,
-                        sensorShortName,
-                        storage);
+                                                                                                     sensorShortName,
+                                                                                                     storage);
                 pm.commit();
                 logInfo(logger, "Finished creating reference observations");
 
                 logInfo(logger, "Starting creating matchup pattern ...");
                 final long matchupPattern = defineMatchupPattern(primarySensorName,
-                        secondarySensorName,
-                        referenceSensorPattern,
-                        pm);
+                                                                 secondarySensorName,
+                                                                 referenceSensorPattern,
+                                                                 pm);
                 logInfo(logger, MessageFormat.format("Matchup pattern: {0}", Long.toHexString(matchupPattern)));
 
                 // create matchups and coincidences
@@ -177,12 +195,23 @@ public class MatchupGenerator extends BasicTool {
 
                 final String[] sensorNamesArray = createSensorNamesArray(hasInsitu);
                 final Month centerMonth = ConfigUtil.getCenterMonth(Configuration.KEY_MMS_SAMPLING_START_TIME,
-                        Configuration.KEY_MMS_SAMPLING_STOP_TIME,
-                        getConfig());
+                                                                    Configuration.KEY_MMS_SAMPLING_STOP_TIME,
+                                                                    getConfig());
 
-                final String outputFilePath = ArchiveUtils.createCleanFilePath(usecaseRootPath, sensorNamesArray, centerMonth.getYear(), centerMonth.getMonth());
-                final File outFile = FileUtil.createNewFile(outputFilePath);
-                MatchupIO.write(matchups, new FileOutputStream(outFile), getConfig());
+                final String targetFilePath = ArchiveUtils.createCleanFilePath(usecaseRootPath, sensorNamesArray,
+                                                                               centerMonth.getYear(),
+                                                                               centerMonth.getMonth());
+                final File targetFile = new File(targetFilePath);
+                final File targetDir = targetFile.getParentFile();
+                if (!targetDir.isDirectory()) {
+                    if (!targetDir.mkdirs()) {
+                        final String message = MessageFormat.format("Unable to create target directory: {0}",
+                                                                    targetDir.getAbsolutePath());
+                        throw new ToolException(message, ToolException.TOOL_ERROR);
+                    }
+                }
+                final OutputStream outputStream = new FileOutputStream(targetFile);
+                MatchupIO.write(matchups, outputStream, getConfig());
 
                 logInfo(logger, "Finished writing matchups and coincidences...");
             } catch (Exception e) {
@@ -262,7 +291,7 @@ public class MatchupGenerator extends BasicTool {
         r.setSensor(referenceSensorName);
 
         final PGgeometry location = GeometryUtil.createPointGeometry(samplingPoint.getReferenceLon(),
-                samplingPoint.getReferenceLat());
+                                                                     samplingPoint.getReferenceLat());
         r.setLocation(location);
         r.setPoint(location);
 
@@ -358,8 +387,8 @@ public class MatchupGenerator extends BasicTool {
         getPersistenceManager().transaction();
 
         final TimeRange timeRange = ConfigUtil.getTimeRange(Configuration.KEY_MMS_SAMPLING_START_TIME,
-                Configuration.KEY_MMS_SAMPLING_STOP_TIME,
-                getConfig());
+                                                            Configuration.KEY_MMS_SAMPLING_STOP_TIME,
+                                                            getConfig());
         final Date startDate = timeRange.getStartDate();
         final Date stopDate = timeRange.getStopDate();
         Query delete = getPersistenceManager().createNativeQuery(
@@ -387,7 +416,7 @@ public class MatchupGenerator extends BasicTool {
     private void createMatchups(Logger logger, List<SamplingPoint> samples) {
         logInfo(logger, "Starting creating matchups...");
         createMatchups(samples, referenceSensorName, sensorName1, sensorName2, referenceSensorPattern,
-                getPersistenceManager(), getStorage(), logger);
+                       getPersistenceManager(), getStorage(), logger);
         logInfo(logger, "Finished creating matchups...");
     }
 
