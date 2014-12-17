@@ -62,12 +62,12 @@ public class MatchupIO {
                 final int observationId = observation.getId();
                 if (observation instanceof InsituObservation) {
                     final InsituObservation insituObservation = (InsituObservation) observation;
-                    final IO_Observation io_observation = createIO_Observation(idGenerator, matchupData, observationId, insituObservation);
+                    final IO_Observation io_observation = createIO_Observation(matchupData, observationId, insituObservation);
                     matchupData.addInsitu(io_observation);
                     io_coincidence.setInsitu(true);
                 } else {
                     final RelatedObservation relatedObservation = (RelatedObservation) observation;
-                    final IO_Observation io_observation = createIO_Observation(idGenerator, matchupData, observationId, relatedObservation);
+                    final IO_Observation io_observation = createIO_Observation(matchupData, observationId, relatedObservation);
                     matchupData.addRelated(io_observation);
                 }
                 io_coincidence.setObservationId(observationId);
@@ -110,19 +110,20 @@ public class MatchupIO {
         return resultList;
     }
 
-    private static IO_Observation createIO_Observation(IdGenerator idGenerator, MatchupData matchupData, int observationId, RelatedObservation relatedObservation) {
+    private static IO_Observation createIO_Observation(MatchupData matchupData, int observationId, RelatedObservation relatedObservation) {
         final IO_Observation io_observation = new IO_Observation();
         io_observation.setId(observationId);
         io_observation.setName(relatedObservation.getName());
         io_observation.setSensor(relatedObservation.getSensor());
         final DataFile datafile = relatedObservation.getDatafile();
         io_observation.setFilePath(datafile.getPath());
-        final int sensorId = addSensor(datafile.getSensor(), matchupData, idGenerator);
+        final int sensorId = addSensor(datafile.getSensor(), matchupData);
         io_observation.setSensorId(sensorId);
         io_observation.setRecordNo(relatedObservation.getRecordNo());
         io_observation.setTime(relatedObservation.getTime());
         io_observation.setTimeRadius(relatedObservation.getTimeRadius());
-        io_observation.setLocation(relatedObservation.getLocation().getValue());
+        // @todo 2 tb/tb temporarily removed due to memory issues 2014-12-17
+        //io_observation.setLocation(relatedObservation.getLocation().getValue());
         return io_observation;
     }
 
@@ -143,8 +144,9 @@ public class MatchupIO {
                 relatedObservation.setTime(observation.getTime());
                 relatedObservation.setTimeRadius(observation.getTimeRadius());
 
-                final PGgeometry location = createGeometry(observation.getLocation());
-                relatedObservation.setLocation(location);
+                // @todo 2 tb/tb temporarily removed due to memory issues 2014-12-17
+//                final PGgeometry location = createGeometry(observation.getLocation());
+//                relatedObservation.setLocation(location);
 
                 relatedObservation.setRecordNo(observation.getRecordNo());
                 return relatedObservation;
@@ -170,8 +172,9 @@ public class MatchupIO {
                 relatedObservation.setTime(observation.getTime());
                 relatedObservation.setTimeRadius(observation.getTimeRadius());
 
-                final PGgeometry location = createGeometry(observation.getLocation());
-                relatedObservation.setLocation(location);
+                // @todo 2 tb/tb temporarily removed due to memory issues 2014-12-17
+//                final PGgeometry location = createGeometry(observation.getLocation());
+//                relatedObservation.setLocation(location);
 
                 relatedObservation.setRecordNo(observation.getRecordNo());
                 return relatedObservation;
@@ -199,7 +202,8 @@ public class MatchupIO {
                 result.setTime(io_refobs.getTime());
                 result.setTimeRadius(io_refobs.getTimeRadius());
 
-                result.setLocation(createGeometry(io_refobs.getLocation()));
+                // @todo 2 tb/tb temporarily removed due to memory issues 2014-12-17
+                // result.setLocation(createGeometry(io_refobs.getLocation()));
                 result.setPoint(createGeometry(io_refobs.getPoint()));
 
                 result.setDataset(io_refobs.getDataset());
@@ -230,13 +234,14 @@ public class MatchupIO {
         final DataFile datafile = refObs.getDatafile();
         io_refObs.setFilePath(datafile.getPath());
 
-        final int sensorId = addSensor(datafile.getSensor(), matchupData, idGenerator);
+        final int sensorId = addSensor(datafile.getSensor(), matchupData);
         io_refObs.setSensorId(sensorId);
 
         io_refObs.setRecordNo(refObs.getRecordNo());
         io_refObs.setTime(refObs.getTime());
         io_refObs.setTimeRadius(refObs.getTimeRadius());
-        io_refObs.setLocation(refObs.getLocation().getValue());
+        // @todo 2 tb/tb temporarily removed due to memory issues 2014-12-17
+        //io_refObs.setLocation(refObs.getLocation().getValue());
         io_refObs.setPoint(refObs.getPoint().getValue());
         io_refObs.setDataset(refObs.getDataset());
         io_refObs.setReferenceFlag(refObs.getReferenceFlag());
@@ -244,7 +249,7 @@ public class MatchupIO {
     }
 
     // package access for testing only tb 2014-11-24
-    static int addSensor(Sensor sensor, MatchupData matchupData, IdGenerator idGenerator) {
+    static int addSensor(Sensor sensor, MatchupData matchupData) {
         final List<Sensor> sensorList = matchupData.getSensors();
         for (final Sensor storedSensor : sensorList) {
             if (storedSensor.getName().equals(sensor.getName())
@@ -254,7 +259,6 @@ public class MatchupIO {
             }
         }
 
-        //sensor.setId(idGenerator.next());
         matchupData.add(sensor);
 
         return sensor.getId();
