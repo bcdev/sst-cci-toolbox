@@ -12,28 +12,33 @@ import java.util.Date;
 import java.util.List;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 @SuppressWarnings({"deprecation", "InstanceofInterfaces"})
 public class MatchupIOTest_mapping {
 
     private IdGenerator idGenerator;
+    private DetachHandler detachHandler;
 
     @Before
     public void setUp() {
         idGenerator = new IdGenerator(2010, 11, 16, 17);
+        detachHandler = mock(DetachHandler.class);
     }
 
     @Test
     public void testMap_emptyList() {
         final List<Matchup> matchups = new ArrayList<>();
 
-        final MatchupData mapped = MatchupIO.map(matchups, idGenerator);
+        final MatchupData mapped = MatchupIO.map(matchups, idGenerator, detachHandler);
         assertNotNull(mapped);
         assertTrue(mapped.getInsituObservations().isEmpty());
         assertTrue(mapped.getMatchups().isEmpty());
         assertTrue(mapped.getReferenceObservations().isEmpty());
         assertTrue(mapped.getRelatedObservations().isEmpty());
         assertTrue(mapped.getSensors().isEmpty());
+
+        verifyNoMoreInteractions(detachHandler);
     }
 
     @Test
@@ -64,7 +69,7 @@ public class MatchupIOTest_mapping {
         matchup.setRefObs(referenceObservation);
         matchups.add(matchup);
 
-        final MatchupData mapped = MatchupIO.map(matchups, idGenerator);
+        final MatchupData mapped = MatchupIO.map(matchups, idGenerator, detachHandler);
         assertNotNull(mapped);
         assertTrue(mapped.getInsituObservations().isEmpty());
         assertTrue(mapped.getRelatedObservations().isEmpty());
@@ -100,6 +105,10 @@ public class MatchupIOTest_mapping {
         assertEquals("5", mappedSensor.getName());
         assertEquals(6, sensor.getPattern());
         assertEquals("7", sensor.getObservationType());
+
+        verify(detachHandler, times(1)).detach(matchup);
+        verify(detachHandler, times(1)).detach(referenceObservation);
+        // @todo 1 tb/tb continue here 2014-12-18
     }
 
     @Test
@@ -132,7 +141,7 @@ public class MatchupIOTest_mapping {
 
         matchups.add(matchup);
 
-        final MatchupData matchupData = MatchupIO.map(matchups, idGenerator);
+        final MatchupData matchupData = MatchupIO.map(matchups, idGenerator, detachHandler);
         final List<IO_Matchup> io_matchups = matchupData.getMatchups();
         assertEquals(1, io_matchups.size());
         final IO_Matchup io_matchup = io_matchups.get(0);
@@ -194,7 +203,7 @@ public class MatchupIOTest_mapping {
 
         matchups.add(matchup);
 
-        final MatchupData matchupData = MatchupIO.map(matchups, idGenerator);
+        final MatchupData matchupData = MatchupIO.map(matchups, idGenerator, detachHandler);
         final List<IO_Matchup> io_matchups = matchupData.getMatchups();
         assertEquals(1, io_matchups.size());
         final IO_Matchup io_matchup = io_matchups.get(0);

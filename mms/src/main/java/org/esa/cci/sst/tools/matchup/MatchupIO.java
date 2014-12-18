@@ -20,7 +20,8 @@ public class MatchupIO {
     public static void write(List<Matchup> matchups, OutputStream outputStream, Configuration configuration) throws IOException {
         final IdGenerator idGenerator = IdGenerator.create(configuration);
 
-        final MatchupData matchupData = map(matchups, idGenerator);
+        // @todo 1 tb/tb implement factory for detachhadler, read config parameter, invent means to ingest peristenceManager 2014-12-18
+        final MatchupData matchupData = map(matchups, idGenerator, new NoDetachHandler());
         writeMapped(matchupData, outputStream);
     }
 
@@ -44,14 +45,14 @@ public class MatchupIO {
 
     @SuppressWarnings("InstanceofInterfaces")
     // package access for testing only tb 2014-11-26
-    static MatchupData map(List<Matchup> matchups, IdGenerator idGenerator) {
+    static MatchupData map(List<Matchup> matchups, IdGenerator idGenerator, DetachHandler detachHandler) {
         final MatchupData matchupData = new MatchupData();
 
         for (final Matchup matchup : matchups) {
             final IO_Matchup io_matchup = createIO_Matchup(matchup, idGenerator);
             matchupData.add(io_matchup);
 
-            final IO_RefObservation io_refObs = createIO_RefObs(idGenerator, matchupData, matchup);
+            final IO_RefObservation io_refObs = createIO_RefObs(idGenerator, matchupData, matchup, detachHandler);
             matchupData.add(io_refObs);
 
             final List<Coincidence> coincidences = matchup.getCoincidences();
@@ -74,6 +75,8 @@ public class MatchupIO {
                 io_coincidence.setTimeDifference(coincidence.getTimeDifference());
                 io_matchup.add(io_coincidence);
             }
+
+            detachHandler.detach(matchup);
         }
         return matchupData;
     }
@@ -225,7 +228,7 @@ public class MatchupIO {
         throw new ToolException("Sensor with id '" + sensorId + "'not found", ToolException.TOOL_INTERNAL_ERROR);
     }
 
-    private static IO_RefObservation createIO_RefObs(IdGenerator idGenerator, MatchupData matchupData, Matchup matchup) {
+    private static IO_RefObservation createIO_RefObs(IdGenerator idGenerator, MatchupData matchupData, Matchup matchup, DetachHandler detachHandler) {
         final ReferenceObservation refObs = matchup.getRefObs();
         final IO_RefObservation io_refObs = new IO_RefObservation();
         io_refObs.setId(idGenerator.next());
@@ -245,6 +248,8 @@ public class MatchupIO {
         io_refObs.setPoint(refObs.getPoint().getValue());
         io_refObs.setDataset(refObs.getDataset());
         io_refObs.setReferenceFlag(refObs.getReferenceFlag());
+
+        detachHandler.detach(refObs);
         return io_refObs;
     }
 
