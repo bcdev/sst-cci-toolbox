@@ -211,7 +211,7 @@ public class MatchupGenerator extends BasicTool {
                     }
                 }
                 final OutputStream outputStream = new FileOutputStream(targetFile);
-                MatchupIO.write(matchups, outputStream, getConfig());
+                MatchupIO.write(matchups, outputStream, getConfig(), pm);
 
                 logInfo(logger, "Finished writing matchups and coincidences...");
             } catch (Exception e) {

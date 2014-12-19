@@ -3,6 +3,7 @@ package org.esa.cci.sst.tools.matchup;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.esa.cci.sst.data.*;
+import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.tool.Configuration;
 import org.esa.cci.sst.tool.ToolException;
 import org.postgis.PGgeometry;
@@ -17,10 +18,11 @@ import java.util.List;
 @SuppressWarnings("deprecation")
 public class MatchupIO {
 
-    public static void write(List<Matchup> matchups, OutputStream outputStream, Configuration configuration) throws IOException {
+    public static void write(List<Matchup> matchups, OutputStream outputStream, Configuration configuration, PersistenceManager persistenceManager) throws IOException {
         final IdGenerator idGenerator = IdGenerator.create(configuration);
+        final DetachHandler detachHandler = DetachHandlerFactory.create(configuration, persistenceManager);
 
-        final MatchupData matchupData = map(matchups, idGenerator);
+        final MatchupData matchupData = map(matchups, idGenerator, detachHandler);
         writeMapped(matchupData, outputStream);
     }
 
@@ -44,14 +46,14 @@ public class MatchupIO {
 
     @SuppressWarnings("InstanceofInterfaces")
     // package access for testing only tb 2014-11-26
-    static MatchupData map(List<Matchup> matchups, IdGenerator idGenerator) {
+    static MatchupData map(List<Matchup> matchups, IdGenerator idGenerator, DetachHandler detachHandler) {
         final MatchupData matchupData = new MatchupData();
 
         for (final Matchup matchup : matchups) {
             final IO_Matchup io_matchup = createIO_Matchup(matchup, idGenerator);
             matchupData.add(io_matchup);
 
-            final IO_RefObservation io_refObs = createIO_RefObs(idGenerator, matchupData, matchup);
+            final IO_RefObservation io_refObs = createIO_RefObs(idGenerator, matchupData, matchup, detachHandler);
             matchupData.add(io_refObs);
 
             final List<Coincidence> coincidences = matchup.getCoincidences();
@@ -62,18 +64,20 @@ public class MatchupIO {
                 final int observationId = observation.getId();
                 if (observation instanceof InsituObservation) {
                     final InsituObservation insituObservation = (InsituObservation) observation;
-                    final IO_Observation io_observation = createIO_Observation(idGenerator, matchupData, observationId, insituObservation);
+                    final IO_Observation io_observation = createIO_Observation(matchupData, observationId, insituObservation, detachHandler);
                     matchupData.addInsitu(io_observation);
                     io_coincidence.setInsitu(true);
                 } else {
                     final RelatedObservation relatedObservation = (RelatedObservation) observation;
-                    final IO_Observation io_observation = createIO_Observation(idGenerator, matchupData, observationId, relatedObservation);
+                    final IO_Observation io_observation = createIO_Observation(matchupData, observationId, relatedObservation, detachHandler);
                     matchupData.addRelated(io_observation);
                 }
                 io_coincidence.setObservationId(observationId);
                 io_coincidence.setTimeDifference(coincidence.getTimeDifference());
                 io_matchup.add(io_coincidence);
             }
+
+            detachHandler.detach(matchup);
         }
         return matchupData;
     }
@@ -110,19 +114,22 @@ public class MatchupIO {
         return resultList;
     }
 
-    private static IO_Observation createIO_Observation(IdGenerator idGenerator, MatchupData matchupData, int observationId, RelatedObservation relatedObservation) {
+    private static IO_Observation createIO_Observation(MatchupData matchupData, int observationId, RelatedObservation relatedObservation, DetachHandler detachHandler) {
         final IO_Observation io_observation = new IO_Observation();
         io_observation.setId(observationId);
         io_observation.setName(relatedObservation.getName());
         io_observation.setSensor(relatedObservation.getSensor());
         final DataFile datafile = relatedObservation.getDatafile();
         io_observation.setFilePath(datafile.getPath());
-        final int sensorId = addSensor(datafile.getSensor(), matchupData, idGenerator);
+        final int sensorId = addSensor(datafile.getSensor(), matchupData, detachHandler);
         io_observation.setSensorId(sensorId);
         io_observation.setRecordNo(relatedObservation.getRecordNo());
         io_observation.setTime(relatedObservation.getTime());
         io_observation.setTimeRadius(relatedObservation.getTimeRadius());
-        io_observation.setLocation(relatedObservation.getLocation().getValue());
+        // @todo 2 tb/tb temporarily removed due to memory issues 2014-12-17
+        //io_observation.setLocation(relatedObservation.getLocation().getValue());
+
+        detachHandler.detach(relatedObservation);
         return io_observation;
     }
 
@@ -143,8 +150,9 @@ public class MatchupIO {
                 relatedObservation.setTime(observation.getTime());
                 relatedObservation.setTimeRadius(observation.getTimeRadius());
 
-                final PGgeometry location = createGeometry(observation.getLocation());
-                relatedObservation.setLocation(location);
+                // @todo 2 tb/tb temporarily removed due to memory issues 2014-12-17
+//                final PGgeometry location = createGeometry(observation.getLocation());
+//                relatedObservation.setLocation(location);
 
                 relatedObservation.setRecordNo(observation.getRecordNo());
                 return relatedObservation;
@@ -170,8 +178,9 @@ public class MatchupIO {
                 relatedObservation.setTime(observation.getTime());
                 relatedObservation.setTimeRadius(observation.getTimeRadius());
 
-                final PGgeometry location = createGeometry(observation.getLocation());
-                relatedObservation.setLocation(location);
+                // @todo 2 tb/tb temporarily removed due to memory issues 2014-12-17
+//                final PGgeometry location = createGeometry(observation.getLocation());
+//                relatedObservation.setLocation(location);
 
                 relatedObservation.setRecordNo(observation.getRecordNo());
                 return relatedObservation;
@@ -199,7 +208,8 @@ public class MatchupIO {
                 result.setTime(io_refobs.getTime());
                 result.setTimeRadius(io_refobs.getTimeRadius());
 
-                result.setLocation(createGeometry(io_refobs.getLocation()));
+                // @todo 2 tb/tb temporarily removed due to memory issues 2014-12-17
+                // result.setLocation(createGeometry(io_refobs.getLocation()));
                 result.setPoint(createGeometry(io_refobs.getPoint()));
 
                 result.setDataset(io_refobs.getDataset());
@@ -221,7 +231,7 @@ public class MatchupIO {
         throw new ToolException("Sensor with id '" + sensorId + "'not found", ToolException.TOOL_INTERNAL_ERROR);
     }
 
-    private static IO_RefObservation createIO_RefObs(IdGenerator idGenerator, MatchupData matchupData, Matchup matchup) {
+    private static IO_RefObservation createIO_RefObs(IdGenerator idGenerator, MatchupData matchupData, Matchup matchup, DetachHandler detachHandler) {
         final ReferenceObservation refObs = matchup.getRefObs();
         final IO_RefObservation io_refObs = new IO_RefObservation();
         io_refObs.setId(idGenerator.next());
@@ -230,21 +240,24 @@ public class MatchupIO {
         final DataFile datafile = refObs.getDatafile();
         io_refObs.setFilePath(datafile.getPath());
 
-        final int sensorId = addSensor(datafile.getSensor(), matchupData, idGenerator);
+        final int sensorId = addSensor(datafile.getSensor(), matchupData, detachHandler);
         io_refObs.setSensorId(sensorId);
 
         io_refObs.setRecordNo(refObs.getRecordNo());
         io_refObs.setTime(refObs.getTime());
         io_refObs.setTimeRadius(refObs.getTimeRadius());
-        io_refObs.setLocation(refObs.getLocation().getValue());
+        // @todo 2 tb/tb temporarily removed due to memory issues 2014-12-17
+        //io_refObs.setLocation(refObs.getLocation().getValue());
         io_refObs.setPoint(refObs.getPoint().getValue());
         io_refObs.setDataset(refObs.getDataset());
         io_refObs.setReferenceFlag(refObs.getReferenceFlag());
+
+        detachHandler.detach(refObs);
         return io_refObs;
     }
 
     // package access for testing only tb 2014-11-24
-    static int addSensor(Sensor sensor, MatchupData matchupData, IdGenerator idGenerator) {
+    static int addSensor(Sensor sensor, MatchupData matchupData, DetachHandler detachHandler) {
         final List<Sensor> sensorList = matchupData.getSensors();
         for (final Sensor storedSensor : sensorList) {
             if (storedSensor.getName().equals(sensor.getName())
@@ -254,8 +267,8 @@ public class MatchupIO {
             }
         }
 
-        //sensor.setId(idGenerator.next());
         matchupData.add(sensor);
+        detachHandler.detach(sensor);
 
         return sensor.getId();
     }

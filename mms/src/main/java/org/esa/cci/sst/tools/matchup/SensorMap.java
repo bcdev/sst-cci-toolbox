@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class SensorMap {
+class SensorMap {
 
     private static Map<String, Integer> sensorNameMap;
 
@@ -82,7 +82,7 @@ public class SensorMap {
         sensorNameMap.put("seviri", 59);
     }
 
-    public static int idForName(String sensorName) {
+    static int idForName(String sensorName) {
         final Integer sensorId = sensorNameMap.get(sensorName);
         if (sensorId == null) {
             throw new IllegalArgumentException("Unsupported sensor: " + sensorName);
@@ -90,7 +90,7 @@ public class SensorMap {
         return sensorId;
     }
 
-    public static String nameForId(int sensorId) {
+    static String nameForId(int sensorId) {
         final Set<Map.Entry<String, Integer>> entries = sensorNameMap.entrySet();
         for (Map.Entry<String, Integer> entry : entries) {
             if (entry.getValue() == sensorId) {
