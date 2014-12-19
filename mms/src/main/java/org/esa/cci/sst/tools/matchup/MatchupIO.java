@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 @SuppressWarnings("deprecation")
@@ -48,6 +49,7 @@ public class MatchupIO {
     // package access for testing only tb 2014-11-26
     static MatchupData map(List<Matchup> matchups, IdGenerator idGenerator, DetachHandler detachHandler) {
         final MatchupData matchupData = new MatchupData();
+        final HashMap<Integer, IO_Observation> ioMap = new HashMap<>();
 
         for (final Matchup matchup : matchups) {
             final IO_Matchup io_matchup = createIO_Matchup(matchup, idGenerator);
@@ -64,17 +66,20 @@ public class MatchupIO {
                 final int observationId = observation.getId();
                 if (observation instanceof InsituObservation) {
                     final InsituObservation insituObservation = (InsituObservation) observation;
-                    final IO_Observation io_observation = createIO_Observation(matchupData, observationId, insituObservation, detachHandler);
-                    matchupData.addInsitu(io_observation);
+                    if (!ioMap.containsKey(observationId)) {
+                        final IO_Observation io_observation = createIO_Observation(matchupData, observationId, insituObservation, detachHandler);
+                        ioMap.put(observationId, io_observation);
+                    }
+                    matchupData.addInsitu(ioMap.get(observationId));
                     io_coincidence.setInsitu(true);
                 } else {
                     final RelatedObservation relatedObservation = (RelatedObservation) observation;
-                    final IO_Observation io_observation = createIO_Observation(matchupData, observationId, relatedObservation, detachHandler);
-                    matchupData.addRelated(io_observation);
+                    if (!ioMap.containsKey(observationId)) {
+                        final IO_Observation io_observation = createIO_Observation(matchupData, observationId, relatedObservation, detachHandler);
+                        ioMap.put(observationId, io_observation);
+                    }
+                    matchupData.addRelated(ioMap.get(observationId));
                 }
-
-                detachHandler.detach(observation);
-                coincidence.setObservation(null);
 
                 io_coincidence.setObservationId(observationId);
                 io_coincidence.setTimeDifference(coincidence.getTimeDifference());

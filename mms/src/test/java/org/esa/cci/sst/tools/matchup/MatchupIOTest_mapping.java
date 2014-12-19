@@ -178,7 +178,7 @@ public class MatchupIOTest_mapping {
         verify(detachHandler, times(1)).detach(matchupRefObs);
         verify(detachHandler, times(1)).detach(matchupRefObs.getDatafile().getSensor());
         verify(detachHandler, times(1)).detach(sensor);
-        verify(detachHandler, times(1)).detach(relatedObservation);
+        verify(detachHandler, times(0)).detach(relatedObservation);
         verifyNoMoreInteractions(detachHandler);
     }
 
@@ -248,7 +248,7 @@ public class MatchupIOTest_mapping {
         verify(detachHandler, times(1)).detach(matchupRefObs);
         verify(detachHandler, times(1)).detach(matchupRefObs.getDatafile().getSensor());
         verify(detachHandler, times(1)).detach(sensor);
-        verify(detachHandler, times(1)).detach(insituObservation    );
+        verify(detachHandler, times(0)).detach(insituObservation    );
         verifyNoMoreInteractions(detachHandler);
     }
 
