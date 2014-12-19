@@ -52,6 +52,7 @@ public class Configuration {
     public static final String KEY_MMS_MMD_READER_CACHE_SIZE = "mms.target.readercachesize";
     public static final String KEY_MMS_MMD_TARGET_START_TIME = "mms.target.startTime";
     public static final String KEY_MMS_MMD_INPUT_TYPE = "mms.mmd.inputtype";
+    public static final String KEY_MMS_MMD_DETACH_MATCHUPS = "mms.mmd.detach.matchups";
 
     public static final String KEY_MMS_MMD_TARGET_STOP_TIME = "mms.target.stopTime";
     public static final String KEY_MMS_SAMPLING_GENERATOR = "mms.sampling.generator";

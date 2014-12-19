@@ -164,7 +164,7 @@ public class AuxDataTool extends BasicTool {
         final String outputFilePath = ArchiveUtils.createCleanEnvFilePath(archiveRootPath, sensorNamesArray, centerMonth.getYear(), centerMonth.getMonth());
         final File outFile = FileUtil.createNewFile(outputFilePath);
 
-        MatchupIO.write(matchups, new FileOutputStream(outFile), getConfig());
+        MatchupIO.write(matchups, new FileOutputStream(outFile), getConfig(), getPersistenceManager());
     }
 
     // package access for testing only tb 2014-12-08

@@ -1,6 +1,6 @@
 package org.esa.cci.sst.tools.matchup;
 
-class NoDetachHandler implements DetachHandler {
+class NoOpDetachHandler implements DetachHandler {
 
     @Override
     public void detach(Object toDetach) {

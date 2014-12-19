@@ -3,6 +3,7 @@ package org.esa.cci.sst.tools.matchup;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.esa.cci.sst.data.*;
+import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.tool.Configuration;
 import org.esa.cci.sst.tool.ToolException;
 import org.postgis.PGgeometry;
@@ -17,11 +18,11 @@ import java.util.List;
 @SuppressWarnings("deprecation")
 public class MatchupIO {
 
-    public static void write(List<Matchup> matchups, OutputStream outputStream, Configuration configuration) throws IOException {
+    public static void write(List<Matchup> matchups, OutputStream outputStream, Configuration configuration, PersistenceManager persistenceManager) throws IOException {
         final IdGenerator idGenerator = IdGenerator.create(configuration);
+        final DetachHandler detachHandler = DetachHandlerFactory.create(configuration, persistenceManager);
 
-        // @todo 1 tb/tb implement factory for detachhadler, read config parameter, invent means to ingest peristenceManager 2014-12-18
-        final MatchupData matchupData = map(matchups, idGenerator, new NoDetachHandler());
+        final MatchupData matchupData = map(matchups, idGenerator, detachHandler);
         writeMapped(matchupData, outputStream);
     }
 
