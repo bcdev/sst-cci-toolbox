@@ -108,7 +108,8 @@ public class MatchupIOTest_mapping {
 
         verify(detachHandler, times(1)).detach(matchup);
         verify(detachHandler, times(1)).detach(referenceObservation);
-        // @todo 1 tb/tb continue here 2014-12-18
+        verify(detachHandler, times(1)).detach(sensor);
+        verifyNoMoreInteractions(detachHandler);
     }
 
     @Test
@@ -171,6 +172,13 @@ public class MatchupIOTest_mapping {
         assertEquals(2, sensors.size());    // first results from the referenceObservation
         final Sensor io_sensor = sensors.get(1);
         assertEquals(2, io_sensor.getId());
+
+        verify(detachHandler, times(1)).detach(matchup);
+        verify(detachHandler, times(1)).detach(matchup.getRefObs());
+        verify(detachHandler, times(1)).detach(matchup.getRefObs().getDatafile().getSensor());
+        verify(detachHandler, times(1)).detach(sensor);
+        verify(detachHandler, times(1)).detach(relatedObservation);
+        verifyNoMoreInteractions(detachHandler);
     }
 
     @Test
@@ -233,6 +241,13 @@ public class MatchupIOTest_mapping {
         assertEquals(2, sensors.size());    // first results from the referenceObservation
         final Sensor io_sensor = sensors.get(1);
         assertEquals(2, io_sensor.getId());
+
+        verify(detachHandler, times(1)).detach(matchup);
+        verify(detachHandler, times(1)).detach(matchup.getRefObs());
+        verify(detachHandler, times(1)).detach(matchup.getRefObs().getDatafile().getSensor());
+        verify(detachHandler, times(1)).detach(sensor);
+        verify(detachHandler, times(1)).detach(insituObservation    );
+        verifyNoMoreInteractions(detachHandler);
     }
 
     @Test

@@ -6,27 +6,27 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
 
 @SuppressWarnings("deprecation")
 public class MatchupIOTest_sensors {
 
-    private IdGenerator idGenerator;
     private MatchupData matchupData;
+    private DetachHandler detachHandler;
 
     @Before
     public void setUp(){
-        idGenerator = new IdGenerator(2, 3, 4, 5);
-        idGenerator.next(); // to avoid having 0 as first id
         matchupData = new MatchupData();
+        detachHandler = mock(DetachHandler.class);
     }
 
     @Test
     public void testAddSameSensor_existingSensorReferenceIsUsed() {
         final Sensor sensor = createSensor();
 
-        MatchupIO.addSensor(sensor, matchupData);
+        MatchupIO.addSensor(sensor, matchupData, detachHandler);
 
-        final int id = MatchupIO.addSensor(sensor, matchupData);
+        final int id = MatchupIO.addSensor(sensor, matchupData, detachHandler);
         assertEquals(1, id);
         assertEquals(1, matchupData.getSensors().size());
     }
@@ -35,13 +35,13 @@ public class MatchupIOTest_sensors {
     public void testAddSensor_nameIsSignificantToDifferentiate() {
         Sensor sensor = createSensor();
 
-        int id = MatchupIO.addSensor(sensor, matchupData);
+        int id = MatchupIO.addSensor(sensor, matchupData, detachHandler);
         assertEquals(1, id);
         assertEquals(1, matchupData.getSensors().size());
 
         sensor = createSensor();
         sensor.setName("different");
-        id = MatchupIO.addSensor(sensor, matchupData);
+        id = MatchupIO.addSensor(sensor, matchupData, detachHandler);
         assertEquals(1, id);
         assertEquals(2, matchupData.getSensors().size());
     }
@@ -50,13 +50,13 @@ public class MatchupIOTest_sensors {
     public void testAddSensor_patternIsSignificantToDifferentiate() {
         Sensor sensor = createSensor();
 
-        int id = MatchupIO.addSensor(sensor, matchupData);
+        int id = MatchupIO.addSensor(sensor, matchupData, detachHandler);
         assertEquals(1, id);
         assertEquals(1, matchupData.getSensors().size());
 
         sensor = createSensor();
         sensor.setPattern(-99);
-        id = MatchupIO.addSensor(sensor, matchupData);
+        id = MatchupIO.addSensor(sensor, matchupData, detachHandler);
         assertEquals(1, id);
         assertEquals(2, matchupData.getSensors().size());
     }
@@ -65,13 +65,13 @@ public class MatchupIOTest_sensors {
     public void testAddSensor_observationTypeIsSignificantToDifferentiate() {
         Sensor sensor = createSensor();
 
-        int id = MatchupIO.addSensor(sensor, matchupData);
+        int id = MatchupIO.addSensor(sensor, matchupData, detachHandler);
         assertEquals(1, id);
         assertEquals(1, matchupData.getSensors().size());
 
         sensor = createSensor();
         sensor.setObservationType("different");
-        id = MatchupIO.addSensor(sensor, matchupData);
+        id = MatchupIO.addSensor(sensor, matchupData, detachHandler);
         assertEquals(1, id);
         assertEquals(2, matchupData.getSensors().size());
     }
