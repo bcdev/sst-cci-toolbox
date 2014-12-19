@@ -72,6 +72,10 @@ public class MatchupIO {
                     final IO_Observation io_observation = createIO_Observation(matchupData, observationId, relatedObservation, detachHandler);
                     matchupData.addRelated(io_observation);
                 }
+
+                detachHandler.detach(observation);
+                coincidence.setObservation(null);
+
                 io_coincidence.setObservationId(observationId);
                 io_coincidence.setTimeDifference(coincidence.getTimeDifference());
                 io_matchup.add(io_coincidence);
@@ -129,7 +133,6 @@ public class MatchupIO {
         // @todo 2 tb/tb temporarily removed due to memory issues 2014-12-17
         //io_observation.setLocation(relatedObservation.getLocation().getValue());
 
-        detachHandler.detach(relatedObservation);
         return io_observation;
     }
 
@@ -253,6 +256,8 @@ public class MatchupIO {
         io_refObs.setReferenceFlag(refObs.getReferenceFlag());
 
         detachHandler.detach(refObs);
+        matchup.setRefObs(null);
+
         return io_refObs;
     }
 

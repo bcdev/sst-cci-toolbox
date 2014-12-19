@@ -116,6 +116,7 @@ public class MatchupIOTest_mapping {
     public void testMap_oneMatchup_oneRelatedCoincidence() throws SQLException {
         final List<Matchup> matchups = new ArrayList<>();
         final Matchup matchup = createMatchupWithRefobsAndSensor();
+        final ReferenceObservation matchupRefObs = matchup.getRefObs();
 
         final List<Coincidence> coincidences = new ArrayList<>();
         final Coincidence coincidence = new Coincidence();
@@ -174,8 +175,8 @@ public class MatchupIOTest_mapping {
         assertEquals(2, io_sensor.getId());
 
         verify(detachHandler, times(1)).detach(matchup);
-        verify(detachHandler, times(1)).detach(matchup.getRefObs());
-        verify(detachHandler, times(1)).detach(matchup.getRefObs().getDatafile().getSensor());
+        verify(detachHandler, times(1)).detach(matchupRefObs);
+        verify(detachHandler, times(1)).detach(matchupRefObs.getDatafile().getSensor());
         verify(detachHandler, times(1)).detach(sensor);
         verify(detachHandler, times(1)).detach(relatedObservation);
         verifyNoMoreInteractions(detachHandler);
@@ -185,6 +186,7 @@ public class MatchupIOTest_mapping {
     public void testMap_oneMatchup_oneInsituCoincidence() throws SQLException {
         final List<Matchup> matchups = new ArrayList<>();
         final Matchup matchup = createMatchupWithRefobsAndSensor();
+        final ReferenceObservation matchupRefObs = matchup.getRefObs();
 
         final List<Coincidence> coincidences = new ArrayList<>();
         final Coincidence coincidence = new Coincidence();
@@ -243,8 +245,8 @@ public class MatchupIOTest_mapping {
         assertEquals(2, io_sensor.getId());
 
         verify(detachHandler, times(1)).detach(matchup);
-        verify(detachHandler, times(1)).detach(matchup.getRefObs());
-        verify(detachHandler, times(1)).detach(matchup.getRefObs().getDatafile().getSensor());
+        verify(detachHandler, times(1)).detach(matchupRefObs);
+        verify(detachHandler, times(1)).detach(matchupRefObs.getDatafile().getSensor());
         verify(detachHandler, times(1)).detach(sensor);
         verify(detachHandler, times(1)).detach(insituObservation    );
         verifyNoMoreInteractions(detachHandler);
