@@ -98,6 +98,7 @@ public class MatchupIO {
                 io_matchup.add(io_coincidence);
 
                 detachHandler.detach(coincidence);
+                coincidence.setObservation(null);
             }
 
             detachHandler.detach(matchup);
