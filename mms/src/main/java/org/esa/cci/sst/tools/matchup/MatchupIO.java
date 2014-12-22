@@ -51,7 +51,9 @@ public class MatchupIO {
         final MatchupData matchupData = new MatchupData();
         final HashMap<Integer, IO_Observation> ioMap = new HashMap<>();
 
-        for (final Matchup matchup : matchups) {
+        for (int i = 0; i < matchups.size(); i++) {
+            System.out.println("i = " + i);
+            final Matchup matchup = matchups.get(i);
             final IO_Matchup io_matchup = createIO_Matchup(matchup, idGenerator);
             matchupData.add(io_matchup);
 
@@ -67,7 +69,8 @@ public class MatchupIO {
                 if (observation instanceof InsituObservation) {
                     final InsituObservation insituObservation = (InsituObservation) observation;
                     if (!ioMap.containsKey(observationId)) {
-                        final IO_Observation io_observation = createIO_Observation(matchupData, observationId, insituObservation, detachHandler);
+                        final IO_Observation io_observation = createIO_Observation(matchupData, observationId,
+                                                                                   insituObservation, detachHandler);
                         ioMap.put(observationId, io_observation);
                     }
                     matchupData.addInsitu(ioMap.get(observationId));
@@ -75,7 +78,8 @@ public class MatchupIO {
                 } else {
                     final RelatedObservation relatedObservation = (RelatedObservation) observation;
                     if (!ioMap.containsKey(observationId)) {
-                        final IO_Observation io_observation = createIO_Observation(matchupData, observationId, relatedObservation, detachHandler);
+                        final IO_Observation io_observation = createIO_Observation(matchupData, observationId,
+                                                                                   relatedObservation, detachHandler);
                         ioMap.put(observationId, io_observation);
                     }
                     matchupData.addRelated(ioMap.get(observationId));
@@ -99,8 +103,8 @@ public class MatchupIO {
         for (final IO_Matchup io_matchup : matchups) {
             final Matchup matchup = createMatchup(io_matchup);
 
-            final ReferenceObservation refoObs = getRefObs(io_matchup.getRefObsId(), matchupData);
-            matchup.setRefObs(refoObs);
+            final ReferenceObservation refObs = getRefObs(io_matchup.getRefObsId(), matchupData);
+            matchup.setRefObs(refObs);
 
             final List<IO_Coincidence> io_coincidences = io_matchup.getCoincidences();
             final List<Coincidence> coincidences = new ArrayList<>();
