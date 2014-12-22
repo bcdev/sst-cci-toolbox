@@ -1,6 +1,13 @@
 package org.esa.cci.sst.tools.matchup;
 
-import org.esa.cci.sst.data.*;
+import org.esa.cci.sst.data.Coincidence;
+import org.esa.cci.sst.data.DataFile;
+import org.esa.cci.sst.data.InsituObservation;
+import org.esa.cci.sst.data.Matchup;
+import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.data.ReferenceObservation;
+import org.esa.cci.sst.data.RelatedObservation;
+import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.tool.ToolException;
 import org.junit.Before;
 import org.junit.Test;
@@ -11,8 +18,15 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @SuppressWarnings({"deprecation", "InstanceofInterfaces"})
 public class MatchupIOTest_mapping {
@@ -179,6 +193,7 @@ public class MatchupIOTest_mapping {
         verify(detachHandler, times(1)).detach(matchupRefObs.getDatafile().getSensor());
         verify(detachHandler, times(1)).detach(sensor);
         verify(detachHandler, times(0)).detach(relatedObservation);
+        verify(detachHandler, times(1)).detach(coincidence);
         verifyNoMoreInteractions(detachHandler);
     }
 
@@ -248,7 +263,8 @@ public class MatchupIOTest_mapping {
         verify(detachHandler, times(1)).detach(matchupRefObs);
         verify(detachHandler, times(1)).detach(matchupRefObs.getDatafile().getSensor());
         verify(detachHandler, times(1)).detach(sensor);
-        verify(detachHandler, times(0)).detach(insituObservation    );
+        verify(detachHandler, times(0)).detach(insituObservation);
+        verify(detachHandler, times(1)).detach(coincidence);
         verifyNoMoreInteractions(detachHandler);
     }
 
@@ -319,7 +335,7 @@ public class MatchupIOTest_mapping {
         assertEquals(13, refObs.getTime().getTime());
         assertEquals(14.14, refObs.getTimeRadius(), 1e-8);
         // @todo 2 tb/tb temporarily removed due to memory issues 2014-12-17
-       // assertEquals("POLYGON((3 3,3 5,5 5,5 3,3 3))", refObs.getLocation().getValue());
+        // assertEquals("POLYGON((3 3,3 5,5 5,5 3,3 3))", refObs.getLocation().getValue());
         assertEquals("POINT(15 16)", refObs.getPoint().getValue());
         assertEquals(17, refObs.getDataset());
         assertEquals(18, refObs.getReferenceFlag());
@@ -339,7 +355,7 @@ public class MatchupIOTest_mapping {
         try {
             MatchupIO.restore(matchupData);
             fail("ToolException expected");
-        } catch (ToolException expected){
+        } catch (ToolException expected) {
         }
     }
 
@@ -364,7 +380,7 @@ public class MatchupIOTest_mapping {
         try {
             MatchupIO.restore(matchupData);
             fail("ToolException expected");
-        } catch (ToolException expected){
+        } catch (ToolException expected) {
         }
     }
 
@@ -415,7 +431,7 @@ public class MatchupIOTest_mapping {
         try {
             MatchupIO.restore(matchupData);
             fail("ToolException expected");
-        } catch (ToolException expected){
+        } catch (ToolException expected) {
         }
     }
 

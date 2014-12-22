@@ -2,7 +2,14 @@ package org.esa.cci.sst.tools.matchup;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.esa.cci.sst.data.*;
+import org.esa.cci.sst.data.Coincidence;
+import org.esa.cci.sst.data.DataFile;
+import org.esa.cci.sst.data.InsituObservation;
+import org.esa.cci.sst.data.Matchup;
+import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.data.ReferenceObservation;
+import org.esa.cci.sst.data.RelatedObservation;
+import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.tool.Configuration;
 import org.esa.cci.sst.tool.ToolException;
@@ -19,7 +26,8 @@ import java.util.List;
 @SuppressWarnings("deprecation")
 public class MatchupIO {
 
-    public static void write(List<Matchup> matchups, OutputStream outputStream, Configuration configuration, PersistenceManager persistenceManager) throws IOException {
+    public static void write(List<Matchup> matchups, OutputStream outputStream, Configuration configuration,
+                             PersistenceManager persistenceManager) throws IOException {
         final IdGenerator idGenerator = IdGenerator.create(configuration);
         final DetachHandler detachHandler = DetachHandlerFactory.create(configuration, persistenceManager);
 
@@ -51,9 +59,7 @@ public class MatchupIO {
         final MatchupData matchupData = new MatchupData();
         final HashMap<Integer, IO_Observation> ioMap = new HashMap<>();
 
-        for (int i = 0; i < matchups.size(); i++) {
-            System.out.println("i = " + i);
-            final Matchup matchup = matchups.get(i);
+        for (final Matchup matchup : matchups) {
             final IO_Matchup io_matchup = createIO_Matchup(matchup, idGenerator);
             matchupData.add(io_matchup);
 
@@ -88,6 +94,8 @@ public class MatchupIO {
                 io_coincidence.setObservationId(observationId);
                 io_coincidence.setTimeDifference(coincidence.getTimeDifference());
                 io_matchup.add(io_coincidence);
+
+                detachHandler.detach(coincidence);
             }
 
             detachHandler.detach(matchup);
@@ -127,7 +135,9 @@ public class MatchupIO {
         return resultList;
     }
 
-    private static IO_Observation createIO_Observation(MatchupData matchupData, int observationId, RelatedObservation relatedObservation, DetachHandler detachHandler) {
+    private static IO_Observation createIO_Observation(MatchupData matchupData, int observationId,
+                                                       RelatedObservation relatedObservation,
+                                                       DetachHandler detachHandler) {
         final IO_Observation io_observation = new IO_Observation();
         io_observation.setId(observationId);
         io_observation.setName(relatedObservation.getName());
@@ -170,7 +180,8 @@ public class MatchupIO {
                 return relatedObservation;
             }
         }
-        throw new ToolException("RelatedObservation with id '" + observationId + "'not found", ToolException.TOOL_INTERNAL_ERROR);
+        throw new ToolException("RelatedObservation with id '" + observationId + "'not found",
+                                ToolException.TOOL_INTERNAL_ERROR);
     }
 
     private static Observation getInsituObservation(int observationId, MatchupData matchupData) {
@@ -198,7 +209,8 @@ public class MatchupIO {
                 return relatedObservation;
             }
         }
-        throw new ToolException("RelatedObservation with id '" + observationId + "'not found", ToolException.TOOL_INTERNAL_ERROR);
+        throw new ToolException("RelatedObservation with id '" + observationId + "'not found",
+                                ToolException.TOOL_INTERNAL_ERROR);
     }
 
     private static ReferenceObservation getRefObs(int refObsId, MatchupData matchupData) {
@@ -230,7 +242,8 @@ public class MatchupIO {
                 return result;
             }
         }
-        throw new ToolException("ReferenceObservation with id '" + refObsId + "'not found", ToolException.TOOL_INTERNAL_ERROR);
+        throw new ToolException("ReferenceObservation with id '" + refObsId + "'not found",
+                                ToolException.TOOL_INTERNAL_ERROR);
     }
 
     private static Sensor getSensor(int sensorId, MatchupData matchupData) {
@@ -243,7 +256,8 @@ public class MatchupIO {
         throw new ToolException("Sensor with id '" + sensorId + "'not found", ToolException.TOOL_INTERNAL_ERROR);
     }
 
-    private static IO_RefObservation createIO_RefObs(IdGenerator idGenerator, MatchupData matchupData, Matchup matchup, DetachHandler detachHandler) {
+    private static IO_RefObservation createIO_RefObs(IdGenerator idGenerator, MatchupData matchupData, Matchup matchup,
+                                                     DetachHandler detachHandler) {
         final ReferenceObservation refObs = matchup.getRefObs();
         final IO_RefObservation io_refObs = new IO_RefObservation();
         io_refObs.setId(idGenerator.next());
@@ -274,9 +288,7 @@ public class MatchupIO {
     static int addSensor(Sensor sensor, MatchupData matchupData, DetachHandler detachHandler) {
         final List<Sensor> sensorList = matchupData.getSensors();
         for (final Sensor storedSensor : sensorList) {
-            if (storedSensor.getName().equals(sensor.getName())
-                    && storedSensor.getPattern() == sensor.getPattern()
-                    && storedSensor.getObservationType().equals(sensor.getObservationType())) {
+            if (storedSensor.getName().equals(sensor.getName())) {
                 return storedSensor.getId();
             }
         }
@@ -307,7 +319,8 @@ public class MatchupIO {
         try {
             return new PGgeometry(wkt);
         } catch (SQLException e) {
-            throw new ToolException("Error reading matchup-file, invalid WKT: " + wkt, e, ToolException.TOOL_INTERNAL_ERROR);
+            throw new ToolException("Error reading matchup-file, invalid WKT: " + wkt, e,
+                                    ToolException.TOOL_INTERNAL_ERROR);
         }
     }
 }
