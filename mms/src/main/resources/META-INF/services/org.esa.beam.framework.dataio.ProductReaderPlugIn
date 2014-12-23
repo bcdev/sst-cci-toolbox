@@ -3,3 +3,4 @@ org.esa.beam.dataio.cci.sst.NcOsiProductReaderPlugIn
 org.esa.beam.dataio.cci.sst.NcAvhrrGacProductReaderPlugIn
 org.esa.beam.dataio.cci.sst.Amsr2ProductReaderPlugIn
 org.esa.beam.dataio.cci.sst.PmwProductReaderPlugIn
+org.eumetsat.beam.dataio.metop.MetopReaderPlugIn
