@@ -96,12 +96,7 @@ public class MatchupIO {
                 io_coincidence.setObservationId(observationId);
                 io_coincidence.setTimeDifference(coincidence.getTimeDifference());
                 io_matchup.add(io_coincidence);
-
-                detachHandler.detach(coincidence);
-                coincidence.setObservation(null);
             }
-
-            detachHandler.detach(matchup);
         }
         return matchupData;
     }
