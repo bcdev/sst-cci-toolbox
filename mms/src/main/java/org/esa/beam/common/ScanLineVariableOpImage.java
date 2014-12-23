@@ -1,4 +1,4 @@
-package org.esa.beam.dataio.cci.sst;
+package org.esa.beam.common;
 
 import org.esa.beam.jai.ResolutionLevel;
 import org.esa.beam.jai.SingleBandedOpImage;
@@ -19,12 +19,12 @@ import java.io.IOException;
  *
  * @author Ralf Quast
  */
-abstract class ScanLineVariableOpImage extends SingleBandedOpImage {
+public abstract class ScanLineVariableOpImage extends SingleBandedOpImage {
 
     private final VariableIF variable;
 
-    ScanLineVariableOpImage(VariableIF variable, int dataBufferType, int sourceWidth, int sourceHeight,
-                            Dimension tileSize, ResolutionLevel level) {
+    public ScanLineVariableOpImage(VariableIF variable, int dataBufferType, int sourceWidth, int sourceHeight,
+                                   Dimension tileSize, ResolutionLevel level) {
         super(dataBufferType, sourceWidth, sourceHeight, tileSize, null, level);
         this.variable = variable;
     }

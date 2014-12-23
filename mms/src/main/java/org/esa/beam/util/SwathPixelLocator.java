@@ -1,7 +1,7 @@
 package org.esa.beam.util;
 
 import org.esa.beam.framework.datamodel.GeoApproximation;
-import org.esa.beam.framework.datamodel.PixelLocator;
+import org.esa.beam.common.PixelLocator;
 import org.esa.beam.util.math.CosineDistance;
 import org.esa.beam.util.math.DistanceMeasure;
 

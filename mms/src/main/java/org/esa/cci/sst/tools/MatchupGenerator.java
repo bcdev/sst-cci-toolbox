@@ -20,7 +20,10 @@ import org.esa.cci.sst.tools.samplepoint.SamplePointImporter;
 import org.esa.cci.sst.tools.samplepoint.TimeRange;
 import org.esa.cci.sst.util.ConfigUtil;
 import org.esa.cci.sst.util.GeometryUtil;
+<<<<<<< HEAD
 import org.esa.cci.sst.util.Month;
+=======
+>>>>>>> master
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.SensorNames;
 import org.esa.cci.sst.util.TimeUtil;
@@ -37,6 +40,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+<<<<<<< HEAD
+=======
+import java.util.Stack;
+>>>>>>> master
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -144,10 +151,15 @@ public class MatchupGenerator extends BasicTool {
                 logInfo(logger, "Finished creating reference observations");
 
                 logInfo(logger, "Starting creating matchup pattern ...");
+<<<<<<< HEAD
                 final long matchupPattern = defineMatchupPattern(primarySensorName,
                                                                  secondarySensorName,
                                                                  referenceSensorPattern,
                                                                  pm);
+=======
+                final long matchupPattern = defineMatchupPattern(primarySensorName, secondarySensorName,
+                                                                 referenceSensorPattern, pm, rollbackStack);
+>>>>>>> master
                 logInfo(logger, MessageFormat.format("Matchup pattern: {0}", Long.toHexString(matchupPattern)));
 
                 // create matchups and coincidences

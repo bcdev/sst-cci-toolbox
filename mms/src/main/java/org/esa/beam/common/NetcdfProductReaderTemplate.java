@@ -14,7 +14,7 @@
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-package org.esa.beam.dataio.cci.sst;
+package org.esa.beam.common;
 
 import com.bc.ceres.core.ProgressMonitor;
 import org.esa.beam.dataio.netcdf.ProfileReadContext;
@@ -42,7 +42,7 @@ import java.text.MessageFormat;
  *
  * @author Ralf Quast
  */
-abstract class NetcdfProductReaderTemplate extends AbstractProductReader implements ProfileReadContext {
+public abstract class NetcdfProductReaderTemplate extends AbstractProductReader implements ProfileReadContext {
 
     private NetcdfFile netcdfFile;
 

@@ -14,7 +14,7 @@ package org.esa.cci.sst.util;/*
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-import org.esa.beam.framework.datamodel.PixelLocator;
+import org.esa.beam.common.PixelLocator;
 import org.esa.cci.sst.grid.GridDef;
 
 import javax.imageio.ImageIO;

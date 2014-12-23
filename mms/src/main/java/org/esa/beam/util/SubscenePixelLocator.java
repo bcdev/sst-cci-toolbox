@@ -16,12 +16,12 @@
 
 package org.esa.beam.util;
 
-import org.esa.beam.framework.datamodel.PixelLocator;
+import org.esa.beam.common.PixelLocator;
 
 import java.awt.geom.Point2D;
 
 /**
- * A simple {@link org.esa.beam.framework.datamodel.PixelLocator} implementation always finding the nearest pixel.
+ * A simple {@link org.esa.beam.common.PixelLocator} implementation always finding the nearest pixel.
  *
  * @author Martin Boettcher
  * @author Ralf Quast

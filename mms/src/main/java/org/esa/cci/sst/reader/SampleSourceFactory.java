@@ -1,5 +1,6 @@
-package org.esa.beam.util;
+package org.esa.cci.sst.reader;
 
+import org.esa.beam.util.SampleSource;
 import ucar.ma2.Array;
 import ucar.nc2.Variable;
 

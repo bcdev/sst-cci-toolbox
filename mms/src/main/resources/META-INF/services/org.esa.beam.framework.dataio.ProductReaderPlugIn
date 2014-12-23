@@ -1,5 +1,6 @@
 org.esa.beam.dataio.cci.sst.NcAaiProductReaderPlugIn
 org.esa.beam.dataio.cci.sst.NcOsiProductReaderPlugIn
 org.esa.beam.dataio.cci.sst.NcAvhrrGacProductReaderPlugIn
-org.esa.beam.dataio.cci.sst.Amsr2ProductReaderPlugIn
+org.esa.beam.dataio.amsr2.Amsr2ProductReaderPlugIn
 org.esa.beam.dataio.cci.sst.PmwProductReaderPlugIn
+org.esa.beam.dataio.metop.MetopReaderPlugIn
