@@ -120,7 +120,7 @@ public class MatchupIOTest_mapping {
         assertEquals(6, sensor.getPattern());
         assertEquals("7", sensor.getObservationType());
 
-        verify(detachHandler, times(1)).detach(matchup);
+        verify(detachHandler, times(0)).detach(matchup);
         verify(detachHandler, times(1)).detach(referenceObservation);
         verify(detachHandler, times(1)).detach(sensor);
         verifyNoMoreInteractions(detachHandler);
@@ -188,12 +188,12 @@ public class MatchupIOTest_mapping {
         final Sensor io_sensor = sensors.get(1);
         assertEquals(2, io_sensor.getId());
 
-        verify(detachHandler, times(1)).detach(matchup);
+        verify(detachHandler, times(0)).detach(matchup);
         verify(detachHandler, times(1)).detach(matchupRefObs);
         verify(detachHandler, times(1)).detach(matchupRefObs.getDatafile().getSensor());
         verify(detachHandler, times(1)).detach(sensor);
         verify(detachHandler, times(0)).detach(relatedObservation);
-        verify(detachHandler, times(1)).detach(coincidence);
+        verify(detachHandler, times(0)).detach(coincidence);
         verifyNoMoreInteractions(detachHandler);
     }
 
@@ -259,12 +259,12 @@ public class MatchupIOTest_mapping {
         final Sensor io_sensor = sensors.get(1);
         assertEquals(2, io_sensor.getId());
 
-        verify(detachHandler, times(1)).detach(matchup);
+        verify(detachHandler, times(0)).detach(matchup);
         verify(detachHandler, times(1)).detach(matchupRefObs);
         verify(detachHandler, times(1)).detach(matchupRefObs.getDatafile().getSensor());
         verify(detachHandler, times(1)).detach(sensor);
         verify(detachHandler, times(0)).detach(insituObservation);
-        verify(detachHandler, times(1)).detach(coincidence);
+        verify(detachHandler, times(0)).detach(coincidence);
         verifyNoMoreInteractions(detachHandler);
     }
 
