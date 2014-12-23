@@ -14,7 +14,7 @@
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-package org.eumetsat.beam.dataio.metop;
+package org.esa.beam.dataio.metop;
 
 import com.bc.ceres.core.ProgressMonitor;
 import org.esa.beam.dataio.avhrr.AvhrrFile;

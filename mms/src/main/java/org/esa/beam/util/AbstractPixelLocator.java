@@ -1,6 +1,6 @@
 package org.esa.beam.util;
 
-import org.esa.beam.framework.datamodel.PixelLocator;
+import org.esa.beam.common.PixelLocator;
 import org.esa.beam.util.math.MathUtils;
 
 import java.awt.geom.Point2D;

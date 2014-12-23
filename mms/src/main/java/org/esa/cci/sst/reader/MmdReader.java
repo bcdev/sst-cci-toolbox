@@ -18,11 +18,10 @@ package org.esa.cci.sst.reader;
 
 import com.bc.ceres.core.Assert;
 import org.esa.beam.framework.datamodel.GeoCoding;
-import org.esa.beam.framework.datamodel.PixelLocatorAdapter;
+import org.esa.beam.common.PixelLocatorAdapter;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.util.PixelLocatorFactory;
 import org.esa.beam.util.SampleSource;
-import org.esa.beam.util.SampleSourceFactory;
 import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;

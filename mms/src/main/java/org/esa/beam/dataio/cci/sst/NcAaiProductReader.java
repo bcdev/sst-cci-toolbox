@@ -16,6 +16,8 @@
 
 package org.esa.beam.dataio.cci.sst;
 
+import org.esa.beam.common.ImageVariableOpImage;
+import org.esa.beam.common.NetcdfProductReaderTemplate;
 import org.esa.beam.dataio.netcdf.metadata.profiles.cf.CfBandPart;
 import org.esa.beam.dataio.netcdf.util.DataTypeUtils;
 import org.esa.beam.dataio.netcdf.util.MetadataUtils;

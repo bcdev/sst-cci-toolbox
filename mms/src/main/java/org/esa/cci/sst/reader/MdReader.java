@@ -16,10 +16,9 @@
 
 package org.esa.cci.sst.reader;
 
-import org.esa.beam.framework.datamodel.PixelLocator;
+import org.esa.beam.common.PixelLocator;
 import org.esa.beam.util.PixelLocatorFactory;
 import org.esa.beam.util.SampleSource;
-import org.esa.beam.util.SampleSourceFactory;
 import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.log.SstLogging;

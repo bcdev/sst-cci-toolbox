@@ -14,12 +14,12 @@
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-package org.eumetsat.beam.dataio.metop;
+package org.esa.beam.dataio.metop;
 
 import com.bc.ceres.core.ProgressMonitor;
 import org.esa.beam.dataio.avhrr.AvhrrConstants;
 import org.esa.beam.dataio.avhrr.AvhrrFile;
-import org.esa.beam.dataio.avhrr.calibration.RadianceCalibrator;
+import org.esa.beam.dataio.avhrr.BandReader;
 import org.esa.beam.framework.datamodel.ProductData;
 
 import javax.imageio.stream.ImageInputStream;
@@ -27,58 +27,66 @@ import java.io.IOException;
 import java.text.MessageFormat;
 
 /**
- * Reads radiances from the METOP prodcuts and transforms them into
- * a reflectance factor or a temperature.
+ * Reads radiances directly from the METOP prodcuts.
  *
  * @author Marco Zühlke
  */
-class CalibratedBandReader extends PlainBandReader {
+class PlainBandReader implements BandReader {
 
-    private final RadianceCalibrator calibrator;
+    private static final String VIS_RADIANCE_UNIT = "W / (m^2 sr)";
+    private static final String IR_RADIANCE_UNIT = "mW / (m^2 sr cm)";
 
-    CalibratedBandReader(int channel, MetopFile metopFile,
-                                ImageInputStream inputStream, RadianceCalibrator radianceCalibrator) {
-        super(channel, metopFile, inputStream);
-        calibrator = radianceCalibrator;
+    protected int channel;
+
+    protected MetopFile metopFile;
+
+    protected final ImageInputStream inputStream;
+
+    PlainBandReader(int channel, MetopFile metopFile,
+                           ImageInputStream inputStream) {
+        this.channel = channel;
+        this.metopFile = metopFile;
+        this.inputStream = inputStream;
     }
 
     @Override
     public String getBandName() {
-        if (isVisibleBand()) {
-            return AvhrrConstants.REFLECTANCE_BAND_NAME_PREFIX
-                    + AvhrrConstants.CH_STRINGS[channel];
-        } else {
-            return AvhrrConstants.TEMPERATURE_BAND_NAME_PREFIX
-                    + AvhrrConstants.CH_STRINGS[channel];
-        }
+        return AvhrrConstants.RADIANCE_BAND_NAME_PREFIX
+                + AvhrrConstants.CH_STRINGS[channel];
     }
 
     @Override
     public String getBandUnit() {
         if (isVisibleBand()) {
-            return AvhrrConstants.REFLECTANCE_UNIT;
+            return VIS_RADIANCE_UNIT;
         } else {
-            return AvhrrConstants.TEMPERATURE_UNIT;
+            return IR_RADIANCE_UNIT;
         }
     }
 
     @Override
     public String getBandDescription() {
         if (isVisibleBand()) {
-            return format(AvhrrConstants.REFLECTANCE_FACTOR_DESCRIPTION, AvhrrConstants.CH_STRINGS[channel]);
+            return format(AvhrrConstants.RADIANCE_DESCRIPTION_VIS,
+                          AvhrrConstants.CH_STRINGS[channel]);
         } else {
-            return format(AvhrrConstants.TEMPERATURE_DESCRIPTION, AvhrrConstants.CH_STRINGS[channel]);
+            return format(AvhrrConstants.RADIANCE_DESCRIPTION_IR,
+                          AvhrrConstants.CH_STRINGS[channel]);
         }
     }
 
     @Override
     public double getScalingFactor() {
-        return 1.0;
+        if (channel == AvhrrConstants.CH_3A || channel == AvhrrConstants.CH_3B) {
+            return 1E-4;
+        } else {
+            return 1E-2;
+        }
     }
 
     @Override
     public int getDataType() {
-        return ProductData.TYPE_FLOAT32;
+        return ProductData.TYPE_INT16;
     }
 
     @Override
@@ -93,10 +101,10 @@ class CalibratedBandReader extends PlainBandReader {
 
         AvhrrFile.RawCoordinates rawCoord = metopFile.getRawCoordinates(
                 sourceOffsetX, sourceOffsetY, sourceWidth, sourceHeight);
-        final float[] targetData = (float[]) destBuffer.getElems();
-        final float scalingFactor = (float) super.getScalingFactor();
+        final short[] targetData = (short[]) destBuffer.getElems();
 
-        pm.beginTask(MessageFormat.format("Reading AVHRR band ''{0}''...", getBandName()), rawCoord.maxY - rawCoord.minY);
+        pm.beginTask(MessageFormat.format("Reading AVHRR band ''{0}''...", getBandName()),
+                     rawCoord.maxY - rawCoord.minY);
 
         int targetIdx = rawCoord.targetStart;
         for (int sourceY = rawCoord.minY; sourceY <= rawCoord.maxY; sourceY += sourceStepY) {
@@ -107,16 +115,10 @@ class CalibratedBandReader extends PlainBandReader {
             if (hasData(sourceY)) {
                 final int dataOffset = getDataOffset(sourceOffsetX, sourceY);
                 synchronized (inputStream) {
-                    final short[] radianceScanLine = new short[metopFile.getProductWidth()];
                     inputStream.seek(dataOffset);
-                    inputStream.readFully(radianceScanLine, 0, sourceWidth);
-
-                    for (int sourceX = 0; sourceX <= sourceWidth - 1; sourceX++) {
-                        targetData[targetIdx] = calibrator
-                                .calibrate(radianceScanLine[sourceX] * scalingFactor);
-                        targetIdx += rawCoord.targetIncrement;
-                    }
+                    inputStream.readFully(targetData, targetIdx, sourceWidth);
                 }
+                targetIdx += sourceWidth;
             } else {
                 for (int sourceX = rawCoord.minX; sourceX <= rawCoord.maxX; sourceX += sourceStepX) {
                     targetData[targetIdx] = AvhrrConstants.NO_DATA_VALUE;
@@ -126,6 +128,30 @@ class CalibratedBandReader extends PlainBandReader {
             pm.worked(1);
         }
         pm.done();
+
+    }
+
+    protected int getDataOffset(int sourceOffsetX, int sourceY) {
+        return metopFile.getScanLineOffset(sourceY)
+                + 24
+                + (AvhrrConstants.RAW_SCENE_RASTER_WIDTH * AvhrrConstants.CH_DATASET_INDEXES[channel] * 2)
+                + sourceOffsetX * 2;
+    }
+
+    protected boolean isVisibleBand() {
+        return channel == AvhrrConstants.CH_1 || channel == AvhrrConstants.CH_2
+                || channel == AvhrrConstants.CH_3A;
+    }
+
+    protected boolean hasData(int rawY) throws IOException {
+        if (channel != AvhrrConstants.CH_3A && channel != AvhrrConstants.CH_3B) {
+            return true;
+        }
+        final int bitField = metopFile.readFrameIndicator(rawY);
+        final int channel3ab = bitField & 1;
+
+        return (channel3ab == 1 && channel == AvhrrConstants.CH_3A)
+                || (channel3ab == 0 && channel == AvhrrConstants.CH_3B);
     }
 
     private static String format(String pattern, String arg) {

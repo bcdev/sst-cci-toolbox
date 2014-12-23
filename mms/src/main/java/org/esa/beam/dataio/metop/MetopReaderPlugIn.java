@@ -14,7 +14,7 @@
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-package org.eumetsat.beam.dataio.metop;
+package org.esa.beam.dataio.metop;
 
 import org.esa.beam.framework.dataio.DecodeQualification;
 import org.esa.beam.framework.dataio.ProductReader;
@@ -25,7 +25,7 @@ import java.io.File;
 import java.util.Locale;
 
 /**
- * The plug-in class for the {@link org.eumetsat.beam.dataio.metop.MetopReader
+ * The plug-in class for the {@link MetopReader
  * METOP-AVHRR/3 Level-1b reader}.
  *
  * @author Marco Zühlke

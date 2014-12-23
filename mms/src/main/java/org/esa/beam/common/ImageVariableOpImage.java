@@ -14,7 +14,7 @@
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-package org.esa.beam.dataio.cci.sst;
+package org.esa.beam.common;
 
 import org.esa.beam.jai.ResolutionLevel;
 import org.esa.beam.jai.SingleBandedOpImage;
@@ -35,7 +35,7 @@ import java.io.IOException;
  *
  * @author Ralf Quast
  */
-abstract class ImageVariableOpImage extends SingleBandedOpImage {
+public abstract class ImageVariableOpImage extends SingleBandedOpImage {
 
     private final VariableIF variable;
 

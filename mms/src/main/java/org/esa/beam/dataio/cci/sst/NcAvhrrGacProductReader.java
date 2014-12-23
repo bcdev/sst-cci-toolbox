@@ -1,5 +1,8 @@
 package org.esa.beam.dataio.cci.sst;
 
+import org.esa.beam.common.ImageVariableOpImage;
+import org.esa.beam.common.NetcdfProductReaderTemplate;
+import org.esa.beam.common.ScanLineVariableOpImage;
 import org.esa.beam.dataio.netcdf.metadata.ProfilePartReader;
 import org.esa.beam.dataio.netcdf.metadata.profiles.cf.CfBandPart;
 import org.esa.beam.dataio.netcdf.metadata.profiles.cf.CfIndexCodingPart;
@@ -11,8 +14,8 @@ import org.esa.beam.framework.datamodel.FlagCoding;
 import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.MetadataAttribute;
 import org.esa.beam.framework.datamodel.MetadataElement;
-import org.esa.beam.framework.datamodel.PixelLocator;
-import org.esa.beam.framework.datamodel.PixelLocatorAdapter;
+import org.esa.beam.common.PixelLocator;
+import org.esa.beam.common.PixelLocatorAdapter;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.jai.ImageManager;

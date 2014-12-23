@@ -14,7 +14,7 @@
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-package org.esa.beam.framework.datamodel;
+package org.esa.beam.common;
 
 import java.awt.geom.Point2D;
 

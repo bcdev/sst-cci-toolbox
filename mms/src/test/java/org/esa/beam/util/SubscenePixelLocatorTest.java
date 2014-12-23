@@ -1,6 +1,6 @@
 package org.esa.beam.util;
 
-import org.esa.beam.framework.datamodel.PixelLocator;
+import org.esa.beam.common.PixelLocator;
 import org.junit.Before;
 import org.junit.Test;
 

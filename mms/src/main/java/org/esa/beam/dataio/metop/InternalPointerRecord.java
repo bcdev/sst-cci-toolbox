@@ -14,12 +14,12 @@
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-package org.eumetsat.beam.dataio.metop;
+package org.esa.beam.dataio.metop;
 
 import javax.imageio.stream.ImageInputStream;
 
-import org.eumetsat.beam.dataio.metop.GenericRecordHeader.InstrumentGroup;
-import org.eumetsat.beam.dataio.metop.GenericRecordHeader.RecordClass;
+import org.esa.beam.dataio.metop.GenericRecordHeader.InstrumentGroup;
+import org.esa.beam.dataio.metop.GenericRecordHeader.RecordClass;
 
 import java.io.IOException;
 
