@@ -103,6 +103,6 @@ class CloudBandReader implements BandReader {
     }
 
     protected int getDataOffset(int sourceOffsetX, int sourceY) {
-        return metopFile.getScanLineOffset(sourceY) + 22472  + ((metopFile.getNumTrimX() + sourceOffsetX) * 2);
+        return metopFile.getScanLineOffset(sourceY) + 22472  + sourceOffsetX * 2;
     }
 }

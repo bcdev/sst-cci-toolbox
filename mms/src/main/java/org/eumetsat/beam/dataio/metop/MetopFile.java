@@ -37,8 +37,8 @@ import java.util.List;
 /**
  * Reads a product file containing a METOP-AVHRR/3 product.
  *
- * @author marcoz
- * @version $Revision: 1.1.1.1 $ $Date: 2007/03/22 11:12:51 $
+ * @author Ralf Quast
+ * @author Marco Zühlke
  */
 class MetopFile extends AvhrrFile {
 
@@ -47,14 +47,6 @@ class MetopFile extends AvhrrFile {
     private static final int HIGH_PRECISION_SAMPLE_RATE = 20;
 
     private static final int LOW_PRECISION_SAMPLE_RATE = 40;
-
-    private static final int LOW_PRECISION_TRIM_X = 24;
-
-    private static final int HIGH_PRECISION_TRIM_X = 4;
-
-    private static final int LOW_PRECISION_PRODUCT_WIDTH = 2001;
-
-    private static final int HIGH_PRECISION_PRODUCT_WIDTH = 2041;
 
     private static final int LOW_PRECISION_TIE_POINT_WIDTH = 51;
 
@@ -73,9 +65,7 @@ class MetopFile extends AvhrrFile {
 
     private static final int FRAME_INDICATOR_OFFSET = 26580;
 
-    private ImageInputStream inputStream;
-
-    private GenericRecordHeader mphrHeader;
+    private final ImageInputStream inputStream;
 
     private AsciiRecord mainProductHeaderRecord;
 
@@ -89,31 +79,27 @@ class MetopFile extends AvhrrFile {
 
     private int numNavPoints;
 
-    private int numTrimX;
-
     private UTC startTime;
     private UTC endTime;
     private MetadataElement geadrMetadata;
-    private MetadataElement readerInfo;
 
     public MetopFile(ImageInputStream imageInputStream) {
         this.inputStream = imageInputStream;
-        readerInfo = new MetadataElement("READER_INFO");
     }
 
     @Override
     public void readHeader() throws IOException {
-        mphrHeader = new GenericRecordHeader();
+        final GenericRecordHeader mphrHeader = new GenericRecordHeader();
         boolean correct = mphrHeader.readGenericRecordHeader(inputStream);
 
         if (!correct
-                || mphrHeader.recordClass != GenericRecordHeader.RecordClass.MPHR
-                || mphrHeader.instrumentGroup != GenericRecordHeader.InstrumentGroup.GENERIC
-                || mphrHeader.recordSubclass != 0) {
+            || mphrHeader.recordClass != GenericRecordHeader.RecordClass.MPHR
+            || mphrHeader.instrumentGroup != GenericRecordHeader.InstrumentGroup.GENERIC
+            || mphrHeader.recordSubclass != 0) {
             throw new IOException("Unsupported product: bad MPHR. RecordClass="
-                    + mphrHeader.recordClass + " InstrumentGroup="
-                    + mphrHeader.instrumentGroup + " RecordSubclass="
-                    + mphrHeader.recordSubclass);
+                                  + mphrHeader.recordClass + " InstrumentGroup="
+                                  + mphrHeader.instrumentGroup + " RecordSubclass="
+                                  + mphrHeader.recordSubclass);
         }
         mainProductHeaderRecord = new MainProductHeaderRecord();
         mainProductHeaderRecord.readRecord(inputStream);
@@ -125,46 +111,35 @@ class MetopFile extends AvhrrFile {
         correct = sphrHeader.readGenericRecordHeader(inputStream);
 
         if (!correct
-                || sphrHeader.recordClass != GenericRecordHeader.RecordClass.SPHR
-                || sphrHeader.instrumentGroup != GenericRecordHeader.InstrumentGroup.AVHRR_3
-                || sphrHeader.recordSubclass != 0) {
+            || sphrHeader.recordClass != GenericRecordHeader.RecordClass.SPHR
+            || sphrHeader.instrumentGroup != GenericRecordHeader.InstrumentGroup.AVHRR_3
+            || sphrHeader.recordSubclass != 0) {
             throw new IOException("Unsupported product: bad SPHR. RecordClass="
-                    + sphrHeader.recordClass + " InstrumentGroup="
-                    + sphrHeader.instrumentGroup + " RecordSubclass="
-                    + sphrHeader.recordSubclass);
+                                  + sphrHeader.recordClass + " InstrumentGroup="
+                                  + sphrHeader.instrumentGroup + " RecordSubclass="
+                                  + sphrHeader.recordSubclass);
         }
         secondaryProductHeaderRecord = new SecondaryProductHeaderRecord();
         secondaryProductHeaderRecord.readRecord(inputStream);
 
         if (secondaryProductHeaderRecord.getIntValue("EARTH_VIEWS_PER_SCANLINE") != EXPECTED_PRODUCT_WIDTH) {
             throw new IOException("Unsupported product: bad SPHR. " +
-                    "EARTH_VIEWS_PER_SCANLINE is not " + EXPECTED_PRODUCT_WIDTH + ". Actual value: " +
-                    secondaryProductHeaderRecord.getIntValue("EARTH_VIEWS_PER_SCANLINE"));
+                                  "EARTH_VIEWS_PER_SCANLINE is not " + EXPECTED_PRODUCT_WIDTH + ". Actual value: " +
+                                  secondaryProductHeaderRecord.getIntValue("EARTH_VIEWS_PER_SCANLINE"));
         }
         final int navSampleRate = secondaryProductHeaderRecord.getIntValue("NAV_SAMPLE_RATE");
         if (navSampleRate == LOW_PRECISION_SAMPLE_RATE) {
             numNavPoints = LOW_PRECISION_TIE_POINT_WIDTH;
-            numTrimX = LOW_PRECISION_TRIM_X;
-            productWidth = LOW_PRECISION_PRODUCT_WIDTH;
+            productWidth = EXPECTED_PRODUCT_WIDTH;
         } else if (navSampleRate == HIGH_PRECISION_SAMPLE_RATE) {
             numNavPoints = HIGH_PRECISION_TIE_POINT_WIDTH;
-            numTrimX = HIGH_PRECISION_TRIM_X;
-            productWidth = HIGH_PRECISION_PRODUCT_WIDTH;
+            productWidth = EXPECTED_PRODUCT_WIDTH;
         } else {
             throw new IOException("Unsupported product: bad SPHR. " +
-                    "NAV_SAMPLE_RATE is: " + navSampleRate);
+                                  "NAV_SAMPLE_RATE is: " + navSampleRate);
         }
-        readerInfo
-                .addAttribute(HeaderUtil
-                        .createAttribute("TRIM_LEFT", numTrimX, "pixel",
-                                "Number of pixel cut from the left of the product to match the tie-points."));
-        readerInfo
-                .addAttribute(HeaderUtil
-                        .createAttribute("TRIM_RIGHT", EXPECTED_PRODUCT_WIDTH
-                                - numTrimX - productWidth, "pixel",
-                                "Number of pixel cut from the right of the product to match the tie-points."));
 
-        List<InternalPointerRecord> iprs = new ArrayList<InternalPointerRecord>();
+        List<InternalPointerRecord> iprs = new ArrayList<>();
         InternalPointerRecord internalPointerRecord;
         do {
             internalPointerRecord = new InternalPointerRecord();
@@ -178,8 +153,6 @@ class MetopFile extends AvhrrFile {
                     inputStream.seek(ipr.targetRecordOffset);
                     giadrRadiance = new GiadrRadiance();
                     giadrRadiance.readRecord(inputStream);
-                } else if (ipr.targetRecordSubclass == 2) {
-                    // GiadrAnalog not read
                 }
             } else if (ipr.targetRecordClass == GenericRecordHeader.RecordClass.GEADR) {
                 inputStream.seek(ipr.targetRecordOffset);
@@ -192,16 +165,14 @@ class MetopFile extends AvhrrFile {
                     geadrMetadata = new MetadataElement("GEADR");
                 }
                 geadrMetadata.addAttribute(HeaderUtil.createAttribute(Integer.toString(grh.recordSubclass),
-                        new String(geadrText)));
+                                                                      new String(geadrText)));
             } else if (ipr.targetRecordClass == GenericRecordHeader.RecordClass.MDR) {
                 firstMdrOffset = ipr.targetRecordOffset;
             }
         }
         productHeight = mainProductHeaderRecord.getIntValue("TOTAL_MDR");
-        int toSkip = checkMdrs(navSampleRate);
+        checkMdrs();
         analyzeFrameIndicator();
-
-        readerInfo.addAttribute(HeaderUtil.createAttribute("TRIM_BOTTOM",toSkip, "pixel", "Number of lines cut from the end of the product to match the tie-points."));
     }
 
     @Override
@@ -227,7 +198,6 @@ class MetopFile extends AvhrrFile {
             metadataRoot.addElement(geadrMetadata);
         }
         metadataRoot.addElement(giadrRadiance.getMetaData());
-        metadataRoot.addElement(readerInfo);
     }
 
     @Override
@@ -281,16 +251,14 @@ class MetopFile extends AvhrrFile {
         return secondaryProductHeaderRecord.getIntValue("NAV_SAMPLE_RATE");
     }
 
-    public int getNumTrimX() {
-        return numTrimX;
-    }
-
     @Override
     public String[] getTiePointNames() {
-        return new String[]{AvhrrConstants.SZA_DS_NAME,
+        return new String[]{
+                AvhrrConstants.SZA_DS_NAME,
                 AvhrrConstants.VZA_DS_NAME, AvhrrConstants.SAA_DS_NAME,
                 AvhrrConstants.VAA_DS_NAME, AvhrrConstants.LAT_DS_NAME,
-                AvhrrConstants.LON_DS_NAME};
+                AvhrrConstants.LON_DS_NAME
+        };
     }
 
     @Override
@@ -370,15 +338,14 @@ class MetopFile extends AvhrrFile {
     }
 
     public static boolean canOpenFile(File file) throws IOException {
-        ImageInputStream inputStream = new FileImageInputStream(file);
-        try {
+        try (final ImageInputStream inputStream = new FileImageInputStream(file)) {
             GenericRecordHeader mphrHeader = new GenericRecordHeader();
             boolean correct = mphrHeader.readGenericRecordHeader(inputStream);
             // check for MPHR
             if (!correct
-                    || mphrHeader.recordClass != GenericRecordHeader.RecordClass.MPHR
-                    || mphrHeader.instrumentGroup != GenericRecordHeader.InstrumentGroup.GENERIC
-                    || mphrHeader.recordSubclass != 0) {
+                || mphrHeader.recordClass != GenericRecordHeader.RecordClass.MPHR
+                || mphrHeader.instrumentGroup != GenericRecordHeader.InstrumentGroup.GENERIC
+                || mphrHeader.recordSubclass != 0) {
                 return false;
             }
 
@@ -388,13 +355,11 @@ class MetopFile extends AvhrrFile {
 
             // check for SPHR and AVHRR/3
             if (correct
-                    && sphrHeader.recordClass == GenericRecordHeader.RecordClass.SPHR
-                    && sphrHeader.instrumentGroup == GenericRecordHeader.InstrumentGroup.AVHRR_3
-                    && sphrHeader.recordSubclass == 0) {
+                && sphrHeader.recordClass == GenericRecordHeader.RecordClass.SPHR
+                && sphrHeader.instrumentGroup == GenericRecordHeader.InstrumentGroup.AVHRR_3
+                && sphrHeader.recordSubclass == 0) {
                 return true;
             }
-        } finally {
-            inputStream.close();
         }
         return false;
     }
@@ -414,8 +379,8 @@ class MetopFile extends AvhrrFile {
         }
     }
 
-    private int checkMdrs(int navSampleRate) throws IOException {
-        GenericRecordHeader firstMdr = new GenericRecordHeader();
+    private void checkMdrs() throws IOException {
+        final GenericRecordHeader firstMdr = new GenericRecordHeader();
         synchronized (inputStream) {
             inputStream.seek(firstMdrOffset);
             boolean correct = firstMdr.readGenericRecordHeader(inputStream);
@@ -431,11 +396,6 @@ class MetopFile extends AvhrrFile {
         if (fileSize != expectedFileSize) {
             productHeight = (int) ((fileSize - firstMdrOffset) / mdrSize);
         }
-        int toSkip = (productHeight % navSampleRate) - 1;
-        if (toSkip < 0) {
-            toSkip += navSampleRate;
-        }
-        productHeight = productHeight - toSkip;
         GenericRecordHeader lastMdr = new GenericRecordHeader();
         synchronized (inputStream) {
             inputStream.seek(firstMdrOffset + ((productHeight - 1) * mdrSize));
@@ -445,13 +405,11 @@ class MetopFile extends AvhrrFile {
             }
         }
         endTime = lastMdr.recordEndTime;
-
-        return toSkip;
     }
 
     @Override
     public RawCoordinates getRawCoordinates(int sourceOffsetX,
-            int sourceOffsetY, int sourceWidth, int sourceHeight) {
+                                            int sourceOffsetY, int sourceWidth, int sourceHeight) {
         RawCoordinates coordinates = new RawCoordinates();
         if (northbound) {
             coordinates.minX = productWidth - sourceOffsetX - sourceWidth;
@@ -468,9 +426,7 @@ class MetopFile extends AvhrrFile {
             coordinates.targetStart = 0;
             coordinates.targetIncrement = 1;
         }
-        coordinates.minX += numTrimX;
-        coordinates.maxX += numTrimX;
-        
+
         return coordinates;
     }
 
@@ -478,7 +434,6 @@ class MetopFile extends AvhrrFile {
     public void dispose() throws IOException {
         if (inputStream != null) {
             inputStream.close();
-            inputStream = null;
         }
     }
 
