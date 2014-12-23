@@ -155,8 +155,8 @@ public class MatchupGenerator extends BasicTool {
                 pm.transaction();
 
                 final List<Matchup> matchups = new ArrayList<>(referenceObservations.size());
-                final List<Coincidence> coincidences = new ArrayList<>(samples.size());
                 for (int i = 0; i < samples.size(); i++) {
+                    final List<Coincidence> coincidences = new ArrayList<>();
                     final SamplingPoint p = samples.get(i);
                     final ReferenceObservation r = referenceObservations.get(i);
 
