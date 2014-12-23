@@ -42,6 +42,7 @@ public class MetopReaderPlugIn implements ProductReaderPlugIn {
     public MetopReaderPlugIn() {
     }
 
+    @Override
     public DecodeQualification getDecodeQualification(Object input) {
         File file = getInputFile(input);
         if (file != null && MetopReader.canOpenFile(file)) {
@@ -69,6 +70,7 @@ public class MetopReaderPlugIn implements ProductReaderPlugIn {
      *
      * @return an array containing valid input types, never <code>null</code>
      */
+    @Override
     public Class[] getInputTypes() {
         return INPUT_TYPES;
     }
@@ -78,6 +80,7 @@ public class MetopReaderPlugIn implements ProductReaderPlugIn {
      *
      * @return a new reader instance, never <code>null</code>
      */
+    @Override
     public ProductReader createReaderInstance() {
         return new MetopReader(this);
     }
@@ -87,6 +90,7 @@ public class MetopReaderPlugIn implements ProductReaderPlugIn {
      *
      * @return the names of the product formats handled by this product I/O plug-in, never <code>null</code>
      */
+    @Override
     public String[] getFormatNames() {
         return new String[]{
                 FORMAT_NAME
@@ -101,6 +105,7 @@ public class MetopReaderPlugIn implements ProductReaderPlugIn {
      *
      * @return the default file extensions for this product I/O plug-in, never <code>null</code>
      */
+    @Override
     public String[] getDefaultFileExtensions() {
         return FILE_EXTENSIONS;
     }
@@ -114,6 +119,7 @@ public class MetopReaderPlugIn implements ProductReaderPlugIn {
      * @param locale the local for the given decription string, if <code>null</code> the default locale is used
      * @return a textual description of this product reader/writer
      */
+    @Override
     public String getDescription(Locale locale) {
         return DESCRIPTION;
     }
@@ -123,6 +129,7 @@ public class MetopReaderPlugIn implements ProductReaderPlugIn {
      *
      * @return the file filter.
      */
+    @Override
     public BeamFileFilter getProductFileFilter() {
         return new BeamFileFilter(getFormatNames()[0], getDefaultFileExtensions(), getDescription(null));
     }
