@@ -27,8 +27,7 @@ import java.io.IOException;
  * Reads the Global Internal Auxiliary Data Record (GIADR)
  * containing Radiance information.
  *
- * @author marcoz
- * @version $Revision: 1.1.1.1 $ $Date: 2007/03/22 11:12:51 $
+ * @author Marco Zühlke
  */
 class GiadrRadiance {
 
@@ -69,27 +68,27 @@ class GiadrRadiance {
     private float constant2Slope[] = new float[3];
 
 
-    public float getSolarIrradiance(int channel) {
+    float getSolarIrradiance(int channel) {
         return solarFilteredIrradiance[channel];
     }
 
-    public float getEquivalentWidth(int channel) {
+    float getEquivalentWidth(int channel) {
         return equivalentFilteredWidth[channel];
     }
 
-    public float getCentralWavenumber(int channel) {
+    float getCentralWavenumber(int channel) {
         return centralWavenumber[channel - AvhrrConstants.CH_3B];
     }
 
-    public float getConstant1(int channel) {
+    float getConstant1(int channel) {
         return constant1[channel - AvhrrConstants.CH_3B];
     }
 
-    public float getConstant2(int channel) {
+    float getConstant2(int channel) {
         return constant2Slope[channel - AvhrrConstants.CH_3B];
     }
 
-    public void readRecord(ImageInputStream inputStream) throws IOException {
+    void readRecord(ImageInputStream inputStream) throws IOException {
         GenericRecordHeader grh = new GenericRecordHeader();
         boolean correct = grh.readGenericRecordHeader(inputStream);
         if (!correct) {
@@ -124,7 +123,7 @@ class GiadrRadiance {
         }
     }
 
-    public MetadataElement getMetaData() {
+    MetadataElement getMetaData() {
         final MetadataElement element = new MetadataElement("RADIANCE_CONVERSION");
         element.addAttribute(HeaderUtil.createAttribute("RAMP_CALIBRATION_COEFFICIENT", rampCalibrationCoefficient));
         element.addAttribute(HeaderUtil.createAttribute("YEAR_RECENT_CALIBRATION", yearRecentCalibration, AvhrrConstants.UNIT_YEARS));

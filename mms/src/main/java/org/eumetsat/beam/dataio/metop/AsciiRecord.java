@@ -31,20 +31,19 @@ import java.util.*;
 /**
  * The abstract base class for all header containing infomation in ASCII format
  *
- * @author marcoz
- * @version $Revision: 1.1.1.1 $ $Date: 2007/03/22 11:12:51 $
+ * @author Marco Zühlke
  */
 abstract class AsciiRecord {
 
     private Map<String, String> map;
     private int fieldCount;
 
-    public AsciiRecord(int fieldCount) {
+    AsciiRecord(int fieldCount) {
         this.fieldCount = fieldCount;
-        this.map = new HashMap<String, String>();
+        this.map = new HashMap<>();
     }
 
-    public void readRecord(ImageInputStream imageInputStream) throws IOException {
+    void readRecord(ImageInputStream imageInputStream) throws IOException {
         for (int i = 0; i < fieldCount; i++) {
             final String fieldString = imageInputStream.readLine();
             final KeyValuePair field = new KeyValuePair(fieldString);
@@ -53,19 +52,15 @@ abstract class AsciiRecord {
         }
     }
 
-    public String getValue(String key) {
+    String getValue(String key) {
         return map.get(key);
     }
 
-    public int getIntValue(String key) {
+    int getIntValue(String key) {
         return Integer.parseInt(getValue(key));
     }
 
-    public long getLongValue(String key) {
-        return Long.parseLong(getValue(key));
-    }
-
-    abstract public MetadataElement getMetaData();
+    abstract MetadataElement getMetaData();
 
     private class KeyValuePair {
         final String key;
@@ -74,16 +69,6 @@ abstract class AsciiRecord {
         public KeyValuePair(String field) {
             key = field.substring(0, 30).trim();
             value = field.substring(32).trim();
-        }
-    }
-
-    public void printValues() {
-        List<String> keys = new ArrayList<String>(map.keySet());
-        Collections.sort(keys);
-
-
-        for (final String key : keys) {
-            System.out.println(key + "=" + map.get(key));
         }
     }
 

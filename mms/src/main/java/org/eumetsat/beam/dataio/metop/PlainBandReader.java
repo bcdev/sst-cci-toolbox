@@ -29,7 +29,7 @@ import java.text.MessageFormat;
 /**
  * Reads radiances directly from the METOP prodcuts.
  *
- * @author marcoz
+ * @author Marco Zühlke
  */
 class PlainBandReader implements BandReader {
 
@@ -42,7 +42,7 @@ class PlainBandReader implements BandReader {
 
     protected final ImageInputStream inputStream;
 
-    public PlainBandReader(int channel, MetopFile metopFile,
+    PlainBandReader(int channel, MetopFile metopFile,
                            ImageInputStream inputStream) {
         this.channel = channel;
         this.metopFile = metopFile;

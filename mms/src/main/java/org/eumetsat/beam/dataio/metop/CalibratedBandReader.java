@@ -30,14 +30,13 @@ import java.text.MessageFormat;
  * Reads radiances from the METOP prodcuts and transforms them into
  * a reflectance factor or a temperature.
  *
- * @author marcoz
- * @version $Revision: 1.1.1.1 $ $Date: 2007/03/22 11:12:51 $
+ * @author Marco Zühlke
  */
 class CalibratedBandReader extends PlainBandReader {
 
     private final RadianceCalibrator calibrator;
 
-    public CalibratedBandReader(int channel, MetopFile metopFile,
+    CalibratedBandReader(int channel, MetopFile metopFile,
                                 ImageInputStream inputStream, RadianceCalibrator radianceCalibrator) {
         super(channel, metopFile, inputStream);
         calibrator = radianceCalibrator;

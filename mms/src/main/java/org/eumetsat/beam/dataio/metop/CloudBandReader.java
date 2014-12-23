@@ -28,7 +28,7 @@ import java.text.MessageFormat;
 /**
  * Reads cloud information directly from the METOP product.
  *
- * @author marcoz
+ * @author Marco Zühlke
  */
 class CloudBandReader implements BandReader {
 
@@ -36,7 +36,7 @@ class CloudBandReader implements BandReader {
 
     protected final ImageInputStream inputStream;
 
-    public CloudBandReader(MetopFile metopFile,
+    CloudBandReader(MetopFile metopFile,
                            ImageInputStream inputStream) {
         this.metopFile = metopFile;
         this.inputStream = inputStream;

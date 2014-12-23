@@ -36,6 +36,8 @@ import java.io.IOException;
 
 /**
  * A reader for METOP-AVHRR/3 Level-1b data products.
+ *
+ * @author Marco Zühlke
  */
 public class MetopReader extends AvhrrReader implements AvhrrConstants {
 
@@ -114,24 +116,30 @@ public class MetopReader extends AvhrrReader implements AvhrrConstants {
         if (avhrrFile.hasCloudBand()) {
             BandReader cloudReader = avhrrFile.createCloudBandReader();
             Band cloudBand = new Band(cloudReader.getBandName(),
-                    cloudReader.getDataType(), avhrrFile.getProductWidth(),
-                    avhrrFile.getProductHeight());
+                                      cloudReader.getDataType(), avhrrFile.getProductWidth(),
+                                      avhrrFile.getProductHeight());
 
             FlagCoding fc = new FlagCoding(cloudReader.getBandName());
             fc.setDescription("Flag coding for CLOUD_INFORMATION");
 
-            addFlagAndBitmaskDef(fc, "uniformity_test2", "Uniformity test (0='test failed' or 'clear'; 1='cloudy')", 15);
-            addFlagAndBitmaskDef(fc, "uniformity_test1", "Uniformity test (0 ='test failed' or 'cloudy', 1='clear')", 14);
+            addFlagAndBitmaskDef(fc, "uniformity_test2", "Uniformity test (0='test failed' or 'clear'; 1='cloudy')",
+                                 15);
+            addFlagAndBitmaskDef(fc, "uniformity_test1", "Uniformity test (0 ='test failed' or 'cloudy', 1='clear')",
+                                 14);
             addFlagAndBitmaskDef(fc, "t3_t5_test2", "T3-T5 test (0='test failed' or 'clear'; 1='cloudy')", 13);
             addFlagAndBitmaskDef(fc, "t3_t5_test1", "T3-T5 test (0 ='test failed' or 'cloudy', 1='clear')", 12);
             addFlagAndBitmaskDef(fc, "t4_t3_test2", "T4-T3 test (0='test failed' or 'clear'; 1='cloudy')", 11);
             addFlagAndBitmaskDef(fc, "t4_t3_test1", "T4-T3 test (0 ='test failed' or 'cloudy', 1='clear')", 10);
             addFlagAndBitmaskDef(fc, "t4_t5_test2", "T4-T5 test (0='test failed' or 'clear'; 1='cloudy')", 9);
             addFlagAndBitmaskDef(fc, "t4_t5_test1", "T4-T5 test (0 ='test failed' or 'cloudy', 1='clear')", 8);
-            addFlagAndBitmaskDef(fc, "albedo_test2", "Albedo test (0='test failed' or 'clear'; 1='cloudy' or 'snow/ice covered')", 7);
-            addFlagAndBitmaskDef(fc, "albedo_test1", "Albedo test (0 ='test failed' or 'cloudy', 1='clear' or 'snow/ice covered')", 6);
-            addFlagAndBitmaskDef(fc, "t4_test2", "T4 test (0='test failed' or 'clear'; 1='cloudy' or 'snow/ice covered')", 5);
-            addFlagAndBitmaskDef(fc, "t4_test1", "T4 test (0 ='test failed' or 'cloudy', 1='clear' or 'snow/ice covered')", 4);
+            addFlagAndBitmaskDef(fc, "albedo_test2",
+                                 "Albedo test (0='test failed' or 'clear'; 1='cloudy' or 'snow/ice covered')", 7);
+            addFlagAndBitmaskDef(fc, "albedo_test1",
+                                 "Albedo test (0 ='test failed' or 'cloudy', 1='clear' or 'snow/ice covered')", 6);
+            addFlagAndBitmaskDef(fc, "t4_test2",
+                                 "T4 test (0='test failed' or 'clear'; 1='cloudy' or 'snow/ice covered')", 5);
+            addFlagAndBitmaskDef(fc, "t4_test1",
+                                 "T4 test (0 ='test failed' or 'cloudy', 1='clear' or 'snow/ice covered')", 4);
 
             cloudBand.setSampleCoding(fc);
             product.getFlagCodingGroup().add(fc);
@@ -139,6 +147,7 @@ public class MetopReader extends AvhrrReader implements AvhrrConstants {
             bandReaders.put(cloudBand, cloudReader);
         }
     }
+
     private void addDeltaAzimuth(int tiePointGridWidth, int tiePointGridHeight, int tiePointSampleRate) {
         float[] sunAzimuthTiePointData = product.getTiePointGrid(SAA_DS_NAME).getTiePoints();
         float[] viewAzimuthTiePointData = product.getTiePointGrid(VAA_DS_NAME).getTiePoints();
@@ -161,6 +170,7 @@ public class MetopReader extends AvhrrReader implements AvhrrConstants {
      *
      * @param vaa viewing azimuth angle [degree]
      * @param saa sun azimuth angle [degree]
+     *
      * @return the azimuth difference [degree]
      */
     private static double computeAda(double vaa, double saa) {

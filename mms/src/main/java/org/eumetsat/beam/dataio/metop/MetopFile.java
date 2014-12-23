@@ -83,7 +83,7 @@ class MetopFile extends AvhrrFile {
     private UTC endTime;
     private MetadataElement geadrMetadata;
 
-    public MetopFile(ImageInputStream imageInputStream) {
+    MetopFile(ImageInputStream imageInputStream) {
         this.inputStream = imageInputStream;
     }
 

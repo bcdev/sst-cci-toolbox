@@ -27,8 +27,7 @@ import java.io.IOException;
  * Reads an Internal Pointer record (IPR) and holds it's data
  * in accessible fields.
  *
- * @author marcoz
- * @version $Revision: 1.1.1.1 $ $Date: 2007/03/22 11:12:51 $
+ * @author Marco Zühlke
  */
 class InternalPointerRecord {
 
@@ -39,7 +38,7 @@ class InternalPointerRecord {
     public int targetRecordSubclass;
     public int targetRecordOffset;
 
-    public void readRecord(ImageInputStream imageInputStream) throws IOException {
+    void readRecord(ImageInputStream imageInputStream) throws IOException {
         header = new GenericRecordHeader();
         boolean correct = header.readGenericRecordHeader(imageInputStream);
         if (!correct ||
@@ -61,11 +60,4 @@ class InternalPointerRecord {
         targetRecordOffset = (int) imageInputStream.readUnsignedInt();
     }
 
-    public void printIPR() {
-        System.out.println("IPR");
-        System.out.println("targetRecordClass " + targetRecordClass);
-        System.out.println("targetInstrumentGroup " + targetInstrumentGroup);
-        System.out.println("targetRecordSubclass " + targetRecordSubclass);
-        System.out.println("targetRecordOffset " + targetRecordOffset);
-    }
 }

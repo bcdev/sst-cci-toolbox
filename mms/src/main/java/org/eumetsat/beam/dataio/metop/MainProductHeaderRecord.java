@@ -27,20 +27,19 @@ import java.text.SimpleDateFormat;
  * Reads a Main Product Header Record (MPHR)and make the contained
  * metadata available as MetadataElements
  *
- * @author marcoz
- * @version $Revision: 1.1.1.1 $ $Date: 2007/03/22 11:12:51 $
+ * @author Marco Zühlke
  */
 class MainProductHeaderRecord extends AsciiRecord {
     private static final int NUM_FIELDS = 72;
     private static final DateFormat generalTimeFormat = new SimpleDateFormat("yyyyMMddHHmmss'Z'");
     private static final DateFormat longGeneralTimeFormat = new SimpleDateFormat("yyyyMMddHHmmssSSS'Z'");
 
-    public MainProductHeaderRecord() {
+    MainProductHeaderRecord() {
         super(NUM_FIELDS);
     }
 
     @Override
-    public MetadataElement getMetaData() {
+    MetadataElement getMetaData() {
         final MetadataElement element = new MetadataElement("MPH");
         element.addElement(getProductDetails());
         element.addElement(getAscendingNodeOrbitParameters());

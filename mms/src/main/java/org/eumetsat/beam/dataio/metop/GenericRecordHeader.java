@@ -26,26 +26,25 @@ import java.io.IOException;
  * Can read a Generic Record Header (GRH) and holds it's information
  * in public accessible fields.
  *
- * @author marcoz
- * @version $Revision: 1.1.1.1 $ $Date: 2007/03/22 11:12:51 $
+ * @author Marco Zühlke
  */
 class GenericRecordHeader {
 
-    public RecordClass recordClass;
+    RecordClass recordClass;
 
-    public InstrumentGroup instrumentGroup;
+    InstrumentGroup instrumentGroup;
 
-    public int recordSubclass;
+    int recordSubclass;
 
-    public int recordSubclassVersion;
+    int recordSubclassVersion;
 
-    public long recordSize;
+    long recordSize;
 
-    public ProductData.UTC recordStartTime;
+    ProductData.UTC recordStartTime;
 
-    public ProductData.UTC recordEndTime;
+    ProductData.UTC recordEndTime;
 
-    public boolean readGenericRecordHeader(ImageInputStream imageInputStream) throws IOException {
+    boolean readGenericRecordHeader(ImageInputStream imageInputStream) throws IOException {
         byte rc = imageInputStream.readByte();
         if (!RecordClass.isValid(rc)) {
             return false;
@@ -77,18 +76,7 @@ class GenericRecordHeader {
         return true;
     }
 
-    public void printGRH() {
-        System.out.println("GRH");
-        System.out.println("recordClass: " + recordClass);
-        System.out.println("instrumentGroup: " + instrumentGroup);
-        System.out.println("recordSubclass: " + recordSubclass);
-        System.out.println("recordSubclassVersion: " + recordSubclassVersion);
-        System.out.println("recordSize: " + recordSize);
-//        System.out.println("recordStartTime: " + recordStartTime);
-//        System.out.println("recordEndTime: " + recordEndTime);
-    }
-
-    public enum RecordClass {
+    enum RecordClass {
         RESERVED,
         MPHR,
         SPHR,
@@ -104,7 +92,7 @@ class GenericRecordHeader {
         }
     }
 
-    public enum InstrumentGroup {
+    enum InstrumentGroup {
         GENERIC,
         AMSU_A,
         ASCAT,
@@ -122,7 +110,7 @@ class GenericRecordHeader {
         ARCHIVE,
         IASI_L2;
         
-        public static boolean isValid(int index) {
+        static boolean isValid(int index) {
             return (index >=0 && index <= 15);
         }
     }

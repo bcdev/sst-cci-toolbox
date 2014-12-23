@@ -16,9 +16,9 @@
 
 package org.eumetsat.beam.dataio.metop;
 
+import org.esa.beam.framework.dataio.DecodeQualification;
 import org.esa.beam.framework.dataio.ProductReader;
 import org.esa.beam.framework.dataio.ProductReaderPlugIn;
-import org.esa.beam.framework.dataio.DecodeQualification;
 import org.esa.beam.util.io.BeamFileFilter;
 
 import java.io.File;
@@ -27,6 +27,8 @@ import java.util.Locale;
 /**
  * The plug-in class for the {@link org.eumetsat.beam.dataio.metop.MetopReader
  * METOP-AVHRR/3 Level-1b reader}.
+ *
+ * @author Marco Zühlke
  */
 public class MetopReaderPlugIn implements ProductReaderPlugIn {
 
@@ -117,6 +119,7 @@ public class MetopReaderPlugIn implements ProductReaderPlugIn {
      * <p> In a GUI, the description returned could be used as tool-tip text.
      *
      * @param locale the local for the given decription string, if <code>null</code> the default locale is used
+     *
      * @return a textual description of this product reader/writer
      */
     @Override
