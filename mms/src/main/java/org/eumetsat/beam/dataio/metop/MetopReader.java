@@ -81,19 +81,23 @@ public class MetopReader extends AvhrrReader implements AvhrrConstants {
     protected void addTiePointGrids() throws IOException {
         final MetopFile metopFile = (MetopFile) avhrrFile;
         final int tiePointSampleRate = metopFile.getNavSampleRate();
-        final int tiePointGridHeight = metopFile.getProductHeight() / tiePointSampleRate + 1;
+        final int tiePointGridHeight = metopFile.getProductHeight();
         final int tiePointGridWidth = metopFile.getNumNavPoints();
 
-        String[] tiePointNames = avhrrFile.getTiePointNames();
-        float[][] tiePointData = avhrrFile.getTiePointData();
+        final String[] tiePointNames = avhrrFile.getTiePointNames();
+        final float[][] tiePointData = avhrrFile.getTiePointData();
 
         final int numGrids = tiePointNames.length;
         TiePointGrid grid[] = new TiePointGrid[numGrids];
 
         for (int i = 0; i < grid.length; i++) {
-            grid[i] = createTiePointGrid(tiePointNames[i], tiePointGridWidth,
-                                         tiePointGridHeight, TP_OFFSET_X,
-                                         TP_OFFSET_Y, tiePointSampleRate, tiePointSampleRate,
+            grid[i] = createTiePointGrid(tiePointNames[i],
+                                         tiePointGridWidth,
+                                         tiePointGridHeight,
+                                         TP_OFFSET_X,
+                                         TP_OFFSET_Y,
+                                         tiePointSampleRate,
+                                         1,
                                          tiePointData[i]);
             grid[i].setUnit(UNIT_DEG);
             product.addTiePointGrid(grid[i]);

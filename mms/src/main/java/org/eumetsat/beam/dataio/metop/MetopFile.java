@@ -263,8 +263,7 @@ class MetopFile extends AvhrrFile {
 
     @Override
     public float[][] getTiePointData() throws IOException {
-        final int navSampleRate = getNavSampleRate();
-        final int gridHeight = getProductHeight() / navSampleRate + 1;
+        final int gridHeight = getProductHeight();
         final int numNavPoints = getNumNavPoints();
         final int numTiePoints = numNavPoints * gridHeight;
 
@@ -272,13 +271,11 @@ class MetopFile extends AvhrrFile {
         final int numRawAngles = numNavPoints * 4;
         final int numRawLatLon = numNavPoints * 2;
 
-        short[] rawAngles = new short[numRawAngles];
-        int[] rawLatLon = new int[numRawLatLon];
+        final short[] rawAngles = new short[numRawAngles];
+        final int[] rawLatLon = new int[numRawLatLon];
 
         int targetIndex = 0;
-        int targetIncr = 1;
-
-        for (int scanLine = 0; scanLine < getProductHeight(); scanLine += navSampleRate) {
+        for (int scanLine = 0; scanLine < getProductHeight(); scanLine++) {
             final int scanLineOffset = getScanLineOffset(scanLine);
             synchronized (inputStream) {
                 inputStream.seek(scanLineOffset + TIE_POINT_OFFSET);
@@ -294,9 +291,10 @@ class MetopFile extends AvhrrFile {
                 tiePointData[4][targetIndex] = rawLatLon[scanPoint * 2] * 1E-4f;
                 tiePointData[5][targetIndex] = rawLatLon[scanPoint * 2 + 1] * 1E-4f;
 
-                targetIndex += targetIncr;
+                targetIndex++;
             }
         }
+
         return tiePointData;
     }
 
