@@ -49,7 +49,7 @@ import java.util.List;
  * @author Martin Boettcher
  */
 @SuppressWarnings({"ClassTooDeepInInheritanceTree"})
-class MetopReader extends MdReader implements InsituSource {
+class MetopMdReader extends MdReader implements InsituSource {
 
     private static final int LAT_LON_FILL_VALUE = -32768;
 
@@ -59,7 +59,7 @@ class MetopReader extends MdReader implements InsituSource {
     private int cachedRecordNo = Integer.MAX_VALUE;
     private GeoCoding cachedGeoCoding = null;
 
-    MetopReader(String sensorName) {
+    MetopMdReader(String sensorName) {
         super(sensorName);
     }
 
