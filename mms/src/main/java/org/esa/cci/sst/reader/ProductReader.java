@@ -22,6 +22,7 @@ import org.esa.beam.dataio.cci.sst.NcOsiProductReaderPlugIn;
 import org.esa.beam.dataio.cci.sst.PmwProductReaderPlugIn;
 import org.esa.beam.dataio.envisat.EnvisatConstants;
 import org.esa.beam.dataio.envisat.EnvisatProductReader;
+import org.esa.beam.dataio.metop.MetopReaderPlugIn;
 import org.esa.beam.framework.dataio.ProductFlipper;
 import org.esa.beam.framework.datamodel.MetadataAttribute;
 import org.esa.beam.framework.datamodel.MetadataElement;
@@ -59,6 +60,7 @@ class ProductReader extends AbstractProductReader {
         super(sensorName,
               EnvisatConstants.ENVISAT_FORMAT_NAME,
               NcAvhrrGacProductReaderPlugIn.FORMAT_NAME,
+              MetopReaderPlugIn.FORMAT_NAME,
               NcOsiProductReaderPlugIn.FORMAT_NAME,
               PmwProductReaderPlugIn.FORMAT_NAME);
         this.dirtyMaskExpression = dirtyMaskExpression;
