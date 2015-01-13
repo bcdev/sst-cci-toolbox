@@ -47,7 +47,7 @@ import java.util.List;
  * @author Martin Boettcher
  */
 @SuppressWarnings({"ClassTooDeepInInheritanceTree"})
-class SeviriReader extends MdReader implements InsituSource {
+class SeviriMdReader extends MdReader implements InsituSource {
 
     protected int noOfLines;
     protected int noOfColumns;
@@ -55,7 +55,7 @@ class SeviriReader extends MdReader implements InsituSource {
     private int cachedRecordNo = Integer.MAX_VALUE;
     private GeoCoding cachedGeoCoding = null;
 
-    SeviriReader(String sensorName) {
+    SeviriMdReader(String sensorName) {
         super(sensorName);
     }
 

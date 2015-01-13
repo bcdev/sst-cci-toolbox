@@ -26,20 +26,17 @@ import java.util.Locale;
 
 /**
  * The plug-in class for the {@link MetopReader
- * METOP-AVHRR/3 Level-1b reader}.
+ * METOP-AVHRR-FRAC reader (Level-1b)}.
  *
  * @author Marco Zühlke
  */
 public class MetopReaderPlugIn implements ProductReaderPlugIn {
 
-    public static final String FORMAT_NAME = "METOP_AVHRR_3_L1B";
+    public static final String FORMAT_NAME = "METOP_AVHRR_FRAC";
 
-    private static final String[] FILE_EXTENSIONS = new String[]{""};
-    private static final String DESCRIPTION = "METOP-AVHRR/3 Level-1b Data Product";
-    private static final Class[] INPUT_TYPES = new Class[]{
-            String.class,
-            File.class,
-    };
+    private static final String[] FILE_EXTENSIONS = new String[]{".nat"};
+    private static final String DESCRIPTION = "METOP-AVHRR-FRAC Data Product";
+    private static final Class[] INPUT_TYPES = new Class[]{String.class, File.class};
 
     public MetopReaderPlugIn() {
     }

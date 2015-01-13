@@ -75,6 +75,7 @@ public class MetopReader extends AvhrrReader implements AvhrrConstants {
             throw e;
         }
         product.setFileLocation(dataFile);
+        product.setPreferredTileSize(product.getSceneRasterWidth(), 512);
 
         return product;
     }
@@ -106,8 +107,7 @@ public class MetopReader extends AvhrrReader implements AvhrrConstants {
         }
         addDeltaAzimuth(tiePointGridWidth, tiePointGridHeight, tiePointSampleRate);
 
-        GeoCoding geoCoding = new TiePointGeoCoding(grid[numGrids - 2],
-                                                    grid[numGrids - 1], Datum.WGS_72);
+        final GeoCoding geoCoding = new MetopGeoCoding(grid[numGrids - 2], grid[numGrids - 1]);
         product.setGeoCoding(geoCoding);
     }
 

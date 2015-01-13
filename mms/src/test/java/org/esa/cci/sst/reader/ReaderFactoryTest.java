@@ -49,17 +49,17 @@ public class ReaderFactoryTest {
 
     @Test
     public void testCreateMdReaders() throws Exception {
-        Reader reader = ReaderFactory.createReader("MetopReader", "");
+        Reader reader = ReaderFactory.createReader("MetopMdReader", "");
         assertNotNull(reader);
-        assertTrue(reader instanceof MetopReader);
+        assertTrue(reader instanceof MetopMdReader);
 
         reader = ReaderFactory.createReader("AtsrMdReader", "");
         assertNotNull(reader);
         assertTrue(reader instanceof AtsrMdReader);
 
-        reader = ReaderFactory.createReader("SeviriReader", "");
+        reader = ReaderFactory.createReader("SeviriMdReader", "");
         assertNotNull(reader);
-        assertTrue(reader instanceof SeviriReader);
+        assertTrue(reader instanceof SeviriMdReader);
 
         reader = ReaderFactory.createReader("AvhrrMdReader", "");
         assertNotNull(reader);
