@@ -408,22 +408,13 @@ class MetopFile extends AvhrrFile {
     @Override
     public RawCoordinates getRawCoordinates(int sourceOffsetX,
                                             int sourceOffsetY, int sourceWidth, int sourceHeight) {
-        RawCoordinates coordinates = new RawCoordinates();
-        if (northbound) {
-            coordinates.minX = productWidth - sourceOffsetX - sourceWidth;
-            coordinates.maxX = productWidth - sourceOffsetX - 1;
-            coordinates.minY = productHeight - sourceOffsetY - sourceHeight;
-            coordinates.maxY = productHeight - sourceOffsetY - 1;
-            coordinates.targetStart = sourceWidth * sourceHeight - 1;
-            coordinates.targetIncrement = -1;
-        } else {
-            coordinates.minX = sourceOffsetX;
-            coordinates.maxX = sourceOffsetX + sourceWidth - 1;
-            coordinates.minY = sourceOffsetY;
-            coordinates.maxY = sourceOffsetY + sourceHeight - 1;
-            coordinates.targetStart = 0;
-            coordinates.targetIncrement = 1;
-        }
+        final RawCoordinates coordinates = new RawCoordinates();
+        coordinates.minX = sourceOffsetX;
+        coordinates.maxX = sourceOffsetX + sourceWidth - 1;
+        coordinates.minY = sourceOffsetY;
+        coordinates.maxY = sourceOffsetY + sourceHeight - 1;
+        coordinates.targetStart = 0;
+        coordinates.targetIncrement = 1;
 
         return coordinates;
     }
