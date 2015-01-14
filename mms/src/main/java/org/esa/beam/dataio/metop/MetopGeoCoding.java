@@ -62,16 +62,16 @@ final class MetopGeoCoding extends TiePointGeoCoding {
 
     @Override
     public PixelPos getPixelPos(GeoPos geoPos, PixelPos pixelPos) {
+        if (pixelPos == null) {
+            pixelPos = new PixelPos();
+        }
         if (pixelPosEstimator.canGetPixelPos()) {
-            if (pixelPos == null) {
-                pixelPos = new PixelPos();
-            }
             pixelPosEstimator.getPixelPos(geoPos, pixelPos);
             if (pixelPos.isValid()) {
                 pixelFinder.findPixelPos(geoPos, pixelPos);
             }
         } else {
-            super.getPixelPos(geoPos, pixelPos);
+            pixelPos.setInvalid();
         }
         return pixelPos;
     }
