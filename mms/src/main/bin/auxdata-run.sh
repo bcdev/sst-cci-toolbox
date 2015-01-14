@@ -17,4 +17,4 @@ echo "`date -u +%Y%m%d-%H%M%S` coincidence ${year}/${month} sensor ${sensor}..."
 ${mms.home}/bin/auxdata-tool.sh -c ${mms.home}/config/${usecase}-config.properties \
 -Dmms.matchup.startTime=${starttime} \
 -Dmms.matchup.stopTime=${stoptime} \
--Dmms.matchup.primarysensor=${sensor}
+-Dmms.sampling.sensor=${sensor}
