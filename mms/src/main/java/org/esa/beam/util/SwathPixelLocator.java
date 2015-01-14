@@ -1,12 +1,11 @@
 package org.esa.beam.util;
 
-import org.esa.beam.framework.datamodel.GeoApproximation;
 import org.esa.beam.common.PixelLocator;
+import org.esa.beam.framework.datamodel.GeoApproximation;
 import org.esa.beam.util.math.CosineDistance;
 import org.esa.beam.util.math.DistanceMeasure;
 
 import javax.media.jai.PlanarImage;
-import java.awt.Rectangle;
 import java.awt.geom.Point2D;
 
 import static java.lang.Math.max;
@@ -21,7 +20,7 @@ class SwathPixelLocator extends AbstractPixelLocator {
     private final PixelLocationSearcher searcher;
 
     static PixelLocator create(RasterDataNodeSampleSource lonSource,
-                               RasterDataNodeSampleSource latSource) {
+                               RasterDataNodeSampleSource latSource, boolean wobbly) {
         final PlanarImage lonImage = lonSource.getNode().getGeophysicalImage();
         final PlanarImage latImage = latSource.getNode().getGeophysicalImage();
         final PlanarImage maskImage = lonSource.getNode().getValidMaskImage();
@@ -37,8 +36,8 @@ class SwathPixelLocator extends AbstractPixelLocator {
         }
         final PixelLocationSearcher searcher = new PixelLocationSearcher(lonSource,
                                                                          latSource,
-                                                                         maskSource
-        );
+                                                                         maskSource,
+                                                                         wobbly);
 
         return new SwathPixelLocator(lonSource, latSource, estimator, searcher);
     }
@@ -121,13 +120,16 @@ class SwathPixelLocator extends AbstractPixelLocator {
         private final SampleSource lonSource;
         private final SampleSource latSource;
         private final SampleSource maskSource;
+        private final boolean wobbly;
         private final int sourceW;
         private final int sourceH;
 
-        public PixelLocationSearcher(SampleSource lonSource, SampleSource latSource, SampleSource maskSource) {
+        public PixelLocationSearcher(SampleSource lonSource, SampleSource latSource, SampleSource maskSource,
+                                     boolean wobbly) {
             this.lonSource = lonSource;
             this.latSource = latSource;
             this.maskSource = maskSource;
+            this.wobbly = wobbly;
 
             sourceW = lonSource.getWidth();
             sourceH = lonSource.getHeight();
@@ -176,20 +178,47 @@ class SwathPixelLocator extends AbstractPixelLocator {
                 result.invoke(outerMaxX, outerMaxY);
                 result.invoke(outerMaxX, outerMinY);
 
-                //noinspection ConstantConditions,ConstantIfStatement
-                if (true) {
-                    // consider inner points in the NW, SW, SE, and NE
+                if (r > 1) {
                     final int innerMinX = max(outerMinX, midX - (r >> 1));
                     final int innerMaxX = min(outerMaxX, midX + (r >> 1));
                     final int innerMinY = max(outerMinY, midY - (r >> 1));
                     final int innerMaxY = min(outerMaxY, midY + (r >> 1));
 
+                    // consider inner points in the N, S, E, and W
+                    if (wobbly) {
+                        result.invoke(innerMinX, midY);
+                        result.invoke(innerMaxX, midY);
+                        result.invoke(midX, innerMaxY);
+                        result.invoke(midX, innerMinY);
+
+                        if (r > 2) {
+                            final int macroMinX = max(innerMinX, midX - 1);
+                            final int macroMaxX = min(innerMaxX, midX + 1);
+                            final int macroMinY = max(innerMinY, midY - 1);
+                            final int macroMaxY = min(innerMaxY, midY + 1);
+
+                            // consider macro pixel points in the N, S, E, and W
+                            result.invoke(macroMinX, midY);
+                            result.invoke(macroMaxX, midY);
+                            result.invoke(midX, macroMaxY);
+                            result.invoke(midX, macroMinY);
+
+                            // consider macro pixel points in the NW, SW, SE, and NE
+                            result.invoke(macroMinX, macroMinY);
+                            result.invoke(macroMinX, macroMaxY);
+                            result.invoke(macroMaxX, macroMaxY);
+                            result.invoke(macroMaxX, macroMinY);
+                        }
+                    }
+
+                    // consider inner points in the NW, SW, SE, and NE
                     result.invoke(innerMinX, innerMinY);
                     result.invoke(innerMinX, innerMaxY);
                     result.invoke(innerMaxX, innerMaxY);
                     result.invoke(innerMaxX, innerMinY);
                 }
             }
+
             final boolean found = result.getX() > minX && result.getX() < maxX && result.getY() > minY && result.getY() < maxY;
             if (found) {
                 p.setLocation(result.getX() + 0.5, result.getY() + 0.5);

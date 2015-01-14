@@ -9,11 +9,11 @@ import org.esa.beam.framework.datamodel.RasterDataNode;
 public class PixelLocatorFactory {
 
     public static PixelLocator forSwath(RasterDataNode lonNode,
-                                        RasterDataNode latNode) {
+                                        RasterDataNode latNode, boolean wobbly) {
         final RasterDataNodeSampleSource lonSource = new RasterDataNodeSampleSource(lonNode);
         final RasterDataNodeSampleSource latSource = new RasterDataNodeSampleSource(latNode);
 
-        return SwathPixelLocator.create(lonSource, latSource);
+        return SwathPixelLocator.create(lonSource, latSource, wobbly);
     }
 
     public static PixelLocator forSubscene(SampleSource lonSource,
