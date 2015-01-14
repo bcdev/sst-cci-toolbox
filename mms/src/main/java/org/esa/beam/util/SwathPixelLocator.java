@@ -27,7 +27,6 @@ class SwathPixelLocator extends AbstractPixelLocator {
         final PlanarImage maskImage = lonSource.getNode().getValidMaskImage();
 
         final GeoApproximation[] approximations = createApproximations(lonImage, latImage, maskImage);
-        final Rectangle bounds = new Rectangle(0, 0, lonImage.getWidth(), latImage.getHeight());
         final PixelLocationEstimator estimator = new PixelLocationEstimator(approximations);
 
         final SampleSource maskSource;
