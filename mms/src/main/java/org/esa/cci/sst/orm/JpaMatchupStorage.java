@@ -165,12 +165,12 @@ class JpaMatchupStorage implements MatchupStorage {
     static String applyPatternAndCondition(String queryString, String condition, long pattern) {
         if (condition != null) {
             if (pattern != 0) {
-                queryString = queryString.replaceAll("where r.time", "where pattern & ?4 = ?4 and " + condition + " and r.time");
+                queryString = queryString.replaceAll("where r.time", "where m.pattern & ?4 = ?4 and " + condition + " and r.time");
             } else {
                 queryString = queryString.replaceAll("where r.time", "where " + condition + " and r.time");
             }
         } else if (pattern != 0) {
-            queryString = queryString.replaceAll("where r.time", "where pattern & ?4 = ?4 and r.time");
+            queryString = queryString.replaceAll("where r.time", "where m.pattern & ?4 = ?4 and r.time");
         }
         return queryString;
     }
