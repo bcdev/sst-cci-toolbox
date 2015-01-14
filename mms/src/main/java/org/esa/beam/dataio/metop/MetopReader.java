@@ -16,6 +16,8 @@
 
 package org.esa.beam.dataio.metop;
 
+import org.esa.beam.common.PixelLocator;
+import org.esa.beam.common.PixelLocatorAdapter;
 import org.esa.beam.dataio.avhrr.AvhrrConstants;
 import org.esa.beam.dataio.avhrr.AvhrrReader;
 import org.esa.beam.dataio.avhrr.BandReader;
@@ -27,6 +29,7 @@ import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.TiePointGeoCoding;
 import org.esa.beam.framework.datamodel.TiePointGrid;
 import org.esa.beam.framework.dataop.maptransf.Datum;
+import org.esa.beam.util.PixelLocatorFactory;
 
 import javax.imageio.stream.FileImageInputStream;
 import javax.imageio.stream.ImageInputStream;
@@ -107,7 +110,9 @@ public class MetopReader extends AvhrrReader implements AvhrrConstants {
         }
         addDeltaAzimuth(tiePointGridWidth, tiePointGridHeight, tiePointSampleRate);
 
-        final GeoCoding geoCoding = new MetopGeoCoding(grid[numGrids - 2], grid[numGrids - 1]);
+        final PixelLocator pixelLocator = PixelLocatorFactory.forSwath(grid[numGrids - 1], grid[numGrids - 2], false);
+        final GeoCoding geoCoding = new PixelLocatorAdapter(pixelLocator);
+
         product.setGeoCoding(geoCoding);
     }
 

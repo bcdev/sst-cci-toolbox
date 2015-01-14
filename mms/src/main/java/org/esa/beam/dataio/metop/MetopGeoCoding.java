@@ -16,6 +16,7 @@
 
 package org.esa.beam.dataio.metop;
 
+import org.esa.beam.common.PixelLocator;
 import org.esa.beam.framework.dataio.ProductSubsetDef;
 import org.esa.beam.framework.datamodel.GeoApproximation;
 import org.esa.beam.framework.datamodel.GeoPos;
@@ -25,6 +26,7 @@ import org.esa.beam.framework.datamodel.Scene;
 import org.esa.beam.framework.datamodel.TiePointGeoCoding;
 import org.esa.beam.framework.datamodel.TiePointGrid;
 import org.esa.beam.framework.dataop.maptransf.Datum;
+import org.esa.beam.util.PixelLocatorFactory;
 
 import javax.media.jai.PlanarImage;
 import java.awt.Rectangle;
@@ -41,7 +43,7 @@ import java.awt.Rectangle;
 final class MetopGeoCoding extends TiePointGeoCoding {
 
     private transient PixelPosEstimator pixelPosEstimator;
-    private transient MetopPixelFinder pixelFinder;
+    private transient PixelLocator pixelLocator;
 
     MetopGeoCoding(TiePointGrid latGrid, TiePointGrid lonGrid) {
         super(latGrid, lonGrid, Datum.WGS_72);
@@ -52,7 +54,7 @@ final class MetopGeoCoding extends TiePointGeoCoding {
         final GeoApproximation[] approximations = createApproximations(lonImage, latImage);
         final Rectangle bounds = new Rectangle(0, 0, lonGrid.getSceneRasterWidth(), lonGrid.getSceneRasterHeight());
         pixelPosEstimator = new PixelPosEstimator(approximations, bounds);
-        pixelFinder = new MetopPixelFinder(lonImage, latImage, null, 0.01);
+        pixelLocator = PixelLocatorFactory.forSwath(lonGrid, latGrid, false);
     }
 
     @Override
@@ -62,16 +64,16 @@ final class MetopGeoCoding extends TiePointGeoCoding {
 
     @Override
     public PixelPos getPixelPos(GeoPos geoPos, PixelPos pixelPos) {
+        if (pixelPos == null) {
+            pixelPos = new PixelPos();
+        }
         if (pixelPosEstimator.canGetPixelPos()) {
-            if (pixelPos == null) {
-                pixelPos = new PixelPos();
-            }
             pixelPosEstimator.getPixelPos(geoPos, pixelPos);
             if (pixelPos.isValid()) {
-                pixelFinder.findPixelPos(geoPos, pixelPos);
+                // pixelLocator.getPixelLocation(geoPos, pixelPos);
             }
         } else {
-            super.getPixelPos(geoPos, pixelPos);
+            pixelPos.setInvalid();
         }
         return pixelPos;
     }
@@ -89,7 +91,7 @@ final class MetopGeoCoding extends TiePointGeoCoding {
     public void dispose() {
         super.dispose();
 
-        pixelFinder = null;
+        pixelLocator = null;
         pixelPosEstimator = null;
     }
 }

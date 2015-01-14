@@ -303,7 +303,7 @@ public class JpaMatchupStorageTest {
         final String condition = "absolutely nonsense";
 
         final String sqlApplied = JpaMatchupStorage.applyPatternAndCondition(sql, condition, 987);
-        assertEquals("bla bla bla where pattern & ?4 = ?4 and absolutely nonsense and r.time = yesterday", sqlApplied);
+        assertEquals("bla bla bla where m.pattern & ?4 = ?4 and absolutely nonsense and r.time = yesterday", sqlApplied);
     }
 
     @Test
@@ -320,7 +320,7 @@ public class JpaMatchupStorageTest {
         final String sql = "select something cool where r.time = easter_last_year";
 
         final String sqlApplied = JpaMatchupStorage.applyPatternAndCondition(sql, null, 564);
-        assertEquals("select something cool where pattern & ?4 = ?4 and r.time = easter_last_year", sqlApplied);
+        assertEquals("select something cool where m.pattern & ?4 = ?4 and r.time = easter_last_year", sqlApplied);
     }
 
     @Test
@@ -364,7 +364,7 @@ public class JpaMatchupStorageTest {
 
     @Test
     public void testGetForMmd_atsr_patternNoCondition() throws ParseException {
-        final String sql = "select u.id from ((select r.id id, f.path p, r.time t from mm_matchup m, mm_observation r, mm_coincidence c, mm_observation o, mm_datafile f where pattern & ?4 = ?4 and r.time >= ?2 and r.time < ?3 and m.id = r.id and c.matchup_id = r.id and c.observation_id = o.id and o.sensor = ?1 and o.datafile_id = f.id ) union (select r.id id, f.path p, r.time t from mm_matchup m, mm_observation r, mm_datafile f where pattern & ?4 = ?4 and r.time >= ?2 and r.time < ?3 and r.sensor = ?1 and m.id = r.id and f.id = r.datafile_id) order by p, t, id) as u";
+        final String sql = "select u.id from ((select r.id id, f.path p, r.time t from mm_matchup m, mm_observation r, mm_coincidence c, mm_observation o, mm_datafile f where m.pattern & ?4 = ?4 and r.time >= ?2 and r.time < ?3 and m.id = r.id and c.matchup_id = r.id and c.observation_id = o.id and o.sensor = ?1 and o.datafile_id = f.id ) union (select r.id id, f.path p, r.time t from mm_matchup m, mm_observation r, mm_datafile f where m.pattern & ?4 = ?4 and r.time >= ?2 and r.time < ?3 and r.sensor = ?1 and m.id = r.id and f.id = r.datafile_id) order by p, t, id) as u";
         final String sensorName = "atsr_md";
         final Date startDate = createDate("2012-08-04T00:00:00Z");
         final Date stopDate = createDate("2012-08-07T00:00:00Z");

@@ -67,12 +67,16 @@ final class RasterDataNodeSampleSource implements SampleSource {
     public double getSample(int x, int y) {
         final double sample;
         final int dataType = node.getDataType();
-        if (dataType == ProductData.TYPE_INT8) {
-            sample = (byte) data.getSample(x, y, 0);
-        } else if (dataType == ProductData.TYPE_UINT32) {
-            sample = data.getSample(x, y, 0) & 0xFFFFFFFFL;
-        } else {
-            sample = data.getSampleDouble(x, y, 0);
+        switch (dataType) {
+            case ProductData.TYPE_INT8:
+                sample = (byte) data.getSample(x, y, 0);
+                break;
+            case ProductData.TYPE_UINT32:
+                sample = data.getSample(x, y, 0) & 0xFFFFFFFFL;
+                break;
+            default:
+                sample = data.getSampleDouble(x, y, 0);
+                break;
         }
         if (node.isScalingApplied()) {
             return sample != fillValue ? node.scale(sample) : Double.NaN;
