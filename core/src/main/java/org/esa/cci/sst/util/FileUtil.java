@@ -63,6 +63,9 @@ public class FileUtil {
                 throw new ToolException(message, ToolException.TOOL_ERROR);
             }
         }
+        if (file.exists()) {
+            file.delete();
+        }
         if (!file.createNewFile()) {
             final String message = String.format("Unable to create file '%s'", filePath);
             throw new ToolException(message, ToolException.TOOL_IO_ERROR);
