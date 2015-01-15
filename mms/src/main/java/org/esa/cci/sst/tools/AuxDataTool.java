@@ -32,7 +32,7 @@ public class AuxDataTool extends BasicTool {
 
     private String sensorName1;
     private String sensorName2;
-    private String archiveRootPath;
+    private String usecaseRootPath;
     private String insituSensorName;
     private int aaiTimeDeltaSeconds;
     private int seaiceTimeDeltaSeconds;
@@ -70,7 +70,7 @@ public class AuxDataTool extends BasicTool {
             sensorName2 = sensorNames[1];
         }
 
-        archiveRootPath = config.getStringValue(Configuration.KEY_MMS_ARCHIVE_ROOT);
+        usecaseRootPath = ConfigUtil.getUsecaseRootPath(config);
         insituSensorName = config.getOptionalStringValue(Configuration.KEY_MMS_SAMPLING_INSITU_SENSOR);
 
         aaiSensorName = config.getStringValue("mms.matchup.43.sensor");
@@ -106,7 +106,8 @@ public class AuxDataTool extends BasicTool {
         storeMatchups(matchups);
     }
 
-    private void addSeaiceCoincidence(Storage storage, long matchupMillis, List<Coincidence> coincidences, Matchup matchup) {
+    private void addSeaiceCoincidence(Storage storage, long matchupMillis, List<Coincidence> coincidences,
+                                      Matchup matchup) {
         final PGgeometry matchupPoint = matchup.getRefObs().getPoint();
         final Point point = matchupPoint.getGeometry().getPoint(0);
         final double lat = point.getY();
@@ -115,7 +116,9 @@ public class AuxDataTool extends BasicTool {
             final Date seaiceStartDate = new Date(matchupMillis - seaiceTimeDeltaSeconds * 1000);
             final Date seaiceStopDate = new Date(matchupMillis + seaiceTimeDeltaSeconds * 1000);
 
-            final List<RelatedObservation> seaiceObservations = storage.getRelatedObservations(seaiceSensorName, seaiceStartDate, seaiceStopDate);
+            final List<RelatedObservation> seaiceObservations = storage.getRelatedObservations(seaiceSensorName,
+                                                                                               seaiceStartDate,
+                                                                                               seaiceStopDate);
             for (final RelatedObservation seaiceObservation : seaiceObservations) {
                 final Geometry location = seaiceObservation.getLocation().getGeometry();
                 final PolarOrbitingPolygon polarOrbitingPolygon = new PolarOrbitingPolygon(0, 0, location);
@@ -132,7 +135,8 @@ public class AuxDataTool extends BasicTool {
     private void addAerosolCoincidence(Storage storage, List<Coincidence> coincidences, long matchupMillis) {
         final Date aaiStartDate = new Date(matchupMillis - aaiTimeDeltaSeconds * 1000);
         final Date aaiStopDate = new Date(matchupMillis + aaiTimeDeltaSeconds * 1000);
-        final List<GlobalObservation> aaiObservations = storage.getGlobalObservations(aaiSensorName, aaiStartDate, aaiStopDate);
+        final List<GlobalObservation> aaiObservations = storage.getGlobalObservations(aaiSensorName, aaiStartDate,
+                                                                                      aaiStopDate);
         if (aaiObservations.size() > 0) {
             // @todo 2 tb/tb what shall we do if we have more than one result? 2014-12-10
             final GlobalObservation aaiObservation = aaiObservations.get(0);
@@ -145,11 +149,12 @@ public class AuxDataTool extends BasicTool {
 
     private List<Matchup> loadMatchups() throws IOException {
         final Month centerMonth = ConfigUtil.getCenterMonth(Configuration.KEY_MMS_SAMPLING_START_TIME,
-                Configuration.KEY_MMS_SAMPLING_STOP_TIME,
-                getConfig());
+                                                            Configuration.KEY_MMS_SAMPLING_STOP_TIME,
+                                                            getConfig());
         final String[] sensorNamesArray = ArchiveUtils.createSensorNamesArray(sensorName1, sensorName2,
                                                                               insituSensorName);
-        final String inputFilePath = ArchiveUtils.createCleanFilePath(archiveRootPath, sensorNamesArray, centerMonth.getYear(), centerMonth.getMonth());
+        final String inputFilePath = ArchiveUtils.createCleanFilePath(usecaseRootPath, sensorNamesArray,
+                                                                      centerMonth.getYear(), centerMonth.getMonth());
         final File inFile = new File(inputFilePath);
 
         return MatchupIO.read(new FileInputStream(inFile));
@@ -157,11 +162,13 @@ public class AuxDataTool extends BasicTool {
 
     private void storeMatchups(List<Matchup> matchups) throws IOException {
         final Month centerMonth = ConfigUtil.getCenterMonth(Configuration.KEY_MMS_SAMPLING_START_TIME,
-                Configuration.KEY_MMS_SAMPLING_STOP_TIME,
-                getConfig());
+                                                            Configuration.KEY_MMS_SAMPLING_STOP_TIME,
+                                                            getConfig());
         final String[] sensorNamesArray = ArchiveUtils.createSensorNamesArray(sensorName1, sensorName2,
                                                                               insituSensorName);
-        final String outputFilePath = ArchiveUtils.createCleanEnvFilePath(archiveRootPath, sensorNamesArray, centerMonth.getYear(), centerMonth.getMonth());
+        final String outputFilePath = ArchiveUtils.createCleanEnvFilePath(usecaseRootPath, sensorNamesArray,
+                                                                          centerMonth.getYear(),
+                                                                          centerMonth.getMonth());
         final File outFile = FileUtil.createNewFile(outputFilePath);
 
         MatchupIO.write(matchups, new FileOutputStream(outFile), getConfig(), getPersistenceManager());
