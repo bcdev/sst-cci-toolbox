@@ -20,7 +20,7 @@ class SwathPixelLocator extends AbstractPixelLocator {
     private final PixelLocationSearcher searcher;
 
     static PixelLocator create(RasterDataNodeSampleSource lonSource,
-                               RasterDataNodeSampleSource latSource, boolean wobbly) {
+                               RasterDataNodeSampleSource latSource, int wobbly) {
         final PlanarImage lonImage = lonSource.getNode().getGeophysicalImage();
         final PlanarImage latImage = latSource.getNode().getGeophysicalImage();
         final PlanarImage maskImage = lonSource.getNode().getValidMaskImage();
@@ -120,12 +120,12 @@ class SwathPixelLocator extends AbstractPixelLocator {
         private final SampleSource lonSource;
         private final SampleSource latSource;
         private final SampleSource maskSource;
-        private final boolean wobbly;
+        private final int wobbly;
         private final int sourceW;
         private final int sourceH;
 
         public PixelLocationSearcher(SampleSource lonSource, SampleSource latSource, SampleSource maskSource,
-                                     boolean wobbly) {
+                                     int wobbly) {
             this.lonSource = lonSource;
             this.latSource = latSource;
             this.maskSource = maskSource;
@@ -158,7 +158,7 @@ class SwathPixelLocator extends AbstractPixelLocator {
             final DistanceMeasure d = new CosineDistance(lon, lat);
             final Result result = new Result(d, x, y, 2.0).invoke(x, y);
 
-            for (int r = R; r > 0; r >>= 1) {
+            for (int r = R; r > wobbly; r >>= 1) {
                 final int midX = result.getX();
                 final int midY = result.getY();
 
@@ -178,44 +178,39 @@ class SwathPixelLocator extends AbstractPixelLocator {
                 result.invoke(outerMaxX, outerMaxY);
                 result.invoke(outerMaxX, outerMinY);
 
-                if (r > 1) {
-                    final int innerMinX = max(outerMinX, midX - (r >> 1));
-                    final int innerMaxX = min(outerMaxX, midX + (r >> 1));
-                    final int innerMinY = max(outerMinY, midY - (r >> 1));
-                    final int innerMaxY = min(outerMaxY, midY + (r >> 1));
-
-                    // consider inner points in the N, S, E, and W
-                    if (wobbly) {
-                        result.invoke(innerMinX, midY);
-                        result.invoke(innerMaxX, midY);
-                        result.invoke(midX, innerMaxY);
-                        result.invoke(midX, innerMinY);
-
-                        if (r > 2) {
-                            final int macroMinX = max(innerMinX, midX - 1);
-                            final int macroMaxX = min(innerMaxX, midX + 1);
-                            final int macroMinY = max(innerMinY, midY - 1);
-                            final int macroMaxY = min(innerMaxY, midY + 1);
-
-                            // consider macro pixel points in the N, S, E, and W
-                            result.invoke(macroMinX, midY);
-                            result.invoke(macroMaxX, midY);
-                            result.invoke(midX, macroMaxY);
-                            result.invoke(midX, macroMinY);
-
-                            // consider macro pixel points in the NW, SW, SE, and NE
-                            result.invoke(macroMinX, macroMinY);
-                            result.invoke(macroMinX, macroMaxY);
-                            result.invoke(macroMaxX, macroMaxY);
-                            result.invoke(macroMaxX, macroMinY);
-                        }
-                    }
+                if (r >> 1 > wobbly) {
+                    final int innerMinX = max(minX, midX - (r >> 1));
+                    final int innerMaxX = min(maxX, midX + (r >> 1));
+                    final int innerMinY = max(minY, midY - (r >> 1));
+                    final int innerMaxY = min(maxY, midY + (r >> 1));
 
                     // consider inner points in the NW, SW, SE, and NE
                     result.invoke(innerMinX, innerMinY);
                     result.invoke(innerMinX, innerMaxY);
                     result.invoke(innerMaxX, innerMaxY);
                     result.invoke(innerMaxX, innerMinY);
+
+                    if (wobbly > 0) {
+                        // consider inner points in the N, S, E, and W
+                        result.invoke(innerMinX, midY);
+                        result.invoke(innerMaxX, midY);
+                        result.invoke(midX, innerMaxY);
+                        result.invoke(midX, innerMinY);
+                    }
+                }
+                if (wobbly > 0) {
+                    final int minX1 = max(outerMinX, midX - wobbly);
+                    final int maxX1 = min(outerMaxX, midX + wobbly);
+                    final int minY1 = max(outerMinY, midY - wobbly);
+                    final int maxY1 = min(outerMaxY, midY + wobbly);
+
+                    for (int y1 = minY1; y1 <= maxY1; y1++) {
+                        for (int x1 = minX1; x1 <= maxX1; x1++) {
+                            if (x1 != midX || y1 != midY) {
+                                result.invoke(x1, y1);
+                            }
+                        }
+                    }
                 }
             }
 

@@ -149,7 +149,7 @@ public final class Amsr2ProductReader extends NetcdfProductReaderTemplate {
     protected void addGeoCoding(Product product) throws IOException {
         final Band latBand = product.getBand(LAT_BAND_NAME);
         final Band lonBand = product.getBand(LON_BAND_NAME);
-        final PixelLocator pixelLocator = PixelLocatorFactory.forSwath(lonBand, latBand, true);
+        final PixelLocator pixelLocator = PixelLocatorFactory.forSwath(lonBand, latBand, 1);
         final GeoCoding geoCoding = new PixelLocatorAdapter(pixelLocator);
 
         product.setGeoCoding(geoCoding);

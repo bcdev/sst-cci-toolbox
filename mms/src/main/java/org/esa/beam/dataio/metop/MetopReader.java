@@ -110,7 +110,9 @@ public class MetopReader extends AvhrrReader implements AvhrrConstants {
         }
         addDeltaAzimuth(tiePointGridWidth, tiePointGridHeight, tiePointSampleRate);
 
-        final PixelLocator pixelLocator = PixelLocatorFactory.forSwath(grid[numGrids - 1], grid[numGrids - 2], false);
+        final TiePointGrid lonGrid = grid[numGrids - 1];
+        final TiePointGrid latGrid = grid[numGrids - 2];
+        final PixelLocator pixelLocator = PixelLocatorFactory.forSwath(lonGrid, latGrid, 17);
         final GeoCoding geoCoding = new PixelLocatorAdapter(pixelLocator);
 
         product.setGeoCoding(geoCoding);

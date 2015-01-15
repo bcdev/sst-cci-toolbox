@@ -29,22 +29,24 @@ abstract class AbstractPixelLocator implements PixelLocator {
         final int w = lonSource.getWidth();
         final int h = lonSource.getHeight();
 
-        int x0 = (int) Math.floor(x);
-        int y0 = (int) Math.floor(y);
+        final int x0 = (int) Math.floor(x);
+        final int y0 = (int) Math.floor(y);
 
         if (x0 >= 0 && x0 < w && y0 >= 0 && y0 < h) {
+            int x1 = x0;
+            int y1 = y0;
             if (x0 > 0 && x - x0 < 0.5 || x0 == w - 1) {
-                x0 -= 1;
+                x1 -= 1;
             }
             if (y0 > 0 && y - y0 < 0.5 || y0 == h - 1) {
-                y0 -= 1;
+                y1 -= 1;
             }
-            final int x1 = x0 + 1;
-            final int y1 = y0 + 1;
-            if (x1 < w && y1 < h) {
-                final double wx = x - (x0 + 0.5);
-                final double wy = y - (y0 + 0.5);
-                final Point2D p = interpolate(x0, y0, wx, wy);
+            final int x2 = x1 + 1;
+            final int y2 = y1 + 1;
+            if (x2 < w && y2 < h) {
+                final double wx = x - (x1 + 0.5);
+                final double wy = y - (y1 + 0.5);
+                final Point2D p = interpolate(x0, y0, x1, y1, x2, y2, wx, wy);
                 g.setLocation(p);
             } else {
                 final double lon = getLon(x0, y0);
@@ -77,30 +79,25 @@ abstract class AbstractPixelLocator implements PixelLocator {
         return latSource;
     }
 
-    private Point2D interpolate(int x0, int y0, double wx, double wy) {
-        final int x1 = x0 + 1;
-        final int y1 = y0 + 1;
-
+    private Point2D interpolate(int x0, int y0, int x1, int y1, int x2, int y2, double wx, double wy) {
         final double[] lons = new double[4];
-        lons[0] = getLon(x0, y0);
-        lons[1] = getLon(x1, y0);
-        lons[2] = getLon(x0, y1);
-        lons[3] = getLon(x1, y1);
+        lons[0] = getLon(x1, y1);
+        lons[1] = getLon(x2, y1);
+        lons[2] = getLon(x1, y2);
+        lons[3] = getLon(x2, y2);
 
         final double[] lats = new double[4];
-        lats[0] = getLat(x0, y0);
-        lats[1] = getLat(x1, y0);
-        lats[2] = getLat(x0, y1);
-        lats[3] = getLat(x1, y1);
+        lats[0] = getLat(x1, y1);
+        lats[1] = getLat(x2, y1);
+        lats[2] = getLat(x1, y2);
+        lats[3] = getLat(x2, y2);
 
         final Point2D p = new Point2D.Double();
         if (Double.isNaN(lons[0]) || Double.isNaN(lons[1]) || Double.isNaN(lons[2]) || Double.isNaN(lons[3]) ||
             Double.isNaN(lats[0]) || Double.isNaN(lats[1]) || Double.isNaN(lats[2]) || Double.isNaN(lats[3])) {
 
-            final int x = wx < 0.5 ? x0 : x1;
-            final int y = wy < 0.5 ? y0 : y1;
-            final double lon = getLon(x, y);
-            final double lat = getLat(x, y);
+            final double lon = getLon(x0, y0);
+            final double lat = getLat(x0, y0);
 
             p.setLocation(lon, lat);
         } else {
