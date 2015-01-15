@@ -22,6 +22,7 @@ import org.esa.cci.sst.tool.ToolException;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.MessageFormat;
 
 public class FileUtil {
 
@@ -54,6 +55,14 @@ public class FileUtil {
 
     public static File createNewFile(String filePath) throws IOException {
         final File file = new File(filePath);
+        final File parentDir = file.getParentFile();
+        if (!parentDir.isDirectory()) {
+            if (!parentDir.mkdirs()) {
+                final String message = MessageFormat.format("Unable to create directory: {0}",
+                                                            parentDir.getAbsolutePath());
+                throw new ToolException(message, ToolException.TOOL_ERROR);
+            }
+        }
         if (!file.createNewFile()) {
             final String message = String.format("Unable to create file '%s'", filePath);
             throw new ToolException(message, ToolException.TOOL_IO_ERROR);

@@ -19,6 +19,7 @@ import org.esa.cci.sst.tools.samplepoint.OverlapRemover;
 import org.esa.cci.sst.tools.samplepoint.SamplePointImporter;
 import org.esa.cci.sst.tools.samplepoint.TimeRange;
 import org.esa.cci.sst.util.ConfigUtil;
+import org.esa.cci.sst.util.FileUtil;
 import org.esa.cci.sst.util.GeometryUtil;
 import org.esa.cci.sst.util.Month;
 import org.esa.cci.sst.util.SamplingPoint;
@@ -201,15 +202,7 @@ public class MatchupGenerator extends BasicTool {
                 final String targetFilePath = ArchiveUtils.createCleanFilePath(usecaseRootPath, sensorNamesArray,
                                                                                centerMonth.getYear(),
                                                                                centerMonth.getMonth());
-                final File targetFile = new File(targetFilePath);
-                final File targetDir = targetFile.getParentFile();
-                if (!targetDir.isDirectory()) {
-                    if (!targetDir.mkdirs()) {
-                        final String message = MessageFormat.format("Unable to create target directory: {0}",
-                                                                    targetDir.getAbsolutePath());
-                        throw new ToolException(message, ToolException.TOOL_ERROR);
-                    }
-                }
+                final File targetFile = FileUtil.createNewFile(targetFilePath);
                 final OutputStream outputStream = new FileOutputStream(targetFile);
                 MatchupIO.write(matchups, outputStream, getConfig(), pm);
 

@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.Date;
 import java.util.List;
 
@@ -166,12 +167,12 @@ public class AuxDataTool extends BasicTool {
                                                             getConfig());
         final String[] sensorNamesArray = ArchiveUtils.createSensorNamesArray(sensorName1, sensorName2,
                                                                               insituSensorName);
-        final String outputFilePath = ArchiveUtils.createCleanEnvFilePath(usecaseRootPath, sensorNamesArray,
+        final String targetFilePath = ArchiveUtils.createCleanEnvFilePath(usecaseRootPath, sensorNamesArray,
                                                                           centerMonth.getYear(),
                                                                           centerMonth.getMonth());
-        final File outFile = FileUtil.createNewFile(outputFilePath);
+        final File targetFile = FileUtil.createNewFile(targetFilePath);
 
-        MatchupIO.write(matchups, new FileOutputStream(outFile), getConfig(), getPersistenceManager());
+        MatchupIO.write(matchups, new FileOutputStream(targetFile), getConfig(), getPersistenceManager());
     }
 
     // package access for testing only tb 2014-12-08
