@@ -4,6 +4,7 @@ package org.esa.cci.sst.tools.matchup;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.esa.cci.sst.data.Coincidence;
 import org.esa.cci.sst.data.DataFile;
+import org.esa.cci.sst.data.GlobalObservation;
 import org.esa.cci.sst.data.InsituObservation;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.Observation;
@@ -20,7 +21,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -83,6 +83,15 @@ public class MatchupIO {
                         matchupData.addInsitu(io_observation);
                     }
                     io_coincidence.setInsitu(true);
+                } else if (observation instanceof GlobalObservation) {
+                    final GlobalObservation globalObservation = (GlobalObservation) observation;
+                    if (!observationIdSet.contains(observationId)) {
+                        final IO_Observation io_observation = createIO_Observation(matchupData, observationId,
+                                                                                   globalObservation, detachHandler);
+                        observationIdSet.add(observationId);
+                        matchupData.addGlobal(io_observation);
+                    }
+                    io_coincidence.setGlobal(true);
                 } else {
                     final RelatedObservation relatedObservation = (RelatedObservation) observation;
                     if (!observationIdSet.contains(observationId)) {
@@ -120,6 +129,8 @@ public class MatchupIO {
                 Observation observation;
                 if (io_coincidence.isInsitu()) {
                     observation = getInsituObservation(io_coincidence.getObservationId(), matchupData);
+                } else if (io_coincidence.isGlobal()) {
+                    observation = getGlobalObservation(io_coincidence.getObservationId(), matchupData);
                 } else {
                     observation = getRelatedObservation(io_coincidence.getObservationId(), matchupData);
                 }
@@ -149,6 +160,24 @@ public class MatchupIO {
         io_observation.setTimeRadius(relatedObservation.getTimeRadius());
         // @todo 2 tb/tb temporarily removed due to memory issues 2014-12-17
         //io_observation.setLocation(relatedObservation.getLocation().getValue());
+
+        return io_observation;
+    }
+
+    private static IO_Observation createIO_Observation(MatchupData matchupData, int observationId,
+                                                       GlobalObservation globalObservation,
+                                                       DetachHandler detachHandler) {
+        final IO_Observation io_observation = new IO_Observation();
+        io_observation.setId(observationId);
+        io_observation.setName(globalObservation.getName());
+        io_observation.setSensor(globalObservation.getSensor());
+        final DataFile datafile = globalObservation.getDatafile();
+        io_observation.setFilePath(datafile.getPath());
+        final int sensorId = addSensor(datafile.getSensor(), matchupData, detachHandler);
+        io_observation.setSensorId(sensorId);
+        io_observation.setRecordNo(globalObservation.getRecordNo());
+        io_observation.setTime(globalObservation.getTime());
+        io_observation.setTimeRadius(0);
 
         return io_observation;
     }
@@ -186,28 +215,53 @@ public class MatchupIO {
         final List<IO_Observation> insituObservations = matchupData.getInsituObservations();
         for (final IO_Observation observation : insituObservations) {
             if (observation.getId() == observationId) {
-                final InsituObservation relatedObservation = new InsituObservation();
-                relatedObservation.setName(observation.getName());
-                relatedObservation.setSensor(observation.getSensor());
+                final InsituObservation insituObservation = new InsituObservation();
+                insituObservation.setName(observation.getName());
+                insituObservation.setSensor(observation.getSensor());
 
                 final DataFile dataFile = new DataFile();
                 dataFile.setPath(observation.getFilePath());
                 final Sensor sensor = getSensor(observation.getSensorId(), matchupData);
                 dataFile.setSensor(sensor);
-                relatedObservation.setDatafile(dataFile);
+                insituObservation.setDatafile(dataFile);
 
-                relatedObservation.setTime(observation.getTime());
-                relatedObservation.setTimeRadius(observation.getTimeRadius());
+                insituObservation.setTime(observation.getTime());
+                insituObservation.setTimeRadius(observation.getTimeRadius());
 
                 // @todo 2 tb/tb temporarily removed due to memory issues 2014-12-17
 //                final PGgeometry location = createGeometry(observation.getLocation());
 //                relatedObservation.setLocation(location);
 
-                relatedObservation.setRecordNo(observation.getRecordNo());
-                return relatedObservation;
+                insituObservation.setRecordNo(observation.getRecordNo());
+                return insituObservation;
             }
         }
-        throw new ToolException("RelatedObservation with id '" + observationId + "'not found",
+        throw new ToolException("InsituObservation with id '" + observationId + "'not found",
+                                ToolException.TOOL_INTERNAL_ERROR);
+    }
+
+    private static Observation getGlobalObservation(int observationId, MatchupData matchupData) {
+        final List<IO_Observation> globalObservations = matchupData.getGlobalObservations();
+        for (final IO_Observation observation : globalObservations) {
+            if (observation.getId() == observationId) {
+                final GlobalObservation globalObservation = new GlobalObservation();
+                globalObservation.setName(observation.getName());
+                globalObservation.setSensor(observation.getSensor());
+
+                final DataFile dataFile = new DataFile();
+                dataFile.setPath(observation.getFilePath());
+
+                final Sensor sensor = getSensor(observation.getSensorId(), matchupData);
+                dataFile.setSensor(sensor);
+
+                globalObservation.setDatafile(dataFile);
+                globalObservation.setTime(observation.getTime());
+                globalObservation.setRecordNo(observation.getRecordNo());
+
+                return globalObservation;
+            }
+        }
+        throw new ToolException("GlobalObservation with id '" + observationId + "'not found",
                                 ToolException.TOOL_INTERNAL_ERROR);
     }
 

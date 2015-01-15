@@ -5,7 +5,8 @@ class IO_Coincidence {
     private int id;
     private double timeDifference;
     private int observationId;
-    private boolean isInsitu;
+    private boolean insitu;
+    private boolean global;
 
     public int getId() {
         return id;
@@ -32,10 +33,18 @@ class IO_Coincidence {
     }
 
     public boolean isInsitu() {
-        return isInsitu;
+        return insitu;
     }
 
-    public void setInsitu(boolean isInsitu) {
-        this.isInsitu = isInsitu;
+    public void setInsitu(boolean insitu) {
+        this.insitu = insitu;
+    }
+
+    public void setGlobal(boolean global) {
+        this.global = global;
+    }
+
+    public boolean isGlobal() {
+        return global;
     }
 }

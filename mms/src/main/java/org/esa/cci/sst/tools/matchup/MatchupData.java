@@ -12,6 +12,7 @@ class MatchupData {
     private List<IO_RefObservation> referenceObservations;
     private List<IO_Observation> relatedObservations;
     private List<IO_Observation> insituObservations;
+    private List<IO_Observation> globalObservations;
     private List<Sensor> sensors;
     private List<IO_Matchup> matchups;
 
@@ -19,6 +20,7 @@ class MatchupData {
         referenceObservations = new ArrayList<>();
         relatedObservations = new ArrayList<>();
         insituObservations = new ArrayList<>();
+        globalObservations = new ArrayList<>();
         sensors = new ArrayList<>();
         matchups = new ArrayList<>();
     }
@@ -39,10 +41,6 @@ class MatchupData {
         return relatedObservations;
     }
 
-    public void setRelatedObservations(List<IO_Observation> relatedObservations) {
-        this.relatedObservations = relatedObservations;
-    }
-
     public void addRelated(IO_Observation io_oObs) {
         relatedObservations.add(io_oObs);
     }
@@ -51,12 +49,12 @@ class MatchupData {
         return insituObservations;
     }
 
-    public void setInsituObservations(List<IO_Observation> insituObservations) {
-        this.insituObservations = insituObservations;
-    }
-
     public void addInsitu(IO_Observation io_oObs) {
         insituObservations.add(io_oObs);
+    }
+
+    public void addGlobal(IO_Observation io_oObs) {
+        globalObservations.add(io_oObs);
     }
 
     public List<Sensor> getSensors() {
@@ -73,5 +71,9 @@ class MatchupData {
 
     public void add(IO_Matchup matchup) {
         matchups.add(matchup);
+    }
+
+    public List<IO_Observation> getGlobalObservations() {
+        return globalObservations;
     }
 }

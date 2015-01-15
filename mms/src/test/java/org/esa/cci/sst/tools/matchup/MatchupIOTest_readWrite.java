@@ -15,12 +15,13 @@ import static org.junit.Assert.*;
 
 public class MatchupIOTest_readWrite {
 
-    private static final String EMPTY_FILE = "{\"referenceObservations\":[],\"relatedObservations\":[],\"insituObservations\":[],\"sensors\":[],\"matchups\":[]}";
-    private static final String ONE_REF_OBS_FILE = "{\"referenceObservations\":[{\"id\":12,\"name\":\"13\",\"sensor\":\"14\",\"filePath\":\"15\",\"sensorId\":16,\"time\":17,\"timeRadius\":18.18,\"location\":\"19\",\"recordNo\":23,\"point\":\"20\",\"dataset\":21,\"referenceFlag\":22}],\"relatedObservations\":[],\"insituObservations\":[],\"sensors\":[],\"matchups\":[]}";
-    private static final String ONE_REL_OBS_FILE = "{\"referenceObservations\":[],\"relatedObservations\":[{\"id\":23,\"name\":\"24\",\"sensor\":\"25\",\"filePath\":\"26\",\"sensorId\":27,\"time\":28,\"timeRadius\":29.29,\"location\":\"30\",\"recordNo\":31}],\"insituObservations\":[],\"sensors\":[],\"matchups\":[]}";
-    private static final String ONE_INSITU_OBS_FILE = "{\"referenceObservations\":[],\"relatedObservations\":[],\"insituObservations\":[{\"id\":31,\"name\":\"32\",\"sensor\":\"33\",\"filePath\":\"34\",\"sensorId\":35,\"time\":36,\"timeRadius\":37.37,\"location\":\"38\",\"recordNo\":39}],\"sensors\":[],\"matchups\":[]}";
-    private static final String ONE_SENSOR_FILE = "{\"referenceObservations\":[],\"relatedObservations\":[],\"insituObservations\":[],\"sensors\":[{\"id\":39,\"name\":\"40\",\"pattern\":41,\"observationType\":\"42\"}],\"matchups\":[]}";
-    private static final String ONE_MATCHUP_FILE = "{\"referenceObservations\":[],\"relatedObservations\":[],\"insituObservations\":[],\"sensors\":[],\"matchups\":[{\"id\":43,\"refObsId\":44,\"coincidences\":[{\"id\":45,\"timeDifference\":46.46,\"observationId\":47,\"insitu\":false},{\"id\":48,\"timeDifference\":49.49,\"observationId\":50,\"insitu\":true}],\"pattern\":51,\"invalid\":false}]}";
+    private static final String EMPTY_FILE = "{\"referenceObservations\":[],\"relatedObservations\":[],\"insituObservations\":[],\"globalObservations\":[],\"sensors\":[],\"matchups\":[]}";
+    private static final String ONE_REF_OBS_FILE = "{\"referenceObservations\":[{\"id\":12,\"name\":\"13\",\"sensor\":\"14\",\"filePath\":\"15\",\"sensorId\":16,\"time\":17,\"timeRadius\":18.18,\"location\":\"19\",\"recordNo\":23,\"point\":\"20\",\"dataset\":21,\"referenceFlag\":22}],\"relatedObservations\":[],\"insituObservations\":[],\"globalObservations\":[],\"sensors\":[],\"matchups\":[]}";
+    private static final String ONE_REL_OBS_FILE = "{\"referenceObservations\":[],\"relatedObservations\":[{\"id\":23,\"name\":\"24\",\"sensor\":\"25\",\"filePath\":\"26\",\"sensorId\":27,\"time\":28,\"timeRadius\":29.29,\"location\":\"30\",\"recordNo\":31}],\"insituObservations\":[],\"globalObservations\":[],\"sensors\":[],\"matchups\":[]}";
+    private static final String ONE_INSITU_OBS_FILE = "{\"referenceObservations\":[],\"relatedObservations\":[],\"insituObservations\":[{\"id\":31,\"name\":\"32\",\"sensor\":\"33\",\"filePath\":\"34\",\"sensorId\":35,\"time\":36,\"timeRadius\":37.37,\"location\":\"38\",\"recordNo\":39}],\"globalObservations\":[],\"sensors\":[],\"matchups\":[]}";
+    private static final String ONE_GLOBAL_OBS_FILE = "{\"referenceObservations\":[],\"relatedObservations\":[],\"insituObservations\":[],\"globalObservations\":[{\"id\":31,\"name\":\"32\",\"sensor\":\"33\",\"filePath\":\"34\",\"sensorId\":35,\"time\":36,\"timeRadius\":0.0,\"location\":null,\"recordNo\":39}],\"sensors\":[],\"matchups\":[]}";
+    private static final String ONE_SENSOR_FILE = "{\"referenceObservations\":[],\"relatedObservations\":[],\"insituObservations\":[],\"globalObservations\":[],\"sensors\":[{\"id\":39,\"name\":\"40\",\"pattern\":41,\"observationType\":\"42\"}],\"matchups\":[]}";
+    private static final String ONE_MATCHUP_FILE = "{\"referenceObservations\":[],\"relatedObservations\":[],\"insituObservations\":[],\"globalObservations\":[],\"sensors\":[],\"matchups\":[{\"id\":43,\"refObsId\":44,\"coincidences\":[{\"id\":45,\"timeDifference\":46.46,\"observationId\":47,\"insitu\":false,\"global\":false},{\"id\":48,\"timeDifference\":49.49,\"observationId\":50,\"insitu\":true,\"global\":false}],\"pattern\":51,\"invalid\":false}]}";
 
     @Test
     public void testWriteEmptyMatchupData() throws IOException {
@@ -170,6 +171,25 @@ public class MatchupIOTest_readWrite {
     }
 
     @Test
+    public void testWriteMatchupData_oneGlobalObservation() throws IOException, SQLException {
+        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        final MatchupData matchupData = new MatchupData();
+        final IO_Observation global = new IO_Observation();
+        global.setId(31);
+        global.setName("32");
+        global.setSensor("33");
+        global.setFilePath("34");
+        global.setSensorId(35);
+        global.setTime(new Date(36));
+        global.setRecordNo(39);
+        matchupData.addGlobal(global);
+
+        MatchupIO.writeMapped(matchupData, outputStream);
+
+        assertEquals(ONE_GLOBAL_OBS_FILE, outputStream.toString());
+    }
+
+    @Test
     public void testReadMatchupData_oneInsituObservation() throws IOException, SQLException {
         final ByteArrayInputStream inputStream = new ByteArrayInputStream(ONE_INSITU_OBS_FILE.getBytes());
 
@@ -187,6 +207,24 @@ public class MatchupIOTest_readWrite {
         assertEquals(36, insitu.getTime().getTime());
         assertEquals(37.37, insitu.getTimeRadius(), 1e-8);
         assertEquals("38", insitu.getLocation());
+    }
+
+    @Test
+    public void testReadMatchupData_oneGlobalObservation() throws IOException, SQLException {
+        final ByteArrayInputStream inputStream = new ByteArrayInputStream(ONE_GLOBAL_OBS_FILE.getBytes());
+
+        final MatchupData matchupData = MatchupIO.readMapped(inputStream);
+        assertNotNull(matchupData);
+
+        final List<IO_Observation> globalObservations = matchupData.getGlobalObservations();
+        assertEquals(1, globalObservations.size());
+        final IO_Observation global = globalObservations.get(0);
+        assertEquals(31, global.getId());
+        assertEquals("32", global.getName());
+        assertEquals("33", global.getSensor());
+        assertEquals("34", global.getFilePath());
+        assertEquals(35, global.getSensorId());
+        assertEquals(36, global.getTime().getTime());
     }
 
     @SuppressWarnings("deprecation")
