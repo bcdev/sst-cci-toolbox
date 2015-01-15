@@ -36,8 +36,6 @@ import java.text.MessageFormat;
  */
 public class GeoCodingTester {
 
-    private static final double EPS = 2.0E-8;
-
     private final String formatName;
     private final double accuracy;
 
@@ -108,17 +106,19 @@ public class GeoCodingTester {
 
                             final double actualLat = g.getLat();
                             final double actualLon = g.getLon();
-                            final DistanceMeasure distanceMeasure = new SphericalDistance(expectedLon, expectedLat);
-                            final double d = distanceMeasure.distance(actualLon, actualLat);
 
-                            if (dy < h / 2) {
-                                if (d > EPS) {
-                                    failureCount++;
-                                }
-                            } else { // failure is probably due to self-overlapping
+                            if (expectedLon == actualLon && expectedLat == actualLat) {
+                                continue; // because two pixels have the same geographic location
+                            }
+
+                            if (dy > h / 2) { // failure due to self overlapping orbits
+                                final DistanceMeasure distanceMeasure = new SphericalDistance(expectedLon, expectedLat);
+                                final double d = distanceMeasure.distance(actualLon, actualLat);
                                 if (d > Math.toRadians(accuracy)) {
                                     failureCount++;
                                 }
+                            } else {
+                                failureCount++;
                             }
                         }
                     }
