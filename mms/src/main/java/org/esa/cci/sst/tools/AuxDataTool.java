@@ -76,8 +76,8 @@ public class AuxDataTool extends BasicTool {
         aaiSensorName = config.getStringValue("mms.matchup.43.sensor");
         seaiceSensorName = config.getStringValue("mms.matchup.44.sensor");
 
-        aaiTimeDeltaSeconds = config.getIntValue("mms.timedelta.aai");
-        seaiceTimeDeltaSeconds = config.getIntValue("mms.timedelta.seaice");
+        aaiTimeDeltaSeconds = config.getIntValue(Configuration.KEY_MMS_TIMEDELTA_AAI);
+        seaiceTimeDeltaSeconds = config.getIntValue(Configuration.KEY_MMS_TIMEDELTA_SEAICE);
     }
 
     private void run() throws IOException {
