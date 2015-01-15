@@ -36,8 +36,6 @@ import java.text.MessageFormat;
  */
 public class GeoCodingTester {
 
-    private static final double EPS = 2.0E-8;
-
     private final String formatName;
     private final double accuracy;
 
