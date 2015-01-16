@@ -606,7 +606,7 @@ class Workflow:
             self._execute_sampling(m, chunk)
             self._execute_clearing(m, chunk)
             #self._execute_plotting(m, chunk, sampling_prefix)
-            self._execute_auxdata_coincidences(m, chunk, sampling_prefix)
+            self._execute_auxdata_coincidences(m, chunk)
             #self._execute_create_sub_mmd_files(m, chunk)
             #self._execute_create_nwp_mmd_files(m, chunk)
             #self._execute_create_matchup_nwp_mmd_files(m, chunk)
@@ -919,16 +919,17 @@ class Workflow:
                     monitor.execute(job)
                     date = _next_month(date)
 
-    def _execute_auxdata_coincidences(self, monitor, chunk, sampling_prefix):
+    def _execute_auxdata_coincidences(self, monitor, chunk):
         """
 
         :type monitor: Monitor
         :type chunk: Period
-        :type sampling_prefix: str
         """
-        for sensor in self._get_primary_sensors_by_period():
-            name = sensor.get_name()
-            period = sensor.get_period().get_intersection(chunk)
+        for sensor_pair in self._get_sensor_pairs():
+            sensor_1 = sensor_pair.get_primary_name()
+            sensor_2 = sensor_pair.get_secondary_name()
+            name = sensor_pair.get_name()
+            period = sensor_pair.get_period().get_intersection(chunk)
             if period is not None:
                 date = period.get_start_date()
                 end_date = period.get_end_date()
@@ -937,8 +938,10 @@ class Workflow:
                     job = Job('auxdata-start' + '-' + year + '-' + month + '-' + name,
                               'auxdata-start.sh',
                               ['/clr/' + name + '/' + _pathformat(date)],
-                              ['/con/' + name + '/' + _pathformat(date)],
-                              [year, month, sampling_prefix + '_' + name, self.get_usecase()])
+                              ['/con/' + name + '/' + _pathformat(date),
+                               '/con/' + sensor_1 + '/' + _pathformat(date),
+                               '/con/' + sensor_2 + '/' + _pathformat(date)],
+                              [year, month, name, self.get_usecase()])
                     monitor.execute(job)
                     date = _next_month(date)
 
