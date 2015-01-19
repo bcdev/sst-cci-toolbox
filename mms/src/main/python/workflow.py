@@ -617,7 +617,7 @@ class Workflow:
             self._execute_ingest_arc_mmd_files(m, chunk)
             self._execute_create_final_mmd_files(m, chunk, mmdtype)
             if with_selection:
-                self._execute_selection(m, chunk, mmdtype)
+                self._execute_selection(m, chunk, mmdtype, mmdtype.replace('mmd', 'sel', 1))
             date = _next_year_start(date)
         m.wait_for_completion_and_terminate()
 
@@ -1147,12 +1147,13 @@ class Workflow:
                     monitor.execute(job)
                     date = _next_month(date)
 
-    def _execute_selection(self, monitor, chunk, mmdtype):
+    def _execute_selection(self, monitor, chunk, mmdtype, seltype):
         """
 
         :type monitor: Monitor
         :type chunk: Period
         :type mmdtype: str
+        :type seltype: str
         """
         for sensor_pair in self._get_sensor_pairs():
             name = sensor_pair.get_name()
@@ -1166,7 +1167,7 @@ class Workflow:
                               'selection-start.sh',
                               ['/mmd/' + name + '/' + _pathformat(date)],
                               ['/sel/' + name + '/' + _pathformat(date)],
-                              [year, month, name, mmdtype, self.get_usecase()])
+                              [year, month, name, mmdtype, seltype, self.get_usecase()])
                     monitor.execute(job)
                     date = _next_month(date)
 
