@@ -4,7 +4,7 @@ from workflow import Workflow
 usecase = 'mms10a'
 mmdtype = 'mmd10'
 
-w = Workflow(usecase, Period('1991-01-01', '1992-01-01'))
+w = Workflow(usecase)
 w.add_primary_sensor('atsr.1', '1991-08-01', '1996-09-01')
 w.add_primary_sensor('atsr.1', '1996-10-01', '1996-11-01')
 w.add_primary_sensor('atsr.1', '1996-12-30', '1997-02-01')
@@ -31,4 +31,4 @@ w.add_secondary_sensor('avhrr.n19', '2009-02-06', '2014-01-01')
 w.add_secondary_sensor('avhrr.m02', '2006-10-30', '2014-01-01')
 w.set_samples_per_month(10000000)
 
-w.run(mmdtype, calls=[('coincidence-start.sh', 3)])
+w.run(mmdtype, hosts=[('localhost', 60)])
