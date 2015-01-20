@@ -33,4 +33,4 @@ w.add_secondary_sensor('avhrr.n19', '2009-02-06', '2014-01-01')
 w.add_secondary_sensor('avhrr.m02', '2006-10-30', '2014-01-01')
 w.set_samples_per_month(10000000)
 
-w.run(mmdtype, calls=[('coincidence-start.sh', 3)])
+w.run(mmdtype, calls=[('clearsky-start.sh', 12), ('coincidence-start.sh', 3)])
