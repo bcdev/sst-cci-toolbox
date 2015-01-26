@@ -28,7 +28,7 @@ w.add_secondary_sensor('avhrr.n17', '2002-07-10', '2003-04-09')
 w.add_secondary_sensor('avhrr.n17', '2003-12-21', '2011-01-01')
 w.add_secondary_sensor('avhrr.n18', '2005-06-05', '2014-01-01')
 w.add_secondary_sensor('avhrr.n19', '2009-02-06', '2014-01-01')
-w.add_secondary_sensor('avhrr.m02', '2006-10-30', '2014-01-01')
+w.add_secondary_sensor('avhrr.m02', '2006-11-21', '2014-01-01')
 w.set_samples_per_month(50000000)
 
 w.run(mmdtype, hosts=[('localhost', 48)], with_selection=True)
