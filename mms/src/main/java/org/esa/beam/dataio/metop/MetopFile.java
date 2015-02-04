@@ -426,4 +426,8 @@ class MetopFile extends AvhrrFile {
         }
     }
 
+    public InternalTargetTemperatureBandReader createInternalTargetTemperatureReader() {
+        return new InternalTargetTemperatureBandReader(this, inputStream, giadrRadiance);
+    }
+
 }

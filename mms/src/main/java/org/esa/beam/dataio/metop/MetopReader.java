@@ -26,9 +26,7 @@ import org.esa.beam.framework.datamodel.Band;
 import org.esa.beam.framework.datamodel.FlagCoding;
 import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.Product;
-import org.esa.beam.framework.datamodel.TiePointGeoCoding;
 import org.esa.beam.framework.datamodel.TiePointGrid;
-import org.esa.beam.framework.dataop.maptransf.Datum;
 import org.esa.beam.util.PixelLocatorFactory;
 
 import javax.imageio.stream.FileImageInputStream;
@@ -80,7 +78,21 @@ public class MetopReader extends AvhrrReader implements AvhrrConstants {
         product.setFileLocation(dataFile);
         product.setPreferredTileSize(product.getSceneRasterWidth(), 512);
 
+        addInternalTargetTemperatureBand(product, (MetopFile) avhrrFile);
+
         return product;
+    }
+
+    private void addInternalTargetTemperatureBand(Product product, MetopFile metopFile) {
+        final InternalTargetTemperatureBandReader bandReader = metopFile.createInternalTargetTemperatureReader();
+        final Band band = product.addBand(bandReader.getBandName(), bandReader.getDataType());
+        band.setScalingFactor(bandReader.getScalingFactor());
+        band.setScalingOffset(bandReader.getScalingOffset());
+        band.setUnit(bandReader.getBandUnit());
+        band.setDescription(bandReader.getBandDescription());
+        band.setNoDataValue(Short.MIN_VALUE);
+        band.setNoDataValueUsed(true);
+        bandReaders.put(band, bandReader);
     }
 
     @Override
