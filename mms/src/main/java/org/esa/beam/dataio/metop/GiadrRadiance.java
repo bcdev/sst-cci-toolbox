@@ -123,8 +123,28 @@ class GiadrRadiance {
         }
     }
 
-    public double getIrTempCoeffSum(int i) {
-        return irTempCoeff1[i] + irTempCoeff2[i] + irTempCoeff3[i] + irTempCoeff4[i] + irTempCoeff5[i] + irTempCoeff6[i];
+    public double getIrTempCoeff1(int i) {
+        return irTempCoeff1[i];
+    }
+
+    public double getIrTempCoeff2(int i) {
+        return irTempCoeff2[i];
+    }
+
+    public double getIrTempCoeff3(int i) {
+        return irTempCoeff3[i];
+    }
+
+    public double getIrTempCoeff4(int i) {
+        return irTempCoeff4[i];
+    }
+
+    public double getIrTempCoeff5(int i) {
+        return irTempCoeff5[i];
+    }
+
+    public double getIrTempCoeff6(int i) {
+        return irTempCoeff6[i];
     }
 
     MetadataElement getMetaData() {

@@ -154,7 +154,15 @@ final class InternalTargetTemperatureBandReader implements BandReader {
      */
 
     private double computeInternalTargetTemperature(int thermometerIndex, int sampleIndex, short[] samples) {
-        return (giadrRadiance.getIrTempCoeffSum(thermometerIndex) * (samples[sampleIndex] + samples[sampleIndex + 1] + samples[sampleIndex + 2])) / 18.0;
+        final double c0 = giadrRadiance.getIrTempCoeff1(thermometerIndex);
+        final double c1 = giadrRadiance.getIrTempCoeff2(thermometerIndex);
+        final double c2 = giadrRadiance.getIrTempCoeff3(thermometerIndex);
+        final double c3 = giadrRadiance.getIrTempCoeff4(thermometerIndex);
+        final double c4 = giadrRadiance.getIrTempCoeff5(thermometerIndex);
+        final double c5 = giadrRadiance.getIrTempCoeff6(thermometerIndex);
+        final short n = samples[sampleIndex + 1];
+
+        return c0 + n * (c1 + n * (c2 + n * (c3 + n * (c4 + n * c5))));
     }
 
     // not private for the purpose of testing only
