@@ -61,16 +61,18 @@ public class Constants {
     public static final String SENSOR_NAME_ORB_AVHRR_N19 = "orb_avhrr.n19";
     public static final String SENSOR_NAME_ORB_AVHRR_M01 = "orb_avhrr.m01";
     public static final String SENSOR_NAME_ORB_AVHRR_M02 = "orb_avhrr.m02";
+    public static final String SENSOR_NAME_ORB_AVHRR_FRAC_M01 = "orb.avhrr_f.m01";
+    public static final String SENSOR_NAME_ORB_AVHRR_FRAC_M02 = "orb.avhrr_f.m02";
+    public static final String SENSOR_NAME_ORB_AMSR2 = "orb_amsr2";
 
     public static final String MASK_NAME_MMS_DIRTY = "mms_dirty";
-
     public static final byte MATCHUP_REFERENCE_FLAG_INVALID = 0;
     public static final byte MATCHUP_REFERENCE_FLAG_ALGORITHM = 1;
     public static final byte MATCHUP_REFERENCE_FLAG_BLIND = 2;
     public static final byte MATCHUP_REFERENCE_FLAG_VALIDATION = 3;
     public static final byte MATCHUP_REFERENCE_FLAG_UNDEFINED = 4;
-    public static final byte MATCHUP_REFERENCE_FLAG_DUPLICATE = 5;
 
+    public static final byte MATCHUP_REFERENCE_FLAG_DUPLICATE = 5;
     public static final String MATCHUP_DATASET_ID = "matchup.dataset_id";
     public static final String MATCHUP_ID = "matchup.id";
     public static final String MATCHUP_TIME = "matchup.time";
