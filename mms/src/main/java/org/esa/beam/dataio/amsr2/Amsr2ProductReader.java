@@ -98,7 +98,7 @@ public final class Amsr2ProductReader extends NetcdfProductReaderTemplate {
             }
         }
         product.addBand("solar_zenith_angle", "sun_elevation + earth_incidence");
-        product.addBand("relative_azimuth_angle", "(earth_azimuth - sun_azimuth + 180.0) % 360.0");
+        product.addBand("solar_azimuth_angle", "(earth_azimuth - sun_azimuth + 180.0) % 360.0");
     }
 
     private void addBand(Product product, Variable variable, int dataType) {
