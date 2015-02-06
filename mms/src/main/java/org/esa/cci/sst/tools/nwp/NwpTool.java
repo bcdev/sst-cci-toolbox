@@ -39,7 +39,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,10 +56,12 @@ class NwpTool extends BasicTool {
             "${CDO} ${CDO_OPTS} -f nc2 mergetime ${GGAS_TIMESTEPS} ${GGAS_TIME_SERIES} && " +
             "${CDO} ${CDO_OPTS} -f grb mergetime ${GGAM_TIMESTEPS} ${GGAM_TIME_SERIES} && " +
             "${CDO} ${CDO_OPTS} -f grb mergetime ${SPAM_TIMESTEPS} ${SPAM_TIME_SERIES} && " +
+            "${CDO} ${CDO_OPTS} -f nc2 mergetime ${GAFS_TIMESTEPS} ${GAFS_TIME_SERIES} && " +
             // attention: chaining the operations below results in a loss of the y dimension in the result file
-            "${CDO} ${CDO_OPTS} -f nc2 -R -t ecmwf setreftime,${REFTIME} -remapbil,${GEO} -selname,Q,O3 ${GGAM_TIME_SERIES} ${GGAM_TIME_SERIES_REMAPPED} && " +
+            "${CDO} ${CDO_OPTS} -f nc2 -R -t ecmwf setreftime,${REFTIME} -remapbil,${GEO} -selname,Q,O3,CLWC,CIWC ${GGAM_TIME_SERIES} ${GGAM_TIME_SERIES_REMAPPED} && " +
             "${CDO} ${CDO_OPTS} -f nc2 -R -t ecmwf setreftime,${REFTIME} -remapbil,${GEO} -sp2gp -selname,LNSP,T ${SPAM_TIME_SERIES} ${SPAM_TIME_SERIES_REMAPPED} && " +
-            "${CDO} ${CDO_OPTS} -f nc2 merge -setreftime,${REFTIME} -remapbil,${GEO} -selname,CI,ASN,SSTK,TCWV,MSL,TCC,U10,V10,T2,D2,AL,SKT ${GGAS_TIME_SERIES} ${GGAM_TIME_SERIES_REMAPPED} ${SPAM_TIME_SERIES_REMAPPED} ${NWP_TIME_SERIES}\n";
+            "${CDO} ${CDO_OPTS} -f nc2 -R -t ecmwf setreftime,${REFTIME} -remapbil,${GEO} -selname,TP -selhour,0,6,12,18 ${GAFS_TIME_SERIES} ${GAFS_TIME_SERIES_REMAPPED} && " +
+            "${CDO} ${CDO_OPTS} -f nc2 merge -setreftime,${REFTIME} -remapbil,${GEO} -selname,CI,ASN,SSTK,TCWV,MSL,TCC,U10,V10,T2,D2,AL,SKT ${GGAS_TIME_SERIES} ${GGAM_TIME_SERIES_REMAPPED} ${SPAM_TIME_SERIES_REMAPPED} ${GAFS_TIME_SERIES_REMAPPED} ${NWP_TIME_SERIES}\n";
 
     private static final String CDO_MATCHUP_AN_TEMPLATE =
             "#! /bin/sh\n" +
@@ -207,7 +208,7 @@ class NwpTool extends BasicTool {
             properties.setProperty("GEO", geoFileLocation);
             properties.setProperty("GGAS_TIMESTEPS",
                                    NwpUtil.composeFilesString(sourceNwpLocation + "/ggas", subDirectories,
-                                                              "ggas[0-9]*.nc"));
+                                                              "ggas[0-9]*.nc", 0));
             properties.setProperty("GGAS_TIME_SERIES", NwpUtil.createTempFile("ggas", ".nc", deleteOnExit).getPath());
             final String analysisFileLocation = NwpUtil.createTempFile("analysis", ".nc", deleteOnExit).getPath();
             properties.setProperty("AN_TIME_SERIES", analysisFileLocation);
@@ -240,10 +241,10 @@ class NwpTool extends BasicTool {
             properties.setProperty("GEO", geoFileLocation);
             properties.setProperty("GAFS_TIMESTEPS",
                                    NwpUtil.composeFilesString(sourceNwpLocation + "/gafs", subDirectories,
-                                                              "gafs[0-9]*.nc"));
+                                                              "gafs[0-9]*.nc", 0));
             properties.setProperty("GGFS_TIMESTEPS",
                                    NwpUtil.composeFilesString(sourceNwpLocation + "/ggfs", subDirectories,
-                                                              "ggfs[0-9]*.nc"));
+                                                              "ggfs[0-9]*.nc", 0));
             properties.setProperty("GAFS_TIME_SERIES", NwpUtil.createTempFile("gafs", ".nc", deleteOnExit).getPath());
             properties.setProperty("GGFS_TIME_SERIES", NwpUtil.createTempFile("ggfs", ".nc", deleteOnExit).getPath());
             properties.setProperty("GGFS_TIME_SERIES_REMAPPED",
@@ -301,20 +302,26 @@ class NwpTool extends BasicTool {
             properties.setProperty("GEO", geoFileLocation);
             properties.setProperty("GGAS_TIMESTEPS",
                                    NwpUtil.composeFilesString(sourceNwpLocation + "/ggas", subDirectories,
-                                                              "ggas[0-9]*.nc"));
+                                                              "ggas[0-9]*.nc", 1));
             properties.setProperty("GGAM_TIMESTEPS",
                                    NwpUtil.composeFilesString(sourceNwpLocation + "/ggam", subDirectories,
-                                                              "ggam[0-9]*.grb"));
+                                                              "ggam[0-9]*.grb", 1));
             properties.setProperty("SPAM_TIMESTEPS",
                                    NwpUtil.composeFilesString(sourceNwpLocation + "/spam", subDirectories,
-                                                              "spam[0-9]*.grb"));
+                                                              "spam[0-9]*.grb", 1));
+            properties.setProperty("GAFS_TIMESTEPS",
+                                   NwpUtil.composeFilesString(sourceNwpLocation + "/gafs", subDirectories,
+                                                              "gafs[0-9]*[62].nc", -1));
             properties.setProperty("GGAS_TIME_SERIES", NwpUtil.createTempFile("ggas", ".nc", deleteOnExit).getPath());
             properties.setProperty("GGAM_TIME_SERIES", NwpUtil.createTempFile("ggam", ".grb", deleteOnExit).getPath());
             properties.setProperty("SPAM_TIME_SERIES", NwpUtil.createTempFile("spam", ".grb", deleteOnExit).getPath());
+            properties.setProperty("GAFS_TIME_SERIES", NwpUtil.createTempFile("gafs", ".nc", deleteOnExit).getPath());
             properties.setProperty("GGAM_TIME_SERIES_REMAPPED",
                                    NwpUtil.createTempFile("ggar", ".nc", deleteOnExit).getPath());
             properties.setProperty("SPAM_TIME_SERIES_REMAPPED",
                                    NwpUtil.createTempFile("spar", ".nc", deleteOnExit).getPath());
+            properties.setProperty("GAFS_TIME_SERIES_REMAPPED",
+                                   NwpUtil.createTempFile("gafr", ".nc", deleteOnExit).getPath());
             properties.setProperty("NWP_TIME_SERIES", NwpUtil.createTempFile("nwp", ".nc", deleteOnExit).getPath());
 
             final ProcessRunner runner = new ProcessRunner();
