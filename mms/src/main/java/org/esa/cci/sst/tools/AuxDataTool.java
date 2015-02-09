@@ -3,7 +3,10 @@ package org.esa.cci.sst.tools;
 import org.esa.cci.sst.data.Coincidence;
 import org.esa.cci.sst.data.GlobalObservation;
 import org.esa.cci.sst.data.Matchup;
+import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.data.RelatedObservation;
+import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.orm.Storage;
 import org.esa.cci.sst.tool.Configuration;
@@ -22,7 +25,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -35,10 +38,7 @@ public class AuxDataTool extends BasicTool {
     private String sensorName2;
     private String usecaseRootPath;
     private String insituSensorName;
-    private int aaiTimeDeltaSeconds;
-    private int seaiceTimeDeltaSeconds;
-    private String aaiSensorName;
-    private String seaiceSensorName;
+    private CoincidenceDefinitions coincidenceDefinitions;
 
     protected AuxDataTool() {
         super(NAME, VERSION);
@@ -73,12 +73,7 @@ public class AuxDataTool extends BasicTool {
 
         usecaseRootPath = ConfigUtil.getUsecaseRootPath(config);
         insituSensorName = config.getOptionalStringValue(Configuration.KEY_MMS_SAMPLING_INSITU_SENSOR);
-
-        aaiSensorName = config.getStringValue("mms.matchup.43.sensor");
-        seaiceSensorName = config.getStringValue("mms.matchup.44.sensor");
-
-        aaiTimeDeltaSeconds = config.getIntValue(Configuration.KEY_MMS_TIMEDELTA_AAI);
-        seaiceTimeDeltaSeconds = config.getIntValue(Configuration.KEY_MMS_TIMEDELTA_SEAICE);
+        coincidenceDefinitions = getCoincidenceDefinitions(config);
     }
 
     private void run() throws IOException {
@@ -96,9 +91,9 @@ public class AuxDataTool extends BasicTool {
             try {
                 persistenceManager.transaction();
 
-                addAerosolCoincidence(storage, coincidences, matchupMillis);
-                addSeaiceCoincidence(storage, matchupMillis, coincidences, matchup);
-
+                for (int i = 0; i < coincidenceDefinitions.size(); i++) {
+                    addRelatedObservations(coincidenceDefinitions.get(i), storage, matchup);
+                }
             } finally {
                 persistenceManager.commit();
             }
@@ -107,44 +102,47 @@ public class AuxDataTool extends BasicTool {
         storeMatchups(matchups);
     }
 
-    private void addSeaiceCoincidence(Storage storage, long matchupMillis, List<Coincidence> coincidences,
-                                      Matchup matchup) {
-        final PGgeometry matchupPoint = matchup.getRefObs().getPoint();
-        final Point point = matchupPoint.getGeometry().getPoint(0);
-        final double lat = point.getY();
-        final double lon = point.getX();
-        if (Math.abs(lat) > 30.0) {
-            final Date seaiceStartDate = new Date(matchupMillis - seaiceTimeDeltaSeconds * 1000);
-            final Date seaiceStopDate = new Date(matchupMillis + seaiceTimeDeltaSeconds * 1000);
+    private void addRelatedObservations(CoincidenceDefinition coincidenceDefinition,
+                                        Storage storage,
+                                        Matchup matchup) {
+        final ReferenceObservation referenceObservation = matchup.getRefObs();
+        final long matchupMillis = referenceObservation.getTime().getTime();
+        final int timeDelta = coincidenceDefinition.getTimeDelta();
+        final Date startDate = new Date(matchupMillis - timeDelta * 1000);
+        final Date stopDate = new Date(matchupMillis + timeDelta * 1000);
+        final List<Coincidence> coincidences = matchup.getCoincidences();
+        final String sensorName = coincidenceDefinition.getSensorName();
+        final Class<? extends Observation> observationClass = coincidenceDefinition.getObservationClass();
 
-            final List<RelatedObservation> seaiceObservations = storage.getRelatedObservations(seaiceSensorName,
-                                                                                               seaiceStartDate,
-                                                                                               seaiceStopDate);
-            for (final RelatedObservation seaiceObservation : seaiceObservations) {
-                final Geometry location = seaiceObservation.getLocation().getGeometry();
+        if (observationClass == GlobalObservation.class) {
+            final List<GlobalObservation> observations = storage.getGlobalObservations(sensorName, startDate, stopDate);
+            if (observations.size() > 0) {
+                final GlobalObservation observation = observations.get(0); // results are sorted by time
+                final Coincidence coincidence = new Coincidence();
+                coincidence.setObservation(observation);
+                coincidence.setTimeDifference(matchupMillis - observation.getTime().getTime());
+                coincidences.add(coincidence);
+            }
+        } else if (observationClass == RelatedObservation.class) {
+            final Point referencePoint = referenceObservation.getPoint().getGeometry().getPoint(0);
+            final double lat = referencePoint.getY();
+            final double lon = referencePoint.getX();
+            if (Constants.SENSOR_NAME_SEAICE.equals(sensorName) && Math.abs(lat) < 30.0) {
+                return;
+            }
+            final List<RelatedObservation> observations = storage.getRelatedObservations(sensorName,
+                                                                                         startDate,
+                                                                                         stopDate);
+            for (final RelatedObservation observation : observations) {
+                final Geometry location = observation.getLocation().getGeometry();
                 final PolarOrbitingPolygon polarOrbitingPolygon = new PolarOrbitingPolygon(0, 0, location);
                 if (polarOrbitingPolygon.isPointInPolygon(lat, lon)) {
                     final Coincidence coincidence = new Coincidence();
-                    coincidence.setObservation(seaiceObservation);
-                    coincidence.setTimeDifference(matchupMillis - seaiceObservation.getTime().getTime());
+                    coincidence.setObservation(observation);
+                    coincidence.setTimeDifference(matchupMillis - observation.getTime().getTime());
                     coincidences.add(coincidence);
                 }
             }
-        }
-    }
-
-    private void addAerosolCoincidence(Storage storage, List<Coincidence> coincidences, long matchupMillis) {
-        final Date aaiStartDate = new Date(matchupMillis - aaiTimeDeltaSeconds * 1000);
-        final Date aaiStopDate = new Date(matchupMillis + aaiTimeDeltaSeconds * 1000);
-        final List<GlobalObservation> aaiObservations = storage.getGlobalObservations(aaiSensorName, aaiStartDate,
-                                                                                      aaiStopDate);
-        if (aaiObservations.size() > 0) {
-            // @todo 2 tb/tb what shall we do if we have more than one result? 2014-12-10
-            final GlobalObservation aaiObservation = aaiObservations.get(0);
-            final Coincidence coincidence = new Coincidence();
-            coincidence.setObservation(aaiObservation);
-            coincidence.setTimeDifference(matchupMillis - aaiObservation.getTime().getTime());
-            coincidences.add(coincidence);
         }
     }
 
@@ -184,5 +182,97 @@ public class AuxDataTool extends BasicTool {
         parameter.setSearchTimeFuture(delta);
         parameter.setSensorName(sensorName);
         return parameter;
+    }
+
+    private CoincidenceDefinitions getCoincidenceDefinitions(Configuration config) {
+        final CoincidenceDefinitions coincidenceDefinitions = new CoincidenceDefinitions();
+        for (int i = 0; i < 100; i++) {
+            final String sensorKey = String.format("mms.matchup.%d.sensor", i);
+            final String sensorName = config.getStringValue(sensorKey, null);
+            if (sensorName == null) {
+                continue;
+            }
+            final String timedeltaKey = String.format("mms.matchup.%d.timedelta", i);
+            final int timeDelta = config.getIntValue(timedeltaKey, 43200);
+            final Sensor sensor = getStorage().getSensor(sensorName);
+            if (sensor == null) {
+                continue;
+            }
+            final Class<? extends Observation> observationClass = getObservationClass(sensor);
+            if (observationClass == ReferenceObservation.class) {
+                continue;
+            }
+            if (!coincidenceDefinitions.contains(sensorName)) {
+                coincidenceDefinitions.add(sensorName, observationClass, timeDelta);
+            }
+        }
+        return coincidenceDefinitions;
+    }
+
+    @SuppressWarnings({"unchecked"})
+    private static Class<? extends Observation> getObservationClass(Sensor sensor) {
+        try {
+            return (Class<? extends Observation>) Class.forName(
+                    String.format("%s.%s", Sensor.class.getPackage().getName(), sensor.getObservationType()));
+        } catch (ClassCastException | ClassNotFoundException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private static class CoincidenceDefinition {
+
+        private String sensorName;
+        private Class<? extends Observation> observationClass;
+        private int timeDelta;
+
+        public CoincidenceDefinition(String sensorName, Class<? extends Observation> observationClass,
+                                     Integer timeDelta) {
+            this.sensorName = sensorName;
+            this.observationClass = observationClass;
+            this.timeDelta = timeDelta;
+        }
+
+        public int getTimeDelta() {
+            return timeDelta;
+        }
+
+        public Class<? extends Observation> getObservationClass() {
+            return observationClass;
+        }
+
+        public String getSensorName() {
+            return sensorName;
+        }
+    }
+
+    private static class CoincidenceDefinitions {
+
+        private final List<String> sensorNames;
+        private final List<Class<? extends Observation>> observationClasses;
+        private final List<Integer> timeDeltas;
+
+        CoincidenceDefinitions() {
+            sensorNames = new ArrayList<>();
+            observationClasses = new ArrayList<>();
+            timeDeltas = new ArrayList<>();
+        }
+
+        public boolean contains(String sensorName) {
+            return sensorNames.contains(sensorName);
+        }
+
+        public void add(String sensorName, Class<? extends Observation> observationClass, int timeDelta) {
+            sensorNames.add(sensorName);
+            observationClasses.add(observationClass);
+            timeDeltas.add(timeDelta);
+        }
+
+        public int size() {
+            return sensorNames.size();
+        }
+
+        public CoincidenceDefinition get(int i) {
+            return new CoincidenceDefinition(sensorNames.get(i), observationClasses.get(i), timeDeltas.get(i));
+        }
     }
 }

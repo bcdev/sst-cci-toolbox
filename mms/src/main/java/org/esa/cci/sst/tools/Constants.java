@@ -44,8 +44,11 @@ public class Constants {
     public static final String SENSOR_NAME_AVHRR_MD = "avhrr_md";
     public static final String SENSOR_NAME_METOP_MD = "metop";
     public static final String SENSOR_NAME_SEVIRI_MD = "seviri";
+
     public static final String SENSOR_NAME_DUMMY = "dummy";
     public static final String SENSOR_NAME_HISTORY = "history";
+    public static final String SENSOR_NAME_SEAICE = "seaice";
+
     public static final String SENSOR_NAME_ORB_ATSR_1 = "orb_atsr.1";
     public static final String SENSOR_NAME_ORB_ATSR_2 = "orb_atsr.2";
     public static final String SENSOR_NAME_ORB_ATSR_3 = "orb_atsr.3";
