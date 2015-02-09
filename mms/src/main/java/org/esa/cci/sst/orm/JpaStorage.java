@@ -19,6 +19,24 @@ class JpaStorage implements Storage {
 //            + " and st_intersects(o.location, st_geomfromewkt(?3))"
 //            + " order by abs(extract(epoch from o.time) - extract(epoch from timestamp ?2))";
 
+    // TODO - use
+    private static final String COINCIDING_OBSERVATION_QUERY =
+            "select o.id"
+                    + " from mm_observation o"
+                    + " where o.sensor = ?1"
+                    + " and o.time >= timestamp ?2 - interval '12:00:00' and o.time < timestamp ?2 + interval '12:00:00'"
+                    + " and st_intersects(o.location, st_geomfromewkt(?3))"
+                    + " order by abs(extract(epoch from o.time) - extract(epoch from timestamp ?2))";
+
+    // TODO - use
+    private static final String COINCIDING_GLOBALOBS_QUERY =
+            "select o.id"
+                    + " from mm_observation o"
+                    + " where o.sensor = ?1"
+                    + " and o.time >= timestamp ?2 - interval '12:00:00' and o.time < timestamp ?2 + interval '12:00:00'"
+                    + " order by abs(extract(epoch from o.time) - extract(epoch from timestamp ?2))";
+
+
 
     private static final String SENSOR_OBSERVATION_QUERY_TEMPLATE_STRING =
             "select o.id"

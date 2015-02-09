@@ -115,6 +115,7 @@ public class AuxDataTool extends BasicTool {
         final Class<? extends Observation> observationClass = coincidenceDefinition.getObservationClass();
 
         if (observationClass == GlobalObservation.class) {
+            // TODO - use coinciding global observations query
             final List<GlobalObservation> observations = storage.getGlobalObservations(sensorName, startDate, stopDate);
             if (observations.size() > 0) {
                 final GlobalObservation observation = observations.get(0); // results are sorted by time
@@ -130,6 +131,7 @@ public class AuxDataTool extends BasicTool {
             if (Constants.SENSOR_NAME_SEAICE.equals(sensorName) && Math.abs(lat) < 30.0) {
                 return;
             }
+            // TODO - use coinciding related observations query
             final List<RelatedObservation> observations = storage.getRelatedObservations(sensorName,
                                                                                          startDate,
                                                                                          stopDate);
