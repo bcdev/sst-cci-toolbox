@@ -43,7 +43,7 @@ class PlainBandReader implements BandReader {
     protected final ImageInputStream inputStream;
 
     PlainBandReader(int channel, MetopFile metopFile,
-                           ImageInputStream inputStream) {
+                    ImageInputStream inputStream) {
         this.channel = channel;
         this.metopFile = metopFile;
         this.inputStream = inputStream;
@@ -52,7 +52,7 @@ class PlainBandReader implements BandReader {
     @Override
     public String getBandName() {
         return AvhrrConstants.RADIANCE_BAND_NAME_PREFIX
-                + AvhrrConstants.CH_STRINGS[channel];
+               + AvhrrConstants.CH_STRINGS[channel];
     }
 
     @Override
@@ -98,8 +98,7 @@ class PlainBandReader implements BandReader {
                                    int sourceStepY,
                                    final ProductData destBuffer,
                                    final ProgressMonitor pm) throws IOException {
-
-        AvhrrFile.RawCoordinates rawCoord = metopFile.getRawCoordinates(
+        final AvhrrFile.RawCoordinates rawCoord = metopFile.getRawCoordinates(
                 sourceOffsetX, sourceOffsetY, sourceWidth, sourceHeight);
         final short[] targetData = (short[]) destBuffer.getElems();
 
@@ -128,19 +127,18 @@ class PlainBandReader implements BandReader {
             pm.worked(1);
         }
         pm.done();
-
     }
 
     protected int getDataOffset(int sourceOffsetX, int sourceY) {
         return metopFile.getScanLineOffset(sourceY)
-                + 24
-                + (AvhrrConstants.RAW_SCENE_RASTER_WIDTH * AvhrrConstants.CH_DATASET_INDEXES[channel] * 2)
-                + sourceOffsetX * 2;
+               + 24
+               + (AvhrrConstants.RAW_SCENE_RASTER_WIDTH * AvhrrConstants.CH_DATASET_INDEXES[channel] * 2)
+               + sourceOffsetX * 2;
     }
 
     protected boolean isVisibleBand() {
         return channel == AvhrrConstants.CH_1 || channel == AvhrrConstants.CH_2
-                || channel == AvhrrConstants.CH_3A;
+               || channel == AvhrrConstants.CH_3A;
     }
 
     protected boolean hasData(int rawY) throws IOException {
@@ -151,7 +149,7 @@ class PlainBandReader implements BandReader {
         final int channel3ab = bitField & 1;
 
         return (channel3ab == 1 && channel == AvhrrConstants.CH_3A)
-                || (channel3ab == 0 && channel == AvhrrConstants.CH_3B);
+               || (channel3ab == 0 && channel == AvhrrConstants.CH_3B);
     }
 
     private static String format(String pattern, String arg) {

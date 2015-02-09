@@ -35,6 +35,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -73,6 +74,7 @@ class NwpUtil {
 
         final int seventyTwoHours = 72 * 60 * 60;
         final int fortyEightHours = 48 * 60 * 60;
+
         final Date startDate = TimeUtil.secondsSince1978ToDate(startTime - seventyTwoHours);
         final Date stopDate = TimeUtil.secondsSince1978ToDate(endTime + fortyEightHours);
         final GregorianCalendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
@@ -185,26 +187,40 @@ class NwpUtil {
         return tempFile;
     }
 
-    static String composeFilesString(final String dirPath, final List<String> subDirectories, final String pattern) {
+    static String composeFilesString(final String dirPath, final List<String> subDirPaths, final String pattern,
+                                     int skip) {
         final StringBuilder sb = new StringBuilder();
+        final List<File> allFiles = new ArrayList<>();
         final FilenameFilter filter = new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
                 return name.matches(pattern);
             }
         };
-        for (String subDirectory : subDirectories) {
-            final File dir = new File(dirPath, subDirectory);
-            final File[] files = dir.listFiles(filter);
+        for (final String subDirPath : subDirPaths) {
+            final File subDir = new File(dirPath, subDirPath);
+            final File[] files = subDir.listFiles(filter);
             if (files == null) {
-                throw new RuntimeException(String.format("%s directory does not exist", dir.getPath()));
+                throw new RuntimeException(String.format("%s directory does not exist", subDir.getPath()));
             }
-            for (final File file : files) {
-                if (sb.length() > 0) {
-                    sb.append(' ');
-                }
-                sb.append(file.getPath());
+            Arrays.sort(files);
+            Collections.addAll(allFiles, files);
+        }
+        final int m;
+        final int n;
+        if (skip >= 0) {
+            m = skip;
+            n = allFiles.size();
+        } else {
+            m = 0;
+            n = allFiles.size() + skip;
+        }
+        for (int i = m; i < n; i++) {
+            final File file = allFiles.get(i);
+            if (sb.length() > 0) {
+                sb.append(' ');
             }
+            sb.append(file.getPath());
         }
         return sb.toString();
     }

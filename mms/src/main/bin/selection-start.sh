@@ -6,11 +6,12 @@ year=$1
 month=$2
 sensors=$3
 mmdtype=$4
-usecase=$5
+seltype=$5
+usecase=$6
 
 task="selection"
 jobname="${task}-${year}-${month}-${sensors}-${mmdtype}"
-command="${task}-run.sh ${year} ${month} ${sensors} ${mmdtype} ${usecase}"
+command="${task}-run.sh ${year} ${month} ${sensors} ${mmdtype} ${seltype} ${usecase}"
 
 echo "`date -u +%Y%m%d-%H%M%S` submitting job '${jobname}' for usecase ${usecase}"
 

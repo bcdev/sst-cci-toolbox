@@ -123,6 +123,30 @@ class GiadrRadiance {
         }
     }
 
+    public double getIrTempCoeff1(int i) {
+        return irTempCoeff1[i];
+    }
+
+    public double getIrTempCoeff2(int i) {
+        return irTempCoeff2[i];
+    }
+
+    public double getIrTempCoeff3(int i) {
+        return irTempCoeff3[i];
+    }
+
+    public double getIrTempCoeff4(int i) {
+        return irTempCoeff4[i];
+    }
+
+    public double getIrTempCoeff5(int i) {
+        return irTempCoeff5[i];
+    }
+
+    public double getIrTempCoeff6(int i) {
+        return irTempCoeff6[i];
+    }
+
     MetadataElement getMetaData() {
         final MetadataElement element = new MetadataElement("RADIANCE_CONVERSION");
         element.addAttribute(HeaderUtil.createAttribute("RAMP_CALIBRATION_COEFFICIENT", rampCalibrationCoefficient));

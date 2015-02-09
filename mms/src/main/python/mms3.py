@@ -17,4 +17,4 @@ w.add_primary_sensor('atsr.2', '1996-07-01', '2003-06-23')
 w.add_primary_sensor('atsr.3', '2002-05-20', '2012-04-09')
 w.set_samples_per_month(0)
 
-w.run(mmdtype, calls=[('sampling-start', 1)], with_history=True)
+w.run(mmdtype, hosts=[('localhost', 24)], calls=[('sampling-start', 1)], with_history=True)

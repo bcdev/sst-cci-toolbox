@@ -12,7 +12,7 @@ import ucar.ma2.DataType;
 /**
  * @author Ralf Quast
  */
-public class GacFilename extends Rule {
+final class GacFilename extends Rule {
 
     @Override
     public Item apply(Item sourceColumn) throws RuleException {

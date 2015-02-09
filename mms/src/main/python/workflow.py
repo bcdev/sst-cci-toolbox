@@ -577,7 +577,7 @@ class Workflow:
                 raise exceptions.ValueError, "Periods of sensor '" + name + "' must not intersect."
         self.secondary_sensors.add(Sensor(name, period))
 
-    def run(self, mmdtype, hosts=list([('localhost', 2)]), calls=list(), log_dir='trace',
+    def run(self, mmdtype, hosts=list([('localhost', 60)]), calls=list(), log_dir='trace',
             with_history=False,
             with_selection=False,
             simulation=False):
@@ -1150,12 +1150,13 @@ class Workflow:
                     monitor.execute(job)
                     date = _next_month(date)
 
-    def _execute_selection(self, monitor, chunk, mmdtype):
+    def _execute_selection(self, monitor, chunk, mmdtype, seltype):
         """
 
         :type monitor: Monitor
         :type chunk: Period
         :type mmdtype: str
+        :type seltype: str
         """
         for sensor_pair in self._get_sensor_pairs():
             name = sensor_pair.get_name()
@@ -1169,7 +1170,7 @@ class Workflow:
                               'selection-start.sh',
                               ['/mmd/' + name + '/' + _pathformat(date)],
                               ['/sel/' + name + '/' + _pathformat(date)],
-                              [year, month, name, mmdtype, self.get_usecase()])
+                              [year, month, name, mmdtype, seltype, self.get_usecase()])
                     monitor.execute(job)
                     date = _next_month(date)
 
