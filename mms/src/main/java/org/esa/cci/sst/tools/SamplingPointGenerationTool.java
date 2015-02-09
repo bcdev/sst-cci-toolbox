@@ -69,7 +69,7 @@ public class SamplingPointGenerationTool extends BasicTool {
         logger.info("Start exporting sample points ...");
         final Workflow exportSamplingPointsWorkflow = new ExportSamplingPointsWorkflow(workflowContext);
         exportSamplingPointsWorkflow.execute(samples);
-        logger.info("Exporting sample points");
+        logger.info("Exported sample points:" + samples.size());
     }
 
     // package access for testing only tb 2014-03-07
