@@ -18,6 +18,8 @@ package org.esa.beam.dataio.amsr2;
 
 import org.esa.beam.common.ImageVariableOpImage;
 import org.esa.beam.common.NetcdfProductReaderTemplate;
+import org.esa.beam.common.PixelLocator;
+import org.esa.beam.common.PixelLocatorAdapter;
 import org.esa.beam.common.ScanLineVariableOpImage;
 import org.esa.beam.dataio.cci.sst.NcOsiProductReaderPlugIn;
 import org.esa.beam.dataio.netcdf.util.DataTypeUtils;
@@ -25,8 +27,6 @@ import org.esa.beam.dataio.netcdf.util.MetadataUtils;
 import org.esa.beam.framework.datamodel.Band;
 import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.MetadataElement;
-import org.esa.beam.common.PixelLocator;
-import org.esa.beam.common.PixelLocatorAdapter;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.jai.ImageManager;
@@ -38,7 +38,13 @@ import ucar.nc2.Attribute;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
+import javax.media.jai.BorderExtender;
+import javax.media.jai.ImageLayout;
+import javax.media.jai.JAI;
+import javax.media.jai.operator.BorderDescriptor;
 import java.awt.Dimension;
+import java.awt.RenderingHints;
+import java.awt.image.DataBuffer;
 import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
@@ -56,13 +62,15 @@ public final class Amsr2ProductReader extends NetcdfProductReaderTemplate {
     private static final String TEMPLATE_VARIABLE_NAME;
     private static final String LAT_BAND_NAME = "latitude";
     private static final String LON_BAND_NAME = "longitude";
-    private static final String PIXEL_DATA_QUALITY_6_TO_36_BAND_NAME = "pixel_data_quality_6_to_36";
+    private static final String PIXEL_DATA_QUALITY_6_TO_36_BAND_NAME = "pixel_data_quality_6";
     private static final String PIXEL_DATA_QUALITY_89_BAND_NAME = "pixel_data_quality_89";
+    private static final String SCAN_DATA_QUALITY_BAND_NAME = "scan_data_quality";
     private static final String LAND_OCEAN_FLAG_BAND_NAME = "land_ocean_flag_6";
 
     static {
         TEMPLATE_VARIABLE_NAME = NetcdfFile.makeValidCDLName("Brightness_Temperature_(res06,10.7GHz,H)");
     }
+
 
     final Map<String, String> nameMapping = new HashMap<>();
     private int[] shape;
@@ -88,6 +96,9 @@ public final class Amsr2ProductReader extends NetcdfProductReaderTemplate {
                 }
                 if (variableName.equals("Pixel_Data_Quality_89")) {
                     addBand(product, variable, DataTypeUtils.getRasterDataType(variable));
+                }
+                if (variableName.equals("Scan_Data_Quality")) {
+                    addBand(product, variable, ProductData.TYPE_UINT32);
                 }
                 if (variableName.equals("Land_Ocean_Flag_6_to_36")) {
                     addBand(product, variable, DataTypeUtils.getRasterDataType(variable));
@@ -188,8 +199,12 @@ public final class Amsr2ProductReader extends NetcdfProductReaderTemplate {
             if (Arrays.equals(shape, variable.getShape())) {
                 return new DefaultOpImage(variable, bufferType, w, h, tileSize);
             } else {
-                if (PIXEL_DATA_QUALITY_6_TO_36_BAND_NAME.equalsIgnoreCase(band.getName())) {
-                    return new UShortFromUByteOpImage(variable, bufferType, w, h, tileSize);
+                if (PIXEL_DATA_QUALITY_6_TO_36_BAND_NAME.equals(band.getName())) {
+                    return new UShortFromUByteOpImage(variable, w, h, tileSize);
+                } else if (SCAN_DATA_QUALITY_BAND_NAME.equals(band.getName())) {
+                    final RenderedImage image = new UIntFromUByteOpImage(variable, 128, h,
+                                                                         new Dimension(128, tileSize.height));
+                    return extend(w, h, tileSize, image);
                 } else {
                     return new OddColumnsOpImage(variable, bufferType, w, h, tileSize);
                 }
@@ -204,6 +219,14 @@ public final class Amsr2ProductReader extends NetcdfProductReaderTemplate {
         } else {
             return new DefaultOpImage(variable, bufferType, w, h, tileSize);
         }
+    }
+
+    private static RenderedImage extend(int w, int h, Dimension tileSize, RenderedImage image) {
+        final BorderExtender borderExtender = BorderExtender.createInstance(BorderExtender.BORDER_ZERO);
+        final ImageLayout layout = new ImageLayout(0, 0, w, h, 0, 0, tileSize.width, tileSize.height, null, null);
+        final RenderingHints rh = new RenderingHints(JAI.KEY_IMAGE_LAYOUT, layout);
+
+        return BorderDescriptor.create(image, null, w - image.getWidth(), null, null, borderExtender, rh);
     }
 
     @Override
@@ -287,8 +310,8 @@ public final class Amsr2ProductReader extends NetcdfProductReaderTemplate {
 
     private static final class UShortFromUByteOpImage extends ImageVariableOpImage {
 
-        public UShortFromUByteOpImage(Variable variable, int bufferType, int w, int h, Dimension tileSize) {
-            super(variable, bufferType, w, h, tileSize, ResolutionLevel.MAXRES);
+        public UShortFromUByteOpImage(Variable variable, int w, int h, Dimension tileSize) {
+            super(variable, DataBuffer.TYPE_USHORT, w, h, tileSize, ResolutionLevel.MAXRES);
         }
 
         @Override
@@ -327,6 +350,53 @@ public final class Amsr2ProductReader extends NetcdfProductReaderTemplate {
                 shorts[i] = (short) ((lo & 0xFF) | (hi & 0xFF) << 8);
             }
             return shorts;
+        }
+    }
+
+    private static class UIntFromUByteOpImage extends ImageVariableOpImage {
+
+        public UIntFromUByteOpImage(Variable variable, int w, int h, Dimension tileSize) {
+            super(variable, DataBuffer.TYPE_INT, w, h, tileSize, ResolutionLevel.MAXRES);
+        }
+
+        @Override
+        protected int getIndexX(int rank) {
+            return rank - 1;
+        }
+
+        @Override
+        protected int getIndexY(int rank) {
+            return rank - 2;
+        }
+
+        @Override
+        protected int getSourceOriginX() {
+            return 0;
+        }
+
+        @Override
+        protected int getSourceOriginX(int x) {
+            return super.getSourceOriginX(x) * 4;
+        }
+
+        @Override
+        protected final int getSourceShapeX(int width) {
+            return super.getSourceShapeX(width) * 4;
+        }
+
+        @Override
+        protected Object transformStorage(Array array) {
+            final byte[] bytes = (byte[]) array.getStorage();
+            final int[] ints = new int[bytes.length >> 2];
+
+            for (int i = 0; i < ints.length; ++i) {
+                final byte b4 = bytes[i * 4];
+                final byte b3 = bytes[i * 4 + 1];
+                final byte b2 = bytes[i * 4 + 2];
+                final byte b1 = bytes[i * 4 + 3];
+                ints[i] = (b1 & 0xFF) | (b2 & 0xFF) << 8 | (b3 & 0xFF) << 16 | (b4 & 0xFF) << 24;
+            }
+            return ints;
         }
     }
 }
