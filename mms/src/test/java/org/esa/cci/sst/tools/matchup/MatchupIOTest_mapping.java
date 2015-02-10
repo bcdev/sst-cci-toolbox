@@ -46,11 +46,11 @@ public class MatchupIOTest_mapping {
 
         final MatchupData mapped = MatchupIO.map(matchups, idGenerator, detachHandler);
         assertNotNull(mapped);
-        assertTrue(mapped.getInsituObservations().isEmpty());
-        assertTrue(mapped.getMatchups().isEmpty());
-        assertTrue(mapped.getReferenceObservations().isEmpty());
-        assertTrue(mapped.getRelatedObservations().isEmpty());
-        assertTrue(mapped.getSensors().isEmpty());
+        assertTrue(mapped.getIso().isEmpty());
+        assertTrue(mapped.getMu().isEmpty());
+        assertTrue(mapped.getReo().isEmpty());
+        assertTrue(mapped.getRlo().isEmpty());
+        assertTrue(mapped.getSe().isEmpty());
 
         verifyNoMoreInteractions(detachHandler);
     }
@@ -85,34 +85,34 @@ public class MatchupIOTest_mapping {
 
         final MatchupData mapped = MatchupIO.map(matchups, idGenerator, detachHandler);
         assertNotNull(mapped);
-        assertTrue(mapped.getInsituObservations().isEmpty());
-        assertTrue(mapped.getRelatedObservations().isEmpty());
+        assertTrue(mapped.getIso().isEmpty());
+        assertTrue(mapped.getRlo().isEmpty());
 
-        final List<IO_Matchup> mappedMatchups = mapped.getMatchups();
+        final List<IO_Matchup> mappedMatchups = mapped.getMu();
         assertEquals(1, mappedMatchups.size());
         final IO_Matchup io_matchup = mappedMatchups.get(0);
         assertEquals(2010111617000000000L, io_matchup.getId());
-        assertEquals(1, io_matchup.getPattern());
-        assertTrue(io_matchup.isInvalid());
+        assertEquals(1, io_matchup.getPa());
+        assertTrue(io_matchup.isIv());
 
-        final List<IO_RefObservation> referenceObservations = mapped.getReferenceObservations();
+        final List<IO_RefObservation> referenceObservations = mapped.getReo();
         assertEquals(1, referenceObservations.size());
         final IO_RefObservation io_refObs = referenceObservations.get(0);
         assertEquals(0, io_refObs.getId());
-        assertEquals("2", io_refObs.getName());
-        assertEquals("3", io_refObs.getSensor());
-        assertEquals("4", io_refObs.getFilePath());
-        assertEquals(1, io_refObs.getSensorId());
-        assertEquals(8, io_refObs.getRecordNo());
-        assertEquals(9, io_refObs.getTime().getTime());
-        assertEquals(10.1, io_refObs.getTimeRadius(), 1e-8);
+        assertEquals("2", io_refObs.getNa());
+        assertEquals("3", io_refObs.getSe());
+        assertEquals("4", io_refObs.getFp());
+        assertEquals(1, io_refObs.getSi());
+        assertEquals(8, io_refObs.getRn());
+        assertEquals(9, io_refObs.getTi().getTime());
+        assertEquals(10.1, io_refObs.getTr(), 1e-8);
         // @todo 2 tb/tb temporarily removed geolocation mapping 2014-12-17s
         //assertEquals("POLYGON((0 0,5 0,5 5,0 5,0 0))", io_refObs.getLocation());
-        assertEquals("POINT(11 12)", io_refObs.getPoint());
-        assertEquals(13, io_refObs.getDataset());
-        assertEquals(14, io_refObs.getReferenceFlag());
+        assertEquals("POINT(11 12)", io_refObs.getPt());
+        assertEquals(13, io_refObs.getDs());
+        assertEquals(14, io_refObs.getRf());
 
-        final List<Sensor> sensors = mapped.getSensors();
+        final List<Sensor> sensors = mapped.getSe();
         assertEquals(1, sensors.size());
         final Sensor mappedSensor = sensors.get(0);
         assertEquals(1, mappedSensor.getId());
@@ -158,32 +158,32 @@ public class MatchupIOTest_mapping {
         matchups.add(matchup);
 
         final MatchupData matchupData = MatchupIO.map(matchups, idGenerator, detachHandler);
-        final List<IO_Matchup> io_matchups = matchupData.getMatchups();
+        final List<IO_Matchup> io_matchups = matchupData.getMu();
         assertEquals(1, io_matchups.size());
         final IO_Matchup io_matchup = io_matchups.get(0);
 
-        final List<IO_Coincidence> io_coincidences = io_matchup.getCoincidences();
+        final List<IO_Coincidence> io_coincidences = io_matchup.getCi();
         assertEquals(1, io_coincidences.size());
         final IO_Coincidence io_coincidence = io_coincidences.get(0);
-        assertEquals(127.127, io_coincidence.getTimeDifference(), 1e-8);
-        assertEquals(198, io_coincidence.getObservationId());
-        assertFalse(io_coincidence.isInsitu());
+        assertEquals(127.127, io_coincidence.getTd(), 1e-8);
+        assertEquals(198, io_coincidence.getOi());
+        assertFalse(io_coincidence.isIs());
 
-        final List<IO_Observation> relatedObservations = matchupData.getRelatedObservations();
+        final List<IO_Observation> relatedObservations = matchupData.getRlo();
         assertEquals(1, relatedObservations.size());
         final IO_Observation io_observation = relatedObservations.get(0);
         assertEquals(198, io_observation.getId());
-        assertEquals("128", io_observation.getName());
-        assertEquals("129", io_observation.getSensor());
-        assertEquals("130", io_observation.getFilePath());
-        assertEquals(2, io_observation.getSensorId());
-        assertEquals(133, io_observation.getRecordNo());
-        assertEquals(134, io_observation.getTime().getTime());
-        assertEquals(135.135, io_observation.getTimeRadius(), 1e-8);
+        assertEquals("128", io_observation.getNa());
+        assertEquals("129", io_observation.getSe());
+        assertEquals("130", io_observation.getFp());
+        assertEquals(2, io_observation.getSi());
+        assertEquals(133, io_observation.getRn());
+        assertEquals(134, io_observation.getTi().getTime());
+        assertEquals(135.135, io_observation.getTr(), 1e-8);
         // @todo 2 tb/tb temporarily removed due to memory issues 2014-12-17
         //assertEquals("POLYGON((10 10,11 10,11 11,10 11,10 10))", io_observation.getLocation());
 
-        final List<Sensor> sensors = matchupData.getSensors();
+        final List<Sensor> sensors = matchupData.getSe();
         assertEquals(2, sensors.size());    // first results from the referenceObservation
         final Sensor io_sensor = sensors.get(1);
         assertEquals(2, io_sensor.getId());
@@ -229,32 +229,32 @@ public class MatchupIOTest_mapping {
         matchups.add(matchup);
 
         final MatchupData matchupData = MatchupIO.map(matchups, idGenerator, detachHandler);
-        final List<IO_Matchup> io_matchups = matchupData.getMatchups();
+        final List<IO_Matchup> io_matchups = matchupData.getMu();
         assertEquals(1, io_matchups.size());
         final IO_Matchup io_matchup = io_matchups.get(0);
 
-        final List<IO_Coincidence> io_coincidences = io_matchup.getCoincidences();
+        final List<IO_Coincidence> io_coincidences = io_matchup.getCi();
         assertEquals(1, io_coincidences.size());
         final IO_Coincidence io_coincidence = io_coincidences.get(0);
-        assertEquals(227.227, io_coincidence.getTimeDifference(), 1e-8);
-        assertEquals(207, io_coincidence.getObservationId());
-        assertTrue(io_coincidence.isInsitu());
+        assertEquals(227.227, io_coincidence.getTd(), 1e-8);
+        assertEquals(207, io_coincidence.getOi());
+        assertTrue(io_coincidence.isIs());
 
-        final List<IO_Observation> insituObservations = matchupData.getInsituObservations();
+        final List<IO_Observation> insituObservations = matchupData.getIso();
         assertEquals(1, insituObservations.size());
         final IO_Observation io_observation = insituObservations.get(0);
         assertEquals(207, io_observation.getId());
-        assertEquals("228", io_observation.getName());
-        assertEquals("229", io_observation.getSensor());
-        assertEquals("230", io_observation.getFilePath());
-        assertEquals(2, io_observation.getSensorId());
-        assertEquals(233, io_observation.getRecordNo());
-        assertEquals(234, io_observation.getTime().getTime());
-        assertEquals(235.235, io_observation.getTimeRadius(), 1e-8);
+        assertEquals("228", io_observation.getNa());
+        assertEquals("229", io_observation.getSe());
+        assertEquals("230", io_observation.getFp());
+        assertEquals(2, io_observation.getSi());
+        assertEquals(233, io_observation.getRn());
+        assertEquals(234, io_observation.getTi().getTime());
+        assertEquals(235.235, io_observation.getTr(), 1e-8);
         // @todo 2 tb/tb temporarily removed due to memory issues 2014-12-17
 //        assertEquals("POLYGON((10 10,11 10,11 11,10 11,10 10))", io_observation.getLocation());
 
-        final List<Sensor> sensors = matchupData.getSensors();
+        final List<Sensor> sensors = matchupData.getSe();
         assertEquals(2, sensors.size());    // first results from the referenceObservation
         final Sensor io_sensor = sensors.get(1);
         assertEquals(2, io_sensor.getId());
@@ -281,24 +281,24 @@ public class MatchupIOTest_mapping {
         final MatchupData matchupData = new MatchupData();
         final IO_Matchup io_matchup = new IO_Matchup();
         io_matchup.setId(2);
-        io_matchup.setPattern(3);
-        io_matchup.setRefObsId(4);
-        io_matchup.setInvalid(false);
+        io_matchup.setPa(3);
+        io_matchup.setRi(4);
+        io_matchup.setIv(false);
         matchupData.add(io_matchup);
 
         final IO_RefObservation io_refObs = new IO_RefObservation();
         io_refObs.setId(4);
-        io_refObs.setName("5");
-        io_refObs.setSensor("6");
-        io_refObs.setFilePath("7");
-        io_refObs.setSensorId(8);
-        io_refObs.setRecordNo(12);
-        io_refObs.setTime(new Date(13));
-        io_refObs.setTimeRadius(14.14);
-        io_refObs.setLocation("POLYGON((3 3,3 5,5 5,5 3,3 3))");
-        io_refObs.setPoint("POINT(15 16)");
-        io_refObs.setDataset((byte) 17);
-        io_refObs.setReferenceFlag((byte) 18);
+        io_refObs.setNa("5");
+        io_refObs.setSe("6");
+        io_refObs.setFp("7");
+        io_refObs.setSi(8);
+        io_refObs.setRn(12);
+        io_refObs.setTi(new Date(13));
+        io_refObs.setTr(14.14);
+        io_refObs.setLo("POLYGON((3 3,3 5,5 5,5 3,3 3))");
+        io_refObs.setPt("POINT(15 16)");
+        io_refObs.setDs((byte) 17);
+        io_refObs.setRf((byte) 18);
         matchupData.add(io_refObs);
 
         final Sensor sensor = new Sensor();
@@ -345,7 +345,7 @@ public class MatchupIOTest_mapping {
     public void testRestore_oneMatchup_invalidRefObsId() {
         final MatchupData matchupData = new MatchupData();
         final IO_Matchup io_matchup = new IO_Matchup();
-        io_matchup.setRefObsId(16);
+        io_matchup.setRi(16);
         matchupData.add(io_matchup);
 
         final IO_RefObservation io_refObs = new IO_RefObservation();
@@ -363,14 +363,14 @@ public class MatchupIOTest_mapping {
     public void testRestore_oneMatchup_invalidSensorId() {
         final MatchupData matchupData = new MatchupData();
         final IO_Matchup io_matchup = new IO_Matchup();
-        io_matchup.setRefObsId(16);
+        io_matchup.setRi(16);
         matchupData.add(io_matchup);
 
         final IO_RefObservation io_refObs = new IO_RefObservation();
         io_refObs.setId(16);
-        io_refObs.setLocation("POLYGON((3 3,3 5,5 5,5 3,3 3))");
-        io_refObs.setPoint("POINT(15 16)");
-        io_refObs.setSensorId(-99);
+        io_refObs.setLo("POLYGON((3 3,3 5,5 5,5 3,3 3))");
+        io_refObs.setPt("POINT(15 16)");
+        io_refObs.setSi(-99);
         matchupData.add(io_refObs);
 
         final Sensor sensor = new Sensor();
@@ -414,14 +414,14 @@ public class MatchupIOTest_mapping {
     public void testRestore_oneMatchup_invalidPointString() {
         final MatchupData matchupData = new MatchupData();
         final IO_Matchup io_matchup = new IO_Matchup();
-        io_matchup.setRefObsId(16);
+        io_matchup.setRi(16);
         matchupData.add(io_matchup);
 
         final IO_RefObservation io_refObs = new IO_RefObservation();
         io_refObs.setId(16);
-        io_refObs.setLocation("POLYGON((3 3,3 5,5 5,5 3,3 3))");
-        io_refObs.setPoint("Big Ben");
-        io_refObs.setSensorId(75);
+        io_refObs.setLo("POLYGON((3 3,3 5,5 5,5 3,3 3))");
+        io_refObs.setPt("Big Ben");
+        io_refObs.setSi(75);
         matchupData.add(io_refObs);
 
         final Sensor sensor = new Sensor();
@@ -439,14 +439,14 @@ public class MatchupIOTest_mapping {
     public void testRestore_oneMatchup_oneRelatedCoincidence() throws SQLException {
         final MatchupData matchupData = new MatchupData();
         final IO_Matchup io_matchup = new IO_Matchup();
-        io_matchup.setRefObsId(12);
+        io_matchup.setRi(12);
         matchupData.add(io_matchup);
 
         final IO_RefObservation io_refObs = new IO_RefObservation();
         io_refObs.setId(12);
-        io_refObs.setSensorId(13);
-        io_refObs.setLocation("POLYGON((0 0,1 0,1 1,0 1,0 0))");
-        io_refObs.setPoint("POINT(11 13)");
+        io_refObs.setSi(13);
+        io_refObs.setLo("POLYGON((0 0,1 0,1 1,0 1,0 0))");
+        io_refObs.setPt("POINT(11 13)");
         matchupData.add(io_refObs);
 
         Sensor sensor = new Sensor();
@@ -459,21 +459,21 @@ public class MatchupIOTest_mapping {
         matchupData.add(sensor);
 
         final IO_Coincidence io_coincidence = new IO_Coincidence();
-        io_coincidence.setObservationId(15);
-        io_coincidence.setTimeDifference(16.16);
-        io_coincidence.setInsitu(false);
+        io_coincidence.setOi(15);
+        io_coincidence.setTd(16.16);
+        io_coincidence.setIs(false);
         io_matchup.add(io_coincidence);
 
         final IO_Observation io_observation = new IO_Observation();
         io_observation.setId(15);
-        io_observation.setName("16");
-        io_observation.setSensor("17");
-        io_observation.setFilePath("18");
-        io_observation.setSensorId(14);
-        io_observation.setTime(new Date(19));
-        io_observation.setTimeRadius(20.2);
-        io_observation.setLocation("POLYGON((2 2,2 3,3 3,3 2,2 2))");
-        io_observation.setRecordNo(21);
+        io_observation.setNa("16");
+        io_observation.setSe("17");
+        io_observation.setFp("18");
+        io_observation.setSi(14);
+        io_observation.setTi(new Date(19));
+        io_observation.setTr(20.2);
+        io_observation.setLo("POLYGON((2 2,2 3,3 3,3 2,2 2))");
+        io_observation.setRn(21);
         matchupData.addRelated(io_observation);
 
         final List<Matchup> matchups = MatchupIO.restore(matchupData);
@@ -508,14 +508,14 @@ public class MatchupIOTest_mapping {
     public void testRestore_oneMatchup_invalidRelatedObservationId() {
         final MatchupData matchupData = new MatchupData();
         final IO_Matchup io_matchup = new IO_Matchup();
-        io_matchup.setRefObsId(12);
+        io_matchup.setRi(12);
         matchupData.add(io_matchup);
 
         final IO_RefObservation io_refObs = new IO_RefObservation();
         io_refObs.setId(12);
-        io_refObs.setSensorId(13);
-        io_refObs.setLocation("POLYGON((0 0,1 0,1 1,0 1,0 0))");
-        io_refObs.setPoint("POINT(11 13)");
+        io_refObs.setSi(13);
+        io_refObs.setLo("POLYGON((0 0,1 0,1 1,0 1,0 0))");
+        io_refObs.setPt("POINT(11 13)");
         matchupData.add(io_refObs);
 
         Sensor sensor = new Sensor();
@@ -523,7 +523,7 @@ public class MatchupIOTest_mapping {
         matchupData.add(sensor);
 
         final IO_Coincidence io_coincidence = new IO_Coincidence();
-        io_coincidence.setObservationId(-99);
+        io_coincidence.setOi(-99);
         io_matchup.add(io_coincidence);
 
         final IO_Observation io_observation = new IO_Observation();
@@ -541,14 +541,14 @@ public class MatchupIOTest_mapping {
     public void testRestore_oneMatchup_oneInsituCoincidence() throws SQLException {
         final MatchupData matchupData = new MatchupData();
         final IO_Matchup io_matchup = new IO_Matchup();
-        io_matchup.setRefObsId(114);
+        io_matchup.setRi(114);
         matchupData.add(io_matchup);
 
         final IO_RefObservation io_refObs = new IO_RefObservation();
         io_refObs.setId(114);
-        io_refObs.setSensorId(19);
-        io_refObs.setLocation("POLYGON((0 0,1 0,1 1,0 1,0 0))");
-        io_refObs.setPoint("POINT(11 13)");
+        io_refObs.setSi(19);
+        io_refObs.setLo("POLYGON((0 0,1 0,1 1,0 1,0 0))");
+        io_refObs.setPt("POINT(11 13)");
         matchupData.add(io_refObs);
 
         Sensor sensor = new Sensor();
@@ -561,21 +561,21 @@ public class MatchupIOTest_mapping {
         matchupData.add(sensor);
 
         final IO_Coincidence io_coincidence = new IO_Coincidence();
-        io_coincidence.setObservationId(20);
-        io_coincidence.setTimeDifference(21.21);
-        io_coincidence.setInsitu(true);
+        io_coincidence.setOi(20);
+        io_coincidence.setTd(21.21);
+        io_coincidence.setIs(true);
         io_matchup.add(io_coincidence);
 
         final IO_Observation io_observation = new IO_Observation();
         io_observation.setId(20);
-        io_observation.setName("21");
-        io_observation.setSensor("22");
-        io_observation.setFilePath("23");
-        io_observation.setSensorId(24);
-        io_observation.setTime(new Date(25));
-        io_observation.setTimeRadius(26.26);
-        io_observation.setLocation("POLYGON((2 2,2 3,3 3,3 2,2 2))");
-        io_observation.setRecordNo(27);
+        io_observation.setNa("21");
+        io_observation.setSe("22");
+        io_observation.setFp("23");
+        io_observation.setSi(24);
+        io_observation.setTi(new Date(25));
+        io_observation.setTr(26.26);
+        io_observation.setLo("POLYGON((2 2,2 3,3 3,3 2,2 2))");
+        io_observation.setRn(27);
         matchupData.addInsitu(io_observation);
 
         final List<Matchup> matchups = MatchupIO.restore(matchupData);
@@ -612,14 +612,14 @@ public class MatchupIOTest_mapping {
     public void testRestore_oneMatchup_invalidInsituObservationId() {
         final MatchupData matchupData = new MatchupData();
         final IO_Matchup io_matchup = new IO_Matchup();
-        io_matchup.setRefObsId(12);
+        io_matchup.setRi(12);
         matchupData.add(io_matchup);
 
         final IO_RefObservation io_refObs = new IO_RefObservation();
         io_refObs.setId(12);
-        io_refObs.setSensorId(13);
-        io_refObs.setLocation("POLYGON((0 0,1 0,1 1,0 1,0 0))");
-        io_refObs.setPoint("POINT(11 13)");
+        io_refObs.setSi(13);
+        io_refObs.setLo("POLYGON((0 0,1 0,1 1,0 1,0 0))");
+        io_refObs.setPt("POINT(11 13)");
         matchupData.add(io_refObs);
 
         Sensor sensor = new Sensor();
@@ -627,8 +627,8 @@ public class MatchupIOTest_mapping {
         matchupData.add(sensor);
 
         final IO_Coincidence io_coincidence = new IO_Coincidence();
-        io_coincidence.setObservationId(-99);
-        io_coincidence.setInsitu(true);
+        io_coincidence.setOi(-99);
+        io_coincidence.setIs(true);
         io_matchup.add(io_coincidence);
 
         final IO_Observation io_observation = new IO_Observation();

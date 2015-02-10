@@ -82,7 +82,7 @@ public class MatchupIO {
                         observationIdSet.add(observationId);
                         matchupData.addInsitu(io_observation);
                     }
-                    io_coincidence.setInsitu(true);
+                    io_coincidence.setIs(true);
                 } else if (observation instanceof GlobalObservation) {
                     final GlobalObservation globalObservation = (GlobalObservation) observation;
                     if (!observationIdSet.contains(observationId)) {
@@ -91,7 +91,7 @@ public class MatchupIO {
                         observationIdSet.add(observationId);
                         matchupData.addGlobal(io_observation);
                     }
-                    io_coincidence.setGlobal(true);
+                    io_coincidence.setGl(true);
                 } else {
                     final RelatedObservation relatedObservation = (RelatedObservation) observation;
                     if (!observationIdSet.contains(observationId)) {
@@ -102,8 +102,8 @@ public class MatchupIO {
                     }
                 }
 
-                io_coincidence.setObservationId(observationId);
-                io_coincidence.setTimeDifference(coincidence.getTimeDifference());
+                io_coincidence.setOi(observationId);
+                io_coincidence.setTd(coincidence.getTimeDifference());
                 io_matchup.add(io_coincidence);
             }
         }
@@ -114,25 +114,25 @@ public class MatchupIO {
     static List<Matchup> restore(MatchupData matchupData) {
         final List<Matchup> resultList = new ArrayList<>();
 
-        final List<IO_Matchup> matchups = matchupData.getMatchups();
+        final List<IO_Matchup> matchups = matchupData.getMu();
         for (final IO_Matchup io_matchup : matchups) {
             final Matchup matchup = createMatchup(io_matchup);
 
-            final ReferenceObservation refObs = getRefObs(io_matchup.getRefObsId(), matchupData);
+            final ReferenceObservation refObs = getRefObs(io_matchup.getRi(), matchupData);
             matchup.setRefObs(refObs);
 
-            final List<IO_Coincidence> io_coincidences = io_matchup.getCoincidences();
+            final List<IO_Coincidence> io_coincidences = io_matchup.getCi();
             final List<Coincidence> coincidences = new ArrayList<>();
             for (final IO_Coincidence io_coincidence : io_coincidences) {
                 final Coincidence coincidence = new Coincidence();
-                coincidence.setTimeDifference(io_coincidence.getTimeDifference());
+                coincidence.setTimeDifference(io_coincidence.getTd());
                 Observation observation;
-                if (io_coincidence.isInsitu()) {
-                    observation = getInsituObservation(io_coincidence.getObservationId(), matchupData);
-                } else if (io_coincidence.isGlobal()) {
-                    observation = getGlobalObservation(io_coincidence.getObservationId(), matchupData);
+                if (io_coincidence.isIs()) {
+                    observation = getInsituObservation(io_coincidence.getOi(), matchupData);
+                } else if (io_coincidence.isGl()) {
+                    observation = getGlobalObservation(io_coincidence.getOi(), matchupData);
                 } else {
-                    observation = getRelatedObservation(io_coincidence.getObservationId(), matchupData);
+                    observation = getRelatedObservation(io_coincidence.getOi(), matchupData);
                 }
                 coincidence.setObservation(observation);
                 coincidences.add(coincidence);
@@ -149,15 +149,15 @@ public class MatchupIO {
                                                        DetachHandler detachHandler) {
         final IO_Observation io_observation = new IO_Observation();
         io_observation.setId(observationId);
-        io_observation.setName(relatedObservation.getName());
-        io_observation.setSensor(relatedObservation.getSensor());
+        io_observation.setNa(relatedObservation.getName());
+        io_observation.setSe(relatedObservation.getSensor());
         final DataFile datafile = relatedObservation.getDatafile();
-        io_observation.setFilePath(datafile.getPath());
+        io_observation.setFp(datafile.getPath());
         final int sensorId = addSensor(datafile.getSensor(), matchupData, detachHandler);
-        io_observation.setSensorId(sensorId);
-        io_observation.setRecordNo(relatedObservation.getRecordNo());
-        io_observation.setTime(relatedObservation.getTime());
-        io_observation.setTimeRadius(relatedObservation.getTimeRadius());
+        io_observation.setSi(sensorId);
+        io_observation.setRn(relatedObservation.getRecordNo());
+        io_observation.setTi(relatedObservation.getTime());
+        io_observation.setTr(relatedObservation.getTimeRadius());
         // @todo 2 tb/tb temporarily removed due to memory issues 2014-12-17
         //io_observation.setLocation(relatedObservation.getLocation().getValue());
 
@@ -169,41 +169,41 @@ public class MatchupIO {
                                                        DetachHandler detachHandler) {
         final IO_Observation io_observation = new IO_Observation();
         io_observation.setId(observationId);
-        io_observation.setName(globalObservation.getName());
-        io_observation.setSensor(globalObservation.getSensor());
+        io_observation.setNa(globalObservation.getName());
+        io_observation.setSe(globalObservation.getSensor());
         final DataFile datafile = globalObservation.getDatafile();
-        io_observation.setFilePath(datafile.getPath());
+        io_observation.setFp(datafile.getPath());
         final int sensorId = addSensor(datafile.getSensor(), matchupData, detachHandler);
-        io_observation.setSensorId(sensorId);
-        io_observation.setRecordNo(globalObservation.getRecordNo());
-        io_observation.setTime(globalObservation.getTime());
-        io_observation.setTimeRadius(0);
+        io_observation.setSi(sensorId);
+        io_observation.setRn(globalObservation.getRecordNo());
+        io_observation.setTi(globalObservation.getTime());
+        io_observation.setTr(0);
 
         return io_observation;
     }
 
     private static Observation getRelatedObservation(int observationId, MatchupData matchupData) {
-        final List<IO_Observation> relatedObservations = matchupData.getRelatedObservations();
+        final List<IO_Observation> relatedObservations = matchupData.getRlo();
         for (final IO_Observation observation : relatedObservations) {
             if (observation.getId() == observationId) {
                 final RelatedObservation relatedObservation = new RelatedObservation();
-                relatedObservation.setName(observation.getName());
-                relatedObservation.setSensor(observation.getSensor());
+                relatedObservation.setName(observation.getNa());
+                relatedObservation.setSensor(observation.getSe());
 
                 final DataFile dataFile = new DataFile();
-                dataFile.setPath(observation.getFilePath());
-                final Sensor sensor = getSensor(observation.getSensorId(), matchupData);
+                dataFile.setPath(observation.getFp());
+                final Sensor sensor = getSensor(observation.getSi(), matchupData);
                 dataFile.setSensor(sensor);
                 relatedObservation.setDatafile(dataFile);
 
-                relatedObservation.setTime(observation.getTime());
-                relatedObservation.setTimeRadius(observation.getTimeRadius());
+                relatedObservation.setTime(observation.getTi());
+                relatedObservation.setTimeRadius(observation.getTr());
 
                 // @todo 2 tb/tb temporarily removed due to memory issues 2014-12-17
 //                final PGgeometry location = createGeometry(observation.getLocation());
 //                relatedObservation.setLocation(location);
 
-                relatedObservation.setRecordNo(observation.getRecordNo());
+                relatedObservation.setRecordNo(observation.getRn());
                 return relatedObservation;
             }
         }
@@ -212,27 +212,27 @@ public class MatchupIO {
     }
 
     private static Observation getInsituObservation(int observationId, MatchupData matchupData) {
-        final List<IO_Observation> insituObservations = matchupData.getInsituObservations();
+        final List<IO_Observation> insituObservations = matchupData.getIso();
         for (final IO_Observation observation : insituObservations) {
             if (observation.getId() == observationId) {
                 final InsituObservation insituObservation = new InsituObservation();
-                insituObservation.setName(observation.getName());
-                insituObservation.setSensor(observation.getSensor());
+                insituObservation.setName(observation.getNa());
+                insituObservation.setSensor(observation.getSe());
 
                 final DataFile dataFile = new DataFile();
-                dataFile.setPath(observation.getFilePath());
-                final Sensor sensor = getSensor(observation.getSensorId(), matchupData);
+                dataFile.setPath(observation.getFp());
+                final Sensor sensor = getSensor(observation.getSi(), matchupData);
                 dataFile.setSensor(sensor);
                 insituObservation.setDatafile(dataFile);
 
-                insituObservation.setTime(observation.getTime());
-                insituObservation.setTimeRadius(observation.getTimeRadius());
+                insituObservation.setTime(observation.getTi());
+                insituObservation.setTimeRadius(observation.getTr());
 
                 // @todo 2 tb/tb temporarily removed due to memory issues 2014-12-17
 //                final PGgeometry location = createGeometry(observation.getLocation());
 //                relatedObservation.setLocation(location);
 
-                insituObservation.setRecordNo(observation.getRecordNo());
+                insituObservation.setRecordNo(observation.getRn());
                 return insituObservation;
             }
         }
@@ -241,22 +241,22 @@ public class MatchupIO {
     }
 
     private static Observation getGlobalObservation(int observationId, MatchupData matchupData) {
-        final List<IO_Observation> globalObservations = matchupData.getGlobalObservations();
+        final List<IO_Observation> globalObservations = matchupData.getGlo();
         for (final IO_Observation observation : globalObservations) {
             if (observation.getId() == observationId) {
                 final GlobalObservation globalObservation = new GlobalObservation();
-                globalObservation.setName(observation.getName());
-                globalObservation.setSensor(observation.getSensor());
+                globalObservation.setName(observation.getNa());
+                globalObservation.setSensor(observation.getSe());
 
                 final DataFile dataFile = new DataFile();
-                dataFile.setPath(observation.getFilePath());
+                dataFile.setPath(observation.getFp());
 
-                final Sensor sensor = getSensor(observation.getSensorId(), matchupData);
+                final Sensor sensor = getSensor(observation.getSi(), matchupData);
                 dataFile.setSensor(sensor);
 
                 globalObservation.setDatafile(dataFile);
-                globalObservation.setTime(observation.getTime());
-                globalObservation.setRecordNo(observation.getRecordNo());
+                globalObservation.setTime(observation.getTi());
+                globalObservation.setRecordNo(observation.getRn());
 
                 return globalObservation;
             }
@@ -266,30 +266,30 @@ public class MatchupIO {
     }
 
     private static ReferenceObservation getRefObs(int refObsId, MatchupData matchupData) {
-        final List<IO_RefObservation> ioRefObsList = matchupData.getReferenceObservations();
+        final List<IO_RefObservation> ioRefObsList = matchupData.getReo();
         for (final IO_RefObservation io_refobs : ioRefObsList) {
             if (io_refobs.getId() == refObsId) {
                 final ReferenceObservation result = new ReferenceObservation();
                 result.setId(refObsId);
-                result.setName(io_refobs.getName());
-                result.setSensor(io_refobs.getSensor());
+                result.setName(io_refobs.getNa());
+                result.setSensor(io_refobs.getSe());
 
                 final DataFile dataFile = new DataFile();
-                dataFile.setPath(io_refobs.getFilePath());
-                final Sensor sensor = getSensor(io_refobs.getSensorId(), matchupData);
+                dataFile.setPath(io_refobs.getFp());
+                final Sensor sensor = getSensor(io_refobs.getSi(), matchupData);
                 dataFile.setSensor(sensor);
                 result.setDatafile(dataFile);
 
-                result.setRecordNo(io_refobs.getRecordNo());
-                result.setTime(io_refobs.getTime());
-                result.setTimeRadius(io_refobs.getTimeRadius());
+                result.setRecordNo(io_refobs.getRn());
+                result.setTime(io_refobs.getTi());
+                result.setTimeRadius(io_refobs.getTr());
 
                 // @todo 2 tb/tb temporarily removed due to memory issues 2014-12-17
                 // result.setLocation(createGeometry(io_refobs.getLocation()));
-                result.setPoint(createGeometry(io_refobs.getPoint()));
+                result.setPoint(createGeometry(io_refobs.getPt()));
 
-                result.setDataset(io_refobs.getDataset());
-                result.setReferenceFlag(io_refobs.getReferenceFlag());
+                result.setDataset(io_refobs.getDs());
+                result.setReferenceFlag(io_refobs.getRf());
 
                 return result;
             }
@@ -299,7 +299,7 @@ public class MatchupIO {
     }
 
     private static Sensor getSensor(int sensorId, MatchupData matchupData) {
-        final List<Sensor> sensors = matchupData.getSensors();
+        final List<Sensor> sensors = matchupData.getSe();
         for (final Sensor io_sensor : sensors) {
             if (io_sensor.getId() == sensorId) {
                 return io_sensor;
@@ -313,22 +313,22 @@ public class MatchupIO {
         final ReferenceObservation refObs = matchup.getRefObs();
         final IO_RefObservation io_refObs = new IO_RefObservation();
         io_refObs.setId(idGenerator.next());
-        io_refObs.setName(refObs.getName());
-        io_refObs.setSensor(refObs.getSensor());
+        io_refObs.setNa(refObs.getName());
+        io_refObs.setSe(refObs.getSensor());
         final DataFile datafile = refObs.getDatafile();
-        io_refObs.setFilePath(datafile.getPath());
+        io_refObs.setFp(datafile.getPath());
 
         final int sensorId = addSensor(datafile.getSensor(), matchupData, detachHandler);
-        io_refObs.setSensorId(sensorId);
+        io_refObs.setSi(sensorId);
 
-        io_refObs.setRecordNo(refObs.getRecordNo());
-        io_refObs.setTime(refObs.getTime());
-        io_refObs.setTimeRadius(refObs.getTimeRadius());
+        io_refObs.setRn(refObs.getRecordNo());
+        io_refObs.setTi(refObs.getTime());
+        io_refObs.setTr(refObs.getTimeRadius());
         // @todo 2 tb/tb temporarily removed due to memory issues 2014-12-17
         //io_refObs.setLocation(refObs.getLocation().getValue());
-        io_refObs.setPoint(refObs.getPoint().getValue());
-        io_refObs.setDataset(refObs.getDataset());
-        io_refObs.setReferenceFlag(refObs.getReferenceFlag());
+        io_refObs.setPt(refObs.getPoint().getValue());
+        io_refObs.setDs(refObs.getDataset());
+        io_refObs.setRf(refObs.getReferenceFlag());
 
         detachHandler.detach(refObs);
         matchup.setRefObs(null);
@@ -338,7 +338,7 @@ public class MatchupIO {
 
     // package access for testing only tb 2014-11-24
     static int addSensor(Sensor sensor, MatchupData matchupData, DetachHandler detachHandler) {
-        final List<Sensor> sensorList = matchupData.getSensors();
+        final List<Sensor> sensorList = matchupData.getSe();
         for (final Sensor storedSensor : sensorList) {
             if (storedSensor.getName().equals(sensor.getName())) {
                 return storedSensor.getId();
@@ -354,16 +354,16 @@ public class MatchupIO {
     private static Matchup createMatchup(IO_Matchup io_matchup) {
         final Matchup matchup = new Matchup();
         matchup.setId(io_matchup.getId());
-        matchup.setPattern(io_matchup.getPattern());
-        matchup.setInvalid(io_matchup.isInvalid());
+        matchup.setPattern(io_matchup.getPa());
+        matchup.setInvalid(io_matchup.isIv());
         return matchup;
     }
 
     private static IO_Matchup createIO_Matchup(Matchup matchup, IdGenerator idGenerator) {
         final IO_Matchup io_matchup = new IO_Matchup();
         io_matchup.setId(idGenerator.nextUnique());
-        io_matchup.setPattern(matchup.getPattern());
-        io_matchup.setInvalid(matchup.isInvalid());
+        io_matchup.setPa(matchup.getPattern());
+        io_matchup.setIv(matchup.isInvalid());
         return io_matchup;
     }
 

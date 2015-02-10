@@ -6,13 +6,13 @@ import java.util.List;
 class IO_Matchup {
 
     private long id;
-    private int refObsId;
-    private List<IO_Coincidence> coincidences;
-    private long pattern;
-    private boolean invalid;
+    private int ri;
+    private List<IO_Coincidence> ci;
+    private long pa;
+    private boolean iv;
 
     IO_Matchup() {
-        coincidences = new ArrayList<>();
+        ci = new ArrayList<>();
     }
 
     public long getId() {
@@ -23,39 +23,39 @@ class IO_Matchup {
         this.id = id;
     }
 
-    public int getRefObsId() {
-        return refObsId;
+    public int getRi() {
+        return ri;
     }
 
-    public void setRefObsId(int refObsId) {
-        this.refObsId = refObsId;
+    public void setRi(int refObsId) {
+        this.ri = refObsId;
     }
 
-    public List<IO_Coincidence> getCoincidences() {
-        return coincidences;
+    public List<IO_Coincidence> getCi() {
+        return ci;
     }
 
-    public void setCoincidences(List<IO_Coincidence> coincidences) {
-        this.coincidences = coincidences;
+    public void setCi(List<IO_Coincidence> coincidences) {
+        this.ci = coincidences;
     }
 
-    public long getPattern() {
-        return pattern;
+    public long getPa() {
+        return pa;
     }
 
-    public void setPattern(long pattern) {
-        this.pattern = pattern;
+    public void setPa(long pattern) {
+        this.pa = pattern;
     }
 
-    public boolean isInvalid() {
-        return invalid;
+    public boolean isIv() {
+        return iv;
     }
 
-    public void setInvalid(boolean invalid) {
-        this.invalid = invalid;
+    public void setIv(boolean invalid) {
+        this.iv = invalid;
     }
 
     public void add(IO_Coincidence coincidence) {
-        coincidences.add(coincidence);
+        ci.add(coincidence);
     }
 }

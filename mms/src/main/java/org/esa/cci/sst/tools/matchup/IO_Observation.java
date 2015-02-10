@@ -5,14 +5,14 @@ import java.util.Date;
 
 class IO_Observation {
     private int id;
-    private String name;
-    private String sensor;
-    private String filePath;
-    private int sensorId;
-    private Date time;
-    private double timeRadius;
-    private String location;
-    private int recordNo;
+    private String na;
+    private String se;
+    private String fp;
+    private int si;
+    private Date ti;
+    private double tr;
+    private String lo;
+    private int rn;
 
     public int getId() {
         return id;
@@ -22,67 +22,67 @@ class IO_Observation {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public String getNa() {
+        return na;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setNa(String name) {
+        this.na = name;
     }
 
-    public String getSensor() {
-        return sensor;
+    public String getSe() {
+        return se;
     }
 
-    public void setSensor(String sensor) {
-        this.sensor = sensor;
+    public void setSe(String sensor) {
+        this.se = sensor;
     }
 
-    public String getFilePath() {
-        return filePath;
+    public String getFp() {
+        return fp;
     }
 
-    public void setFilePath(String filePath) {
-        this.filePath = filePath;
+    public void setFp(String filePath) {
+        this.fp = filePath;
     }
 
-    public int getSensorId() {
-        return sensorId;
+    public int getSi() {
+        return si;
     }
 
-    public void setSensorId(int sensorId) {
-        this.sensorId = sensorId;
+    public void setSi(int sensorId) {
+        this.si = sensorId;
     }
 
-    public Date getTime() {
-        return time;
+    public Date getTi() {
+        return ti;
     }
 
-    public void setTime(Date time) {
-        this.time = time;
+    public void setTi(Date time) {
+        this.ti = time;
     }
 
-    public double getTimeRadius() {
-        return timeRadius;
+    public double getTr() {
+        return tr;
     }
 
-    public void setTimeRadius(double timeRadius) {
-        this.timeRadius = timeRadius;
+    public void setTr(double timeRadius) {
+        this.tr = timeRadius;
     }
 
-    public String getLocation() {
-        return location;
+    public String getLo() {
+        return lo;
     }
 
-    public void setLocation(String location) {
-        this.location = location;
+    public void setLo(String location) {
+        this.lo = location;
     }
 
-    public int getRecordNo() {
-        return recordNo;
+    public int getRn() {
+        return rn;
     }
 
-    public void setRecordNo(int recordNo) {
-        this.recordNo = recordNo;
+    public void setRn(int recordNo) {
+        this.rn = recordNo;
     }
 }

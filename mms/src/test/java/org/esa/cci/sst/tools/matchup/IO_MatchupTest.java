@@ -20,19 +20,19 @@ public class IO_MatchupTest {
 
     @Test
     public void testConstruction() {
-        final List<IO_Coincidence> coincidences = matchup.getCoincidences();
+        final List<IO_Coincidence> coincidences = matchup.getCi();
         assertNotNull(coincidences);
         assertTrue(coincidences.isEmpty());
     }
 
     @Test
     public void testAddCoincidence() {
-        List<IO_Coincidence> coincidences = matchup.getCoincidences();
+        List<IO_Coincidence> coincidences = matchup.getCi();
         assertEquals(0, coincidences.size());
 
         matchup.add(new IO_Coincidence());
 
-        coincidences = matchup.getCoincidences();
+        coincidences = matchup.getCi();
         assertEquals(1, coincidences.size());
     }
 }

@@ -3,31 +3,31 @@ package org.esa.cci.sst.tools.matchup;
 
 class IO_RefObservation extends IO_Observation {
 
-    private String point;
-    private byte dataset;
-    private byte referenceFlag;
+    private String pt;
+    private byte ds;
+    private byte rf;
 
-    public String getPoint() {
-        return point;
+    public String getPt() {
+        return pt;
     }
 
-    public void setPoint(String point) {
-        this.point = point;
+    public void setPt(String point) {
+        this.pt = point;
     }
 
-    public byte getDataset() {
-        return dataset;
+    public byte getDs() {
+        return ds;
     }
 
-    public void setDataset(byte dataset) {
-        this.dataset = dataset;
+    public void setDs(byte dataset) {
+        this.ds = dataset;
     }
 
-    public byte getReferenceFlag() {
-        return referenceFlag;
+    public byte getRf() {
+        return rf;
     }
 
-    public void setReferenceFlag(byte referenceFlag) {
-        this.referenceFlag = referenceFlag;
+    public void setRf(byte referenceFlag) {
+        this.rf = referenceFlag;
     }
 }

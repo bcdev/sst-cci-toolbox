@@ -21,83 +21,83 @@ public class MatchupDataTest {
 
     @Test
     public void testConstruction() {
-        final List<IO_RefObservation> referenceObservations = matchupData.getReferenceObservations();
+        final List<IO_RefObservation> referenceObservations = matchupData.getReo();
         assertNotNull(referenceObservations);
         assertTrue(referenceObservations.isEmpty());
 
-        final List<IO_Observation> relatedObservations = matchupData.getRelatedObservations();
+        final List<IO_Observation> relatedObservations = matchupData.getRlo();
         assertNotNull(relatedObservations);
         assertTrue(relatedObservations.isEmpty());
 
-        final List<IO_Observation> insituObservations = matchupData.getInsituObservations();
+        final List<IO_Observation> insituObservations = matchupData.getIso();
         assertNotNull(insituObservations);
         assertTrue(insituObservations.isEmpty());
 
-        final List<Sensor> sensors = matchupData.getSensors();
+        final List<Sensor> sensors = matchupData.getSe();
         assertNotNull(sensors);
         assertTrue(sensors.isEmpty());
 
-        final List<IO_Matchup> matchups = matchupData.getMatchups();
+        final List<IO_Matchup> matchups = matchupData.getMu();
         assertNotNull(matchups);
         assertTrue(matchups.isEmpty());
     }
 
     @Test
     public void testAdd_referenceObservation() {
-        List<IO_RefObservation> referenceObservations = matchupData.getReferenceObservations();
+        List<IO_RefObservation> referenceObservations = matchupData.getReo();
         assertEquals(0, referenceObservations.size());
 
         final IO_RefObservation io_refObs = new IO_RefObservation();
         matchupData.add(io_refObs);
 
-        referenceObservations = matchupData.getReferenceObservations();
+        referenceObservations = matchupData.getReo();
         assertEquals(1, referenceObservations.size());
     }
 
     @Test
     public void testAdd_relatedObservation() {
-        List<IO_Observation> relatedObservations = matchupData.getRelatedObservations();
+        List<IO_Observation> relatedObservations = matchupData.getRlo();
         assertEquals(0, relatedObservations.size());
 
         final IO_Observation io_oObs = new IO_Observation();
         matchupData.addRelated(io_oObs);
 
-        relatedObservations = matchupData.getRelatedObservations();
+        relatedObservations = matchupData.getRlo();
         assertEquals(1, relatedObservations.size());
     }
 
     @Test
     public void testAdd_insituObservation() {
-        List<IO_Observation> insituObservations = matchupData.getInsituObservations();
+        List<IO_Observation> insituObservations = matchupData.getIso();
         assertEquals(0, insituObservations.size());
 
         final IO_Observation io_oObs = new IO_Observation();
         matchupData.addInsitu(io_oObs);
 
-        insituObservations = matchupData.getInsituObservations();
+        insituObservations = matchupData.getIso();
         assertEquals(1, insituObservations.size());
     }
 
     @SuppressWarnings("deprecation")
     @Test
     public void testAdd_sensor() {
-        List<Sensor> sensors = matchupData.getSensors();
+        List<Sensor> sensors = matchupData.getSe();
         assertEquals(0, sensors.size());
 
         matchupData.add(new Sensor());
 
-        sensors = matchupData.getSensors();
+        sensors = matchupData.getSe();
         assertEquals(1, sensors.size());
     }
 
     @Test
     public void testAdd_matchup() {
-        List<IO_Matchup> matchups = matchupData.getMatchups();
+        List<IO_Matchup> matchups = matchupData.getMu();
         assertEquals(0, matchups.size());
 
         matchupData.add(new IO_Matchup());
 
-        matchups = matchupData.getMatchups();
+        matchups = matchupData.getMu();
         assertEquals(1, matchups.size());
     }
 }

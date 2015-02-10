@@ -3,13 +3,9 @@ package org.esa.cci.sst.tools.matchup;
 import org.esa.beam.util.io.FileUtils;
 import org.esa.cci.sst.IoTestRunner;
 import org.esa.cci.sst.TestHelper;
-import org.esa.cci.sst.data.DataFile;
-import org.esa.cci.sst.data.Matchup;
-import org.esa.cci.sst.data.ReferenceObservation;
-import org.esa.cci.sst.data.Sensor;
+import org.esa.cci.sst.data.*;
 import org.esa.cci.sst.tool.Configuration;
 import org.esa.cci.sst.util.StopWatch;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.postgis.PGgeometry;
@@ -20,6 +16,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
@@ -27,6 +24,8 @@ import static org.junit.Assert.*;
 
 @RunWith(IoTestRunner.class)
 public class MatchupIOIntegrationTest {
+
+    private static final double to_MB = 1.0 / (1024.0 * 1024.0);
 
     @Test
     public void testReadFromFile() throws IOException {
@@ -64,13 +63,16 @@ public class MatchupIOIntegrationTest {
     }
 
     @SuppressWarnings("deprecation")
-    @Ignore
     @Test
     public void testWriteToFile_manyMatchups() throws IOException, SQLException {
-        final int numMatchups = 3160307;
+        final int numMatchups = 1000000;
+
+        final Runtime runtime = Runtime.getRuntime();
 
         final StopWatch stopWatch = new StopWatch();
         stopWatch.start();
+
+        traceMemory(runtime);
 
         final List<Matchup> matchups = new ArrayList<>();
         for (int i = 0; i < numMatchups; i++) {
@@ -80,17 +82,40 @@ public class MatchupIOIntegrationTest {
             final DataFile dataFile = new DataFile();
             final Sensor sensor = new Sensor();
             sensor.setName("sensor_test");
+            sensor.setPattern(i);
+            sensor.setObservationType("blu" + i);
             dataFile.setSensor(sensor);
+            dataFile.setPath("/data/repository/sensor/file_" + i);
             refObs.setDatafile(dataFile);
+
             refObs.setPoint(new PGgeometry("POINT(12 45)"));
+            refObs.setDataset((byte) i);
+            refObs.setReferenceFlag((byte) i);
+            refObs.setTime(new Date());
+            refObs.setTimeRadius(1000.0 + i);
+
+            final RelatedObservation relatedObservation = new RelatedObservation();
+            relatedObservation.setTimeRadius(500 + i);
+            relatedObservation.setTime(new Date());
+            final Coincidence coincidence = new Coincidence();
+            coincidence.setObservation(relatedObservation);
+            coincidence.setMatchup(matchup);
+            coincidence.setTimeDifference(10.6 + i);
+            final ArrayList<Coincidence> coincidences = new ArrayList<>();
+            matchup.setCoincidences(coincidences);
 
             matchup.setRefObs(refObs);
+            matchup.setId(200000 + i);
+            matchup.setInvalid(false);
+            matchup.setPattern(34 + i);
 
             matchups.add(matchup);
         }
 
+
         stopWatch.stop();
-        System.out.println("assemble data structures " + ((double)stopWatch.getElapsedMillis()) / 1000.0 + " sec");
+        System.out.println("assemble data structures " + ((double) stopWatch.getElapsedMillis()) / 1000.0 + " sec");
+        traceMemory(runtime);
 
         final File targetDirectory = new File("test_out");
         try {
@@ -117,12 +142,19 @@ public class MatchupIOIntegrationTest {
 
             stopWatch.stop();
 
-            System.out.println("write data to disk " + ((double)stopWatch.getElapsedMillis()) / 1000.0 + " sec");
+            System.out.println("write data to disk " + ((double) stopWatch.getElapsedMillis()) / 1000.0 + " sec");
+            traceMemory(runtime);
+            System.out.println("file size: " + file.length() * to_MB + " MB");
+
         } finally {
             if (!FileUtils.deleteTree(targetDirectory)) {
                 fail("unable to delete test directory");
             }
         }
 
+    }
+
+    private void traceMemory(Runtime runtime) {
+        System.out.println("memory: " + (runtime.totalMemory() - runtime.freeMemory()) * to_MB + " MB");
     }
 }

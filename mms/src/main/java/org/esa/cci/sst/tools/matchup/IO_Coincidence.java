@@ -3,10 +3,10 @@ package org.esa.cci.sst.tools.matchup;
 class IO_Coincidence {
 
     private int id;
-    private double timeDifference;
-    private int observationId;
-    private boolean insitu;
-    private boolean global;
+    private double td;
+    private int oi;
+    private boolean is;
+    private boolean gl;
 
     public int getId() {
         return id;
@@ -16,35 +16,35 @@ class IO_Coincidence {
         this.id = id;
     }
 
-    public double getTimeDifference() {
-        return timeDifference;
+    public double getTd() {
+        return td;
     }
 
-    public void setTimeDifference(double timeDifference) {
-        this.timeDifference = timeDifference;
+    public void setTd(double timeDifference) {
+        this.td = timeDifference;
     }
 
-    public int getObservationId() {
-        return observationId;
+    public int getOi() {
+        return oi;
     }
 
-    public void setObservationId(int observationId) {
-        this.observationId = observationId;
+    public void setOi(int observationId) {
+        this.oi = observationId;
     }
 
-    public boolean isInsitu() {
-        return insitu;
+    public boolean isIs() {
+        return is;
     }
 
-    public void setInsitu(boolean insitu) {
-        this.insitu = insitu;
+    public void setIs(boolean insitu) {
+        this.is = insitu;
     }
 
-    public void setGlobal(boolean global) {
-        this.global = global;
+    public void setGl(boolean global) {
+        this.gl = global;
     }
 
-    public boolean isGlobal() {
-        return global;
+    public boolean isGl() {
+        return gl;
     }
 }

@@ -29,7 +29,7 @@ public class MatchupIOTest_sensors {
 
         final int id = MatchupIO.addSensor(sensor, matchupData, detachHandler);
         assertEquals(1, id);
-        assertEquals(1, matchupData.getSensors().size());
+        assertEquals(1, matchupData.getSe().size());
 
         verify(detachHandler, times(1)).detach(sensor);
         verifyNoMoreInteractions(detachHandler);
@@ -41,13 +41,13 @@ public class MatchupIOTest_sensors {
 
         int id = MatchupIO.addSensor(sensor, matchupData, detachHandler);
         assertEquals(1, id);
-        assertEquals(1, matchupData.getSensors().size());
+        assertEquals(1, matchupData.getSe().size());
 
         final Sensor differentSensor = createSensor();
         differentSensor.setName("different");
         id = MatchupIO.addSensor(differentSensor, matchupData, detachHandler);
         assertEquals(1, id);
-        assertEquals(2, matchupData.getSensors().size());
+        assertEquals(2, matchupData.getSe().size());
 
         verify(detachHandler, times(1)).detach(sensor);
         verify(detachHandler, times(1)).detach(differentSensor);
@@ -62,13 +62,13 @@ public class MatchupIOTest_sensors {
 
         int id = MatchupIO.addSensor(sensor, matchupData, detachHandler);
         assertEquals(1, id);
-        assertEquals(1, matchupData.getSensors().size());
+        assertEquals(1, matchupData.getSe().size());
 
         final Sensor otherSensor = createSensor();
         otherSensor.setPattern(-99);
         id = MatchupIO.addSensor(otherSensor, matchupData, detachHandler);
         assertEquals(1, id);
-        assertEquals(2, matchupData.getSensors().size());
+        assertEquals(2, matchupData.getSe().size());
 
         verify(detachHandler, times(1)).detach(sensor);
         verify(detachHandler, times(1)).detach(otherSensor);
@@ -83,13 +83,13 @@ public class MatchupIOTest_sensors {
 
         int id = MatchupIO.addSensor(sensor, matchupData, detachHandler);
         assertEquals(1, id);
-        assertEquals(1, matchupData.getSensors().size());
+        assertEquals(1, matchupData.getSe().size());
 
         final Sensor differentSensor = createSensor();
         differentSensor.setObservationType("different");
         id = MatchupIO.addSensor(differentSensor, matchupData, detachHandler);
         assertEquals(1, id);
-        assertEquals(2, matchupData.getSensors().size());
+        assertEquals(2, matchupData.getSe().size());
 
         verify(detachHandler, times(1)).detach(sensor);
         verify(detachHandler, times(1)).detach(differentSensor);

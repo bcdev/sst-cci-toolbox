@@ -9,71 +9,71 @@ import java.util.List;
 @SuppressWarnings("UnusedDeclaration")
 class MatchupData {
 
-    private List<IO_RefObservation> referenceObservations;
-    private List<IO_Observation> relatedObservations;
-    private List<IO_Observation> insituObservations;
-    private List<IO_Observation> globalObservations;
-    private List<Sensor> sensors;
-    private List<IO_Matchup> matchups;
+    private List<IO_RefObservation> reo;
+    private List<IO_Observation> rlo;
+    private List<IO_Observation> iso;
+    private List<IO_Observation> glo;
+    private List<Sensor> se;
+    private List<IO_Matchup> mu;
 
     MatchupData() {
-        referenceObservations = new ArrayList<>();
-        relatedObservations = new ArrayList<>();
-        insituObservations = new ArrayList<>();
-        globalObservations = new ArrayList<>();
-        sensors = new ArrayList<>();
-        matchups = new ArrayList<>();
+        reo = new ArrayList<>();
+        rlo = new ArrayList<>();
+        iso = new ArrayList<>();
+        glo = new ArrayList<>();
+        se = new ArrayList<>();
+        mu = new ArrayList<>();
     }
 
-    public List<IO_RefObservation> getReferenceObservations() {
-        return referenceObservations;
+    public List<IO_RefObservation> getReo() {
+        return reo;
     }
 
-    public void setReferenceObservations(List<IO_RefObservation> referenceObservations) {
-        this.referenceObservations = referenceObservations;
+    public void setReo(List<IO_RefObservation> ro) {
+        this.reo = ro;
     }
 
     public void add(IO_RefObservation io_refObs) {
-        referenceObservations.add(io_refObs);
+        reo.add(io_refObs);
     }
 
-    public List<IO_Observation> getRelatedObservations() {
-        return relatedObservations;
+    public List<IO_Observation> getRlo() {
+        return rlo;
     }
 
     public void addRelated(IO_Observation io_oObs) {
-        relatedObservations.add(io_oObs);
+        rlo.add(io_oObs);
     }
 
-    public List<IO_Observation> getInsituObservations() {
-        return insituObservations;
+    public List<IO_Observation> getIso() {
+        return iso;
     }
 
     public void addInsitu(IO_Observation io_oObs) {
-        insituObservations.add(io_oObs);
+        iso.add(io_oObs);
     }
 
     public void addGlobal(IO_Observation io_oObs) {
-        globalObservations.add(io_oObs);
+        glo.add(io_oObs);
     }
 
-    public List<Sensor> getSensors() {
-        return sensors;
+    public List<Sensor> getSe() {
+        return se;
     }
 
     public void add(Sensor sensor) {
-        sensors.add(sensor);
+        se.add(sensor);
     }
 
-    public List<IO_Matchup> getMatchups() {
-        return matchups;
+    public List<IO_Matchup> getMu() {
+        return mu;
     }
 
     public void add(IO_Matchup matchup) {
-        matchups.add(matchup);
+        mu.add(matchup);
     }
 
-    public List<IO_Observation> getGlobalObservations() {
-        return globalObservations;
+    public List<IO_Observation> getGlo() {
+        return glo;
     }
 }
