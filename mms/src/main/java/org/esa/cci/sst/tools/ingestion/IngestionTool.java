@@ -203,7 +203,10 @@ public class IngestionTool extends BasicTool {
                 } else {
                     path = inputFile.getPath();
                 }
-                ingest(path, archiveRoot, readerSpec, sensor, observationType, pattern);
+                final DataFile datafile = getStorage().getDatafile(path);
+                if (datafile == null) {
+                    ingest(path, archiveRoot, readerSpec, sensor, observationType, pattern);
+                }
                 directoryCount++;
             }
         }
