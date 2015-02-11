@@ -129,18 +129,37 @@ public class RegionOverlapFilter {
     }
 
     private List<SamplingPoint> extractAllFromOrbit(int orbitNo, List<SamplingPoint> pointList) {
-        final LinkedList<SamplingPoint> orbitPoints = new LinkedList<>();
+        if (pointList instanceof LinkedList) {
+            final LinkedList<SamplingPoint> extracted = new LinkedList<>();
 
-        final Iterator<SamplingPoint> iterator = pointList.iterator();
-        while (iterator.hasNext()) {
-            final SamplingPoint point = iterator.next();
-            if (point.getReference() == orbitNo) {
-                orbitPoints.add(point);
-                iterator.remove();
+            final Iterator<SamplingPoint> iterator = pointList.iterator();
+            while (iterator.hasNext()) {
+                final SamplingPoint point = iterator.next();
+                if (point.getReference() == orbitNo) {
+                    extracted.add(point);
+                    iterator.remove();
+                }
             }
-        }
 
-        return orbitPoints;
+            return extracted;
+        } else if (pointList instanceof ArrayList) {
+            final List<SamplingPoint> extracted = new LinkedList<>();
+            final List<SamplingPoint> remaining = new ArrayList<>(pointList.size());
+
+            for (final SamplingPoint point : pointList) {
+                if (point.getReference() == orbitNo) {
+                    extracted.add(point);
+                } else {
+                    remaining.add(point);
+                }
+            }
+            pointList.clear();
+            pointList.addAll(remaining);
+
+            return extracted;
+        } else {
+            throw new IllegalArgumentException("Point list is neither a LinkedList nor an ArrayList.");
+        }
     }
 
     private ArrayList<IntersectionWrapper> wrapList(List<SamplingPoint> clusterList) {
