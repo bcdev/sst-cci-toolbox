@@ -26,8 +26,6 @@ import static org.junit.Assert.*;
 @RunWith(IoTestRunner.class)
 public class MatchupIOIntegrationTest {
 
-    private static final double to_MB = 1.0 / (1024.0 * 1024.0);
-
     @Test
     public void testReadFromFile() throws IOException {
         final String resourcePath = TestHelper.getResourcePath(MatchupIOIntegrationTest.class, "test_matchups.json");
@@ -69,12 +67,12 @@ public class MatchupIOIntegrationTest {
     public void testWriteToFile_manyMatchups() throws IOException, SQLException {
         final int numMatchups = 1000000;
 
-        final Runtime runtime = Runtime.getRuntime();
+
 
         final StopWatch stopWatch = new StopWatch();
         stopWatch.start();
 
-        traceMemory(runtime);
+        TestHelper.traceMemory();
 
         final List<Matchup> matchups = new ArrayList<>();
         for (int i = 0; i < numMatchups; i++) {
@@ -117,7 +115,7 @@ public class MatchupIOIntegrationTest {
 
         stopWatch.stop();
         System.out.println("assemble data structures " + ((double) stopWatch.getElapsedMillis()) / 1000.0 + " sec");
-        traceMemory(runtime);
+        TestHelper.traceMemory();
 
         final File targetDirectory = new File("test_out");
         try {
@@ -145,8 +143,8 @@ public class MatchupIOIntegrationTest {
             stopWatch.stop();
 
             System.out.println("write data to disk " + ((double) stopWatch.getElapsedMillis()) / 1000.0 + " sec");
-            traceMemory(runtime);
-            System.out.println("file size: " + file.length() * to_MB + " MB");
+            TestHelper.traceMemory();
+            System.out.println("file size: " + file.length() * TestHelper.to_MB + " MB");
 
         } finally {
             if (!FileUtils.deleteTree(targetDirectory)) {
@@ -156,7 +154,4 @@ public class MatchupIOIntegrationTest {
 
     }
 
-    private void traceMemory(Runtime runtime) {
-        System.out.println("memory: " + (runtime.totalMemory() - runtime.freeMemory()) * to_MB + " MB");
-    }
 }

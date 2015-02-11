@@ -184,6 +184,7 @@
                 <configuration>
                     <descriptors>
                         <descriptor>src/main/assembly/bin.xml</descriptor>
+                        <!--<descriptor>src/main/assembly/sampling_point_test.xml</descriptor>-->
                     </descriptors>
                 </configuration>
             </plugin>
