@@ -8,9 +8,11 @@ import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.SamplingPointIO;
 import org.esa.cci.sst.util.TimeUtil;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -70,7 +72,7 @@ public class SamplePointExporter {
             logWarning("Overwriting target file: " + targetFile.getAbsolutePath());
         }
 
-        try (FileOutputStream outputStream = new FileOutputStream(targetFile)) {
+        try (OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(targetFile), 16384)) {
             SamplingPointIO.write(points, outputStream);
         }
     }
