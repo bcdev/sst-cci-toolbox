@@ -122,7 +122,7 @@ public class TimeRangeTest {
         final TimeRange centerMonth = timeRange.getCenterMonth();
         assertNotNull(centerMonth);
         assertEquals(createDate(2010, 4, 1, 0, 0, 0).getTime(), centerMonth.getStartDate().getTime());
-        assertEquals(createDate(2010, 4, 31, 23, 59, 59).getTime(), centerMonth.getStopDate().getTime());
+        assertEquals(createDate(2010, 5, 1, 0, 0, 0).getTime(), centerMonth.getStopDate().getTime());
     }
 
     @Test
@@ -134,7 +134,7 @@ public class TimeRangeTest {
         final TimeRange centerMonth = timeRange.getMonthBefore();
         assertNotNull(centerMonth);
         assertEquals(createDate(2010, 3, 1, 0, 0, 0).getTime(), centerMonth.getStartDate().getTime());
-        assertEquals(createDate(2010, 3, 30, 23, 59, 59).getTime(), centerMonth.getStopDate().getTime());
+        assertEquals(createDate(2010, 4, 1, 0, 0, 0).getTime(), centerMonth.getStopDate().getTime());
     }
 
     @Test
@@ -146,7 +146,7 @@ public class TimeRangeTest {
         final TimeRange centerMonth = timeRange.getMonthAfter();
         assertNotNull(centerMonth);
         assertEquals(createDate(2010, 5, 1, 0, 0, 0).getTime(), centerMonth.getStartDate().getTime());
-        assertEquals(createDate(2010, 5, 30, 23, 59, 59).getTime(), centerMonth.getStopDate().getTime());
+        assertEquals(createDate(2010, 6, 1, 0, 0, 0).getTime(), centerMonth.getStopDate().getTime());
     }
 
     private Date createDate(int year, int month, int day, int hour, int minute, int second) {

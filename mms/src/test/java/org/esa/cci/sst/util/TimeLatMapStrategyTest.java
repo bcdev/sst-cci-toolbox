@@ -48,7 +48,7 @@ public class TimeLatMapStrategyTest {
         assertEquals(0, mapPoint.getX());
         assertEquals(324, mapPoint.getY());
 
-        mapPoint = strategy.map(createPoint("2009-11-30T23:59:59Z", -45));
+        mapPoint = strategy.map(createPoint("2009-12-01T00:00:00Z", -45));
         assertNotNull(mapPoint);
         assertEquals(800, mapPoint.getX());
         assertEquals(300, mapPoint.getY());
@@ -68,7 +68,7 @@ public class TimeLatMapStrategyTest {
         final TimeRange timeRange = TimeLatMapStrategy.extractTimeRangeInFullMonths(points);
         assertNotNull(timeRange);
         assertExpectedTime("2011-06-01T00:00:00Z", timeRange.getStartDate());
-        assertExpectedTime("2011-06-30T23:59:59Z", timeRange.getStopDate());
+        assertExpectedTime("2011-07-01T00:00:00Z", timeRange.getStopDate());
     }
 
     @Test
@@ -81,7 +81,7 @@ public class TimeLatMapStrategyTest {
         final TimeRange timeRange = TimeLatMapStrategy.extractTimeRangeInFullMonths(points);
         assertNotNull(timeRange);
         assertExpectedTime("2010-05-01T00:00:00Z", timeRange.getStartDate());
-        assertExpectedTime("2010-05-31T23:59:59Z", timeRange.getStopDate());
+        assertExpectedTime("2010-06-01T00:00:00Z", timeRange.getStopDate());
     }
 
     private static void assertExpectedTime(String expected, Date date) throws ParseException {
