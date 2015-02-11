@@ -1,18 +1,11 @@
 package org.esa.cci.sst.tools.matchup;
 
-import org.esa.beam.util.io.FileUtils;
-import org.esa.cci.sst.IoTestRunner;
-import org.esa.cci.sst.TestHelper;
 import org.esa.cci.sst.data.*;
 import org.esa.cci.sst.tool.Configuration;
 import org.esa.cci.sst.util.StopWatch;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.postgis.PGgeometry;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -21,56 +14,19 @@ import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
-import static org.junit.Assert.*;
-
-@RunWith(IoTestRunner.class)
-public class MatchupIOIntegrationTest {
+public class MatchupOutMain {
 
     private static final double to_MB = 1.0 / (1024.0 * 1024.0);
 
-    @Test
-    public void testReadFromFile() throws IOException {
-        final String resourcePath = TestHelper.getResourcePath(MatchupIOIntegrationTest.class, "test_matchups.json");
-        final FileInputStream inputStream = new FileInputStream(new File(resourcePath));
+    public static void main(String[] args) throws SQLException, IOException {
+        if (args.length != 2) {
+            System.err.println("Need to supply number of matchups and target directory");
+            System.exit(1);
+        }
 
-        final List<Matchup> matchups = MatchupIO.read(inputStream);
-        assertNotNull(matchups);
-        assertEquals(1, matchups.size());
-
-        final Matchup matchup = matchups.get(0);
-        assertEquals(2005060908000000001L, matchup.getId());
-        assertEquals(28, matchup.getPattern());
-        assertFalse(matchup.isInvalid());
-
-        final ReferenceObservation refObs = matchup.getRefObs();
-        assertNotNull(refObs);
-        assertEquals(12, refObs.getId());
-        assertEquals("ref_obs_1", refObs.getName());
-        assertEquals("orb_atsr.3", refObs.getSensor());
-        assertEquals("/archive/sensor/atsr.3/the_file", refObs.getDatafile().getPath());
-        assertEquals(1417010817173L, refObs.getTime().getTime());
-        assertEquals(12000.0, refObs.getTimeRadius(), 1e-8);
-        // todo 2 tb/tb temporarily deactivated due to memory issues 2015-02-09
-        assertNull(refObs.getLocation());
-        assertEquals(101, refObs.getRecordNo());
-        assertEquals("POINT(10.5 10.5)", refObs.getPoint().toString());
-        assertEquals(11, refObs.getDataset());
-        assertEquals(8, refObs.getReferenceFlag());
-    }
-
-    @Test
-    public void testWriteToFile() {
-        // @todo 2 tb/tb implement 2014-11-26
-    }
-
-    @Ignore
-    @SuppressWarnings("deprecation")
-    @Test
-    public void testWriteToFile_manyMatchups() throws IOException, SQLException {
-        final int numMatchups = 1000000;
+        final int numMatchups = Integer.parseInt(args[0]);
 
         final Runtime runtime = Runtime.getRuntime();
-
         final StopWatch stopWatch = new StopWatch();
         stopWatch.start();
 
@@ -114,22 +70,18 @@ public class MatchupIOIntegrationTest {
             matchups.add(matchup);
         }
 
-
         stopWatch.stop();
         System.out.println("assemble data structures " + ((double) stopWatch.getElapsedMillis()) / 1000.0 + " sec");
         traceMemory(runtime);
 
-        final File targetDirectory = new File("test_out");
+        final File targetDirectory = new File(args[1]);
+
+        final File file = new File(targetDirectory, "test_data_" + new Date().getTime() + ".json");
+        if (!file.createNewFile()) {
+            System.err.println("Unable to create file: " + file.getAbsolutePath());
+            System.exit(1);
+        }
         try {
-            if (!targetDirectory.mkdirs()) {
-                fail("unable to create target directory");
-            }
-
-            final File file = new File(targetDirectory, "test_data.json");
-            if (!file.createNewFile()) {
-                fail("unable to create target file");
-            }
-
             final Properties properties = new Properties();
             properties.setProperty(Configuration.KEY_MMS_SAMPLING_START_TIME, "2010-06-01T00:00:00Z");
             properties.setProperty(Configuration.KEY_MMS_SAMPLING_STOP_TIME, "2010-07-01T00:00:00Z");
@@ -149,14 +101,11 @@ public class MatchupIOIntegrationTest {
             System.out.println("file size: " + file.length() * to_MB + " MB");
 
         } finally {
-            if (!FileUtils.deleteTree(targetDirectory)) {
-                fail("unable to delete test directory");
-            }
+            file.delete();
         }
-
     }
 
-    private void traceMemory(Runtime runtime) {
+    private static void traceMemory(Runtime runtime) {
         System.out.println("memory: " + (runtime.totalMemory() - runtime.freeMemory()) * to_MB + " MB");
     }
 }
