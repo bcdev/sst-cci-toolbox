@@ -15,7 +15,6 @@ import org.esa.cci.sst.reader.ReaderFactory;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.TimeUtil;
 
-import javax.persistence.EntityTransaction;
 import javax.persistence.PersistenceException;
 import java.io.File;
 import java.io.IOException;
@@ -130,7 +129,7 @@ public class InsituSamplePointGenerator {
     private void extractPointsInTimeRange(List<SamplingPoint> samplingPoints, TimeRange timeRange) throws IOException {
         final List<SamplingPoint> pointsInFile = reader.readSamplingPoints();
         for (final SamplingPoint samplingPoint : pointsInFile) {
-            if (timeRange.includes(new Date(samplingPoint.getTime()))) {
+            if (timeRange.includes(samplingPoint.getTime())) {
                 samplingPoints.add(samplingPoint);
             }
         }

@@ -19,20 +19,20 @@ public class TimeRangeTest {
         final TimeRange timeRange = new TimeRange(startDate, endDate);
 
         Date date = createDate(2005, 9, 16, 13, 44, 9);
-        assertTrue(timeRange.includes(date));
+        assertTrue(timeRange.includes(date.getTime()));
 
         date = createDate(2006, 9, 16, 13, 44, 9);
-        assertFalse(timeRange.includes(date));
+        assertFalse(timeRange.includes(date.getTime()));
 
         date = createDate(2005, 9, 14, 0, 0, 1);
-        assertTrue(timeRange.includes(date));
+        assertTrue(timeRange.includes(date.getTime()));
         date = createDate(2005, 9, 13, 23, 59, 59);
-        assertFalse(timeRange.includes(date));
+        assertFalse(timeRange.includes(date.getTime()));
 
         date = createDate(2005, 9, 20, 23, 59, 58);
-        assertTrue(timeRange.includes(date));
+        assertTrue(timeRange.includes(date.getTime()));
         date = createDate(2005, 9, 21, 0, 0, 0);
-        assertFalse(timeRange.includes(date));
+        assertFalse(timeRange.includes(date.getTime()));
     }
 
     @Test

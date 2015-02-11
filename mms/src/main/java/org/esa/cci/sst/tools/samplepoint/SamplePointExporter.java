@@ -7,12 +7,14 @@ import org.esa.cci.sst.util.ConfigUtil;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.SamplingPointIO;
 import org.esa.cci.sst.util.TimeUtil;
+import org.esa.cci.sst.util.Watermask;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -84,7 +86,7 @@ public class SamplePointExporter {
         final Iterator<SamplingPoint> iterator = samples.iterator();
         while (iterator.hasNext()) {
             final SamplingPoint point = iterator.next();
-            if (extractRange.includes(new Date(point.getReferenceTime()))) {
+            if (extractRange.includes(point.getReferenceTime())) {
                 extracted.add(point);
                 iterator.remove();
             }

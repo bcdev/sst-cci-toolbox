@@ -15,7 +15,7 @@ public class TestHelper {
     public static void assertPointsInTimeRange(Date startDate, Date stopDate, List<SamplingPoint> inSituPoints) {
         final TimeRange timeRange = new TimeRange(startDate, stopDate);
         for (SamplingPoint next : inSituPoints) {
-            assertTrue(timeRange.includes(new Date(next.getTime())));
+            assertTrue(timeRange.includes(next.getTime()));
         }
     }
 
