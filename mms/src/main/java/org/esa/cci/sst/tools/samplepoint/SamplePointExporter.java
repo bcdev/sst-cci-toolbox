@@ -81,17 +81,36 @@ public class SamplePointExporter {
 
     // package access for testing only tb 2014-02-14
     static List<SamplingPoint> extractSamples(List<SamplingPoint> samples, TimeRange extractRange) {
-        final LinkedList<SamplingPoint> extracted = new LinkedList<>();
+        if (samples instanceof LinkedList) {
+            final LinkedList<SamplingPoint> extracted = new LinkedList<>();
 
-        final Iterator<SamplingPoint> iterator = samples.iterator();
-        while (iterator.hasNext()) {
-            final SamplingPoint point = iterator.next();
-            if (extractRange.includes(point.getReferenceTime())) {
-                extracted.add(point);
-                iterator.remove();
+            final Iterator<SamplingPoint> iterator = samples.iterator();
+            while (iterator.hasNext()) {
+                final SamplingPoint point = iterator.next();
+                if (extractRange.includes(point.getReferenceTime())) {
+                    extracted.add(point);
+                    iterator.remove();
+                }
             }
+            return extracted;
+        } else if (samples instanceof ArrayList) {
+            final List<SamplingPoint> extracted = new ArrayList<>(samples.size());
+            final List<SamplingPoint> remaining = new ArrayList<>(samples.size());
+
+            for (final SamplingPoint point : samples) {
+                if (extractRange.includes(point.getReferenceTime())) {
+                    extracted.add(point);
+                } else {
+                    remaining.add(point);
+                }
+            }
+            samples.clear();
+            samples.addAll(remaining);
+
+            return extracted;
+        } else {
+            throw new IllegalArgumentException("Sample list is neither a LinkedList nor an ArrayList.");
         }
-        return extracted;
     }
 
     private void logWarning(String msg) {
