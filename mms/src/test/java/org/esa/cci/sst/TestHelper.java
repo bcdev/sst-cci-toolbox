@@ -12,6 +12,8 @@ import static org.junit.Assert.*;
 
 public class TestHelper {
 
+    public static final double to_MB = 1.0 / (1024.0 * 1024.0);
+
     public static void assertPointsInTimeRange(Date startDate, Date stopDate, List<SamplingPoint> inSituPoints) {
         final TimeRange timeRange = new TimeRange(startDate, stopDate);
         for (SamplingPoint next : inSituPoints) {
@@ -29,5 +31,10 @@ public class TestHelper {
         final URL resource = clazz.getResource(name);
         assertNotNull(resource);
         return resource.getFile();
+    }
+
+    public static void traceMemory() {
+        final Runtime runtime = Runtime.getRuntime();
+        System.out.println("memory: " + (runtime.totalMemory() - runtime.freeMemory()) * to_MB + " MB");
     }
 }
