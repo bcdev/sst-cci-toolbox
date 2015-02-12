@@ -41,6 +41,7 @@ public class SamplePointExporter {
         final TimeRange monthAfter = samplingInterval.getMonthAfter();
 
         final List<SamplingPoint> pointsMonthBefore = extractSamples(samplingPoints, monthBefore);
+        final List<SamplingPoint> pointsCenterMonth = extractSamples(samplingPoints, centerMonth);
         final List<SamplingPoint> pointsMonthAfter = extractSamples(samplingPoints, monthAfter);
 
         if (!samplingPoints.isEmpty()) {
@@ -51,7 +52,7 @@ public class SamplePointExporter {
         final String sensorName = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR);
 
         writeSamplingPoints(pointsMonthBefore, monthBefore, archiveRootPath, sensorName, 'a');
-        writeSamplingPoints(samplingPoints, centerMonth, archiveRootPath, sensorName, 'b');
+        writeSamplingPoints(pointsCenterMonth, centerMonth, archiveRootPath, sensorName, 'b');
         writeSamplingPoints(pointsMonthAfter, monthAfter, archiveRootPath, sensorName, 'c');
     }
 
