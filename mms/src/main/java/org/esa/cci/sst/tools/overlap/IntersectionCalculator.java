@@ -3,6 +3,7 @@ package org.esa.cci.sst.tools.overlap;
 import org.esa.cci.sst.util.SamplingPoint;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 class IntersectionCalculator {
@@ -20,7 +21,7 @@ class IntersectionCalculator {
     }
 
     List<SamplingPoint> getAllIntersectingPoints(SamplingPoint p0, List<SamplingPoint> samplingPoints) {
-        final List<SamplingPoint> intersectingPoints = new ArrayList<>(samplingPoints.size());
+        final List<SamplingPoint> intersectingPoints = new LinkedList<>();
 
         for (SamplingPoint p1 : samplingPoints) {
             if (are_intersecting(p0, p1)) {
