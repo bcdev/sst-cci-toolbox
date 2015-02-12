@@ -20,7 +20,6 @@ import java.util.Set;
 
 class MmdWriter implements Closeable {
 
-    private static final String AVHRR_M02_TIME = "avhrr.m02.time";
     private final NetcdfFileWriter fileWriter;
 
     static boolean canOpen(String filePath) throws IOException {
@@ -29,11 +28,13 @@ class MmdWriter implements Closeable {
 
     MmdWriter(NetcdfFileWriter fileWriter, int matchupCount, Map<String, Integer> dimensions, List<Item> variables) throws IOException {
         this.fileWriter = fileWriter;
+        this.fileWriter.setLargeFile(true);
+
         addDimensions(matchupCount, dimensions);
         addGlobalAttributes(matchupCount);
         addVariables(variables);
 
-        fileWriter.create();
+        this.fileWriter.create();
     }
 
     @Override
@@ -46,20 +47,12 @@ class MmdWriter implements Closeable {
         return netcdfFile.getVariables();
     }
 
-    Variable getVariable(String variableName) {
-        final String validPathName = NetcdfFile.makeValidPathName(variableName);
-        return fileWriter.findVariable(validPathName);
-    }
-
     void write(Variable variable, int[] origin, Array array) throws IOException, InvalidRangeException {
         fileWriter.write(variable, origin, array);
     }
 
     private void addVariables(List<Item> variableList) {
         for (Item variable : variableList) {
-            if (variable.getName().equalsIgnoreCase(AVHRR_M02_TIME)) {
-                SstLogging.getLogger().info("Added avhrr.m02.time to netCDf file.");
-            }
             IoUtil.addVariable(fileWriter, variable);
         }
     }
