@@ -22,10 +22,6 @@ class MmdWriter implements Closeable {
 
     private final NetcdfFileWriter fileWriter;
 
-    static boolean canOpen(String filePath) throws IOException {
-        return NetcdfFile.canOpen(filePath);
-    }
-
     MmdWriter(NetcdfFileWriter fileWriter, int matchupCount, Map<String, Integer> dimensions, List<Item> variables) throws IOException {
         this.fileWriter = fileWriter;
         this.fileWriter.setLargeFile(true);
