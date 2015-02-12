@@ -102,12 +102,14 @@ public abstract class BasicTool {
                         public void terminate(ToolException e) {
                             final Logger localLogger = SstLogging.getLogger();
                             localLogger.log(Level.SEVERE, e.getMessage(), e);
-                            if (localLogger.isLoggable(Level.FINEST)) {
-                                for (final StackTraceElement element : e.getCause().getStackTrace()) {
-                                    localLogger.log(Level.FINEST, element.toString());
+                            if (e.getCause() != null) {
+                                if (localLogger.isLoggable(Level.FINEST)) {
+                                    for (final StackTraceElement element : e.getCause().getStackTrace()) {
+                                        localLogger.log(Level.FINEST, element.toString());
+                                    }
                                 }
+                                e.getCause().printStackTrace(System.err);
                             }
-                            e.getCause().printStackTrace(System.err);
                             System.exit(e.getExitCode());
                         }
 
