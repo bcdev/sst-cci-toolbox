@@ -30,22 +30,18 @@ public class MmdToolTest {
         configuration.put(Configuration.KEY_MMS_MMD_TARGET_DIR, "here/we");
         configuration.put(Configuration.KEY_MMS_MMD_TARGET_FILENAME, "are_now.nc");
 
-        final NetcdfFileWriter netCDFWriter = MmdTool.createNetCDFWriter(configuration);
+        final NetcdfFileWriter netCDFWriter = MmdTool.createNetcdfFileWriter(configuration);
         assertNotNull(netCDFWriter);
         assertEquals(NetcdfFileWriter.Version.netcdf4_classic, netCDFWriter.getVersion());
-        final NetcdfFile netcdfFile = netCDFWriter.getNetcdfFile();
-        assertEquals(toPath("here", "we", "are_now.nc"), netcdfFile.getLocation());
     }
 
     @Test
     public void testCreateNetCDFWriter_withConfigurationDefaultValues() throws IOException {
         final Configuration configuration = new Configuration();
         configuration.put("mms.target.filename", "mmd.nc");
-        final NetcdfFileWriter netCDFWriter = MmdTool.createNetCDFWriter(configuration);
+        final NetcdfFileWriter netCDFWriter = MmdTool.createNetcdfFileWriter(configuration);
         assertNotNull(netCDFWriter);
         assertEquals(NetcdfFileWriter.Version.netcdf4_classic, netCDFWriter.getVersion());
-        final NetcdfFile netcdfFile = netCDFWriter.getNetcdfFile();
-        assertEquals(toPath(".", "mmd.nc"), netcdfFile.getLocation());
     }
 
     @Test

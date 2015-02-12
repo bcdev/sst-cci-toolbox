@@ -101,8 +101,6 @@ public class MmdTool extends BasicTool {
     }
 
     private void run(String[] args) {
-        MmdWriter mmdWriter = null;
-
         try {
             final boolean performWork = setCommandLineArgs(args);
             if (!performWork) {
@@ -114,24 +112,19 @@ public class MmdTool extends BasicTool {
             final Configuration config = getConfig();
             final Map<Integer, Integer> matchupIdToRecordIndexMap = createMatchupIdToRecordIndexMap();
             matchupCount = matchupIdToRecordIndexMap.size();
-            final NetcdfFileWriter writer = createNetCDFWriter(config);
-            mmdWriter = prepareMmdWriter(writer);
             if (matchupCount == 0) {
-                return;
+                throw new ToolException("No matchups to write.", ToolException.ZERO_MATCHUPS_ERROR);
             }
-            writeMmdFile(mmdWriter, matchupIdToRecordIndexMap);
+            final NetcdfFileWriter writer = createNetcdfFileWriter(config);
+            try (MmdWriter mmdWriter = createMmdWriter(writer)) {
+                writeMmdFile(mmdWriter, matchupIdToRecordIndexMap);
+            }
         } catch (ToolException e) {
             getErrorHandler().terminate(e);
         } catch (Throwable t) {
             getErrorHandler().terminate(new ToolException(t.getMessage(), t, ToolException.UNKNOWN_ERROR));
         } finally {
             readerCache.clear();
-            if (mmdWriter != null) {
-                try {
-                    mmdWriter.close();
-                } catch (IOException ignored) {
-                }
-            }
             getPersistenceManager().close();
         }
     }
@@ -385,12 +378,10 @@ public class MmdTool extends BasicTool {
     }
 
 
-    private MmdWriter prepareMmdWriter(NetcdfFileWriter fileWriter) throws IOException {
+    private MmdWriter createMmdWriter(NetcdfFileWriter fileWriter) throws IOException {
         final List<Item> variableList = extractVariableList(targetColumnNames, columnRegistry);
-        final MmdWriter mmdWriter = new MmdWriter(fileWriter);
-        mmdWriter.initialize(matchupCount, dimensionConfiguration, variableList);
 
-        return mmdWriter;
+        return new MmdWriter(fileWriter, matchupCount, dimensionConfiguration, variableList);
     }
 
 
@@ -443,7 +434,7 @@ public class MmdTool extends BasicTool {
     }
 
     // package access for testing only tb 2014-03-10
-    static NetcdfFileWriter createNetCDFWriter(Configuration config) throws IOException {
+    static NetcdfFileWriter createNetcdfFileWriter(Configuration config) throws IOException {
         final String mmdDirPath = config.getStringValue(Configuration.KEY_MMS_MMD_TARGET_DIR, ".");
         final String mmdFileName = config.getStringValue(Configuration.KEY_MMS_MMD_TARGET_FILENAME);
         final File mmdFile = new File(mmdDirPath, mmdFileName);

@@ -27,28 +27,18 @@ class MmdWriter implements Closeable {
         return NetcdfFile.canOpen(filePath);
     }
 
-    static MmdWriter open(String filePath) throws IOException {
-        final NetcdfFileWriter netcdfFileWriter = NetcdfFileWriter.openExisting(filePath);
+    MmdWriter(NetcdfFileWriter fileWriter, int matchupCount, Map<String, Integer> dimensions, List<Item> variables) throws IOException {
+        this.fileWriter = fileWriter;
+        addDimensions(matchupCount, dimensions);
+        addGlobalAttributes(matchupCount);
+        addVariables(variables);
 
-        return new MmdWriter(netcdfFileWriter);
+        fileWriter.create();
     }
 
     @Override
     public void close() throws IOException {
-        fileWriter.flush();
         fileWriter.close();
-    }
-
-    MmdWriter(NetcdfFileWriter fileWriter) {
-        this.fileWriter = fileWriter;
-    }
-
-    void initialize(int matchupCount, Map<String, Integer> dimensionConfig, List<Item> variableList) throws IOException {
-        addDimensions(matchupCount, dimensionConfig);
-        addGlobalAttributes(matchupCount);
-        addVariables(variableList);
-
-        fileWriter.create();
     }
 
     List<Variable> getVariables() {
