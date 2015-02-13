@@ -32,7 +32,6 @@ public class MmdToolTest {
 
         final NetcdfFileWriter netCDFWriter = MmdTool.createNetcdfFileWriter(configuration);
         assertNotNull(netCDFWriter);
-        assertEquals(NetcdfFileWriter.Version.netcdf3, netCDFWriter.getVersion());
     }
 
     @Test
@@ -41,7 +40,6 @@ public class MmdToolTest {
         configuration.put("mms.target.filename", "mmd.nc");
         final NetcdfFileWriter netCDFWriter = MmdTool.createNetcdfFileWriter(configuration);
         assertNotNull(netCDFWriter);
-        assertEquals(NetcdfFileWriter.Version.netcdf3, netCDFWriter.getVersion());
     }
 
     @Test
