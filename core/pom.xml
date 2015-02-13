@@ -47,7 +47,7 @@
 
         <dependency>
             <groupId>edu.ucar</groupId>
-            <artifactId>netcdf4</artifactId>
+            <artifactId>netcdf</artifactId>
         </dependency>
 
         <!-- Test dependencies -->

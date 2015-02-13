@@ -443,7 +443,7 @@ public class MmdTool extends BasicTool {
                 throw new IOException("unable to delete file: " + mmdFile.getAbsolutePath());
             }
         }
-        return NetcdfFileWriter.createNew(Version.netcdf3, mmdFile.getPath());
+        return NetcdfFileWriter.createNew(Version.netcdf4_classic, mmdFile.getPath());
     }
 
     // package access for testing only tb 2014-03-11
