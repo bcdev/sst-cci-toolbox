@@ -8,7 +8,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -90,8 +89,8 @@ public class RegionOverlapFilterTest {
         assertNotNull(filteredList);
         assertEquals(2, filteredList.size());
 
-        assertSamplePointAt(19, 83, 0, filteredList);
-        assertSamplePointAt(102, 13, 1, filteredList);
+        assertSamplePointAt(102, 13, 0, filteredList);
+        assertSamplePointAt(19, 83, 1, filteredList);
     }
 
     @Test
@@ -105,95 +104,8 @@ public class RegionOverlapFilterTest {
         assertNotNull(filteredList);
         assertEquals(2, filteredList.size());
 
-        assertSamplePointAt(106, 107, 0, filteredList);
-        assertSamplePointAt(100, 100, 1, filteredList);
-    }
-
-    @Test
-    public void testExtractCluster_empty() {
-        final List<SamplingPoint> sampleList = new ArrayList<>();
-        final SamplingPoint p0 = new SamplingPoint(3, 4);
-
-        final List<SamplingPoint> clusterList = filter.extractClusteredPoints(sampleList, p0);
-        assertNotNull(clusterList);
-        assertEquals(0, clusterList.size());
-        assertEquals(0, sampleList.size());
-    }
-
-    @Test
-    public void testExtractCluster_noClusterInList() {
-        final List<SamplingPoint> sampleList = new ArrayList<>();
-        addSamplePoint(23, 78, sampleList);
-        addSamplePoint(54, 209, sampleList);
-        addSamplePoint(502, 32076, sampleList);
-        final SamplingPoint p0 = new SamplingPoint(100, 100);
-
-        final List<SamplingPoint> clusterList = filter.extractClusteredPoints(sampleList, p0);
-        assertNotNull(clusterList);
-        assertEquals(0, clusterList.size());
-        assertEquals(3, sampleList.size());
-    }
-
-    @Test
-    public void testExtractCluster_onePointCluster() {
-        final List<SamplingPoint> sampleList = new ArrayList<>();
-        addSamplePoint(23, 78, sampleList);
-        addSamplePoint(102, 98, sampleList);
-        addSamplePoint(502, 32076, sampleList);
-        final SamplingPoint p0 = new SamplingPoint(100, 100);
-
-        final List<SamplingPoint> clusterList = filter.extractClusteredPoints(sampleList, p0);
-        assertNotNull(clusterList);
-        assertEquals(1, clusterList.size());
-        assertEquals(2, sampleList.size());
-    }
-
-    @Test
-    public void testExtractCluster_twoPointsCluster() {
-        final List<SamplingPoint> sampleList = new ArrayList<>();
-        addSamplePoint(23, 78, sampleList);
-        addSamplePoint(102, 98, sampleList);
-        addSamplePoint(98, 98, sampleList);
-        final SamplingPoint p0 = new SamplingPoint(100, 100);
-
-        final List<SamplingPoint> clusterList = filter.extractClusteredPoints(sampleList, p0);
-        assertNotNull(clusterList);
-        assertEquals(2, clusterList.size());
-        assertEquals(1, sampleList.size());
-    }
-
-    @Test
-    public void testExtractCluster_twoPointsCluster_oneNotIntersectingSearchPoint() {
-        final List<SamplingPoint> sampleList = new ArrayList<>();
-        addSamplePoint(104, 97, sampleList);
-        addSamplePoint(3457, 7753, sampleList);
-        addSamplePoint(107, 98, sampleList);
-        final SamplingPoint p0 = new SamplingPoint(100, 100);
-
-        final List<SamplingPoint> clusterList = filter.extractClusteredPoints(sampleList, p0);
-        assertNotNull(clusterList);
-        assertEquals(2, clusterList.size());
-        assertEquals(1, sampleList.size());
-    }
-
-    @Test
-    public void testExtractCluster_chainOfPoints() {
-        final List<SamplingPoint> sampleList = new ArrayList<>();
-        addSamplePoint(106, 102, sampleList);
-        addSamplePoint(3457, 7753, sampleList);
-        addSamplePoint(112, 103, sampleList);
-        addSamplePoint(2456, 7753, sampleList);
-        addSamplePoint(115, 109, sampleList);
-        addSamplePoint(3001, 10087, sampleList);
-        addSamplePoint(111, 114, sampleList);
-        addSamplePoint(116, 114, sampleList);
-        addSamplePoint(3101, 11087, sampleList);
-        final SamplingPoint p0 = new SamplingPoint(100, 100);
-
-        final List<SamplingPoint> clusterList = filter.extractClusteredPoints(sampleList, p0);
-        assertNotNull(clusterList);
-        assertEquals(5, clusterList.size());
-        assertEquals(4, sampleList.size());
+        assertSamplePointAt(100, 100, 0, filteredList);
+        assertSamplePointAt(106, 107, 1, filteredList);
     }
 
     @Test
@@ -325,11 +237,11 @@ public class RegionOverlapFilterTest {
 
     @Test
     @Ignore
-    public void testTheBigList() {
+    public void testFilter_fullOrbit() {
         final int width = 512;
-        final int height = 40000;
+        final int height = 512;
         final int maxOrbit = 1;
-        final int count = 500000;
+        final int count = 3000000;
         final List<SamplingPoint> samplingPoints = new ArrayList<>(count);
         final SobolSequenceGenerator sequenceGenerator = new SobolSequenceGenerator(3);
 
@@ -345,9 +257,7 @@ public class RegionOverlapFilterTest {
         final Timer timer = new Timer();
         System.out.println("Initial count  = " + samplingPoints.size());
         timer.start();
-
         final List<SamplingPoint> filtererList = filter.apply(samplingPoints);
-
         timer.stop();
         System.out.println("Filtered count = " + filtererList.size());
         System.out.println("time [s]       = " + timer.deltaTInSecs());
