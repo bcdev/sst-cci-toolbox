@@ -28,7 +28,7 @@ public class RegionOverlapFilterTest {
         final List<SamplingPoint> sampleList = new ArrayList<>();
         assertEquals(0, sampleList.size());
 
-        final List<SamplingPoint> filteredList = filter.filterOverlaps(sampleList);
+        final List<SamplingPoint> filteredList = filter.makeSparse(sampleList);
         assertNotNull(filteredList);
         assertEquals(0, filteredList.size());
     }
@@ -38,7 +38,7 @@ public class RegionOverlapFilterTest {
         final List<SamplingPoint> sampleList = new ArrayList<>();
         addSamplePoint(19, 83, sampleList);
 
-        final List<SamplingPoint> filteredList = filter.filterOverlaps(sampleList);
+        final List<SamplingPoint> filteredList = filter.makeSparse(sampleList);
         assertNotNull(filteredList);
         assertEquals(1, filteredList.size());
         assertSamplePointAt(19, 83, 0, filteredList);
@@ -50,7 +50,7 @@ public class RegionOverlapFilterTest {
         addSamplePoint(19, 83, sampleList);
         addSamplePoint(36, 12, sampleList);
 
-        final List<SamplingPoint> filteredList = filter.filterOverlaps(sampleList);
+        final List<SamplingPoint> filteredList = filter.makeSparse(sampleList);
         assertNotNull(filteredList);
         assertEquals(2, filteredList.size());
     }
@@ -61,7 +61,7 @@ public class RegionOverlapFilterTest {
         addSamplePoint(19, 83, sampleList);
         addSamplePoint(21, 86, sampleList);
 
-        final List<SamplingPoint> filteredList = filter.filterOverlaps(sampleList);
+        final List<SamplingPoint> filteredList = filter.makeSparse(sampleList);
         assertNotNull(filteredList);
         assertEquals(1, filteredList.size());
         assertSamplePointAt(19, 83, 0, filteredList);
@@ -74,7 +74,7 @@ public class RegionOverlapFilterTest {
         addSamplePoint(36, 12, sampleList);
         addSamplePoint(102, 13, sampleList);
 
-        final List<SamplingPoint> filteredList = filter.filterOverlaps(sampleList);
+        final List<SamplingPoint> filteredList = filter.makeSparse(sampleList);
         assertNotNull(filteredList);
         assertEquals(3, filteredList.size());
     }
@@ -86,7 +86,7 @@ public class RegionOverlapFilterTest {
         addSamplePoint(21, 82, sampleList);
         addSamplePoint(102, 13, sampleList);
 
-        final List<SamplingPoint> filteredList = filter.filterOverlaps(sampleList);
+        final List<SamplingPoint> filteredList = filter.makeSparse(sampleList);
         assertNotNull(filteredList);
         assertEquals(2, filteredList.size());
 
@@ -101,7 +101,7 @@ public class RegionOverlapFilterTest {
         addSamplePoint(105, 101, sampleList);
         addSamplePoint(106, 107, sampleList);
 
-        final List<SamplingPoint> filteredList = filter.filterOverlaps(sampleList);
+        final List<SamplingPoint> filteredList = filter.makeSparse(sampleList);
         assertNotNull(filteredList);
         assertEquals(2, filteredList.size());
 
@@ -114,7 +114,7 @@ public class RegionOverlapFilterTest {
         final List<SamplingPoint> sampleList = new ArrayList<>();
         final SamplingPoint p0 = new SamplingPoint(3, 4);
 
-        final List<SamplingPoint> clusterList = filter.extractClusterContaining(p0, sampleList);
+        final List<SamplingPoint> clusterList = filter.extractClusteredPoints(p0, sampleList);
         assertNotNull(clusterList);
         assertEquals(0, clusterList.size());
         assertEquals(0, sampleList.size());
@@ -128,7 +128,7 @@ public class RegionOverlapFilterTest {
         addSamplePoint(502, 32076, sampleList);
         final SamplingPoint p0 = new SamplingPoint(100, 100);
 
-        final List<SamplingPoint> clusterList = filter.extractClusterContaining(p0, sampleList);
+        final List<SamplingPoint> clusterList = filter.extractClusteredPoints(p0, sampleList);
         assertNotNull(clusterList);
         assertEquals(0, clusterList.size());
         assertEquals(3, sampleList.size());
@@ -142,7 +142,7 @@ public class RegionOverlapFilterTest {
         addSamplePoint(502, 32076, sampleList);
         final SamplingPoint p0 = new SamplingPoint(100, 100);
 
-        final List<SamplingPoint> clusterList = filter.extractClusterContaining(p0, sampleList);
+        final List<SamplingPoint> clusterList = filter.extractClusteredPoints(p0, sampleList);
         assertNotNull(clusterList);
         assertEquals(1, clusterList.size());
         assertEquals(2, sampleList.size());
@@ -156,7 +156,7 @@ public class RegionOverlapFilterTest {
         addSamplePoint(98, 98, sampleList);
         final SamplingPoint p0 = new SamplingPoint(100, 100);
 
-        final List<SamplingPoint> clusterList = filter.extractClusterContaining(p0, sampleList);
+        final List<SamplingPoint> clusterList = filter.extractClusteredPoints(p0, sampleList);
         assertNotNull(clusterList);
         assertEquals(2, clusterList.size());
         assertEquals(1, sampleList.size());
@@ -170,7 +170,7 @@ public class RegionOverlapFilterTest {
         addSamplePoint(107, 98, sampleList);
         final SamplingPoint p0 = new SamplingPoint(100, 100);
 
-        final List<SamplingPoint> clusterList = filter.extractClusterContaining(p0, sampleList);
+        final List<SamplingPoint> clusterList = filter.extractClusteredPoints(p0, sampleList);
         assertNotNull(clusterList);
         assertEquals(2, clusterList.size());
         assertEquals(1, sampleList.size());
@@ -190,7 +190,7 @@ public class RegionOverlapFilterTest {
         addSamplePoint(3101, 11087, sampleList);
         final SamplingPoint p0 = new SamplingPoint(100, 100);
 
-        final List<SamplingPoint> clusterList = filter.extractClusterContaining(p0, sampleList);
+        final List<SamplingPoint> clusterList = filter.extractClusteredPoints(p0, sampleList);
         assertNotNull(clusterList);
         assertEquals(5, clusterList.size());
         assertEquals(4, sampleList.size());
@@ -200,7 +200,7 @@ public class RegionOverlapFilterTest {
     public void testRemoveIntersecting_empty() {
         final List<SamplingPoint> clusterList = new ArrayList<>();
 
-        final List<SamplingPoint> thinnedOutList = filter.removeIntersecting(clusterList);
+        final List<SamplingPoint> thinnedOutList = filter.makeSparse(clusterList);
         assertNotNull(thinnedOutList);
         assertEquals(0, thinnedOutList.size());
     }
@@ -210,7 +210,7 @@ public class RegionOverlapFilterTest {
         final List<SamplingPoint> clusterList = new ArrayList<>();
         addSamplePoint(111, 114, clusterList);
 
-        final List<SamplingPoint> thinnedOutList = filter.removeIntersecting(clusterList);
+        final List<SamplingPoint> thinnedOutList = filter.makeSparse(clusterList);
         assertNotNull(thinnedOutList);
         assertEquals(1, thinnedOutList.size());
     }
@@ -221,7 +221,7 @@ public class RegionOverlapFilterTest {
         addSamplePoint(111, 114, clusterList);
         addSamplePoint(113, 110, clusterList);
 
-        final List<SamplingPoint> thinnedOutList = filter.removeIntersecting(clusterList);
+        final List<SamplingPoint> thinnedOutList = filter.makeSparse(clusterList);
         assertNotNull(thinnedOutList);
         assertEquals(1, thinnedOutList.size());
     }
@@ -273,15 +273,15 @@ public class RegionOverlapFilterTest {
         addSamplePoint(67, pointList);
         addSamplePoint(67, pointList);
 
-        final List<List<SamplingPoint>> orbitLists = filter.splitByOrbit(pointList);
-        assertNotNull(orbitLists);
-        assertEquals(2, orbitLists.size());
+        final List<List<SamplingPoint>> byOrbit = filter.splitByOrbit(pointList);
+        assertNotNull(byOrbit);
+        assertEquals(2, byOrbit.size());
 
-        List<SamplingPoint> orbitPoints = orbitLists.get(0);
+        List<SamplingPoint> orbitPoints = byOrbit.get(0);
         assertNotNull(orbitPoints);
         assertEquals(3, orbitPoints.size());
 
-        orbitPoints = orbitLists.get(1);
+        orbitPoints = byOrbit.get(1);
         assertNotNull(orbitPoints);
         assertEquals(2, orbitPoints.size());
     }
@@ -329,8 +329,8 @@ public class RegionOverlapFilterTest {
         final int width = 512;
         final int height = 40000;
         final int maxOrbit = 1;
-        final int count = 150000;
-        final LinkedList<SamplingPoint> samplingPoints = new LinkedList<>();
+        final int count = 100000;
+        final List<SamplingPoint> samplingPoints = new LinkedList<>();
         final SobolSequenceGenerator sequenceGenerator = new SobolSequenceGenerator(3);
 
         for (int i = 0; i < count; i++) {
@@ -346,7 +346,7 @@ public class RegionOverlapFilterTest {
         System.out.println("Initial count  = " + samplingPoints.size());
         timer.start();
 
-        final List<SamplingPoint> filtererList = filter.filterOverlaps(samplingPoints);
+        final List<SamplingPoint> filtererList = filter.makeSparse(samplingPoints);
 
         timer.stop();
         System.out.println("Filtered count = " + filtererList.size());
