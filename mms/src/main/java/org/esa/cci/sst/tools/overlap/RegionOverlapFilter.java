@@ -25,13 +25,14 @@ public class RegionOverlapFilter {
         overlapCalculator = new OverlapCalculator(width, height);
     }
 
-    public List<SamplingPoint> makeSparse(List<SamplingPoint> points) {
+    public List<SamplingPoint> apply(List<SamplingPoint> points) {
         final List<SamplingPoint> sparsePoints = new LinkedList<>();
         if (points.size() <= 1) {
             sparsePoints.addAll(points);
             return sparsePoints;
         }
 
+        System.out.println("Splitting ...");
         final List<List<SamplingPoint>> byOrbit = splitByOrbit(points);
         for (final List<SamplingPoint> pointsByOrbit : byOrbit) {
             final List<SamplingPoint> nonOverlappingPoints = new LinkedList<>();
@@ -43,41 +44,45 @@ public class RegionOverlapFilter {
         return sparsePoints;
     }
 
-    private void removeSingleOrbitOverlaps(List<SamplingPoint> pointsByOrbit, List<SamplingPoint> nonOverlappingPoints) {
-        final List<SamplingPoint> intermediateList = new LinkedList<>(pointsByOrbit);
+    private void removeSingleOrbitOverlaps(List<SamplingPoint> pointsByOrbit,
+                                           List<SamplingPoint> nonOverlappingPoints) {
+        // making a copy of the list put in increases performance
+        final List<SamplingPoint> copy = new LinkedList<>(pointsByOrbit);
 
-        while (intermediateList.size() > 1) {
-            final SamplingPoint p0 = intermediateList.get(0);
-            intermediateList.remove(0);
+        while (copy.size() > 1) {
+            final SamplingPoint point = copy.get(0);
+            copy.remove(0);
 
             // 1) search for intersections with all points in the first intersection list - to collect all points in a
             // clustered area - should end up in one area connecting all intersection areas belonging to the search point p0
-            final List<SamplingPoint> clusteredPoints = extractClusteredPoints(p0, intermediateList);
+            final List<SamplingPoint> clusteredPoints = extractClusteredPoints(copy, point);
+            System.out.println("#clustered points = " + clusteredPoints.size());
             if (clusteredPoints.size() > 0) {
-                clusteredPoints.add(p0);    // reference point also belongs to cluster
+                // reference point also belongs to cluster
+                clusteredPoints.add(point);
 
-                // 2) thin out intersecting points until no intersections left.
+                // 2) remove overlapping points until overlaps do not occur
                 // 2a) calculate sum of intersecting regions for all points,
                 // 2b) remove point with highest number of intersections and repeat this until no intersections left
-                final List<SamplingPoint> sparsePoints = removeOverlappingPoints(clusteredPoints);
+                final List<SamplingPoint> sparsePoints = makeSparse(clusteredPoints);
+                System.out.println("#sparse clustered points = " + clusteredPoints.size());
 
-                // 3) add the remaining points (including p0) to the filtered list
+                // 3) add the remaining points (including the reference point) to the list of non-overlapping points
                 nonOverlappingPoints.addAll(sparsePoints);
 
-                // 4) remove all points used in this operation from the intermediateList
-                intermediateList.removeAll(clusteredPoints);
+                // 4) remove all points used in this operation from the list of points
+                copy.removeAll(clusteredPoints);
             } else {
-                nonOverlappingPoints.add(p0);
+                nonOverlappingPoints.add(point);
             }
         }
-
-        if (!intermediateList.isEmpty()) {
-            nonOverlappingPoints.add(intermediateList.get(0));
+        if (!copy.isEmpty()) {
+            nonOverlappingPoints.add(copy.get(0));
         }
     }
 
     // package access for testing only tb 2014-01-15
-    List<SamplingPoint> removeOverlappingPoints(List<SamplingPoint> clusteredPoints) {
+    List<SamplingPoint> makeSparse(List<SamplingPoint> clusteredPoints) {
         if (clusteredPoints.size() == 1) {
             return clusteredPoints;
         } else {
@@ -90,7 +95,7 @@ public class RegionOverlapFilter {
                 sumIntersections = 0;
                 for (IntersectionWrapper wrapper : intersectionWrappers) {
                     final int intersections = overlapCalculator.getOverlappingPoints(wrapper.getPoint(),
-                                                                      clusteredPoints).size() - 1;   // remove self intersection
+                                                                                     clusteredPoints).size() - 1;   // remove self intersection
                     wrapper.setNumIntersections(intersections);
                     sumIntersections += intersections;
                 }
@@ -116,6 +121,7 @@ public class RegionOverlapFilter {
         }
         final ArrayList<List<SamplingPoint>> byOrbit = new ArrayList<>(map.size());
         for (final List<SamplingPoint> orbitPoints : map.values()) {
+            System.out.println("Sorting ...");
             byOrbit.add(sortByY(orbitPoints));
         }
 
@@ -129,7 +135,7 @@ public class RegionOverlapFilter {
     }
 
     // package access for testing only tb 2014-01-15
-    List<SamplingPoint> extractClusteredPoints(SamplingPoint p, List<SamplingPoint> points) {
+    List<SamplingPoint> extractClusteredPoints(List<SamplingPoint> points, SamplingPoint p) {
         final List<SamplingPoint> clusteredPoints = new LinkedList<>();
 
         final List<SamplingPoint> primaryOverlappingPoints = overlapCalculator.getOverlappingPoints(p, points);
