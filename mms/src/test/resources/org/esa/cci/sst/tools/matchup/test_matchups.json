@@ -1,35 +1,35 @@
-{"referenceObservations": [
+{"reo": [
     {
         "id": 12,
-        "name": "ref_obs_1",
-        "sensor": "orb_atsr.3",
-        "filePath": "/archive/sensor/atsr.3/the_file",
-        "sensorId": 0,
-        "time": 1417010817173,
-        "timeRadius": 12000.0,
-        "location": "POLYGON((10 10, 10 11, 11 11,11 10, 10 10))",
-        "recordNo": 101,
-        "point": "POINT(10.5 10.5)",
-        "dataset": 11,
-        "referenceFlag": 8
+        "na": "ref_obs_1",
+        "se": "orb_atsr.3",
+        "fp": "/archive/sensor/atsr.3/the_file",
+        "si": 0,
+        "ti": 1417010817173,
+        "tr": 12000.0,
+        "lo": "POLYGON((10 10, 10 11, 11 11,11 10, 10 10))",
+        "rn": 101,
+        "pt": "POINT(10.5 10.5)",
+        "ds": 11,
+        "rf": 8
     }
 ],
-    "relatedObservations": [
+    "rlo": [
         {
             "id": 23,
-            "name": "related_obs_1",
-            "sensor": "orb_atsr.2",
-            "filePath": "/archive/sensor/atsr.2/the_other_file",
-            "sensorId": 1,
-            "time": 1417010917173,
-            "timeRadius": 8000.0,
-            "location": "POLYGON((11 11, 11 12, 12 12,12 11, 11 11))",
-            "recordNo": 27
+            "na": "related_obs_1",
+            "se": "orb_atsr.2",
+            "fp": "/archive/sensor/atsr.2/the_other_file",
+            "si": 1,
+            "ti": 1417010917173,
+            "tr": 8000.0,
+            "lo": "POLYGON((11 11, 11 12, 12 12,12 11, 11 11))",
+            "rn": 27
         }
     ],
-    "insituObservations": [],
+    "iso": [],
 
-    "sensors": [
+    "se": [
         {
             "id": 0,
             "name": "orb_atsr.3",
@@ -44,20 +44,20 @@
         }
     ],
 
-    "matchups": [
+    "mu": [
         {
             "id": 2005060908000000001,
-            "refObsId": 12,
-            "coincidences": [
+            "ri": 12,
+            "ci": [
                 {
                     "id": 3,
-                    "timeDifference": 4000.0,
-                    "observationId": 23,
-                    "insitu": false
+                    "td": 4000.0,
+                    "oi": 23,
+                    "is": false
                 }
             ],
-            "pattern": 28,
-            "invalid": false
+            "pa": 28,
+            "iv": false
         }
     ]
 }
