@@ -63,7 +63,7 @@ public class ProductTypeTest {
     }
 
     @Test
-    public void estGetGriDef() {
+    public void testGetGriDef() {
         final GridDef gridDef = ProductType.CCI_L3U.getGridDef();
 
         assertEquals(3600, gridDef.getHeight());

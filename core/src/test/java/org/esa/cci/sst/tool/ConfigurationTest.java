@@ -287,9 +287,8 @@ public class ConfigurationTest {
     public void testPutAndGetBigIntegerValue_unpareseableValue() {
         configuration.put("a_key", "huge_number");
 
-        final BigInteger defaultValue = new BigInteger("107");
         try {
-            configuration.getBigIntegerValue("a_key", defaultValue);
+            configuration.getBigIntegerValue("a_key", new BigInteger("107"));
             fail("ToolException expected");
         } catch (ToolException expected) {
             assertEquals("Cannot parse big integer value: a_key: huge_number", expected.getMessage());

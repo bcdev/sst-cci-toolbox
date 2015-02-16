@@ -254,12 +254,10 @@ public final class GridDef {
 
     @Override
     public int hashCode() {
-        int result;
-        long temp;
-        result = width;
+        int result = width;
         result = 31 * result + height;
         result = 31 * result + time;
-        temp = northing != 0.0 ? Double.doubleToLongBits(northing) : 0L;
+        long temp = northing != 0.0 ? Double.doubleToLongBits(northing) : 0L;
         result = 31 * result + (int) (temp ^ (temp >>> 32));
         temp = easting != 0.0 ? Double.doubleToLongBits(easting) : 0L;
         result = 31 * result + (int) (temp ^ (temp >>> 32));

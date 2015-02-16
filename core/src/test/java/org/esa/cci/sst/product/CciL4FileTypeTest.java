@@ -101,10 +101,10 @@ public class CciL4FileTypeTest {
         final SpatialAggregationCell cell5_4 = cell5Factory.createCell(3, 0);
         cell5_4.accumulate(context, new Rectangle(300, 0, 100, 100));
 
-        int expectedN5_1 = 10000;
-        int expectedN5_2 = 10000;
-        int expectedN5_3 = 10000;
-        int expectedN5_4 = 10000;
+        final int expectedN5_1 = 10000;
+        final int expectedN5_2 = 10000;
+        final int expectedN5_3 = 10000;
+        final int expectedN5_4 = 10000;
         assertEquals(expectedN5_1, cell5_1.getSampleCount());
         assertEquals(expectedN5_2, cell5_2.getSampleCount());
         assertEquals(expectedN5_3, cell5_3.getSampleCount());

@@ -28,9 +28,10 @@ import static org.junit.Assert.*;
  * @author Norman Fomferra
  */
 public class GridDefTest {
-    GridDef gridDef90;
-    GridDef gridDef5;
-    GridDef gridDef05;
+
+    private GridDef gridDef90;
+    private GridDef gridDef5;
+    private GridDef gridDef05;
 
     @Before
     public void setUp() throws Exception {
@@ -265,5 +266,17 @@ public class GridDefTest {
         assertEquals(555.9746332227928, gridDef5.getDiagonal(0, 0), 1e-8);
         assertEquals(555.9746332227928, gridDef5.getDiagonal(10, 0), 1e-8);
         assertEquals(742.9651956574585, gridDef5.getDiagonal(0, 12), 1e-8);
+    }
+
+    @Test
+    public void testHashCode() {
+        int hashCode = gridDef05.hashCode();
+        assertEquals(-480847887, hashCode);
+
+        hashCode = gridDef5.hashCode();
+        assertEquals(1939683365, hashCode);
+
+        hashCode = gridDef90.hashCode();
+        assertEquals(885044675, hashCode);
     }
 }
