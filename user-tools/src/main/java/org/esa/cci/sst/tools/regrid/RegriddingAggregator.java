@@ -140,7 +140,6 @@ class RegriddingAggregator extends AbstractAggregator {
     }
 
     private CellGrid<? extends AggregationCell> aggregateMonths(Calendar calendar, int monthCount) throws IOException {
-        final CellGrid<? extends AggregationCell> resultGrid;
         final FileType fileType = getFileType();
         final CellFactory<CellAggregationCell<AggregationCell>> cellFactory = fileType.getMultiMonthAggregationCellFactory();
 
@@ -157,8 +156,7 @@ class RegriddingAggregator extends AbstractAggregator {
                 aggregateMonth(singleMonthGrid, multiMonthGrid);
             }
         }
-        resultGrid = multiMonthGrid;
-        return resultGrid;
+        return multiMonthGrid;
     }
 
     CellGrid<SpatialAggregationCell> aggregateTimeStep(Date date1, Date date2) throws IOException {

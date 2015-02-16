@@ -54,9 +54,7 @@ final class RegriddingLUT2 implements LUT {
      * @param file             The path to the LUT file (spatial resolution of 2.0 degrees).
      * @param targetResolution The spatial resolution of the target grid.
      * @param fillValue        The fill value used in the LUT file.
-     *
      * @return the lookup table.
-     *
      * @throws java.io.IOException when an error occurred.
      */
     static RegriddingLUT2 create(File file, SpatialResolution targetResolution, double fillValue) throws IOException {
@@ -67,9 +65,8 @@ final class RegriddingLUT2 implements LUT {
 
         logger.info(String.format("Creating LUT for file '%s'", file.getPath()));
 
-        Grid lutGrid;
         // 1. read in 2.00 degrees resolution
-        lutGrid = readGrid(file, fillValue);
+        Grid lutGrid = readGrid(file, fillValue);
         // 2. interpolate to 0.05 degrees
         lutGrid = Interpolation.create(lutGrid, GRID_DEF_005);
         // 3. downscale to target resolution
@@ -101,13 +98,14 @@ final class RegriddingLUT2 implements LUT {
         final int h = GRID_DEF_020.getHeight();
         final double[] data = new double[w * h];
 
-        final int columnWidth = 9;
+
         final BufferedReader reader = new BufferedReader(new FileReader(file));
         try {
             for (int y = 0; y < h; y++) {
                 final String line = reader.readLine();
 
                 for (int x = 0; x < w; x++) {
+                    final int columnWidth = 9;
                     final String column = line.substring(x * columnWidth, x * columnWidth + columnWidth);
                     double value = Double.parseDouble(column);
                     if (value == fillValue) {

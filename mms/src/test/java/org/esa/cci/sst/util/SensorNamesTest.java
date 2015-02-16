@@ -98,9 +98,7 @@ public class SensorNamesTest {
 
     @Test
     public void testGetOrbitName() throws Exception {
-        String sensorName;
-
-        sensorName = "orb_atsr.1";
+        String sensorName = "orb_atsr.1";
         assertSame(sensorName, SensorNames.getOrbitName(sensorName));
 
         sensorName = "orb_atsr.2";

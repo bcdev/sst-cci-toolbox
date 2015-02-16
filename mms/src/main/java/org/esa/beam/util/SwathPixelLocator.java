@@ -35,9 +35,9 @@ class SwathPixelLocator extends AbstractPixelLocator {
             maskSource = null;
         }
         final PixelLocationSearcher searcher = new PixelLocationSearcher(lonSource,
-                                                                         latSource,
-                                                                         maskSource,
-                                                                         wobbly);
+                latSource,
+                maskSource,
+                wobbly);
 
         return new SwathPixelLocator(lonSource, latSource, estimator, searcher);
     }
@@ -69,9 +69,8 @@ class SwathPixelLocator extends AbstractPixelLocator {
         }
 
         public boolean estimatePixelLocation(double lon, double lat, Point2D p) {
-            GeoApproximation approximation;
             if (approximations != null) {
-                approximation = findMostSuitable(approximations, lat, lon);
+                final GeoApproximation approximation = findMostSuitable(approximations, lat, lon);
                 if (approximation != null) {
                     p.setLocation(lon, lat);
                     g2p(approximation, p);

@@ -51,19 +51,15 @@ public class RegriddingLUT1Test {
         final File file = getResourceAsFile("20070321-UKMO-L4HRfnd-GLOB-v01-fv02-OSTIARANanom_stdev.nc");
 
         final LUT lut = RegriddingLUT1.create(file, GridDef.createGlobal(0.05));
-
         assertNotNull(lut);
 
         final Grid grid = lut.getGrid();
-
         assertNotNull(grid);
 
         assertEquals(3600, grid.getGridDef().getHeight());
         assertEquals(7200, grid.getGridDef().getWidth());
 
-        int flippedY;
-
-        flippedY = 3600 - 1 - OCEAN_Y;
+        int flippedY = 3600 - 1 - OCEAN_Y;
         assertEquals(39, grid.getSampleInt(OCEAN_X, flippedY));
         assertEquals(39.0 * 0.01, grid.getSampleDouble(OCEAN_X, flippedY), 1.0e-7);
 

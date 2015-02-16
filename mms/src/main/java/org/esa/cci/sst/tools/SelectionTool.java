@@ -75,11 +75,10 @@ public class SelectionTool extends BasicTool {
 
             final ArrayList<Integer> sourceMatchupIndexes = new ArrayList<>(sourceMatchupCount);
             for (int i = 0; i < sourceMatchupCount; i++) {
-                boolean accepted;
 
                 final double[] vza1 = readRecordEnhanced(i, zenithAngles[0]);
                 final double[] vza2 = readRecordEnhanced(i, zenithAngles[1]);
-                accepted = acceptZenithAngles(vza1, vza2);
+                boolean accepted = acceptZenithAngles(vza1, vza2);
                 if (accepted) {
                     for (final Variable brightnessTemperature : brightnessTemperatures) {
                         final double[] data = readRecordEnhanced(i, brightnessTemperature);

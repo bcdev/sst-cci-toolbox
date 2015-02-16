@@ -16,13 +16,11 @@ public class RegriddingCoverageUncertaintyTest {
     @Test
     public void testCalculateXDay() throws Exception {
         final Calendar calendar = Calendar.getInstance();
-        Date date1;
-        Date date2;
 
         calendar.set(2010, Calendar.APRIL, 11);
-        date1 = calendar.getTime();
+        Date date1 = calendar.getTime();
         calendar.add(Calendar.DAY_OF_YEAR, 30);
-        date2 = calendar.getTime();
+        Date date2 = calendar.getTime();
         assertEquals(30.0, RegriddingCoverageUncertaintyProvider.calculateXDay(date1, date2));
 
         calendar.set(2012, Calendar.FEBRUARY, 7);
