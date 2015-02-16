@@ -307,7 +307,7 @@ class MetopFile extends AvhrrFile {
     public int getFlagOffset(int rawY) {
         int flagOffset = getScanLineOffset(rawY) + FLAG_OFFSET;
         if (numNavPoints == LOW_PRECISION_TIE_POINT_WIDTH) {
-            flagOffset = flagOffset - TIE_POINT_DIFFERENCE;
+            flagOffset -= TIE_POINT_DIFFERENCE;
         }
         return flagOffset;
     }
@@ -325,7 +325,7 @@ class MetopFile extends AvhrrFile {
     int readFrameIndicator(int rawY) throws IOException {
         int flagOffset = getScanLineOffset(rawY) + FRAME_INDICATOR_OFFSET + 1;
         if (numNavPoints == LOW_PRECISION_TIE_POINT_WIDTH) {
-            flagOffset = flagOffset - TIE_POINT_DIFFERENCE;
+            flagOffset -= TIE_POINT_DIFFERENCE;
         }
         byte flag;
         synchronized (inputStream) {

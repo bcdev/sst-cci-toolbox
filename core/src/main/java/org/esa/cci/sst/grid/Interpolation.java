@@ -72,10 +72,10 @@ public final class Interpolation implements Grid {
 
         double wx = (targetLon - sourceLon) / sourceResolutionX;
         if (wx < 0.0) {
-            wx = wx + 1.0;
+            wx += 1.0;
             sourceX--;
         } else if (wx > 1.0) {
-            wx = wx - 1.0;
+            wx -= 1.0;
             sourceX++;
         }
         final double wy = Math.min(1.0, Math.max(0.0, (sourceLat - targetLat) / sourceResolutionY));

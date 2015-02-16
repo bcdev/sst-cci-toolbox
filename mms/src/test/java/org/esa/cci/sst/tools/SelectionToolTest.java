@@ -2,7 +2,7 @@ package org.esa.cci.sst.tools;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 /**
  * @author Ralf Quast
@@ -44,4 +44,25 @@ public class SelectionToolTest {
         assertEquals(0.0, SelectionTool.variance(data), 0.0);
     }
 
+    @Test
+    public void testAcceptZenithAngles() {
+        final double[] vza1 = new double[12];
+        final double[] vza2 = new double[14];
+
+        vza1[6] = 13.0;
+        vza2[7] = 12.0;
+        assertTrue(SelectionTool.acceptZenithAngles(vza1, vza2));
+
+        vza1[6] = -19.0;
+        vza2[7] = -21.0;
+        assertTrue(SelectionTool.acceptZenithAngles(vza1, vza2));
+
+        vza1[6] = -19.0;
+        vza2[7] = 0.0;
+        assertFalse(SelectionTool.acceptZenithAngles(vza1, vza2));
+
+        vza1[6] = 2.1;
+        vza2[7] = 108.0;
+        assertFalse(SelectionTool.acceptZenithAngles(vza1, vza2));
+    }
 }

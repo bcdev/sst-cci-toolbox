@@ -189,8 +189,8 @@ public class SelectionTool extends BasicTool {
             if (!Double.isNaN(value)) {
                 final double delta = value - mean;
                 n++;
-                mean = mean + delta / n;
-                m2 = m2 + delta * (value - mean);
+                mean += delta / n;
+                m2 += delta * (value - mean);
             }
         }
         if (n < 2) {
