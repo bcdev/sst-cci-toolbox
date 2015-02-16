@@ -27,6 +27,9 @@ public class Insitu_CCI_2_AccessorTest {
 
         dataFile = createDataFile("C:\\Toms\\Data\\SST\\contains_no_WMO_ID.nc");
         assertNull(Insitu_CCI_2_Accessor.extractWMOID(dataFile));
+
+        dataFile = createDataFile("C:\\Toms\\Data\\SST\\WMOID_does_not_match_any_numerical_pattern.nc");
+        assertNull(Insitu_CCI_2_Accessor.extractWMOID(dataFile));
     }
 
     private DataFile createDataFile(String pathname) {

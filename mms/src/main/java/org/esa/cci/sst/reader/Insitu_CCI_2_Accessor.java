@@ -16,7 +16,8 @@ import java.util.regex.Pattern;
 
 class Insitu_CCI_2_Accessor implements InsituAccessor {
 
-    public static final String WMOID_TAG = "WMOID_";
+    private static final String WMOID_TAG = "WMOID_";
+    private static final Pattern WMOID_PATTERN = Pattern.compile("_[0-9]{8}_[0-9]{8}\\..*");
 
     private final NetcdfReader netcdfReader;
     private Array historyTimes;
@@ -126,7 +127,7 @@ class Insitu_CCI_2_Accessor implements InsituAccessor {
         }
 
         final String wmoidPart = path.substring(wmoidTagStart + WMOID_TAG.length());
-        final Matcher matcher = Pattern.compile("_[0-9]{8}_[0-9]{8}\\..*").matcher(wmoidPart);
+        final Matcher matcher = WMOID_PATTERN.matcher(wmoidPart);
         final boolean found = matcher.find();
         if (!found) {
             return null;
