@@ -2,154 +2,83 @@ package org.esa.cci.sst.tools.overlap;
 
 import org.esa.cci.sst.util.SamplingPoint;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class RegionOverlapFilter {
 
-    private final IntersectionCalculator ic;
+    private final OverlapComparator overlapComparator;
 
     public RegionOverlapFilter(int width, int height) {
-        ic = new IntersectionCalculator(width, height);
+        overlapComparator = new OverlapComparator(new OverlapCalculator(width, height));
     }
 
-    public List<SamplingPoint> filterOverlaps(List<SamplingPoint> sampleList) {
-        final List<SamplingPoint> filteredList = new LinkedList<>();
-        if (sampleList.size() <= 1) {
-            filteredList.addAll(sampleList);
-            return filteredList;
+    public List<SamplingPoint> apply(List<SamplingPoint> points) {
+        final List<SamplingPoint> sparsePoints = new LinkedList<>();
+        if (points.size() <= 1) {
+            sparsePoints.addAll(points);
+            return sparsePoints;
         }
 
-        // split input into lists of same orbit reference
-        final List<List<SamplingPoint>> orbitLists = splitByOrbit(sampleList);
-        // iterate over all lists
-        for (List<SamplingPoint> orbit : orbitLists) {
-            final List<SamplingPoint> filteredOrbitList = new LinkedList<>();
-            filterSingleOrbitOverlaps(orbit, filteredOrbitList);
-
-            filteredList.addAll(filteredOrbitList);
+        final List<List<SamplingPoint>> byOrbit = splitByOrbit(points);
+        for (final List<SamplingPoint> pointsByOrbit : byOrbit) {
+            sparsePoints.addAll(getSparsePoints(pointsByOrbit));
         }
 
-        return filteredList;
+        return sparsePoints;
     }
 
-    private void filterSingleOrbitOverlaps(List<SamplingPoint> sampleList, List<SamplingPoint> filteredList) {
-        final List<SamplingPoint> intermediateList = new LinkedList<>(sampleList);
-        while (intermediateList.size() > 1) {
-            final SamplingPoint p0 = intermediateList.get(0);
-            intermediateList.remove(0);
+    private Collection<SamplingPoint> getSparsePoints(Collection<SamplingPoint> pointsByOrbit) {
+        final Set<SamplingPoint> sparseSet = new TreeSet<>(overlapComparator);
+        sparseSet.addAll(pointsByOrbit);
 
-            // 1) search for intersections with all points in the first intersection list - to collect all points in a
-            // clustered area - should end up in one area connecting all intersection areas belonging to the search point p0
-            final List<SamplingPoint> clusterList = extractClusterContaining(p0, intermediateList);
-            if (clusterList.size() > 0) {
-                clusterList.add(p0);    // reference point also belongs to cluster
-
-                // 2) thin out intersecting points until no intersections left.
-                // 2a) calculate sum of intersecting regions for all points,
-                // 2b) remove point with highest number of intersections and repeat this until no intersections left
-                final List<SamplingPoint> nonIntersectionList = removeIntersecting(clusterList);
-
-                // 3) add the remaining points (including p0) to the filtered list
-                filteredList.addAll(nonIntersectionList);
-
-                // 4) remove all points used in this operation from the intermediateList
-                intermediateList.removeAll(clusterList);
-            } else {
-                filteredList.add(p0);
-            }
-        }
-
-        if (!intermediateList.isEmpty()) {
-            filteredList.add(intermediateList.get(0));
-        }
-    }
-
-    // package access for testing only tb 2014-01-15
-    List<SamplingPoint> removeIntersecting(List<SamplingPoint> clusterList) {
-        if (clusterList.size() == 1) {
-            return clusterList;
-        } else {
-            // copy to wrapper list
-            final List<IntersectionWrapper> intersectionWrappers = wrapList(clusterList);
-
-            // calculate intersection counts
-            int sumIntersections = Integer.MAX_VALUE;
-            while (sumIntersections > 0) {
-                sumIntersections = 0;
-                for (IntersectionWrapper wrapper : intersectionWrappers) {
-                    final int intersections = ic.getAllIntersectingPoints(wrapper.getPoint(), clusterList).size() - 1;   // remove self intersection
-                    wrapper.setNumIntersections(intersections);
-                    sumIntersections += intersections;
-                }
-                if (sumIntersections > 0) {
-                    Collections.sort(intersectionWrappers);
-                    final IntersectionWrapper removed = intersectionWrappers.remove(0);
-                    clusterList.remove(removed.getPoint());
-                }
-            }
-        }
-        return clusterList;
+        return sparseSet;
     }
 
     // package access for testing only tb 2014-01-17
-    List<List<SamplingPoint>> splitByOrbit(List<SamplingPoint> pointList) {
-        final List<List<SamplingPoint>> orbitLists = new ArrayList<>();
-        if (pointList.size() > 0) {
-            while (pointList.size() > 0) {
-                final SamplingPoint samplingPoint = pointList.get(0);
-                final List<SamplingPoint> allFromOrbit = extractAllFromOrbit(samplingPoint.getReference(), pointList);
-                if (allFromOrbit.size() > 0) {
-                    orbitLists.add(allFromOrbit);
-                }
+    List<List<SamplingPoint>> splitByOrbit(List<SamplingPoint> points) {
+        final Map<Integer, List<SamplingPoint>> map = new HashMap<>();
+        for (final SamplingPoint point : points) {
+            final int id = point.getReference();
+            if (!map.containsKey(id)) {
+                map.put(id, new ArrayList<SamplingPoint>());
+            }
+            map.get(id).add(point);
+        }
+        final ArrayList<List<SamplingPoint>> byOrbit = new ArrayList<>(map.size());
+        for (final List<SamplingPoint> orbitPoints : map.values()) {
+            byOrbit.add(orbitPoints);
+        }
+
+        return byOrbit;
+    }
+
+    private static final class OverlapComparator implements Comparator<SamplingPoint> {
+
+        private final OverlapCalculator overlapCalculator;
+
+        public OverlapComparator(OverlapCalculator overlapCalculator) {
+            this.overlapCalculator = overlapCalculator;
+        }
+
+        @Override
+        public int compare(SamplingPoint o1, SamplingPoint o2) {
+            if (overlapCalculator.areOverlapping(o1, o2)) {
+                return 0;
+            }
+            final int compareY = Integer.compare(o1.getY(), o2.getY());
+            if (compareY == 0) {
+                return Integer.compare(o1.getX(), o2.getX());
+            } else {
+                return compareY;
             }
         }
-        return orbitLists;
-    }
-
-    // package access for testing only tb 2014-01-15
-    List<SamplingPoint> extractClusterContaining(SamplingPoint samplingPoint, List<SamplingPoint> samples) {
-        final List<SamplingPoint> clusterPoints = new LinkedList<>();
-
-        final List<SamplingPoint> intersectingPoints = ic.getAllIntersectingPoints(samplingPoint, samples);
-        if (intersectingPoints.size() == 0) {
-            return clusterPoints;
-        }
-
-        samples.removeAll(intersectingPoints);
-        while (intersectingPoints.size() > 0) {
-            final SamplingPoint intersectPoint = intersectingPoints.remove(0);
-            clusterPoints.add(intersectPoint);
-            samples.remove(intersectPoint);
-
-            final List<SamplingPoint> subIntersecting = ic.getAllIntersectingPoints(intersectPoint, samples);
-            intersectingPoints.addAll(subIntersecting);
-            samples.removeAll(subIntersecting);
-        }
-        return clusterPoints;
-    }
-
-    private List<SamplingPoint> extractAllFromOrbit(int orbitNo, List<SamplingPoint> pointList) {
-        final LinkedList<SamplingPoint> orbitPoints = new LinkedList<>();
-
-        final Iterator<SamplingPoint> iterator = pointList.iterator();
-        while (iterator.hasNext()) {
-            final SamplingPoint point = iterator.next();
-            if (point.getReference() == orbitNo) {
-                orbitPoints.add(point);
-                iterator.remove();
-            }
-        }
-
-        return orbitPoints;
-    }
-
-    private ArrayList<IntersectionWrapper> wrapList(List<SamplingPoint> clusterList) {
-        final ArrayList<IntersectionWrapper> intersectionWrappers = new ArrayList<>(clusterList.size());
-        for (SamplingPoint samplingPoint : clusterList) {
-            final IntersectionWrapper wrapper = new IntersectionWrapper();
-            wrapper.setPoint(samplingPoint);
-            intersectionWrappers.add(wrapper);
-        }
-        return intersectionWrappers;
     }
 }
