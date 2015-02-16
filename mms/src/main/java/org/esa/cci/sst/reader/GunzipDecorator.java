@@ -222,14 +222,13 @@ public class GunzipDecorator implements Reader {
      * @throws IOException if reading the input, decompression, or writing the output fails
      */
     private static void decompress(File gzipFile, File tmpFile) throws IOException {
-        final byte[] buffer = new byte[8192];
-
         InputStream in = null;
         OutputStream out = null;
         try {
             in = new GZIPInputStream(new FileInputStream(gzipFile), 8192);
             out = new BufferedOutputStream(new FileOutputStream(tmpFile));
             int noOfBytesRead;
+            final byte[] buffer = new byte[8192];
             while ((noOfBytesRead = in.read(buffer)) > 0) {
                 out.write(buffer, 0, noOfBytesRead);
             }

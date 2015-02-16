@@ -44,11 +44,11 @@ public class InsituReaderTest {
 
     @Test
     public void testReadObservation_SST_CCI_V1_Data() throws Exception {
-        final InsituObservation observation;
 
         try (InsituReader reader = createReader("insitu_WMOID_11851_20071123_20080111.nc")) {
             assertEquals(1, reader.getNumRecords());
-            observation = reader.readObservation(0);
+
+            final InsituObservation observation = reader.readObservation(0);
 
             assertCorrectDate(2007, 11, 18, observation.getTime().getTime());
             assertEquals(2125828.8, observation.getTimeRadius(), 0.0);
@@ -146,11 +146,9 @@ public class InsituReaderTest {
 
     @Test
     public void testReadObservation_SST_CCI_V2_Drifter_Data() throws Exception {
-        final InsituObservation observation;
-
         try (InsituReader reader = createReader("insitu_0_WMOID_71566_20020211_20120214.nc")) {
             assertEquals(1, reader.getNumRecords());
-            observation = reader.readObservation(0);
+            final InsituObservation observation = reader.readObservation(0);
 
             assertCorrectDate(2007, 1, 13, observation.getTime().getTime());
             assertEquals(1.57876344E8, observation.getTimeRadius(), 0.0);
@@ -236,11 +234,9 @@ public class InsituReaderTest {
 
     @Test
     public void testReadObservation_SST_CCI_V2_Ship_Data() throws Exception {
-        final InsituObservation observation;
-
         try (InsituReader reader = createReader("insitu_2_WMOID_ZNUB_20011201_20020211.nc")) {
             assertEquals(1, reader.getNumRecords());
-            observation = reader.readObservation(0);
+            final InsituObservation observation = reader.readObservation(0);
 
             assertCorrectDate(2002, 0, 6, observation.getTime().getTime());
             assertEquals(3078000.0, observation.getTimeRadius(), 0.0);
@@ -326,11 +322,9 @@ public class InsituReaderTest {
 
     @Test
     public void testReadObservation_SST_CCI_V2_GTMBA_Data() throws Exception {
-        final InsituObservation observation;
-
         try (InsituReader reader = createReader("insitu_3_WMOID_23006_19970911_20130520.nc")) {
             assertEquals(1, reader.getNumRecords());
-            observation = reader.readObservation(0);
+            final InsituObservation observation = reader.readObservation(0);
 
             assertCorrectDate(2005, 6, 16, observation.getTime().getTime());
             assertEquals(247557600, observation.getTimeRadius(), 0.0);
@@ -415,11 +409,9 @@ public class InsituReaderTest {
 
     @Test
     public void testReadObservation_SST_CCI_V2_Radiometer_Data() throws Exception {
-        final InsituObservation observation;
-
         try (InsituReader reader = createReader("insitu_4_WMOID_PoB_20040717_20100929.nc")) {
             assertEquals(1, reader.getNumRecords());
-            observation = reader.readObservation(0);
+            final InsituObservation observation = reader.readObservation(0);
 
             assertCorrectDate(2007, 7, 23, observation.getTime().getTime());
             assertEquals(97854975, observation.getTimeRadius(), 0.0);
@@ -504,11 +496,9 @@ public class InsituReaderTest {
 
     @Test
     public void testReadObservation_SST_CCI_V2_Argo_Data() throws Exception {
-        final InsituObservation observation;
-
         try (InsituReader reader = createReader("insitu_5_WMOID_69036_20001006_20020906.nc")) {
             assertEquals(1, reader.getNumRecords());
-            observation = reader.readObservation(0);
+            final InsituObservation observation = reader.readObservation(0);
 
             assertCorrectDate(2001, 8, 21, observation.getTime().getTime());
 
@@ -588,11 +578,9 @@ public class InsituReaderTest {
 
     @Test
     public void testReadObservation_SST_CCI_V2_Xbt_Data() throws Exception {
-        final InsituObservation observation;
-
         try (InsituReader reader = createReader("insitu_9_WMOID_9612_20060827_20060829.nc")) {
             assertEquals(1, reader.getNumRecords());
-            observation = reader.readObservation(0);
+            final InsituObservation observation = reader.readObservation(0);
 
             assertCorrectDate(2006, 7, 28, observation.getTime().getTime());
             assertEquals(77310, observation.getTimeRadius(), 0.0);
@@ -677,11 +665,9 @@ public class InsituReaderTest {
 
     @Test
     public void testReadObservation_SST_CCI_V2_Mbt_Data() throws Exception {
-        final InsituObservation observation;
-
         try (InsituReader reader = createReader("insitu_10_WMOID_9733863_19840602_19840602.nc")) {
             assertEquals(1, reader.getNumRecords());
-            observation = reader.readObservation(0);
+            final InsituObservation observation = reader.readObservation(0);
 
             assertCorrectDate(1984, 5, 2, observation.getTime().getTime());
             assertEquals(21600, observation.getTimeRadius(), 0.0);
@@ -757,11 +743,9 @@ public class InsituReaderTest {
 
     @Test
     public void testReadObservation_SST_CCI_V2_Ctd_Data() throws Exception {
-        final InsituObservation observation;
-
         try (InsituReader reader = createReader("insitu_11_WMOID_CG3198_20130813_20130820.nc")) {
             assertEquals(1, reader.getNumRecords());
-            observation = reader.readObservation(0);
+            final InsituObservation observation = reader.readObservation(0);
 
             assertCorrectDate(2013, 7, 17, observation.getTime().getTime());
             assertEquals(302759.5, observation.getTimeRadius(), 0.0);
@@ -840,11 +824,9 @@ public class InsituReaderTest {
 
     @Test
     public void testReadObservation_SST_CCI_V2_Animal_Data() throws Exception {
-        final InsituObservation observation;
-
         try (InsituReader reader = createReader("insitu_12_WMOID_Q9900586_20130331_20130729.nc")) {
             assertEquals(1, reader.getNumRecords());
-            observation = reader.readObservation(0);
+            final InsituObservation observation = reader.readObservation(0);
 
             assertCorrectDate(2013, 4, 30, observation.getTime().getTime());
             assertEquals(5209799.5, observation.getTimeRadius(), 0.0);
@@ -929,11 +911,9 @@ public class InsituReaderTest {
 
     @Test
     public void testReadObservation_SST_CCI_V2_Bottle_Data() throws Exception {
-        final InsituObservation observation;
-
         try (InsituReader reader = createReader("insitu_13_WMOID_856160_19850120_19850212.nc")) {
             assertEquals(1, reader.getNumRecords());
-            observation = reader.readObservation(0);
+            final InsituObservation observation = reader.readObservation(0);
 
             assertCorrectDate(1985, 1, 1, observation.getTime().getTime());
             assertEquals(1001862.0, observation.getTimeRadius(), 0.0);
