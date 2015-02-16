@@ -130,86 +130,87 @@ public class MatchupGenerator extends BasicTool {
     void createMatchups(List<SamplingPoint> samples, String referenceSensorName, String primarySensorName,
                         String secondarySensorName, long referenceSensorPattern, PersistenceManager pm,
                         Storage storage, Logger logger) {
-        if (!samples.isEmpty()) {
-            try {
-                boolean hasInsitu = false;
+        if (samples.isEmpty()) {
+            return;
+        }
 
-                // create reference observations
-                logInfo(logger, "Starting creating reference observations...");
-                pm.transaction();
-                final String sensorShortName = createSensorShortName(referenceSensorName, primarySensorName);
-                final List<ReferenceObservation> referenceObservations = createReferenceObservations(samples,
-                                                                                                     sensorShortName,
-                                                                                                     storage);
-                pm.commit();
-                logInfo(logger, "Finished creating reference observations");
+        try {
+            // create reference observations
+            logInfo(logger, "Starting creating reference observations...");
+            pm.transaction();
+            final String sensorShortName = createSensorShortName(referenceSensorName, primarySensorName);
+            final List<ReferenceObservation> referenceObservations = createReferenceObservations(samples,
+                                                                                                 sensorShortName,
+                                                                                                 storage);
+            pm.commit();
+            logInfo(logger, "Finished creating reference observations");
 
-                logInfo(logger, "Starting creating matchup pattern ...");
-                final long matchupPattern = defineMatchupPattern(primarySensorName,
-                                                                 secondarySensorName,
-                                                                 referenceSensorPattern,
-                                                                 pm);
-                logInfo(logger, MessageFormat.format("Matchup pattern: {0}", Long.toHexString(matchupPattern)));
+            logInfo(logger, "Starting creating matchup pattern ...");
+            final long matchupPattern = defineMatchupPattern(primarySensorName,
+                                                             secondarySensorName,
+                                                             referenceSensorPattern,
+                                                             pm);
+            logInfo(logger, MessageFormat.format("Matchup pattern: {0}", Long.toHexString(matchupPattern)));
 
-                // create matchups and coincidences
-                logInfo(logger, "Starting creating matchups and coincidences...");
-                pm.transaction();
+            // create matchups and coincidences
+            logInfo(logger, "Starting creating matchups and coincidences...");
+            pm.transaction();
 
-                final List<Matchup> matchups = new ArrayList<>(referenceObservations.size());
-                for (int i = 0; i < samples.size(); i++) {
-                    final List<Coincidence> coincidences = new ArrayList<>();
-                    final SamplingPoint p = samples.get(i);
-                    final ReferenceObservation r = referenceObservations.get(i);
+            boolean hasInsitu = false;
+            final List<Matchup> matchups = new ArrayList<>(referenceObservations.size());
+            for (int i = 0; i < samples.size(); i++) {
+                final List<Coincidence> coincidences = new ArrayList<>();
+                final SamplingPoint p = samples.get(i);
+                final ReferenceObservation r = referenceObservations.get(i);
 
-                    final Matchup matchup = createMatchup(matchupPattern, r);
-                    matchups.add(matchup);
+                final Matchup matchup = createMatchup(matchupPattern, r);
+                matchups.add(matchup);
 
-                    final RelatedObservation o1 = storage.getRelatedObservation(p.getReference());
+                final RelatedObservation o1 = storage.getRelatedObservation(p.getReference());
 
-                    final Coincidence coincidence = createPrimaryCoincidence(matchup, o1);
-                    coincidences.add(coincidence);
+                final Coincidence coincidence = createPrimaryCoincidence(matchup, o1);
+                coincidences.add(coincidence);
 
-                    if (secondarySensorName != null) {
-                        final RelatedObservation o2 = storage.getRelatedObservation(p.getReference2());
-                        final Coincidence secondCoincidence = createSecondaryCoincidence(p, matchup, o2);
-                        coincidences.add(secondCoincidence);
-                    }
-                    if (p.getInsituReference() != 0) {
-                        final int datafileId = p.getInsituReference();
-                        final DataFile insituDatafile = storage.getDatafile(datafileId);
-                        final InsituObservation insituObservation = createInsituObservation(p, insituDatafile);
-
-                        final Coincidence insituCoincidence = createCoincidence(matchup, insituObservation);
-                        insituCoincidence.setTimeDifference(Math.abs(p.getReferenceTime() - p.getTime()) / 1000.0);
-
-                        coincidences.add(insituCoincidence);
-                        hasInsitu = true;
-                    }
-                    matchup.setCoincidences(coincidences);
+                if (secondarySensorName != null) {
+                    final RelatedObservation o2 = storage.getRelatedObservation(p.getReference2());
+                    final Coincidence secondCoincidence = createSecondaryCoincidence(p, matchup, o2);
+                    coincidences.add(secondCoincidence);
                 }
-                pm.commit();
+                if (p.getInsituReference() != 0) {
+                    final int datafileId = p.getInsituReference();
+                    final DataFile insituDatafile = storage.getDatafile(datafileId);
+                    final InsituObservation insituObservation = createInsituObservation(p, insituDatafile);
 
-                logInfo(logger, "Finished creating matchups and coincidences");
+                    final Coincidence insituCoincidence = createCoincidence(matchup, insituObservation);
+                    insituCoincidence.setTimeDifference(Math.abs(p.getReferenceTime() - p.getTime()) / 1000.0);
 
-                // persist matchups and coincidences
-                logInfo(logger, "Starting writing matchups and coincidences...");
-
-                final String[] sensorNamesArray = createSensorNamesArray(hasInsitu);
-                final Month centerMonth = ConfigUtil.getCenterMonth(Configuration.KEY_MMS_SAMPLING_START_TIME,
-                                                                    Configuration.KEY_MMS_SAMPLING_STOP_TIME,
-                                                                    getConfig());
-
-                final String targetFilePath = ArchiveUtils.createCleanFilePath(usecaseRootPath, sensorNamesArray,
-                                                                               centerMonth.getYear(),
-                                                                               centerMonth.getMonth());
-                final File targetFile = FileUtil.createNewFile(targetFilePath);
-                final OutputStream outputStream = new FileOutputStream(targetFile);
-                MatchupIO.write(matchups, outputStream, getConfig(), pm);
-
-                logInfo(logger, "Finished writing matchups and coincidences...");
-            } catch (Exception e) {
-                throw new ToolException(e.getMessage(), e, ToolException.TOOL_ERROR);
+                    coincidences.add(insituCoincidence);
+                    hasInsitu = true;
+                }
+                matchup.setCoincidences(coincidences);
             }
+            pm.commit();
+
+            logInfo(logger, "Finished creating matchups and coincidences");
+
+            // persist matchups and coincidences
+            logInfo(logger, "Starting writing matchups and coincidences...");
+
+            final String[] sensorNamesArray = createSensorNamesArray(hasInsitu);
+            final Month centerMonth = ConfigUtil.getCenterMonth(Configuration.KEY_MMS_SAMPLING_START_TIME,
+                                                                Configuration.KEY_MMS_SAMPLING_STOP_TIME,
+                                                                getConfig());
+
+            final String targetFilePath = ArchiveUtils.createCleanFilePath(usecaseRootPath, sensorNamesArray,
+                                                                           centerMonth.getYear(),
+                                                                           centerMonth.getMonth());
+            final File targetFile = FileUtil.createNewFile(targetFilePath);
+            final OutputStream outputStream = new FileOutputStream(targetFile);
+            MatchupIO.write(matchups, outputStream, getConfig(), pm);
+
+            logInfo(logger, "Finished writing matchups and coincidences...");
+        } catch (Exception e) {
+            throw new ToolException(e.getMessage(), e, ToolException.TOOL_ERROR);
         }
     }
 
@@ -241,10 +242,10 @@ public class MatchupGenerator extends BasicTool {
     // package access for testing only tb 2014-04-03
     static long defineMatchupPattern(String primarySensorName, String secondarySensorName, long referenceSensorPattern,
                                      PersistenceManager pm) {
-        long matchupPattern;
         final Storage storage = pm.getStorage();
         pm.transaction();
 
+        long matchupPattern;
         final String primaryOrbitName = SensorNames.getOrbitName(primarySensorName);
         final Sensor primarySensor = storage.getSensor(primaryOrbitName);
         if (secondarySensorName != null) {

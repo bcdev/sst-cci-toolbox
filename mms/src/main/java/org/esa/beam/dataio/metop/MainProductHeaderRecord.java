@@ -53,10 +53,9 @@ class MainProductHeaderRecord extends AsciiRecord {
     }
 
     private MetadataElement getProductDetails() {
-        MetadataAttribute attribute;
         final MetadataElement element = new MetadataElement("PRODUCT_DETAILS");
 
-        attribute = createStringAttribute("PRODUCT_NAME", null);
+        MetadataAttribute attribute = createStringAttribute("PRODUCT_NAME", null);
         attribute.setDescription("Complete name of the product");
         element.addAttribute(attribute);
 
