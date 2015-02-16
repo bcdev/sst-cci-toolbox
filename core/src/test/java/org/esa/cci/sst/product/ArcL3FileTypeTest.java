@@ -138,10 +138,10 @@ public class ArcL3FileTypeTest {
         cell5_4.accumulate(context, new Rectangle(0, 0, 10, 10));
         cell5_4.accumulate(context, new Rectangle(10, 10, 10, 10));
 
-        int expectedN5_1 = 100;
-        int expectedN5_2 = 100;
-        int expectedN5_3 = 100;
-        int expectedN5_4 = 200;
+        final int expectedN5_1 = 100;
+        final int expectedN5_2 = 100;
+        final int expectedN5_3 = 100;
+        final int expectedN5_4 = 200;
         assertEquals(expectedN5_1, cell5_1.getSampleCount());
         assertEquals(expectedN5_2, cell5_2.getSampleCount());
         assertEquals(expectedN5_3, cell5_3.getSampleCount());
