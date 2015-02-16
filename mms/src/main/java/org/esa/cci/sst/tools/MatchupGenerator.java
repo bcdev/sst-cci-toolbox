@@ -123,90 +123,92 @@ public class MatchupGenerator extends BasicTool {
     static void createMatchups(List<SamplingPoint> samples, String referenceSensorName, String primarySensorName,
                                String secondarySensorName, long referenceSensorPattern, PersistenceManager pm,
                                Storage storage, Logger logger) {
-        if (!samples.isEmpty()) {
-            final Stack<EntityTransaction> rollbackStack = new Stack<>();
-            try {
-                // create reference observations
-                logInfo(logger, "Starting creating reference observations...");
-                rollbackStack.push(pm.transaction());
-                final String sensorShortName = createSensorShortName(referenceSensorName, primarySensorName);
-                final List<ReferenceObservation> referenceObservations = createReferenceObservations(samples,
-                                                                                                     sensorShortName,
-                                                                                                     storage);
-                pm.commit();
-                logInfo(logger, "Finished creating reference observations");
+        if (samples.isEmpty()) {
+            return;
+        }
 
-                logInfo(logger, "Starting persisting reference observations...");
-                persistReferenceObservations(referenceObservations, pm, rollbackStack);
-                logInfo(logger, "Finished persisting reference observations");
+        final Stack<EntityTransaction> rollbackStack = new Stack<>();
+        try {
+            // create reference observations
+            logInfo(logger, "Starting creating reference observations...");
+            rollbackStack.push(pm.transaction());
+            final String sensorShortName = createSensorShortName(referenceSensorName, primarySensorName);
+            final List<ReferenceObservation> referenceObservations = createReferenceObservations(samples,
+                                                                                                 sensorShortName,
+                                                                                                 storage);
+            pm.commit();
+            logInfo(logger, "Finished creating reference observations");
 
-                logInfo(logger, "Starting creating matchup pattern ...");
-                final long matchupPattern = defineMatchupPattern(primarySensorName, secondarySensorName,
-                                                                 referenceSensorPattern, pm, rollbackStack);
-                logInfo(logger, MessageFormat.format("Matchup pattern: {0}", Long.toHexString(matchupPattern)));
+            logInfo(logger, "Starting persisting reference observations...");
+            persistReferenceObservations(referenceObservations, pm, rollbackStack);
+            logInfo(logger, "Finished persisting reference observations");
 
-                // create matchups and coincidences
-                logInfo(logger, "Starting creating matchups and coincidences...");
-                rollbackStack.push(pm.transaction());
-                final List<Matchup> matchups = new ArrayList<>(referenceObservations.size());
-                final List<Coincidence> coincidences = new ArrayList<>(samples.size());
-                final List<InsituObservation> insituObservations = new ArrayList<>(samples.size());
-                for (int i = 0; i < samples.size(); i++) {
-                    final SamplingPoint p = samples.get(i);
-                    final ReferenceObservation r = referenceObservations.get(i);
+            logInfo(logger, "Starting creating matchup pattern ...");
+            final long matchupPattern = defineMatchupPattern(primarySensorName, secondarySensorName,
+                                                             referenceSensorPattern, pm, rollbackStack);
+            logInfo(logger, MessageFormat.format("Matchup pattern: {0}", Long.toHexString(matchupPattern)));
 
-                    final Matchup matchup = createMatchup(matchupPattern, r);
-                    matchups.add(matchup);
+            // create matchups and coincidences
+            logInfo(logger, "Starting creating matchups and coincidences...");
+            rollbackStack.push(pm.transaction());
+            final List<Matchup> matchups = new ArrayList<>(referenceObservations.size());
+            final List<Coincidence> coincidences = new ArrayList<>(samples.size());
+            final List<InsituObservation> insituObservations = new ArrayList<>(samples.size());
+            for (int i = 0; i < samples.size(); i++) {
+                final SamplingPoint p = samples.get(i);
+                final ReferenceObservation r = referenceObservations.get(i);
 
-                    final RelatedObservation o1 = storage.getRelatedObservation(p.getReference());
+                final Matchup matchup = createMatchup(matchupPattern, r);
+                matchups.add(matchup);
 
-                    final Coincidence coincidence = createPrimaryCoincidence(matchup, o1);
-                    coincidences.add(coincidence);
+                final RelatedObservation o1 = storage.getRelatedObservation(p.getReference());
 
-                    if (secondarySensorName != null) {
-                        final RelatedObservation o2 = storage.getRelatedObservation(p.getReference2());
-                        final Coincidence secondCoincidence = createSecondaryCoincidence(p, matchup, o2);
-                        coincidences.add(secondCoincidence);
-                    }
-                    if (p.getInsituReference() != 0) {
-                        final int datafileId = p.getInsituReference();
-                        final DataFile insituDatafile = storage.getDatafile(datafileId);
-                        final InsituObservation insituObservation = createInsituObservation(p, insituDatafile);
-                        insituObservations.add(insituObservation);
+                final Coincidence coincidence = createPrimaryCoincidence(matchup, o1);
+                coincidences.add(coincidence);
 
-                        final Coincidence insituCoincidence = createCoincidence(matchup, insituObservation);
-                        insituCoincidence.setTimeDifference(Math.abs(p.getReferenceTime() - p.getTime()) / 1000.0);
-
-                        coincidences.add(insituCoincidence);
-                    }
+                if (secondarySensorName != null) {
+                    final RelatedObservation o2 = storage.getRelatedObservation(p.getReference2());
+                    final Coincidence secondCoincidence = createSecondaryCoincidence(p, matchup, o2);
+                    coincidences.add(secondCoincidence);
                 }
-                pm.commit();
+                if (p.getInsituReference() != 0) {
+                    final int datafileId = p.getInsituReference();
+                    final DataFile insituDatafile = storage.getDatafile(datafileId);
+                    final InsituObservation insituObservation = createInsituObservation(p, insituDatafile);
+                    insituObservations.add(insituObservation);
 
-                logInfo(logger, "Finished creating matchups and coincidences");
+                    final Coincidence insituCoincidence = createCoincidence(matchup, insituObservation);
+                    insituCoincidence.setTimeDifference(Math.abs(p.getReferenceTime() - p.getTime()) / 1000.0);
 
-                // persist matchups and coincidences
-                logInfo(logger, "Starting persisting matchups and coincidences...");
-
-                rollbackStack.push(pm.transaction());
-                for (InsituObservation insituObservation : insituObservations) {
-                    storage.store(insituObservation);
+                    coincidences.add(insituCoincidence);
                 }
-                for (Matchup m : matchups) {
-                    pm.persist(m);
-                }
-                for (Coincidence c : coincidences) {
-                    pm.persist(c);
-                }
-                pm.commit();
-
-                logInfo(logger, "Finished persisting matchups and coincidences...");
-            } catch (Exception e) {
-                while (!rollbackStack.isEmpty()) {
-                    logInfo(logger, "Rolling back transaction ...");
-                    rollbackStack.pop().rollback();
-                }
-                throw new ToolException(e.getMessage(), e, ToolException.TOOL_ERROR);
             }
+            pm.commit();
+
+            logInfo(logger, "Finished creating matchups and coincidences");
+
+            // persist matchups and coincidences
+            logInfo(logger, "Starting persisting matchups and coincidences...");
+
+            rollbackStack.push(pm.transaction());
+            for (InsituObservation insituObservation : insituObservations) {
+                storage.store(insituObservation);
+            }
+            for (Matchup m : matchups) {
+                pm.persist(m);
+            }
+            for (Coincidence c : coincidences) {
+                pm.persist(c);
+            }
+            pm.commit();
+
+            logInfo(logger, "Finished persisting matchups and coincidences...");
+        } catch (Exception e) {
+            while (!rollbackStack.isEmpty()) {
+                logInfo(logger, "Rolling back transaction ...");
+                rollbackStack.pop().rollback();
+            }
+            throw new ToolException(e.getMessage(), e, ToolException.TOOL_ERROR);
         }
     }
 
