@@ -20,45 +20,27 @@ import java.util.Set;
 
 class MmdWriter implements Closeable {
 
-    private static final String AVHRR_M02_TIME = "avhrr.m02.time";
     private final NetcdfFileWriter fileWriter;
 
-    static boolean canOpen(String filePath) throws IOException {
-        return NetcdfFile.canOpen(filePath);
-    }
+    MmdWriter(NetcdfFileWriter fileWriter, int matchupCount, Map<String, Integer> dimensions, List<Item> variables) throws IOException {
+        this.fileWriter = fileWriter;
+        this.fileWriter.setLargeFile(true);
 
-    static MmdWriter open(String filePath) throws IOException {
-        final NetcdfFileWriter netcdfFileWriter = NetcdfFileWriter.openExisting(filePath);
+        addDimensions(matchupCount, dimensions);
+        addGlobalAttributes(matchupCount);
+        addVariables(variables);
 
-        return new MmdWriter(netcdfFileWriter);
+        this.fileWriter.create();
     }
 
     @Override
     public void close() throws IOException {
-        fileWriter.flush();
         fileWriter.close();
-    }
-
-    MmdWriter(NetcdfFileWriter fileWriter) {
-        this.fileWriter = fileWriter;
-    }
-
-    void initialize(int matchupCount, Map<String, Integer> dimensionConfig, List<Item> variableList) throws IOException {
-        addDimensions(matchupCount, dimensionConfig);
-        addGlobalAttributes(matchupCount);
-        addVariables(variableList);
-
-        fileWriter.create();
     }
 
     List<Variable> getVariables() {
         final NetcdfFile netcdfFile = fileWriter.getNetcdfFile();
         return netcdfFile.getVariables();
-    }
-
-    Variable getVariable(String variableName) {
-        final String validPathName = NetcdfFile.makeValidPathName(variableName);
-        return fileWriter.findVariable(validPathName);
     }
 
     void write(Variable variable, int[] origin, Array array) throws IOException, InvalidRangeException {
@@ -67,9 +49,6 @@ class MmdWriter implements Closeable {
 
     private void addVariables(List<Item> variableList) {
         for (Item variable : variableList) {
-            if (variable.getName().equalsIgnoreCase(AVHRR_M02_TIME)) {
-                SstLogging.getLogger().info("Added avhrr.m02.time to netCDf file.");
-            }
             IoUtil.addVariable(fileWriter, variable);
         }
     }

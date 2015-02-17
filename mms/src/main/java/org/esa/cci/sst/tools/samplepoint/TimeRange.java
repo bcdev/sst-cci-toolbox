@@ -25,16 +25,16 @@ public class TimeRange {
         return stopDate;
     }
 
-    public boolean includes(Date date) {
+    public boolean includes(long actualTime) {
         final long startTime = startDate.getTime();
         final long stopTime = stopDate.getTime();
-        final long actualTime = date.getTime();
 
         return (startTime <= actualTime && actualTime < stopTime);
     }
 
     public boolean intersectsWith(TimeRange other) {
-        return includes(other.getStartDate()) || includes(other.getStopDate()) || other.includes(startDate) || other.includes(stopDate);
+        return includes(other.getStartDate().getTime()) || includes(other.getStopDate().getTime()) || other.includes(
+                startDate.getTime()) || other.includes(stopDate.getTime());
     }
 
     public TimeRange getCenterMonth() {

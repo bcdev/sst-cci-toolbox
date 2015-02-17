@@ -198,10 +198,10 @@ public class DirtySubsceneRemover {
     }
 
     // package access for testing only tb 2014-03-31
-    static Map<Integer, List<SamplingPoint>> splitByFileId(List<SamplingPoint> samples, boolean isPrimary) {
+    static Map<Integer, List<SamplingPoint>> splitByFileId(List<SamplingPoint> samples, boolean primary) {
         final Map<Integer, List<SamplingPoint>> samplesByDatafile = new HashMap<>();
         for (final SamplingPoint point : samples) {
-            final int id = isPrimary ? point.getReference() : point.getReference2();
+            final int id = primary ? point.getReference() : point.getReference2();
             if (!samplesByDatafile.containsKey(id)) {
                 samplesByDatafile.put(id, new ArrayList<SamplingPoint>());
             }

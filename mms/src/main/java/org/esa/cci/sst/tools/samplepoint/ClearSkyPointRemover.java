@@ -21,9 +21,9 @@ import org.esa.cci.sst.util.SamplingPoint;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ClearSkyPointRemover {
+class ClearSkyPointRemover {
 
-    public void removeSamples(List<SamplingPoint> samples) {
+    void removeSamples(List<SamplingPoint> samples) {
         final List<SamplingPoint> remainingSamples = new ArrayList<>(samples.size());
         final ClearSkyProbability clearSkyProbability = Container.CLEAR_SKY_PROBABILITY;
         final double minimumClearSkyProbability = 0.05;

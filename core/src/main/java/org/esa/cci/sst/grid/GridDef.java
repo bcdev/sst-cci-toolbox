@@ -18,7 +18,7 @@ package org.esa.cci.sst.grid;
 
 import org.esa.beam.util.math.MathUtils;
 
-import java.awt.Rectangle;
+import java.awt.*;
 import java.awt.geom.Rectangle2D;
 
 /**
@@ -109,7 +109,6 @@ public final class GridDef {
      *
      * @param x The cell x coordinate.
      * @param y The cell y coordinate.
-     *
      * @return the length of the cell diagonal (km).
      */
     public final double getDiagonal(int x, int y) {
@@ -182,7 +181,6 @@ public final class GridDef {
      * @param minLat The minimum lat coordinate (south)
      * @param maxLon The maximum lon coordinate (east)
      * @param maxLat The maximum lat coordinate (north)
-     *
      * @return The result rectangle.
      */
     public Rectangle getGridRectangle(double minLon, double minLat, double maxLon, double maxLat) {
@@ -200,7 +198,6 @@ public final class GridDef {
      * @param x       The cell's x coordinate.
      * @param y       The cell's y coordinate.
      * @param gridDef The definition of the coarser resolution grid.
-     *
      * @return the grid rectangle.
      */
     public Rectangle getGridRectangle(int x, int y, GridDef gridDef) {
@@ -244,12 +241,12 @@ public final class GridDef {
         final GridDef gridDef = (GridDef) o;
 
         return width == gridDef.width &&
-               height == gridDef.height &&
-               time == gridDef.time &&
-               Double.compare(gridDef.easting, easting) == 0 &&
-               Double.compare(gridDef.northing, northing) == 0 &&
-               Double.compare(gridDef.resolutionX, resolutionX) == 0 &&
-               Double.compare(gridDef.resolutionY, resolutionY) == 0;
+                height == gridDef.height &&
+                time == gridDef.time &&
+                Double.compare(gridDef.easting, easting) == 0 &&
+                Double.compare(gridDef.northing, northing) == 0 &&
+                Double.compare(gridDef.resolutionX, resolutionX) == 0 &&
+                Double.compare(gridDef.resolutionY, resolutionY) == 0;
     }
 
     @Override

@@ -7,10 +7,14 @@ import org.esa.cci.sst.util.ConfigUtil;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.SamplingPointIO;
 import org.esa.cci.sst.util.TimeUtil;
+import org.esa.cci.sst.util.Watermask;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -70,24 +74,43 @@ public class SamplePointExporter {
             logWarning("Overwriting target file: " + targetFile.getAbsolutePath());
         }
 
-        try (FileOutputStream outputStream = new FileOutputStream(targetFile)) {
+        try (OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(targetFile), 16384)) {
             SamplingPointIO.write(points, outputStream);
         }
     }
 
     // package access for testing only tb 2014-02-14
     static List<SamplingPoint> extractSamples(List<SamplingPoint> samples, TimeRange extractRange) {
-        final LinkedList<SamplingPoint> extracted = new LinkedList<>();
+        if (samples instanceof LinkedList) {
+            final LinkedList<SamplingPoint> extracted = new LinkedList<>();
 
-        final Iterator<SamplingPoint> iterator = samples.iterator();
-        while (iterator.hasNext()) {
-            final SamplingPoint point = iterator.next();
-            if (extractRange.includes(new Date(point.getReferenceTime()))) {
-                extracted.add(point);
-                iterator.remove();
+            final Iterator<SamplingPoint> iterator = samples.iterator();
+            while (iterator.hasNext()) {
+                final SamplingPoint point = iterator.next();
+                if (extractRange.includes(point.getReferenceTime())) {
+                    extracted.add(point);
+                    iterator.remove();
+                }
             }
+            return extracted;
+        } else if (samples instanceof ArrayList) {
+            final List<SamplingPoint> extracted = new LinkedList<>();
+            final List<SamplingPoint> remaining = new ArrayList<>(samples.size());
+
+            for (final SamplingPoint point : samples) {
+                if (extractRange.includes(point.getReferenceTime())) {
+                    extracted.add(point);
+                } else {
+                    remaining.add(point);
+                }
+            }
+            samples.clear();
+            samples.addAll(remaining);
+
+            return extracted;
+        } else {
+            throw new IllegalArgumentException("Sample list is neither a LinkedList nor an ArrayList.");
         }
-        return extracted;
     }
 
     private void logWarning(String msg) {

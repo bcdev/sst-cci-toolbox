@@ -6,9 +6,11 @@ import org.esa.cci.sst.util.Month;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.SamplingPointIO;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -57,7 +59,7 @@ public class SamplePointImporter {
             return new ArrayList<>();
         }
 
-        try (FileInputStream inputStream = new FileInputStream(file)) {
+        try (InputStream inputStream = new BufferedInputStream(new FileInputStream(file), 16384)) {
             return SamplingPointIO.read(inputStream);
         }
     }

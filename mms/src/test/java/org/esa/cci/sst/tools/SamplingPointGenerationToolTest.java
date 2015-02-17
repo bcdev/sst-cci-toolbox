@@ -45,7 +45,7 @@ public class SamplingPointGenerationToolTest {
         SamplingPointGenerationTool.assignFromConfig(workflowContext, configuration);
 
         assertEquals(1167609600000L, workflowContext.getStartTime());
-        assertEquals(1167609599000L, workflowContext.getStopTime());
+        assertEquals(1167609600000L, workflowContext.getStopTime());
         assertEquals(517, workflowContext.getSearchTimePast());
         assertEquals(523, workflowContext.getSearchTimeFuture());
         assertEquals("Mathilde", workflowContext.getSensorName1());

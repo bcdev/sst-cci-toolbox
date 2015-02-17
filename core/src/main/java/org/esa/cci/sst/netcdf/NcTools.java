@@ -25,7 +25,7 @@ import ucar.nc2.Attribute;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
-import java.awt.*;
+import java.awt.Rectangle;
 import java.io.IOException;
 import java.util.Arrays;
 

@@ -129,7 +129,7 @@ public class InsituSamplePointGenerator {
     private void extractPointsInTimeRange(List<SamplingPoint> samplingPoints, TimeRange timeRange) throws IOException {
         final List<SamplingPoint> pointsInFile = reader.readSamplingPoints();
         for (final SamplingPoint samplingPoint : pointsInFile) {
-            if (timeRange.includes(new Date(samplingPoint.getTime()))) {
+            if (timeRange.includes(samplingPoint.getTime())) {
                 samplingPoints.add(samplingPoint);
             }
         }

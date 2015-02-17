@@ -7,7 +7,7 @@ fi
 
 ${mms.jdk.home}/bin/java \
     -Dmms.home="${mms.home}" \
-    -Xms8G -Xmx8G ${MMS_OPTIONS} \
+    -Xms16G -Xmx16G ${MMS_OPTIONS} \
     -javaagent:"${mms.home}/lib/openjpa-all-${openjpaversion}.jar" \
     -classpath "${mms.home}/lib/*" \
     org.esa.cci.sst.tools.mmdgeneration.MmdTool "$@"

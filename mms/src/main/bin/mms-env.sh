@@ -6,7 +6,7 @@
 set -e
 
 if [ -z "${MMS_INST}" ]; then
-    MMS_INST=`pwd`
+    MMS_INST=`pwd -P`
 fi
 
 MMS_TASKS=${MMS_INST}/tasks
