@@ -9,37 +9,56 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.NavigableSet;
 import java.util.TreeSet;
 
 public class RegionOverlapFilter {
 
-    private final OverlapComparator overlapComparator;
+    private final OverlapCalculator overlapCalculator;
+    private final Comparator<SamplingPoint> orderedComparator;
 
     public RegionOverlapFilter(int width, int height) {
-        overlapComparator = new OverlapComparator(new OverlapCalculator(width, height));
+        overlapCalculator = new OverlapCalculator(width, height);
+        orderedComparator = new Comparator<SamplingPoint>() {
+            @Override
+            public final int compare(SamplingPoint o1, SamplingPoint o2) {
+                final int compareY = Integer.compare(o1.getY(), o2.getY());
+                if (compareY == 0) {
+                    return Integer.compare(o1.getX(), o2.getX());
+                } else {
+                    return compareY;
+                }
+            }
+        };
     }
 
     public List<SamplingPoint> apply(List<SamplingPoint> points) {
-        final List<SamplingPoint> sparsePoints = new LinkedList<>();
+        final List<SamplingPoint> nonOverlappingPoints = new LinkedList<>();
         if (points.size() <= 1) {
-            sparsePoints.addAll(points);
-            return sparsePoints;
+            nonOverlappingPoints.addAll(points);
+            return nonOverlappingPoints;
         }
 
         final List<List<SamplingPoint>> byOrbit = splitByOrbit(points);
-        for (final List<SamplingPoint> pointsByOrbit : byOrbit) {
-            sparsePoints.addAll(getSparsePoints(pointsByOrbit));
+        for (final List<SamplingPoint> pointsForOrbit : byOrbit) {
+            nonOverlappingPoints.addAll(getNonOverlappingPoints(pointsForOrbit));
         }
 
-        return sparsePoints;
+        return nonOverlappingPoints;
     }
 
-    private Collection<SamplingPoint> getSparsePoints(Collection<SamplingPoint> pointsByOrbit) {
-        final Set<SamplingPoint> sparseSet = new TreeSet<>(overlapComparator);
-        sparseSet.addAll(pointsByOrbit);
+    private Collection<SamplingPoint> getNonOverlappingPoints(Collection<SamplingPoint> points) {
+        final NavigableSet<SamplingPoint> unique = new TreeSet<>(orderedComparator);
+        final NavigableSet<SamplingPoint> result = new TreeSet<>(orderedComparator);
 
-        return sparseSet;
+        unique.addAll(points);
+        for (final SamplingPoint point : unique) {
+            if (overlapCalculator.areOverlapping(point, result)) {
+                result.add(point);
+            }
+        }
+
+        return result;
     }
 
     // package access for testing only tb 2014-01-17
@@ -58,27 +77,5 @@ public class RegionOverlapFilter {
         }
 
         return byOrbit;
-    }
-
-    private static final class OverlapComparator implements Comparator<SamplingPoint> {
-
-        private final OverlapCalculator overlapCalculator;
-
-        public OverlapComparator(OverlapCalculator overlapCalculator) {
-            this.overlapCalculator = overlapCalculator;
-        }
-
-        @Override
-        public int compare(SamplingPoint o1, SamplingPoint o2) {
-            if (overlapCalculator.areOverlapping(o1, o2)) {
-                return 0;
-            }
-            final int compareY = Integer.compare(o1.getY(), o2.getY());
-            if (compareY == 0) {
-                return Integer.compare(o1.getX(), o2.getX());
-            } else {
-                return compareY;
-            }
-        }
     }
 }
