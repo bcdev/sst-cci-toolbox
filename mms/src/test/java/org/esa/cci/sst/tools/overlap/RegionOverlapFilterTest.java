@@ -90,7 +90,7 @@ public class RegionOverlapFilterTest {
         assertEquals(2, filteredList.size());
 
         assertSamplePointAt(102, 13, 0, filteredList);
-        assertSamplePointAt(19, 83, 1, filteredList);
+        assertSamplePointAt(21, 82, 1, filteredList);
     }
 
     @Test
@@ -236,12 +236,11 @@ public class RegionOverlapFilterTest {
     }
 
     @Test
-    @Ignore
     public void testFilter_fullOrbit() {
         final int width = 512;
-        final int height = 512;
+        final int height = 40000;
         final int maxOrbit = 1;
-        final int count = 3000000;
+        final int count = 100000;
         final List<SamplingPoint> samplingPoints = new ArrayList<>(count);
         final SobolSequenceGenerator sequenceGenerator = new SobolSequenceGenerator(3);
 
@@ -261,6 +260,8 @@ public class RegionOverlapFilterTest {
         timer.stop();
         System.out.println("Filtered count = " + filtererList.size());
         System.out.println("time [s]       = " + timer.deltaTInSecs());
+
+        assertEquals(82715, filtererList.size());
     }
 
     private void assertSamplePointAt(int expectedX, int expectedY, int index, List<SamplingPoint> filteredList) {
