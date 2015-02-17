@@ -138,18 +138,18 @@ public class MmdTool extends BasicTool {
     }
 
     private void run() throws IOException {
-            final Configuration config = getConfig();
+        final Configuration config = getConfig();
 
-            matchupList = readMatchups();
-            final Map<Long, Integer> matchupIdToRecordIndexMap = createMatchupIdToRecordIndexMap();
-            final int matchupCount = matchupIdToRecordIndexMap.size();
-            if (matchupCount == 0) {
-                throw new ToolException("No matchups to write.", ToolException.ZERO_MATCHUPS_ERROR);
-            }
-            final NetcdfFileWriter writer = createNetcdfFileWriter(config);
-            try (MmdWriter mmdWriter = createMmdWriter(writer)) {
-                writeMmdFile(mmdWriter, matchupIdToRecordIndexMap);
-            }
+        matchupList = readMatchups();
+        final Map<Long, Integer> matchupIdToRecordIndexMap = createMatchupIdToRecordIndexMap();
+        final int matchupCount = matchupIdToRecordIndexMap.size();
+        if (matchupCount == 0) {
+            throw new ToolException("No matchups to write.", ToolException.ZERO_MATCHUPS_ERROR);
+        }
+        final NetcdfFileWriter writer = createNetcdfFileWriter(config);
+        try (MmdWriter mmdWriter = createMmdWriter(writer)) {
+            writeMmdFile(mmdWriter, matchupIdToRecordIndexMap);
+        }
     }
 
     private List<Matchup> readMatchups() {
