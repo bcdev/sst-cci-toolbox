@@ -20,6 +20,8 @@ final class OverlapCalculator {
     }
 
     boolean areOverlapping(SamplingPoint point, NavigableSet<SamplingPoint> others) {
+        // using reverse iteration boosts performance, because input set is ordered by y and x coordinates
+        // reverse iteration results in the minimum number of comparisons rq-2015-02-17
         for (Iterator<SamplingPoint> iterator = others.descendingIterator(); iterator.hasNext(); ) {
             final SamplingPoint other = iterator.next();
             if (other.getY() < point.getY() - height) {
