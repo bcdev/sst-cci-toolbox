@@ -35,7 +35,11 @@ public interface Storage {
 
     List<RelatedObservation> getRelatedObservations(String sensorName, Date startDate, Date stopDate);
 
+    List<RelatedObservation> getRelatedObservationsOrderedByTimeDelta(String sensorName, Date startDate, Date stopDate, Date referenceDate);
+
     List<GlobalObservation> getGlobalObservations(String sensorName, Date startDate, Date stopDate);
+
+    List<GlobalObservation> getGlobalObservationsOrderedByTimeDelta(String sensorName, Date startDate, Date stopDate, Date referenceDate);
 
     ReferenceObservation getReferenceObservation(int id);
 

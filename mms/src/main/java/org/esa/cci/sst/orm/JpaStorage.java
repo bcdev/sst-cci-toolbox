@@ -19,31 +19,19 @@ class JpaStorage implements Storage {
 //            + " and st_intersects(o.location, st_geomfromewkt(?3))"
 //            + " order by abs(extract(epoch from o.time) - extract(epoch from timestamp ?2))";
 
-    // TODO - use
-    private static final String COINCIDING_OBSERVATION_QUERY =
-            "select o.id"
-                    + " from mm_observation o"
-                    + " where o.sensor = ?1"
-                    + " and o.time >= timestamp ?2 - interval '12:00:00' and o.time < timestamp ?2 + interval '12:00:00'"
-                    + " and st_intersects(o.location, st_geomfromewkt(?3))"
-                    + " order by abs(extract(epoch from o.time) - extract(epoch from timestamp ?2))";
-
-    // TODO - use
-    private static final String COINCIDING_GLOBALOBS_QUERY =
-            "select o.id"
-                    + " from mm_observation o"
-                    + " where o.sensor = ?1"
-                    + " and o.time >= timestamp ?2 - interval '12:00:00' and o.time < timestamp ?2 + interval '12:00:00'"
-                    + " order by abs(extract(epoch from o.time) - extract(epoch from timestamp ?2))";
-
-
-
     private static final String SENSOR_OBSERVATION_QUERY_TEMPLATE_STRING =
             "select o.id"
                     + " from mm_observation o"
                     + " where o.sensor = ?1"
                     + " and o.time >= timestamp ?2 and o.time < timestamp ?3"
                     + " order by o.time, o.id";
+
+    private static final String SENSOR_OBSERVATION_QUERY_TEMPLATE_STRING_TIME_DELTA =
+            "select o.id"
+                    + " from mm_observation o"
+                    + " where o.sensor = ?1"
+                    + " and o.time >= timestamp ?2 and o.time < timestamp ?3"
+                    + " order by abs(extract(epoch from o.time) - extract(epoch from timestamp ?4))";
 
     private final PersistenceManager persistenceManager;
 
@@ -125,8 +113,19 @@ class JpaStorage implements Storage {
 
     @Override
     public List<RelatedObservation> getRelatedObservations(String sensorName, Date startDate, Date stopDate) {
-        final String queryString = createObservationQueryTemplateString(startDate, stopDate);
-        final Query query = persistenceManager.createNativeQuery(queryString, RelatedObservation.class);
+        final String sql = createObservationQueryTemplateString(startDate, stopDate);
+        final Query query = persistenceManager.createNativeQuery(sql, RelatedObservation.class);
+        query.setParameter(1, sensorName);
+
+        //noinspection unchecked
+        return query.getResultList();
+    }
+
+    @Override
+    public List<RelatedObservation> getRelatedObservationsOrderedByTimeDelta(String sensorName, Date startDate, Date stopDate, Date referenceDate) {
+        final String sql = createTimeDeltaOrderedObservationQueryTemplate(startDate, stopDate, referenceDate);
+
+        final Query query = persistenceManager.createNativeQuery(sql, RelatedObservation.class);
         query.setParameter(1, sensorName);
 
         //noinspection unchecked
@@ -144,6 +143,17 @@ class JpaStorage implements Storage {
     }
 
     @Override
+    public List<GlobalObservation> getGlobalObservationsOrderedByTimeDelta(String sensorName, Date startDate, Date stopDate, Date referenceDate) {
+        final String sql = createTimeDeltaOrderedObservationQueryTemplate(startDate, stopDate, referenceDate);
+
+        final Query query = persistenceManager.createNativeQuery(sql, GlobalObservation.class);
+        query.setParameter(1, sensorName);
+
+        //noinspection unchecked
+        return query.getResultList();
+    }
+
+    @Override
     public void store(InsituObservation insituObservation) {
         persistenceManager.persist(insituObservation);
     }
@@ -154,5 +164,14 @@ class JpaStorage implements Storage {
         return SENSOR_OBSERVATION_QUERY_TEMPLATE_STRING
                 .replaceAll("\\?2", "'" + startDateString + "'")
                 .replaceAll("\\?3", "'" + stopDateString + "'");
+    }
+
+    private String createTimeDeltaOrderedObservationQueryTemplate(Date startDate, Date stopDate, Date referenceDate) {
+        final String startDateString = TimeUtil.formatCcsdsUtcFormat(startDate);
+        final String stopDateString = TimeUtil.formatCcsdsUtcFormat(stopDate);
+        final String referenceDateString = TimeUtil.formatCcsdsUtcFormat(referenceDate);
+        return SENSOR_OBSERVATION_QUERY_TEMPLATE_STRING_TIME_DELTA.replaceAll("\\?2", "'" + startDateString + "'")
+                .replaceAll("\\?3", "'" + stopDateString + "'")
+                .replaceAll("\\?4", "'" + referenceDateString + "'");
     }
 }

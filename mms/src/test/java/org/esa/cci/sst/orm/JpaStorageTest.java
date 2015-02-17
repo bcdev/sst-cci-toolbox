@@ -148,7 +148,7 @@ public class JpaStorageTest {
     @Test
     public void testGetRelatedObservations() throws ParseException {
         final Date startDate = TimeUtil.parseCcsdsUtcFormat("2010-01-01T13:00:00Z");
-        final Date stoptDate = TimeUtil.parseCcsdsUtcFormat("2010-01-05T17:00:00Z");
+        final Date stopDate = TimeUtil.parseCcsdsUtcFormat("2010-01-05T17:00:00Z");
         final String sensorName = "thermometer";
         final String sql = "select o.id from mm_observation o where o.sensor = ?1 and o.time >= timestamp '2010-01-01T13:00:00Z' and o.time < timestamp '2010-01-05T17:00:00Z' order by o.time, o.id";
 
@@ -161,7 +161,36 @@ public class JpaStorageTest {
         when(query.getResultList()).thenReturn(observations);
         when(persistenceManager.createNativeQuery(sql, RelatedObservation.class)).thenReturn(query);
 
-        final List<RelatedObservation> storedObservations = jpaStorage.getRelatedObservations(sensorName, startDate, stoptDate);
+        final List<RelatedObservation> storedObservations = jpaStorage.getRelatedObservations(sensorName, startDate, stopDate);
+        assertNotNull(storedObservations);
+        assertEquals(1, storedObservations.size());
+
+        verify(persistenceManager, times(1)).createNativeQuery(sql, RelatedObservation.class);
+        verifyNoMoreInteractions(persistenceManager);
+
+        verify(query, times(1)).setParameter(1, sensorName);
+        verify(query, times(1)).getResultList();
+        verifyNoMoreInteractions(query);
+    }
+
+    @Test
+    public void testGetRelatedObservationsOrderedByTimeDelta() throws ParseException {
+        final Date startDate = TimeUtil.parseCcsdsUtcFormat("2010-01-01T13:00:00Z");
+        final Date stopDate = TimeUtil.parseCcsdsUtcFormat("2010-01-05T17:00:00Z");
+        final Date referenceDate = TimeUtil.parseCcsdsUtcFormat("2010-01-03T15:00:00Z");
+        final String sensorName = "odometer";
+        final String sql = "select o.id from mm_observation o where o.sensor = ?1 and o.time >= timestamp '2010-01-01T13:00:00Z' and o.time < timestamp '2010-01-05T17:00:00Z' order by abs(extract(epoch from o.time) - extract(epoch from timestamp '2010-01-03T15:00:00Z'))";
+
+        final List<RelatedObservation> observations = new ArrayList<>();
+        final RelatedObservation observation = new RelatedObservation();
+        observation.setName("tested observation");
+        observations.add(observation);
+
+        final Query query = mock(Query.class);
+        when(query.getResultList()).thenReturn(observations);
+        when(persistenceManager.createNativeQuery(sql, RelatedObservation.class)).thenReturn(query);
+
+        final List<RelatedObservation> storedObservations = jpaStorage.getRelatedObservationsOrderedByTimeDelta(sensorName, startDate, stopDate, referenceDate);
         assertNotNull(storedObservations);
         assertEquals(1, storedObservations.size());
 
@@ -190,6 +219,35 @@ public class JpaStorageTest {
         when(persistenceManager.createNativeQuery(sql, GlobalObservation.class)).thenReturn(query);
 
         final List<GlobalObservation> storedObservations = jpaStorage.getGlobalObservations(sensorName, startDate, stoptDate);
+        assertNotNull(storedObservations);
+        assertEquals(1, storedObservations.size());
+
+        verify(persistenceManager, times(1)).createNativeQuery(sql, GlobalObservation.class);
+        verifyNoMoreInteractions(persistenceManager);
+
+        verify(query, times(1)).setParameter(1, sensorName);
+        verify(query, times(1)).getResultList();
+        verifyNoMoreInteractions(query);
+    }
+
+    @Test
+    public void testGetGlobalObservationsOrderedByTimeDelta() throws ParseException {
+        final Date startDate = TimeUtil.parseCcsdsUtcFormat("2011-02-01T13:00:00Z");
+        final Date stopDate = TimeUtil.parseCcsdsUtcFormat("2011-02-05T17:00:00Z");
+        final Date referenceDate = TimeUtil.parseCcsdsUtcFormat("2011-02-03T15:00:00Z");
+        final String sensorName = "BangBüx";
+        final String sql = "select o.id from mm_observation o where o.sensor = ?1 and o.time >= timestamp '2011-02-01T13:00:00Z' and o.time < timestamp '2011-02-05T17:00:00Z' order by abs(extract(epoch from o.time) - extract(epoch from timestamp '2011-02-03T15:00:00Z'))";
+
+        final List<GlobalObservation> observations = new ArrayList<>();
+        final GlobalObservation observation = new GlobalObservation();
+        observation.setName("tested GlobObs");
+        observations.add(observation);
+
+        final Query query = mock(Query.class);
+        when(query.getResultList()).thenReturn(observations);
+        when(persistenceManager.createNativeQuery(sql, GlobalObservation.class)).thenReturn(query);
+
+        final List<GlobalObservation> storedObservations = jpaStorage.getGlobalObservationsOrderedByTimeDelta(sensorName, startDate, stopDate, referenceDate);
         assertNotNull(storedObservations);
         assertEquals(1, storedObservations.size());
 
