@@ -25,8 +25,6 @@ import java.util.regex.Pattern;
  * property values.
  *
  * @author Ralf Quast
- *
- * TODO - this class is duplicated in org.esa.sst.example. Remove from there and copy test class from there to here
  */
 public class TemplateResolver {
 
@@ -49,22 +47,10 @@ public class TemplateResolver {
     }
 
     /**
-     * Resolves the property with the given key.
-     *
-     * @param key the property key.
-     *
-     * @return the resolved property value.
-     */
-    public String resolveProperty(String key) {
-        return resolve(properties.getProperty(key));
-    }
-
-    /**
      * Makes a two-pass replacement for all occurrences of <code>${property-name}</code>
      * in a given template string with the value of the corresponding property.
      *
      * @param template The template string.
-     *
      * @return the template string with replacements made.
      */
     public final String resolve(String template) {
@@ -77,12 +63,11 @@ public class TemplateResolver {
      *
      * @param template The template string.
      * @param n        The number of passes.
-     *
      * @return the template string with replacements made.
      */
     private String resolve(String template, int n) {
         if (template == null) {
-            return template;
+            return null;
         }
 
         final StringBuilder sb = new StringBuilder(template);
@@ -111,12 +96,7 @@ public class TemplateResolver {
         return sb.toString();
     }
 
-    public boolean canResolve(String string) {
-        return !pattern.matcher(resolve(string)).find();
-    }
-
     public boolean isResolved(String string) {
         return !pattern.matcher(string).find();
     }
-
 }

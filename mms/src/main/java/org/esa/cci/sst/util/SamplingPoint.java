@@ -9,11 +9,9 @@ public final class SamplingPoint {
     private double lon;
     private double lat;
     private long time;
-    // todo - make Integer?
     private int reference;
     private int index;
 
-    // todo - make Integer?
     private int reference2 = -1;
     private int x;
     private int y;
