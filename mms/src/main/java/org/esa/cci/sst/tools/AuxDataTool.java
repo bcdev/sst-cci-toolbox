@@ -76,11 +76,6 @@ public class AuxDataTool extends BasicTool {
         final PersistenceManager persistenceManager = getPersistenceManager();
 
         for (final Matchup matchup : matchups) {
-            final Date matchupTime = matchup.getRefObs().getTime();
-            final long matchupMillis = matchupTime.getTime();
-
-            final List<Coincidence> coincidences = matchup.getCoincidences();
-
             try {
                 persistenceManager.transaction();
 
