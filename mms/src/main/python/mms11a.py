@@ -4,7 +4,7 @@ from workflow import Workflow
 usecase = 'mms11a'
 mmdtype = 'mmd11'
 
-w = Workflow(usecase)
+w = Workflow(usecase, Period('2005-05-01', '2005-06-01'))
 #w.add_primary_sensor('avhrr.n10', '1986-11-17', '1991-09-17')
 w.add_primary_sensor('avhrr.n11', '1988-11-08', '1994-09-14')
 w.add_primary_sensor('avhrr.n12', '1991-09-16', '1998-12-15')
@@ -33,4 +33,4 @@ w.add_secondary_sensor('avhrr.n19', '2009-02-06', '2014-01-01')
 w.add_secondary_sensor('avhrr.m02', '2006-11-21', '2014-01-01')
 w.set_samples_per_month(10000000)
 
-w.run(mmdtype, hosts=[('localhost', 48)])
+w.run(mmdtype, hosts=[('localhost', 1)])

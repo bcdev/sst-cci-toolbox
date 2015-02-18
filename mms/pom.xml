@@ -204,7 +204,7 @@
                 <!-- Path to the MMS installation -->
                 <mms.home>/group_workspaces/cems2/esacci_sst/mms/software/sst-cci-mms-${project.version}</mms.home>
                 <!-- Path to the root directory of the MMS data archive -->
-                <mms.archive.root>/group_workspaces/cems2/esacci_sst/mms/archive</mms.archive.root>
+                <mms.archive.root>/group_workspaces/cems2/esacci_sst/mms/archive-experimental</mms.archive.root>
                 <!-- Path to the MMS tmp directory -->
                 <mms.tmpdir>/group_workspaces/cems2/esacci_sst/mms/tmp</mms.tmpdir>
 
