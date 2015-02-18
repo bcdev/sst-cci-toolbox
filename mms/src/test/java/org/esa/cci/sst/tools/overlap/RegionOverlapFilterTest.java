@@ -8,7 +8,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -91,7 +90,7 @@ public class RegionOverlapFilterTest {
         assertEquals(2, filteredList.size());
 
         assertSamplePointAt(102, 13, 0, filteredList);
-        assertSamplePointAt(19, 83, 1, filteredList);
+        assertSamplePointAt(21, 82, 1, filteredList);
     }
 
     @Test
@@ -186,15 +185,15 @@ public class RegionOverlapFilterTest {
         addSamplePoint(67, pointList);
         addSamplePoint(67, pointList);
 
-        final List<List<SamplingPoint>> orbitLists = filter.splitByOrbit(pointList);
-        assertNotNull(orbitLists);
-        assertEquals(2, orbitLists.size());
+        final List<List<SamplingPoint>> byOrbit = filter.splitByOrbit(pointList);
+        assertNotNull(byOrbit);
+        assertEquals(2, byOrbit.size());
 
-        List<SamplingPoint> orbitPoints = orbitLists.get(0);
+        List<SamplingPoint> orbitPoints = byOrbit.get(0);
         assertNotNull(orbitPoints);
         assertEquals(3, orbitPoints.size());
 
-        orbitPoints = orbitLists.get(1);
+        orbitPoints = byOrbit.get(1);
         assertNotNull(orbitPoints);
         assertEquals(2, orbitPoints.size());
     }
@@ -237,13 +236,12 @@ public class RegionOverlapFilterTest {
     }
 
     @Test
-    @Ignore
-    public void testTheBigList() {
+    public void testFilter_fullOrbit() {
         final int width = 512;
         final int height = 40000;
         final int maxOrbit = 1;
-        final int count = 150000;
-        final LinkedList<SamplingPoint> samplingPoints = new LinkedList<>();
+        final int count = 100000;
+        final List<SamplingPoint> samplingPoints = new ArrayList<>(count);
         final SobolSequenceGenerator sequenceGenerator = new SobolSequenceGenerator(3);
 
         for (int i = 0; i < count; i++) {
@@ -258,12 +256,12 @@ public class RegionOverlapFilterTest {
         final Timer timer = new Timer();
         System.out.println("Initial count  = " + samplingPoints.size());
         timer.start();
-
         final List<SamplingPoint> filtererList = filter.apply(samplingPoints);
-
         timer.stop();
         System.out.println("Filtered count = " + filtererList.size());
         System.out.println("time [s]       = " + timer.deltaTInSecs());
+
+        assertEquals(82715, filtererList.size());
     }
 
     private void assertSamplePointAt(int expectedX, int expectedY, int index, List<SamplingPoint> filteredList) {
