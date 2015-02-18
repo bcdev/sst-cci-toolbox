@@ -19,6 +19,7 @@ package org.esa.cci.sst.tools.mmdgeneration;
 import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.PixelPos;
+import org.esa.beam.util.io.WildcardMatcher;
 import org.esa.cci.sst.ColumnRegistry;
 import org.esa.cci.sst.Predicate;
 import org.esa.cci.sst.common.ExtractDefinition;
@@ -38,9 +39,12 @@ import org.esa.cci.sst.rules.Converter;
 import org.esa.cci.sst.rules.RuleException;
 import org.esa.cci.sst.tool.Configuration;
 import org.esa.cci.sst.tool.ToolException;
+import org.esa.cci.sst.tools.ArchiveUtils;
 import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tools.Constants;
+import org.esa.cci.sst.tools.matchup.MatchupIO;
 import org.esa.cci.sst.util.ConfigUtil;
+import org.esa.cci.sst.util.Month;
 import org.esa.cci.sst.util.ReaderCache;
 import org.postgis.Point;
 import ucar.ma2.Array;
@@ -48,9 +52,7 @@ import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFileWriter;
 import ucar.nc2.Variable;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -78,7 +80,6 @@ public class MmdTool extends BasicTool {
 
     private List<Matchup> matchupList;
     private ReaderCache readerCache;
-    private String inputType;
     private String usecaseRootPath;
     private String[] sensorNames;
 
@@ -120,7 +121,6 @@ public class MmdTool extends BasicTool {
 
         final Configuration config = getConfig();
 
-        inputType = config.getStringValue(Configuration.KEY_MMS_MMD_INPUT_TYPE);
         final int readerCacheSize = config.getIntValue(Configuration.KEY_MMS_MMD_READER_CACHE_SIZE, 10);
 
         sensorNames = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR).split(",", 2);
@@ -152,29 +152,41 @@ public class MmdTool extends BasicTool {
         }
     }
 
-    private List<Matchup> readMatchups() {
+    private List<Matchup> readMatchups() throws IOException {
         final Configuration config = getConfig();
-        final ArrayList<Matchup> result = new ArrayList<>();
 
-        final Date startTime = getStartTime(config);
-        final Date stopTime = getStopTime(config);
+        final File[] inputFiles = globMatchingInputFiles(config, usecaseRootPath, sensorNames[0]);
+        logger.info(inputFiles.length + " input files found.");
 
-        // TODO - compute year from start time
-        // TODO - compute month from start time
-        // TODO - compute year from stop time
-        // TODO - compute month from stop time
-
-        // TODO - read all matchup's from relevant clean-env or clean file(s):
-        //
-        // if there are two sensorNames read matchups from files like sensor1,sensor2-year-month.json
-        // if there is one sensorName only, read matchups from files like sensor1,sensor2-year-month.json, sensor3,sensor1-year-month.json
-
+        final ArrayList<Matchup> allMatchups = new ArrayList<Matchup>();
         final long pattern = getPattern(config);
-        final String condition = getCondition(config);
 
-        // TODO - select only matchups that correspond to pattern and condition given in config
+        for(final File jsonFile : inputFiles) {
+            logger.info("Reading matchups from file '" + jsonFile.getName() +"'.");
+            final List<Matchup> matchups = MatchupIO.read(new BufferedInputStream(new FileInputStream(jsonFile)));
+            logger.info(matchups.size() +" matchups loaded.");
+            for (final Matchup matchup : matchups) {
+                if (matchup.getPattern() == pattern) {
+                    allMatchups.add(matchup);
+                }
+            }
+        }
 
-        return result;
+        return allMatchups;
+    }
+
+    static File[] globMatchingInputFiles(Configuration config, String usecaseRootPath, String primarySensorName) throws IOException {
+        final String inputType = config.getStringValue(Configuration.KEY_MMS_MMD_INPUT_TYPE);
+        final Month centerMonth = ConfigUtil.getCenterMonth(Configuration.KEY_MMS_MMD_TARGET_START_TIME, Configuration.KEY_MMS_MMD_TARGET_STOP_TIME, config);
+
+        final String wildcardPath = ArchiveUtils.createWildcardPath(usecaseRootPath, primarySensorName, inputType, centerMonth.getYear(), centerMonth.getMonth());
+        final File[] files;
+        try {
+            files = WildcardMatcher.glob(wildcardPath);
+        } catch (IOException e) {
+            return new File[0];
+        }
+        return files;
     }
 
     /**
@@ -232,22 +244,6 @@ public class MmdTool extends BasicTool {
                 }
             }
         }
-    }
-
-    private List<Matchup> getMatchupsFromDb(MatchupStorage matchupStorage, Configuration config, String sensorName) {
-        logger.info(String.format("going to retrieve matchups for %s", sensorName));
-
-        final MatchupQueryParameter parameter = new MatchupQueryParameter();
-        parameter.setSensorName(sensorName);
-        parameter.setStartDate(getStartTime(config));
-        parameter.setStopDate(getStopTime(config));
-        parameter.setCondition(getCondition(config));
-        parameter.setPattern(getPattern(config));
-
-        final List<Matchup> matchups = matchupStorage.getForMmd(parameter);
-
-        logger.info(String.format("%d matchups retrieved for %s", matchups.size(), sensorName));
-        return matchups;
     }
 
     private Map<Long, Integer> createMatchupIdToRecordIndexMap() {

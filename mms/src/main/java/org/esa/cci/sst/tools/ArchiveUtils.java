@@ -18,6 +18,29 @@ public class ArchiveUtils {
         return createTypedPath(archiveRoot, sensorNames, year, month, "clean-env");
     }
 
+    public static String createWildcardPath(String archiveRoot, String sensorName, String type, int year, int month) {
+        final StringBuilder stringBuilder = new StringBuilder(256);
+
+        stringBuilder.append(archiveRoot);
+        stringBuilder.append("/");
+        stringBuilder.append(type);
+        stringBuilder.append("/");
+        stringBuilder.append(sensorName);
+        stringBuilder.append("*/");
+        stringBuilder.append(year);
+        stringBuilder.append("/");
+        stringBuilder.append(sensorName);
+        stringBuilder.append("*-");
+        stringBuilder.append(type);
+        stringBuilder.append("-");
+        stringBuilder.append(year);
+        stringBuilder.append("-");
+        stringBuilder.append(monthFormat.format(month));
+        stringBuilder.append(".json");
+
+        return stringBuilder.toString();
+    }
+
     public static String createTypedPath(String archiveRoot, String[] sensorNames, int year, int month, String type) {
         final StringBuilder stringBuilder = new StringBuilder(256);
         stringBuilder.append(archiveRoot);

@@ -307,16 +307,6 @@ public class MmdToolTest {
         verifyNoMoreInteractions(persistenceManager);
     }
 
-    private String toPath(String... pathComponents) {
-        final StringBuilder stringBuilder = new StringBuilder();
-        for (String component : pathComponents) {
-            stringBuilder.append(component);
-            stringBuilder.append(File.separator);
-        }
-
-        return stringBuilder.substring(0, stringBuilder.length() - 1);
-    }
-
     private void assertCorrectDate(int year, int month, int day, Date date) {
         final GregorianCalendar utcCalendar = TimeUtil.createUtcCalendar();
         utcCalendar.setTime(date);

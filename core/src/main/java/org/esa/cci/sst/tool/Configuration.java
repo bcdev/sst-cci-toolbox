@@ -108,9 +108,6 @@ public class Configuration {
     public static final String KEY_MMS_SELECTION_MMD_SOURCE = "mms.selection.source";
     public static final String KEY_MMS_SELECTION_MMD_TARGET = "mms.selection.target";
 
-    public static final String KEY_MMS_TIMEDELTA_AAI = "mms.timedelta.aai";
-    public static final String KEY_MMS_TIMEDELTA_SEAICE = "mms.timedelta.seaice";
-
     private final Properties properties;
     private String toolHome;
 
