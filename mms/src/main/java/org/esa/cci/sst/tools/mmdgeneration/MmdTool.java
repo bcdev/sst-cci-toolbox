@@ -68,7 +68,7 @@ public class MmdTool extends BasicTool {
     private List<Matchup> matchupList;
     private ReaderCache readerCache;
     private String usecaseRootPath;
-    private String[] sensorNames;
+    private String sensorNames;
 
     public MmdTool() {
         super("mmd-tool.sh", "0.1");
@@ -110,7 +110,7 @@ public class MmdTool extends BasicTool {
 
         final int readerCacheSize = config.getIntValue(Configuration.KEY_MMS_MMD_READER_CACHE_SIZE, 10);
 
-        sensorNames = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR).split(",", 2);
+        sensorNames = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR);
         usecaseRootPath = ConfigUtil.getUsecaseRootPath(config);
         readerCache = new ReaderCache(readerCacheSize, config, logger);
 
@@ -142,7 +142,7 @@ public class MmdTool extends BasicTool {
     private List<Matchup> readMatchups() throws IOException {
         final Configuration config = getConfig();
 
-        final File[] inputFiles = globMatchingInputFiles(config, usecaseRootPath, sensorNames[0]);
+        final File[] inputFiles = globMatchingInputFiles(config, usecaseRootPath, sensorNames);
         logger.info(inputFiles.length + " input files found.");
 
         final ArrayList<Matchup> allMatchups = new ArrayList<>();
@@ -380,8 +380,7 @@ public class MmdTool extends BasicTool {
 
 
     private void registerTargetColumns(Configuration config) {
-        // @todo 3 tb/tb move to initializer class - need to discuss. tb 2014-03-10
-        final Predicate predicate = new SensorPredicate(sensorNames);
+        final Predicate predicate = new SensorPredicate(sensorNames.split(",", 2));
         final String configFilePath = config.getStringValue(Configuration.KEY_MMS_MMD_TARGET_VARIABLES);
         try {
             final List<String> names = columnRegistry.registerColumns(new File(configFilePath), predicate);

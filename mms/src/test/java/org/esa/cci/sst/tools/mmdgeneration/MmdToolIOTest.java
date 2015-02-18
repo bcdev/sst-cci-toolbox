@@ -82,7 +82,7 @@ public class MmdToolIOTest {
     }
 
     @Test
-    public void testGlobMatchingInputFiles_dualSensor() throws Exception {
+    public void testGlobMatchingInputFiles_dualSensor_1() throws Exception {
         createFileInDir("clean", "atsr.3,avhrr.n18", 2003, 6);
         createFileInDir("clean", "atsr.3,avhrr.n17", 2003, 6);
         createFileInDir("clean", "avhrr.n18,avhrr.n17", 2003, 6);
@@ -98,6 +98,25 @@ public class MmdToolIOTest {
 
         result = MmdTool.globMatchingInputFiles(config, archive_root.getAbsolutePath(), "avhrr.n18");
         assertEquals(2, result.length);
+    }
+
+    @Test
+    public void testGlobMatchingInputFiles_dualSensor_2() throws Exception {
+        createFileInDir("clean", "atsr.3,avhrr.n18", 2003, 6);
+        createFileInDir("clean", "atsr.3,avhrr.n17", 2003, 6);
+        createFileInDir("clean", "avhrr.n18,avhrr.n17", 2003, 6);
+
+        final Configuration config = createConfiguration("clean", 2003, 6);
+        File[] result;
+
+        result = MmdTool.globMatchingInputFiles(config, archive_root.getAbsolutePath(), "atsr.3,avhrr.n17");
+        assertEquals(1, result.length);
+
+        result = MmdTool.globMatchingInputFiles(config, archive_root.getAbsolutePath(), "avhrr.n17,avhrr.n18");
+        assertEquals(0, result.length);
+
+        result = MmdTool.globMatchingInputFiles(config, archive_root.getAbsolutePath(), "avhrr.n18,avhrr.n17");
+        assertEquals(1, result.length);
     }
 
     private void createFileInDir(String type, String sensorName, int year, int month) throws IOException {
