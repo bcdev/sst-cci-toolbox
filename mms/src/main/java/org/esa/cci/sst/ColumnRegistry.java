@@ -50,7 +50,7 @@ public class ColumnRegistry {
 
     private static final Predicate ALL = new Predicate() {
         @Override
-        public boolean test(String s) {
+        public boolean accept(String s) {
             return true;
         }
     };
@@ -123,7 +123,7 @@ public class ColumnRegistry {
                     final String line = stripComment(scanner.nextLine()).trim();
                     final String[] tokens = line.split("\\s+");
                     final String targetColumnName = tokens[0];
-                    if (predicate.test(targetColumnName)) {
+                    if (predicate.accept(targetColumnName)) {
                         try {
                             switch (tokens.length) {
                                 case 1:

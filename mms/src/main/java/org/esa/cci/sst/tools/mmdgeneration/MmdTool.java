@@ -24,15 +24,9 @@ import org.esa.cci.sst.ColumnRegistry;
 import org.esa.cci.sst.Predicate;
 import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.common.ExtractDefinitionBuilder;
-import org.esa.cci.sst.data.Coincidence;
-import org.esa.cci.sst.data.InsituObservation;
-import org.esa.cci.sst.data.Item;
-import org.esa.cci.sst.data.Matchup;
-import org.esa.cci.sst.data.Observation;
-import org.esa.cci.sst.data.ReferenceObservation;
+import org.esa.cci.sst.data.*;
 import org.esa.cci.sst.orm.ColumnStorage;
 import org.esa.cci.sst.orm.MatchupQueryParameter;
-import org.esa.cci.sst.orm.MatchupStorage;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.rules.Context;
 import org.esa.cci.sst.rules.Converter;
@@ -55,14 +49,7 @@ import ucar.nc2.Variable;
 import java.io.*;
 import java.text.MessageFormat;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.logging.Level;
 
 import static ucar.nc2.NetcdfFileWriter.Version;
@@ -141,11 +128,11 @@ public class MmdTool extends BasicTool {
         final Configuration config = getConfig();
 
         matchupList = readMatchups();
-        final Map<Long, Integer> matchupIdToRecordIndexMap = createMatchupIdToRecordIndexMap();
-        final int matchupCount = matchupIdToRecordIndexMap.size();
-        if (matchupCount == 0) {
+        if (matchupList.size() == 0) {
             throw new ToolException("No matchups to write.", ToolException.ZERO_MATCHUPS_ERROR);
         }
+
+        final Map<Long, Integer> matchupIdToRecordIndexMap = createMatchupIdToRecordIndexMap(matchupList);
         final NetcdfFileWriter writer = createNetcdfFileWriter(config);
         try (MmdWriter mmdWriter = createMmdWriter(writer)) {
             writeMmdFile(mmdWriter, matchupIdToRecordIndexMap);
@@ -158,13 +145,13 @@ public class MmdTool extends BasicTool {
         final File[] inputFiles = globMatchingInputFiles(config, usecaseRootPath, sensorNames[0]);
         logger.info(inputFiles.length + " input files found.");
 
-        final ArrayList<Matchup> allMatchups = new ArrayList<Matchup>();
+        final ArrayList<Matchup> allMatchups = new ArrayList<>();
         final long pattern = getPattern(config);
 
-        for(final File jsonFile : inputFiles) {
-            logger.info("Reading matchups from file '" + jsonFile.getName() +"'.");
+        for (final File jsonFile : inputFiles) {
+            logger.info("Reading matchups from file '" + jsonFile.getName() + "'.");
             final List<Matchup> matchups = MatchupIO.read(new BufferedInputStream(new FileInputStream(jsonFile)));
-            logger.info(matchups.size() +" matchups loaded.");
+            logger.info(matchups.size() + " matchups loaded.");
             for (final Matchup matchup : matchups) {
                 if (matchup.getPattern() == pattern) {
                     allMatchups.add(matchup);
@@ -230,30 +217,29 @@ public class MmdTool extends BasicTool {
                             } else {
                                 if (observation != null) {
                                     writeColumn(mmdWriter, variable, targetRecordNo, targetColumn, sourceColumn,
-                                                observation,
-                                                referenceObservation);
+                                            observation,
+                                            referenceObservation);
                                 }
                             }
                         }
                     }
                 } catch (IOException e) {
                     final String message = MessageFormat.format("matchup {0}: {1}",
-                                                                matchup.getId(),
-                                                                e.getMessage());
+                            matchup.getId(),
+                            e.getMessage());
                     throw new ToolException(message, e, ToolException.TOOL_IO_ERROR);
                 }
             }
         }
     }
 
-    private Map<Long, Integer> createMatchupIdToRecordIndexMap() {
+    static Map<Long, Integer> createMatchupIdToRecordIndexMap(List<Matchup> matchupList) {
         final Map<Long, Integer> matchupIdToRecordIndexMap = new HashMap<>(matchupList.size());
         for (int i = 0; i < matchupList.size(); ++i) {
             matchupIdToRecordIndexMap.put(matchupList.get(i).getId(), i);
         }
         return matchupIdToRecordIndexMap;
     }
-
 
     private Map<String, List<Variable>> createVariableSensorMap(List<Variable> mmdVariables) {
         final Map<String, List<Variable>> variableSensorMap = new HashMap<>();
@@ -319,11 +305,11 @@ public class MmdTool extends BasicTool {
             }
         } catch (IOException e) {
             final String message = MessageFormat.format("matchup {0}: {1}", context.getMatchup().getId(),
-                                                        e.getMessage());
+                    e.getMessage());
             throw new ToolException(message, e, ToolException.TOOL_IO_ERROR);
         } catch (RuleException | InvalidRangeException e) {
             final String message = MessageFormat.format("matchup {0}: {1}", context.getMatchup().getId(),
-                                                        e.getMessage());
+                    e.getMessage());
             throw new ToolException(message, e, ToolException.TOOL_ERROR);
         }
     }
@@ -347,7 +333,7 @@ public class MmdTool extends BasicTool {
             if (sourceArray != null) {
                 if (logger.isLoggable(Level.FINE)) {
                     logger.fine(MessageFormat.format("source column: {0}, {1}", sourceColumn.getName(),
-                                                     sourceColumn.getRole()));
+                            sourceColumn.getRole()));
                 }
                 sourceColumn = reader.getColumn(role);
                 if (sourceColumn == null) {

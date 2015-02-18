@@ -28,7 +28,7 @@ final class SensorPredicate implements Predicate {
     }
 
     @Override
-    public boolean test(String s) {
+    public boolean accept(String s) {
         if (prefixSet.isEmpty()) {
             return true;
         }

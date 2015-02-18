@@ -24,11 +24,11 @@ public class ArchiveUtils {
         stringBuilder.append(archiveRoot);
         stringBuilder.append("/");
         stringBuilder.append(type);
-        stringBuilder.append("/");
+        stringBuilder.append("/*");
         stringBuilder.append(sensorName);
         stringBuilder.append("*/");
         stringBuilder.append(year);
-        stringBuilder.append("/");
+        stringBuilder.append("/*");
         stringBuilder.append(sensorName);
         stringBuilder.append("*-");
         stringBuilder.append(type);

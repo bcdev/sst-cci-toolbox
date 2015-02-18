@@ -7,5 +7,5 @@ package org.esa.cci.sst;
  */
 public interface Predicate {
 
-    boolean test(String s);
+    boolean accept(String s);
 }

@@ -34,7 +34,7 @@ public class ArchiveUtilsTest {
 
     @Test
     public void testCreateArchiveWildcardPath() {
-         assertEquals("/archive/root/clean-env/amsre*/2008/amsre*-clean-env-2008-07.json",
+         assertEquals("/archive/root/clean-env/*amsre*/2008/*amsre*-clean-env-2008-07.json",
                  ArchiveUtils.createWildcardPath("/archive/root", "amsre", "clean-env", 2008, 7));
     }
 

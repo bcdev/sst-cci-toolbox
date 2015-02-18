@@ -39,7 +39,7 @@ public class MmdToolIOTest {
     }
 
     @Test
-    public void testGlobMatchingInputFiles_selectInputType() throws IOException {
+    public void testGlobMatchingInputFiles_singleSensor_selectInputType() throws IOException {
         createFileInDir("clean", "atsr.3", 2008, 6);
         createFileInDir("clean-env", "atsr.3", 2008, 6);
 
@@ -59,7 +59,7 @@ public class MmdToolIOTest {
     }
 
     @Test
-    public void testGlobMatchingInputFiles_selectSensor() throws IOException {
+    public void testGlobMatchingInputFiles_singleSensor_selectSensor() throws IOException {
         createFileInDir("clean", "atsr.3", 2008, 6);
         createFileInDir("clean", "atsr.4", 2008, 6);
 
@@ -70,7 +70,7 @@ public class MmdToolIOTest {
     }
 
     @Test
-    public void testGlobMatchingInputFiles_selectYear() throws IOException {
+    public void testGlobMatchingInputFiles_singleSensor_selectYear() throws IOException {
         createFileInDir("clean", "atsr.3", 2008, 6);
         createFileInDir("clean", "atsr.3", 2009, 7);
         createFileInDir("clean", "atsr.3", 2010, 8);
@@ -82,24 +82,19 @@ public class MmdToolIOTest {
     }
 
     @Test
-    public void testDifferentSensorPairs() throws Exception {
-        createFileInDir("clean", "atsr.3,avhrr.n15", 2003, 6);
-        createFileInDir("clean", "atsr.3,avhrr.n16", 2003, 6);
+    public void testGlobMatchingInputFiles_dualSensor() throws Exception {
+        createFileInDir("clean", "atsr.3,avhrr.n18", 2003, 6);
         createFileInDir("clean", "atsr.3,avhrr.n17", 2003, 6);
         createFileInDir("clean", "avhrr.n18,avhrr.n17", 2003, 6);
-        createFileInDir("clean", "avhrr.n18,atsr.3", 2003, 6);
 
         final Configuration config = createConfiguration("clean", 2003, 6);
         File[] result;
 
-        result = MmdTool.globMatchingInputFiles(config, archive_root.getAbsolutePath(), "atsr.2");
-        assertEquals(0, result.length);
-
         result = MmdTool.globMatchingInputFiles(config, archive_root.getAbsolutePath(), "atsr.3");
-        assertEquals(3, result.length);
+        assertEquals(2, result.length);
 
         result = MmdTool.globMatchingInputFiles(config, archive_root.getAbsolutePath(), "avhrr.n17");
-        assertEquals(0, result.length);
+        assertEquals(2, result.length);
 
         result = MmdTool.globMatchingInputFiles(config, archive_root.getAbsolutePath(), "avhrr.n18");
         assertEquals(2, result.length);
