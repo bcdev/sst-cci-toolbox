@@ -123,6 +123,10 @@ public class MatchupGenerator extends BasicTool {
             removeDirtySamples(logger, samples, false);
         }
 
+        if (samples.size() == 0) {
+            throw new ToolException("No samples found.", ToolException.NO_MATCHUPS_FOUND_ERROR);
+        }
+
         removeOverlappingSamples(logger, samples);
         createMatchups(logger, samples);
     }
