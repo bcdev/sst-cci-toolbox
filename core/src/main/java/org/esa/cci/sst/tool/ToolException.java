@@ -35,6 +35,7 @@ public class ToolException extends RuntimeException {
     public static final int TOOL_DB_ERROR = 31;
     public static final int TOOL_INTERNAL_ERROR = 41;
     public static final int NO_MATCHUPS_FOUND_ERROR = 51;
+    public static final int TOO_MANY_MATCHUPS_FOUND_ERROR = 52;
 
     private final int exitCode;
 
