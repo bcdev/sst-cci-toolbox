@@ -15,7 +15,7 @@ w.add_primary_sensor('atsr.3', '2002-05-20', '2012-04-09')
 w.add_secondary_sensor('avhrr.n17', '2002-07-10', '2003-04-09')
 w.add_secondary_sensor('avhrr.n17', '2003-12-21', '2011-01-01')
 w.add_secondary_sensor('avhrr.m02', '2006-11-21', '2014-01-01')
-w.set_samples_per_month(5000000)
+w.set_samples_per_month(4000000)
 
 w.run(mmdtype, hosts=[('localhost', 48)], with_selection=True)
 
