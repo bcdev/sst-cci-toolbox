@@ -19,18 +19,12 @@ package org.esa.cci.sst.assessment;
 import org.docx4j.wml.Drawing;
 import org.docx4j.wml.P;
 import org.docx4j.wml.R;
-import org.docx4j.wml.Text;
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
+import static org.junit.Assert.*;
 
 /**
  * @author Ralf Quast
@@ -42,11 +36,6 @@ public class WordDocumentTest {
     @BeforeClass
     public static void setUp() throws Exception {
         wordDocument = new WordDocument();
-    }
-
-    @AfterClass
-    public static void tearDown() throws Exception {
-        wordDocument.save(new File("test.docx"));
     }
 
     @Test
@@ -130,5 +119,20 @@ public class WordDocumentTest {
         assertSame(drawing, r.getContent().get(0));
 
         wordDocument.addCaption("Figure", "3", "The figure above is a replacement.");
+    }
+
+    @Test
+    public void testSave() throws Exception {
+        final File targetFile = new File("test.docx");
+
+        try {
+            wordDocument.save(targetFile);
+
+            assertTrue(targetFile.isFile());
+        } finally {
+            if (!targetFile.delete()) {
+                fail("unable to delete test file");
+            }
+        }
     }
 }
