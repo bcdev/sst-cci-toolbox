@@ -129,7 +129,7 @@ public class MmdTool extends BasicTool {
 
         matchupList = readMatchups();
         if (matchupList.size() == 0) {
-            throw new ToolException("No matchups to write.", ToolException.ZERO_MATCHUPS_ERROR);
+            throw new ToolException("No matchups to write.", ToolException.NO_MATCHUPS_FOUND_ERROR);
         }
 
         final Map<Long, Integer> matchupIdToRecordIndexMap = createMatchupIdToRecordIndexMap(matchupList);
