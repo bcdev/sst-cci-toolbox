@@ -163,6 +163,7 @@ public class MmdTool extends BasicTool {
             matchups.clear();
         }
 
+        Collections.sort(allMatchups, new MatchupComparator());
         return allMatchups;
     }
 
@@ -194,11 +195,7 @@ public class MmdTool extends BasicTool {
         final String[] sensorNames = createOrderedSensorNameArray(sensorMap);
 
         for (String sensorName : sensorNames) {
-            final List<Matchup> sensorMatchupList = new ArrayList<>(matchupList.size());
-            // TODO - make new sorted list from matchups in matchupList. Sort by filename of sensor observation
-            // TODO - or something like this. As in MatchupStorage.forMmd() horrible query SQL :-(
-
-            for (final Matchup matchup : sensorMatchupList) {
+            for (final Matchup matchup : matchupList) {
                 try {
                     final Observation observation = findObservation(sensorName, matchup);
                     final ReferenceObservation referenceObservation = matchup.getRefObs();

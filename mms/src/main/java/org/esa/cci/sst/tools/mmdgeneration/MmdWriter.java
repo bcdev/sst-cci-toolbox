@@ -1,7 +1,6 @@
 package org.esa.cci.sst.tools.mmdgeneration;
 
 import org.esa.cci.sst.data.Item;
-import org.esa.cci.sst.log.SstLogging;
 import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.util.IoUtil;
 import ucar.ma2.Array;
@@ -18,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+// @todo 2 tb/tb add tests 2015-02-19
 class MmdWriter implements Closeable {
 
     private final NetcdfFileWriter fileWriter;
