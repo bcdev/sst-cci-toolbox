@@ -10,11 +10,9 @@ import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.util.TimeUtil;
 import org.junit.Test;
-import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriter;
 import ucar.nc2.Variable;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
@@ -305,6 +303,31 @@ public class MmdToolTest {
         verify(persistenceManager, times(0)).detach(observation);
         verify(persistenceManager, times(0)).detach(coincidence);
         verifyNoMoreInteractions(persistenceManager);
+    }
+
+    @Test
+    public void testCreateMatchupIdToRecordIndexMap() {
+        final List<Matchup> inputList = new ArrayList<>();
+        addMacthup(19, inputList);
+        addMacthup(23, inputList);
+        addMacthup(7, inputList);
+
+        final Map<Long, Integer> map = MmdTool.createMatchupIdToRecordIndexMap(inputList);
+        assertNotNull(map);
+        assertEquals(inputList.size(), map.size());
+
+        assertEquals(2, map.get(7L).intValue());
+        assertEquals(1, map.get(23L).intValue());
+        assertEquals(0, map.get(19L).intValue());
+
+        assertNull(map.get(6L));
+        assertNull(map.get(24L));
+    }
+
+    private void addMacthup(int id, List<Matchup> inputList) {
+        Matchup matchup = new Matchup();
+        matchup.setId(id);
+        inputList.add(matchup);
     }
 
     private void assertCorrectDate(int year, int month, int day, Date date) {

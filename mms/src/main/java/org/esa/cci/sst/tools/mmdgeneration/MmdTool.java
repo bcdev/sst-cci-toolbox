@@ -131,6 +131,7 @@ public class MmdTool extends BasicTool {
         if (matchupList.size() == 0) {
             throw new ToolException("No matchups to write.", ToolException.NO_MATCHUPS_FOUND_ERROR);
         }
+        logger.info("Loaded " + matchupList.size() + " matchups matching pattern " + getPattern(config));
 
         final Map<Long, Integer> matchupIdToRecordIndexMap = createMatchupIdToRecordIndexMap(matchupList);
         final NetcdfFileWriter writer = createNetcdfFileWriter(config);
@@ -152,11 +153,14 @@ public class MmdTool extends BasicTool {
             logger.info("Reading matchups from file '" + jsonFile.getName() + "'.");
             final List<Matchup> matchups = MatchupIO.read(new BufferedInputStream(new FileInputStream(jsonFile)));
             logger.info(matchups.size() + " matchups loaded.");
+
             for (final Matchup matchup : matchups) {
                 if (matchup.getPattern() == pattern) {
                     allMatchups.add(matchup);
                 }
             }
+
+            matchups.clear();
         }
 
         return allMatchups;
