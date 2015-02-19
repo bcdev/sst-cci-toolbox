@@ -26,7 +26,6 @@ import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.common.ExtractDefinitionBuilder;
 import org.esa.cci.sst.data.*;
 import org.esa.cci.sst.orm.ColumnStorage;
-import org.esa.cci.sst.orm.MatchupQueryParameter;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.rules.Context;
 import org.esa.cci.sst.rules.Converter;
@@ -429,11 +428,6 @@ public class MmdTool extends BasicTool {
         return NetcdfFileWriter.createNew(Version.netcdf3, mmdFile.getPath());
     }
 
-    // package access for testing only tb 2014-03-11
-    static String getCondition(Configuration config) {
-        return config.getStringValue("mms.target.condition", null);
-    }
-
     // package access for testing only tb 2014-03-10
     static long getPattern(Configuration config) {
         final String[] sensorNames = getSensorNames(config);
@@ -451,26 +445,6 @@ public class MmdTool extends BasicTool {
     // package access for testing only rq 2014-08-12
     static String[] getSensorNames(Configuration config) {
         return config.getStringValue(Configuration.KEY_MMS_MMD_SENSORS).split(",", 2);
-    }
-
-    // package access for testing only tb 2014-03-11
-    static Date getStartTime(Configuration configuration) {
-        return configuration.getDateValue(Configuration.KEY_MMS_MMD_TARGET_START_TIME);
-    }
-
-    // package access for testing only tb 2014-03-11
-    static Date getStopTime(Configuration configuration) {
-        return configuration.getDateValue(Configuration.KEY_MMS_MMD_TARGET_STOP_TIME);
-    }
-
-    // package access for testing only tb 2014-03-11
-    static MatchupQueryParameter createMatchupQueryParameter(Configuration config) {
-        final MatchupQueryParameter parameter = new MatchupQueryParameter();
-        parameter.setStartDate(getStartTime(config));
-        parameter.setStopDate(getStopTime(config));
-        parameter.setCondition(getCondition(config));
-        parameter.setPattern(getPattern(config));
-        return parameter;
     }
 
     // package access for testing only tb 2014-03-12
