@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -199,7 +200,7 @@ public class DirtySubsceneRemover {
 
     // package access for testing only tb 2014-03-31
     static Map<Integer, List<SamplingPoint>> splitByFileId(List<SamplingPoint> samples, boolean primary) {
-        final Map<Integer, List<SamplingPoint>> samplesByDatafile = new HashMap<>();
+        final Map<Integer, List<SamplingPoint>> samplesByDatafile = new TreeMap<>();
         for (final SamplingPoint point : samples) {
             final int id = primary ? point.getReference() : point.getReference2();
             if (!samplesByDatafile.containsKey(id)) {
