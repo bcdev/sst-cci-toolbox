@@ -113,7 +113,7 @@ public class MmdTool extends BasicTool {
             final Map<Integer, Integer> matchupIdToRecordIndexMap = createMatchupIdToRecordIndexMap();
             matchupCount = matchupIdToRecordIndexMap.size();
             if (matchupCount == 0) {
-                throw new ToolException("No matchups to write.", ToolException.ZERO_MATCHUPS_ERROR);
+                throw new ToolException("No matchups to write.", ToolException.NO_MATCHUPS_FOUND_ERROR);
             }
             final NetcdfFileWriter writer = createNetcdfFileWriter(config);
             try (MmdWriter mmdWriter = createMmdWriter(writer)) {

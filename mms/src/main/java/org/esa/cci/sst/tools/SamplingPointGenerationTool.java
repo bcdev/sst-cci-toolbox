@@ -66,6 +66,10 @@ public class SamplingPointGenerationTool extends BasicTool {
         findObservationsWorkflow.execute(samples);
         logger.info("Intersected with matching orbits: " + samples.size());
 
+        if (samples.size() == 0) {
+            throw new ToolException("No samples found.", ToolException.NO_MATCHUPS_FOUND_ERROR);
+        }
+
         logger.info("Start exporting sample points ...");
         final Workflow exportSamplingPointsWorkflow = new ExportSamplingPointsWorkflow(workflowContext);
         exportSamplingPointsWorkflow.execute(samples);
