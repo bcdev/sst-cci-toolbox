@@ -69,9 +69,6 @@ public class SamplingPointGenerationTool extends BasicTool {
         if (samples.size() == 0) {
             throw new ToolException("No samples found.", ToolException.NO_MATCHUPS_FOUND_ERROR);
         }
-        if (samples.size() > 200000) {
-            throw new ToolException("Too many samples found.", ToolException.TOO_MANY_MATCHUPS_FOUND_ERROR);
-        }
 
         logger.info("Start exporting sample points ...");
         final Workflow exportSamplingPointsWorkflow = new ExportSamplingPointsWorkflow(workflowContext);

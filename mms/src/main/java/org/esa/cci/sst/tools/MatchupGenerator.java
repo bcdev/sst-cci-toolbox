@@ -121,6 +121,10 @@ public class MatchupGenerator extends BasicTool {
         }
 
         removeOverlappingSamples(logger, samples);
+        if (samples.size() > 200000) {
+            throw new ToolException("Too many samples found.", ToolException.TOO_MANY_MATCHUPS_FOUND_ERROR);
+        }
+
         createMatchups(logger, samples);
     }
 
