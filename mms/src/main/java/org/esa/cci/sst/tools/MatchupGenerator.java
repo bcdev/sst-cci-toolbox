@@ -50,6 +50,7 @@ public class MatchupGenerator extends BasicTool {
     private boolean overlappingWanted;
     private long referenceSensorPattern;
     private String referenceSensorName;
+    private int maxSampleCount;
 
     public MatchupGenerator() {
         super("matchup-generator", "1.0");
@@ -88,6 +89,7 @@ public class MatchupGenerator extends BasicTool {
         dirtyPixelFraction = config.getDoubleValue(Configuration.KEY_MMS_SAMPLING_DIRTY_PIXEL_FRACTION, 0.0);
         overlappingWanted = config.getBooleanValue(Configuration.KEY_MMS_SAMPLING_OVERLAPPING_WANTED, false);
         referenceSensorName = config.getStringValue(Configuration.KEY_MMS_SAMPLING_REFERENCE_SENSOR);
+        maxSampleCount = config.getIntValue(Configuration.KEY_MMS_SAMPLING_MAX_SAMPLE_COUNT, 0);
         referenceSensorPattern = config.getPattern(referenceSensorName, 0);
 
         final Set<String> dimensionNames = new TreeSet<>();
@@ -120,10 +122,11 @@ public class MatchupGenerator extends BasicTool {
             throw new ToolException("No samples found.", ToolException.NO_MATCHUPS_FOUND_ERROR);
         }
 
-        removeOverlappingSamples(logger, samples);
-        if (samples.size() > 200000) {
-            throw new ToolException("Too many samples found.", ToolException.TOO_MANY_MATCHUPS_FOUND_ERROR);
-        }
+        int w = overlappingWanted ? 1 : subSceneWidth1;
+        int h = overlappingWanted ? 1 : subSceneHeight1;
+        do {
+            removeOverlappingSamples(logger, samples, w++, h++);
+        } while (maxSampleCount != 0 && samples.size() > maxSampleCount);
 
         createMatchups(logger, samples);
     }
@@ -348,11 +351,8 @@ public class MatchupGenerator extends BasicTool {
         return referenceObservations;
     }
 
-    private OverlapRemover createOverlapRemover() {
-        if (overlappingWanted) {
-            return new OverlapRemover(1, 1); // only remove samples, which belong to the same pixel
-        }
-        return new OverlapRemover(subSceneWidth1, subSceneHeight1);
+    private OverlapRemover createOverlapRemover(int w, int h) {
+        return new OverlapRemover(w, h);
     }
 
     private void cleanupIfRequested() {
@@ -417,9 +417,9 @@ public class MatchupGenerator extends BasicTool {
         logInfo(logger, "Finished creating matchups...");
     }
 
-    private void removeOverlappingSamples(Logger logger, List<SamplingPoint> samples) {
+    private void removeOverlappingSamples(Logger logger, List<SamplingPoint> samples, int w, int h) {
         logInfo(logger, "Starting removing overlapping samples...");
-        final OverlapRemover overlapRemover = createOverlapRemover();
+        final OverlapRemover overlapRemover = createOverlapRemover(w, h);
         overlapRemover.removeSamples(samples);
         // TODO - remove duplicated samples (i.e. samples that have the same in-situ measurement and same satellite coordinates)
         logInfo(logger, "Finished removing overlapping samples (" + samples.size() + " samples left)");
