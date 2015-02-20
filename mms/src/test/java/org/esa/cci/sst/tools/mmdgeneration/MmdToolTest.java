@@ -221,6 +221,31 @@ public class MmdToolTest {
     }
 
     @Test
+    public void testExtractMatchupsByPattern() {
+        final List<Matchup> allMatchups = new ArrayList<>();
+        final List<Matchup> input = new ArrayList<>();
+
+        addMatchupWithPattern(11223344, input);
+        addMatchupWithPattern(21223344, input);
+        addMatchupWithPattern(11223344, input);
+        addMatchupWithPattern(31223344, input);
+        addMatchupWithPattern(11223344, input);
+
+        MmdTool.extractMatchupsByPattern(allMatchups, 11223344, input);
+
+        assertEquals(3, allMatchups.size());
+        for (Matchup allMatchup : allMatchups) {
+            assertEquals(11223344, allMatchup.getPattern());
+        }
+    }
+
+    private void addMatchupWithPattern(long pattern, List<Matchup> input) {
+        Matchup matchup = new Matchup();
+        matchup.setPattern(pattern);
+        input.add(matchup);
+    }
+
+    @Test
     public void testCreateMatchupIdToRecordIndexMap() {
         final List<Matchup> inputList = new ArrayList<>();
         addMacthup(19, inputList);

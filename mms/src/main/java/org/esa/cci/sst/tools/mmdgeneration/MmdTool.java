@@ -153,17 +153,21 @@ public class MmdTool extends BasicTool {
             final List<Matchup> matchups = MatchupIO.read(new BufferedInputStream(new FileInputStream(jsonFile)));
             logger.info(matchups.size() + " matchups loaded.");
 
-            for (final Matchup matchup : matchups) {
-                if (matchup.getPattern() == pattern) {
-                    allMatchups.add(matchup);
-                }
-            }
+            extractMatchupsByPattern(allMatchups, pattern, matchups);
 
             matchups.clear();
         }
 
         Collections.sort(allMatchups, new MatchupComparator());
         return allMatchups;
+    }
+
+    static void extractMatchupsByPattern(List<Matchup> allMatchups, long pattern, List<Matchup> matchups) {
+        for (final Matchup matchup : matchups) {
+            if (matchup.getPattern() == pattern) {
+                allMatchups.add(matchup);
+            }
+        }
     }
 
     static File[] globMatchingInputFiles(Configuration config, String usecaseRootPath, String primarySensorName) throws IOException {
@@ -224,9 +228,7 @@ public class MmdTool extends BasicTool {
                         }
                     }
                 } catch (IOException e) {
-                    final String message = MessageFormat.format("matchup {0}: {1}",
-                            matchup.getId(),
-                            e.getMessage());
+                    final String message = MessageFormat.format("matchup {0}: {1}", matchup.getId(), e.getMessage());
                     throw new ToolException(message, e, ToolException.TOOL_IO_ERROR);
                 }
             }
