@@ -607,7 +607,7 @@ class Workflow:
             self._execute_clearing(m, chunk)
             #self._execute_plotting(m, chunk, sampling_prefix)
             self._execute_auxdata_coincidences(m, chunk)
-            #self._execute_create_sub_mmd_files(m, chunk)
+            self._execute_create_sub_mmd_files(m, chunk)
             #self._execute_create_nwp_mmd_files(m, chunk)
             #self._execute_create_matchup_nwp_mmd_files(m, chunk)
             #self._execute_create_arc_mmd_files(m, chunk)
