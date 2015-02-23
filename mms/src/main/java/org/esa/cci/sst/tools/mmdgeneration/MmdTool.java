@@ -36,6 +36,7 @@ import org.esa.cci.sst.tool.Configuration;
 import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tools.Constants;
+import org.esa.cci.sst.util.LocationTest;
 import org.esa.cci.sst.util.ReaderCache;
 import org.postgis.Point;
 import ucar.ma2.Array;
@@ -59,8 +60,6 @@ import static ucar.nc2.NetcdfFileWriter.Version;
  * @author Ralf Quast
  */
 public class MmdTool extends BasicTool {
-
-    private static final String AVHRR_M02_TIME = "avhrr.m02.time";
 
     private final ColumnRegistry columnRegistry;
     private Map<String, Integer> dimensionConfiguration;
@@ -166,9 +165,6 @@ public class MmdTool extends BasicTool {
                     for (final Variable variable : variables) {
                         if (observation != null) {
                             if (!isAccurateCoincidence(referenceObservation, observation)) {
-                                if (variable.getShortName().equalsIgnoreCase(AVHRR_M02_TIME)) {
-                                    logger.info("No accurate coincidence for Variable " + AVHRR_M02_TIME + "and observation " + observation.getId());
-                                }
                                 continue;
                             }
                         }
@@ -182,15 +178,9 @@ public class MmdTool extends BasicTool {
                                     .dimensionConfiguration(dimensionConfiguration)
                                     .configuration(getConfig())
                                     .build();
-                            if (variable.getShortName().equalsIgnoreCase(AVHRR_M02_TIME)) {
-                                logger.info("writing implicit column " + targetColumn.getName() + " for variable " + AVHRR_M02_TIME);
-                            }
                             writeImplicitColumn(mmdWriter, variable, targetRecordNo, targetColumn, context);
                         } else {
                             if (observation != null) {
-                                if (variable.getShortName().equalsIgnoreCase(AVHRR_M02_TIME)) {
-                                    logger.info("writing column " + targetColumn.getName() + " for variable " + AVHRR_M02_TIME + "and observation " + observation.getId());
-                                }
                                 writeColumn(mmdWriter, variable, targetRecordNo, targetColumn, sourceColumn,
                                         observation,
                                         referenceObservation);
@@ -274,22 +264,18 @@ public class MmdTool extends BasicTool {
         } catch (IOException e) {
             throw new ToolException("Unable to get geo coding.", e, ToolException.TOOL_ERROR);
         }
-
         if (geoCoding == null) {
             return true;
         }
 
-        final Point location = refObs.getPoint().getGeometry().getFirstPoint();
-        final GeoPos geoPos = new GeoPos((float) location.y, (float) location.x);
-        final PixelPos pixelPos = new PixelPos();
-        geoCoding.getPixelPos(geoPos, pixelPos);
-        if (pixelPos.x < 0 || pixelPos.y < 0) {
-            final String msg = String.format(
-                    "Observation (id=%d) does not contain reference observation and is ignored.", observation.getId());
-            logger.warning(msg);
-            return false;
-        }
-        if (pixelPos.x >= observationReader.getElementCount() || pixelPos.y >= observationReader.getScanLineCount()) {
+        final Point point = refObs.getPoint().getGeometry().getFirstPoint();
+        final double lat = point.y;
+        final double lon = point.x;
+        final int numCols = observationReader.getElementCount();
+        final int numRows = observationReader.getScanLineCount();
+        final LocationTest test = new LocationTest(lon, lat, numCols, numRows, geoCoding).invoke();
+
+        if (!test.isOK()) {
             final String msg = String.format(
                     "Observation (id=%d) does not contain reference observation and is ignored.", observation.getId());
             logger.warning(msg);
@@ -392,12 +378,6 @@ public class MmdTool extends BasicTool {
         final String configFilePath = config.getStringValue(Configuration.KEY_MMS_MMD_TARGET_VARIABLES);
         try {
             final List<String> names = columnRegistry.registerColumns(new File(configFilePath), predicate);
-
-            for (String name : names) {
-                if (AVHRR_M02_TIME.equalsIgnoreCase(name)) {
-                    logger.info("Registered column " + AVHRR_M02_TIME);
-                }
-            }
 
             targetColumnNames.addAll(names);
         } catch (FileNotFoundException e) {

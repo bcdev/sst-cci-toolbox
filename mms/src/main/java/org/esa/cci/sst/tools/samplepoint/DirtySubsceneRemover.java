@@ -29,6 +29,7 @@ import org.esa.cci.sst.reader.ReaderFactory;
 import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.tool.Configuration;
 import org.esa.cci.sst.tools.Constants;
+import org.esa.cci.sst.util.LocationTest;
 import org.esa.cci.sst.util.PixelCounter;
 import org.esa.cci.sst.util.SamplingPoint;
 import ucar.ma2.Array;
@@ -36,7 +37,6 @@ import ucar.ma2.Array;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -130,13 +130,13 @@ public class DirtySubsceneRemover {
                 for (final SamplingPoint point : points) {
                     final double lat = point.getLat();
                     final double lon = point.getLon();
+                    final LocationTest test = new LocationTest(lon, lat, numCols, numRows, geoCoding).invoke();
 
-                    final GeoPos geoPos = new GeoPos((float) lat, (float) lon);
-                    final PixelPos pixelPos = geoCoding.getPixelPos(geoPos, new PixelPos());
-                    final int pixelX = (int) Math.floor(pixelPos.getX());
-                    final int pixelY = (int) Math.floor(pixelPos.getY());
-
-                    if (pixelPos.isValid() && pixelX > 0 && pixelY > 0 && pixelX < numCols - 1 && pixelY < numRows - 1) {
+                    if (test.isOK()) {
+                        final int pixelX = test.getPixelX();
+                        final int pixelY = test.getPixelY();
+                        final PixelPos pixelPos = test.getPixelPos();
+                        final GeoPos geoPos = test.getGeoPos();
                         if (primary) {
                             point.setX(pixelX);
                             point.setY(pixelY);
