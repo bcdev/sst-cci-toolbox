@@ -18,6 +18,7 @@ mkdir -p ${mms.archive.root}/${usecase}/${mmdtype}/${sensor}/${year}
 echo "`date -u +%Y%m%d-%H%M%S` sub ${year}/${month} sensor ${sensor} mmdtype ${mmdtype} starttime ${starttime} stoptime ${stoptime}..."
 
 ${mms.home}/bin/mmd-tool.sh -c ${mms.home}/config/${usecase}-config.properties \
+-Dmms.usecase=${usecase} \
 -Dmms.target.startTime=${starttime} \
 -Dmms.target.stopTime=${stoptime} \
 -Dmms.mmd.sensors=${sensor} \

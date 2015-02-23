@@ -176,7 +176,6 @@ public class MmdTool extends BasicTool {
 
         final String wildcardPath = ArchiveUtils.createWildcardPath(usecaseRootPath, primarySensorName, inputType,
                                                                     centerMonth.getYear(), centerMonth.getMonth());
-        System.out.println("wildcardPath = " + wildcardPath);
         final File[] files;
         try {
             files = WildcardMatcher.glob(wildcardPath);
