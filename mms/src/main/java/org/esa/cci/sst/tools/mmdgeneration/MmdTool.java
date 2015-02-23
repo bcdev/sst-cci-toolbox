@@ -164,7 +164,7 @@ public class MmdTool extends BasicTool {
 
     static void extractMatchupsByPattern(List<Matchup> allMatchups, long pattern, List<Matchup> matchups) {
         for (final Matchup matchup : matchups) {
-            if (matchup.getPattern() == pattern) {
+            if ((matchup.getPattern() & pattern) == pattern) {
                 allMatchups.add(matchup);
             }
         }

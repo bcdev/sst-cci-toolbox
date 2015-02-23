@@ -221,7 +221,7 @@ public class MmdToolTest {
     }
 
     @Test
-    public void testExtractMatchupsByPattern() {
+    public void testExtractMatchupsByPattern_byIdentity() {
         final List<Matchup> allMatchups = new ArrayList<>();
         final List<Matchup> input = new ArrayList<>();
 
@@ -237,6 +237,25 @@ public class MmdToolTest {
         for (Matchup allMatchup : allMatchups) {
             assertEquals(11223344, allMatchup.getPattern());
         }
+    }
+
+    @Test
+    public void testExtractMatchupsByPattern_bySelectedSensor() {
+        final List<Matchup> allMatchups = new ArrayList<>();
+        final List<Matchup> input = new ArrayList<>();
+
+        addMatchupWithPattern(2, input);
+        addMatchupWithPattern(4, input);
+        addMatchupWithPattern(8, input);
+        addMatchupWithPattern(10, input);
+        addMatchupWithPattern(7, input);
+        addMatchupWithPattern(1, input);
+
+        MmdTool.extractMatchupsByPattern(allMatchups, 1, input);
+
+        assertEquals(2, allMatchups.size());
+        assertEquals(7, allMatchups.get(0).getPattern());
+        assertEquals(1, allMatchups.get(1).getPattern());
     }
 
     private void addMatchupWithPattern(long pattern, List<Matchup> input) {
