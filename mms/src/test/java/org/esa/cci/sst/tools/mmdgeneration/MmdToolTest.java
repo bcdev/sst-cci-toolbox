@@ -267,9 +267,9 @@ public class MmdToolTest {
     @Test
     public void testCreateMatchupIdToRecordIndexMap() {
         final List<Matchup> inputList = new ArrayList<>();
-        addMacthup(19, inputList);
-        addMacthup(23, inputList);
-        addMacthup(7, inputList);
+        addMatchup(19, inputList);
+        addMatchup(23, inputList);
+        addMatchup(7, inputList);
 
         final Map<Long, Integer> map = MmdTool.createMatchupIdToRecordIndexMap(inputList);
         assertNotNull(map);
@@ -283,7 +283,7 @@ public class MmdToolTest {
         assertNull(map.get(24L));
     }
 
-    private void addMacthup(int id, List<Matchup> inputList) {
+    private void addMatchup(int id, List<Matchup> inputList) {
         Matchup matchup = new Matchup();
         matchup.setId(id);
         inputList.add(matchup);
