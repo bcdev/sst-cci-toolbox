@@ -25,4 +25,5 @@ do
 done
 
 # when complete, delete the temporary files here!!
+# @todo define TDIR either from cmd line or other parameter file tb 2015-02-23
 rm -f ${TDIR}
