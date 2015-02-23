@@ -109,7 +109,7 @@ public class MmdTool extends BasicTool {
 
         final int readerCacheSize = config.getIntValue(Configuration.KEY_MMS_MMD_READER_CACHE_SIZE, 10);
 
-        sensorNames = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR);
+        sensorNames = config.getStringValue(Configuration.KEY_MMS_MMD_SENSORS);
         usecaseRootPath = ConfigUtil.getUsecaseRootPath(config);
         readerCache = new ReaderCache(readerCacheSize, config, logger);
 
