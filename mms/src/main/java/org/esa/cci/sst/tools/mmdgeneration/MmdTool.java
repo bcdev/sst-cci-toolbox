@@ -174,7 +174,9 @@ public class MmdTool extends BasicTool {
         final String inputType = config.getStringValue(Configuration.KEY_MMS_MMD_INPUT_TYPE);
         final Month centerMonth = ConfigUtil.getCenterMonth(Configuration.KEY_MMS_MMD_TARGET_START_TIME, Configuration.KEY_MMS_MMD_TARGET_STOP_TIME, config);
 
-        final String wildcardPath = ArchiveUtils.createWildcardPath(usecaseRootPath, primarySensorName, inputType, centerMonth.getYear(), centerMonth.getMonth());
+        final String wildcardPath = ArchiveUtils.createWildcardPath(usecaseRootPath, primarySensorName, inputType,
+                                                                    centerMonth.getYear(), centerMonth.getMonth());
+        System.out.println("wildcardPath = " + wildcardPath);
         final File[] files;
         try {
             files = WildcardMatcher.glob(wildcardPath);
