@@ -25,6 +25,7 @@ class MmdWriter implements Closeable {
     MmdWriter(NetcdfFileWriter fileWriter, int matchupCount, Map<String, Integer> dimensions, List<Item> variables) throws IOException {
         this.fileWriter = fileWriter;
         this.fileWriter.setLargeFile(true);
+        this.fileWriter.setFill(true);
 
         addDimensions(matchupCount, dimensions);
         addGlobalAttributes(matchupCount);
