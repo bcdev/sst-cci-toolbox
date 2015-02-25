@@ -33,4 +33,4 @@ w.add_secondary_sensor('avhrr.n19', '2009-02-06', '2014-01-01')
 w.add_secondary_sensor('avhrr.m02', '2006-11-21', '2014-01-01')
 w.set_samples_per_month(800000000)
 
-w.run(mmdtype, hosts=[('localhost', 12)], with_selection=True)
+w.run(mmdtype, hosts=[('localhost', 48)], with_selection=True)
