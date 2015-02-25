@@ -4,7 +4,7 @@ from workflow import Workflow
 usecase = 'mms11b'
 mmdtype = 'mmd11'
 
-w = Workflow(usecase, Period('2007-07-01', '2007-08-01'))
+w = Workflow(usecase)
 #w.add_primary_sensor('avhrr.n10', '1986-11-17', '1991-09-17')
 w.add_primary_sensor('avhrr.n11', '1988-11-08', '1994-09-14')
 w.add_primary_sensor('avhrr.n12', '1991-09-16', '1998-12-15')
