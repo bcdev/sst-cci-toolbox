@@ -68,6 +68,8 @@ class NwpTool extends BasicTool {
                     "${CDO} ${CDO_OPTS} -f nc2 setreftime,${REFTIME} -remapbil,${GEO} -selname,SSTK,MSL,BLH,U10,V10,T2,D2 ${GGFS_TIME_SERIES} ${GGFS_TIME_SERIES_REMAPPED} && " +
                     "${CDO} ${CDO_OPTS} -f nc2 merge -setreftime,${REFTIME} -remapbil,${GEO} -selname,SSHF,SLHF,SSRD,STRD,SSR,STR,EWSS,NSSS,E,TP ${GAFS_TIME_SERIES} ${GGFS_TIME_SERIES_REMAPPED} ${FC_TIME_SERIES}\n";
 
+    private static final String GRID_SIZE_DIMENSION = "grid_size";
+
     private String cdoHome;
     private String sourceMmdLocation;
     private String sourceNwpLocation;
@@ -122,10 +124,8 @@ class NwpTool extends BasicTool {
     private void run() throws IOException, InterruptedException {
         final boolean exists = new File(sourceMmdLocation).exists();
         if (!exists) {
-            logger.warning(
-                    MessageFormat.format("missing source file: {0}", sourceMmdLocation));
-            logger.warning(
-                    MessageFormat.format("skipping target file: {0}", targetNwpLocation));
+            logger.warning(MessageFormat.format("missing source file: {0}", sourceMmdLocation));
+            logger.warning(MessageFormat.format("skipping target file: {0}", targetNwpLocation));
             return;
         }
 
@@ -135,53 +135,41 @@ class NwpTool extends BasicTool {
         logger.info(MessageFormat.format("completed loading dimensions from file: {0}", dimensionFilePath));
 
         if (forSensor) {
-            logger.info(
-                    MessageFormat.format("extracting matchups from source file: {0}", sourceMmdLocation));
-            final String sensorMmdLocation = writeSingleSensorMmdFile(sourceMmdLocation, sensorName, sensorPattern,
+            logger.info(MessageFormat.format("extracting matchups from source file: {0}", sourceMmdLocation));
+
+            final String sensorMmdLocation = writeSingleSensorMmdFile(sourceMmdLocation,
+                    sensorName,
+                    sensorPattern,
                     deleteOnExit);
-            logger.info(
-                    MessageFormat.format("completed extracting matchups from source file: {0}", sourceMmdLocation));
+
+            logger.info(MessageFormat.format("completed extracting matchups from source file: {0}", sourceMmdLocation));
 
             if (sensorMmdLocation == null) {
-                logger.warning(
-                        MessageFormat.format("no records with pattern {0} found in source file: {1}",
-                                sensorPattern, sourceMmdLocation));
-                logger.warning(
-                        MessageFormat.format("skipping target file: {0}", targetNwpLocation));
+                logger.warning(MessageFormat.format("no records with pattern {0} found in source file: {1}", sensorPattern, sourceMmdLocation));
+                logger.warning(MessageFormat.format("skipping target file: {0}", targetNwpLocation));
                 return;
             }
 
+            logger.info(MessageFormat.format("extracting NWP data for source file: {0}", sensorMmdLocation));
 
-            logger.info(
-                    MessageFormat.format("extracting NWP data for source file: {0}", sensorMmdLocation));
             writeSensorNwpFile(sensorMmdLocation, dimensions);
-            logger.info(
-                    MessageFormat.format("completed extracting NWP data for source file: {0}", sensorMmdLocation));
+
+            logger.info(MessageFormat.format("completed extracting NWP data for source file: {0}", sensorMmdLocation));
         } else {
             final int analysisTimeStepCount = Integer.parseInt(dimensions.getProperty("matchup.nwp.an.time"));
             final int forecastTimeStepCount = Integer.parseInt(dimensions.getProperty("matchup.nwp.fc.time"));
 
-            logger.info(
-                    MessageFormat.format("extracting NWP analysis data for source file: {0}", sourceMmdLocation));
+            logger.info(MessageFormat.format("extracting NWP analysis data for source file: {0}", sourceMmdLocation));
             final String analysisFileLocation = createAnalysisFile(sourceMmdLocation);
-            logger.info(
-                    MessageFormat.format("completed extracting NWP analysis data for source file: {0}",
-                            sourceMmdLocation));
+            logger.info(MessageFormat.format("completed extracting NWP analysis data for source file: {0}", sourceMmdLocation));
 
-            logger.info(
-                    MessageFormat.format("extracting NWP forecast data for source file: {0}", sourceMmdLocation));
+            logger.info(MessageFormat.format("extracting NWP forecast data for source file: {0}", sourceMmdLocation));
             final String forecastFileLocation = createForecastFile(sourceMmdLocation);
-            logger.info(
-                    MessageFormat.format("completed extracting NWP forecast data for source file: {0}",
-                            sourceMmdLocation));
+            logger.info(MessageFormat.format("completed extracting NWP forecast data for source file: {0}", sourceMmdLocation));
 
-            logger.info(
-                    MessageFormat.format("writing matchup NWP data for source file: {0}", sourceMmdLocation));
-            writeMatchupNwpFile(sourceMmdLocation, forecastFileLocation, analysisFileLocation,
-                    targetNwpLocation, forecastTimeStepCount, analysisTimeStepCount);
-            logger.info(
-                    MessageFormat.format("completed writing matchup NWP data for source file: {0}",
-                            sourceMmdLocation));
+            logger.info(MessageFormat.format("writing matchup NWP data for source file: {0}", sourceMmdLocation));
+            writeMatchupNwpFile(sourceMmdLocation, forecastFileLocation, analysisFileLocation, targetNwpLocation, forecastTimeStepCount, analysisTimeStepCount);
+            logger.info(MessageFormat.format("completed writing matchup NWP data for source file: {0}", sourceMmdLocation));
         }
     }
 
@@ -640,6 +628,7 @@ class NwpTool extends BasicTool {
     private static String writeSingleSensorMmdFile(String sourceMmdLocation, String sensorName,
                                                    int sensorPattern, boolean deleteOnExit) throws IOException {
         final NetcdfFile sourceMmd = NetcdfFile.open(sourceMmdLocation);
+
         try {
             final Dimension matchupDimension = NwpUtil.findDimension(sourceMmd, "matchup");
             final String sensorBasename = getSensorBasename(sensorName);
@@ -652,8 +641,7 @@ class NwpTool extends BasicTool {
                 return null;
             }
             final String sensorMmdLocation = NwpUtil.createTempFile("mmd", ".nc", deleteOnExit).getPath();
-            final NetcdfFileWriter targetMmd = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf3,
-                    sensorMmdLocation);
+            final NetcdfFileWriter targetMmd = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf3, sensorMmdLocation);
 
             final int ny = nyDimension.getLength();
             final int nx = nxDimension.getLength();
@@ -721,7 +709,7 @@ class NwpTool extends BasicTool {
         final NetcdfFileWriter geoFile = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf3, location);
 
         final int matchupCount = matchupDimension.getLength();
-        geoFile.addDimension(null, "grid_size", matchupCount);
+        geoFile.addDimension(null, GRID_SIZE_DIMENSION, matchupCount);
         geoFile.addDimension(null, "grid_matchup", matchupCount);
         geoFile.addDimension(null, "grid_ny", 1);
         geoFile.addDimension(null, "grid_nx", 1);
@@ -729,11 +717,11 @@ class NwpTool extends BasicTool {
         geoFile.addDimension(null, "grid_rank", 2);
 
         final Variable gridDims = geoFile.addVariable(null, "grid_dims", DataType.INT, "grid_rank");
-        final Variable gridCenterLat = geoFile.addVariable(null, "grid_center_lat", DataType.FLOAT, "grid_size");
+        final Variable gridCenterLat = geoFile.addVariable(null, "grid_center_lat", DataType.FLOAT, GRID_SIZE_DIMENSION);
         gridCenterLat.addAttribute(new Attribute("units", "degrees"));
-        final Variable gridCenterLon = geoFile.addVariable(null, "grid_center_lon", DataType.FLOAT, "grid_size");
+        final Variable gridCenterLon = geoFile.addVariable(null, "grid_center_lon", DataType.FLOAT, GRID_SIZE_DIMENSION);
         gridCenterLon.addAttribute(new Attribute("units", "degrees"));
-        final Variable gridMask = geoFile.addVariable(null, "grid_imask", DataType.INT, "grid_size");
+        final Variable gridMask = geoFile.addVariable(null, "grid_imask", DataType.INT, GRID_SIZE_DIMENSION);
         geoFile.addVariable(null, "grid_corner_lat", DataType.FLOAT, "grid_size grid_corners");
         geoFile.addVariable(null, "grid_corner_lon", DataType.FLOAT, "grid_size grid_corners");
         geoFile.addGroupAttribute(null, new Attribute("title", "MMD geo-location in SCRIP format"));
@@ -804,7 +792,7 @@ class NwpTool extends BasicTool {
         final int ny = nyDimension.getLength();
         final int nx = nxDimension.getLength();
 
-        geoFile.addDimension(null, "grid_size", matchupCount * gy * gx);
+        geoFile.addDimension(null, GRID_SIZE_DIMENSION, matchupCount * gy * gx);
         geoFile.addDimension(null, "grid_matchup", matchupCount);
         geoFile.addDimension(null, "grid_ny", gy);
         geoFile.addDimension(null, "grid_nx", gx);
@@ -812,11 +800,11 @@ class NwpTool extends BasicTool {
         geoFile.addDimension(null, "grid_rank", 2);
 
         final Variable gridDims = geoFile.addVariable(null, "grid_dims", DataType.INT, "grid_rank");
-        final Variable gridCenterLat = geoFile.addVariable(null, "grid_center_lat", DataType.FLOAT, "grid_size");
+        final Variable gridCenterLat = geoFile.addVariable(null, "grid_center_lat", DataType.FLOAT, GRID_SIZE_DIMENSION);
         gridCenterLat.addAttribute(new Attribute("units", "degrees"));
-        final Variable gridCenterLon = geoFile.addVariable(null, "grid_center_lon", DataType.FLOAT, "grid_size");
+        final Variable gridCenterLon = geoFile.addVariable(null, "grid_center_lon", DataType.FLOAT, GRID_SIZE_DIMENSION);
         gridCenterLon.addAttribute(new Attribute("units", "degrees"));
-        final Variable gridMask = geoFile.addVariable(null, "grid_imask", DataType.INT, "grid_size");
+        final Variable gridMask = geoFile.addVariable(null, "grid_imask", DataType.INT, GRID_SIZE_DIMENSION);
         geoFile.addVariable(null, "grid_corner_lat", DataType.FLOAT, "grid_size grid_corners");
         geoFile.addVariable(null, "grid_corner_lon", DataType.FLOAT, "grid_size grid_corners");
         geoFile.addGroupAttribute(null, new Attribute("title", "MMD geo-location in SCRIP format"));
@@ -875,6 +863,7 @@ class NwpTool extends BasicTool {
         return sensorName.replaceAll("\\..+", "");
     }
 
+    // package access for teting only tb 2015-02-27
     static int getMatchupCount(Array sensorPatterns, int wantedPattern) {
         int matchupCount = 0;
         for (int i = 0; i < sensorPatterns.getSize(); ++i) {
@@ -884,5 +873,4 @@ class NwpTool extends BasicTool {
         }
         return matchupCount;
     }
-
 }

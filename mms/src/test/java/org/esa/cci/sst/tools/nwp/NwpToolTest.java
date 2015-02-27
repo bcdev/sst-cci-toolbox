@@ -17,10 +17,13 @@
 package org.esa.cci.sst.tools.nwp;
 
 import org.junit.Test;
+import ucar.ma2.Array;
 
 import java.io.IOException;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Thomas Storm
@@ -47,5 +50,26 @@ public class NwpToolTest {
     public void testComputePastTimeStepCount() throws Exception {
         assertEquals(20, NwpTool.computePastTimeStepCount(33));
         assertEquals(10, NwpTool.computePastTimeStepCount(17));
+    }
+
+    @Test
+    public void testGetMatchupCount_noDataInArray() {
+        final Array array = mock(Array.class);
+
+        when(array.getSize()).thenReturn(0L);
+
+        assertEquals(0, NwpTool.getMatchupCount(array, 876));
+    }
+
+    @Test
+    public void testGetMatchupCount() {
+        final Array array = mock(Array.class);
+
+        when(array.getSize()).thenReturn(3L);
+        when(array.getInt(0)).thenReturn(16);
+        when(array.getInt(1)).thenReturn(9);
+        when(array.getInt(2)).thenReturn(18);
+
+        assertEquals(2, NwpTool.getMatchupCount(array, 16));
     }
 }
