@@ -220,6 +220,8 @@
                 <!-- Path to the CDO installation to use -->
                 <mms.nwp.cdo.home>/group_workspaces/cems2/esacci_sst/software/cdo/1.6.4</mms.nwp.cdo.home>
 
+                <mms.python.exec>/group_workspaces/cems2/esacci_sst/software/python/bin/python2.7</mms.python.exec>
+
                 <!-- Path to the Apache Maven executable -->
                 <mms.mvn.exec>/group_workspaces/cems2/esacci_sst/mms/software/apache-maven-3.2.3/bin/mvn</mms.mvn.exec>
                 <!-- Path to the git executable -->
