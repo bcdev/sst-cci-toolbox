@@ -4,5 +4,5 @@ files=/disk/scratch/local.2/cbulgin/SVR_DV/new/20100310221800-ESACCI-L2P_GHRSST-
 
 for f in $files
 do 
-    python qf_check.py $f
+    python svr-qf_check.py $f
 done

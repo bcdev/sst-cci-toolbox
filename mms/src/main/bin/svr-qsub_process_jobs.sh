@@ -19,7 +19,7 @@ function process_mon {
   do
     OUTTXTDIR=/exports/work/geos_gc_sst_cci/${USER}_TMP/${channel_prev}/${yr_prev}/${mon_prev}/${day}
     job_id=process_${channel_prev}_${yr_prev}_${mon_prev}_${day}
-    ${testing} qsub -hold_jid ${copy_id_prev} -N ${job_id} process_daydir.sh ${TMP_DIR_prev}/${day} ${OUTTXTDIR} ${TYPE}
+    ${testing} qsub -hold_jid ${copy_id_prev} -N ${job_id} svr-process_daydir.sh ${TMP_DIR_prev}/${day} ${OUTTXTDIR} ${TYPE}
     ${testing}
     if [ ${first} == 0 ]
     then
@@ -71,18 +71,18 @@ channel=AATSR
       if [ ${counter} == 0 ]
       then
 	# first time through..
-	${testing} qsub -N ${copy_id} cesd_sge_copy_to_NAS.sh ${COPY_DIR} ${TMP_DIR}
+	${testing} qsub -N ${copy_id} svr-cesd_sge_copy_to_NAS.sh ${COPY_DIR} ${TMP_DIR}
 	${testing}
       elif [ ${counter} == 1 ]
       then
 	# second time through..
-	${testing} qsub -hold_jid ${copy_id_prev} -N ${copy_id} cesd_sge_copy_to_NAS.sh ${COPY_DIR} ${TMP_DIR}
+	${testing} qsub -hold_jid ${copy_id_prev} -N ${copy_id} svr-cesd_sge_copy_to_NAS.sh ${COPY_DIR} ${TMP_DIR}
 	${testing}
         # and start processing the data from that previous copy job (ie month) that has completed..
         process_mon
       else
 	# every other time through..
-	${testing} qsub ${hold_list} -N ${copy_id} cesd_sge_copy_to_NAS.sh ${COPY_DIR} ${TMP_DIR}
+	${testing} qsub ${hold_list} -N ${copy_id} svr-cesd_sge_copy_to_NAS.sh ${COPY_DIR} ${TMP_DIR}
 	${testing}
 	# and processing the previous copy..
         process_mon
