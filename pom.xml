@@ -37,7 +37,6 @@
         <module>assessment</module>
         <module>mms</module>
         <module>user-tools</module>
-        <module>sst-cci-svr</module>
     </modules>
 
     <properties>
