@@ -32,6 +32,7 @@ import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.jai.ImageManager;
 import org.esa.beam.jai.ResolutionLevel;
 import org.esa.beam.util.PixelLocatorFactory;
+import org.esa.cci.sst.util.ByteConversion;
 import org.esa.cci.sst.util.TimeUtil;
 import ucar.ma2.Array;
 import ucar.nc2.Attribute;
@@ -48,6 +49,8 @@ import java.awt.image.DataBuffer;
 import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Date;
@@ -386,17 +389,8 @@ public final class Amsr2ProductReader extends NetcdfProductReaderTemplate {
 
         @Override
         protected Object transformStorage(Array array) {
-            final byte[] bytes = (byte[]) array.getStorage();
-            final int[] ints = new int[bytes.length >> 2];
-
-            for (int i = 0; i < ints.length; ++i) {
-                final byte b4 = bytes[i * 4];
-                final byte b3 = bytes[i * 4 + 1];
-                final byte b2 = bytes[i * 4 + 2];
-                final byte b1 = bytes[i * 4 + 3];
-                ints[i] = (b1 & 0xFF) | (b2 & 0xFF) << 8 | (b3 & 0xFF) << 16 | (b4 & 0xFF) << 24;
-            }
-            return ints;
+            return ByteConversion.bytesToInts((byte[]) array.getStorage());
         }
     }
+
 }
