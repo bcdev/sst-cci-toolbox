@@ -75,6 +75,7 @@ class Ingester {
         }
     }
 
+    // @todo 3 tb/tb make static and write tests tb 2015-02-26
     Sensor createSensor(String sensorName, String observationType, long pattern) {
         final SensorBuilder builder = new SensorBuilder();
         builder.name(sensorName);
@@ -109,5 +110,4 @@ class Ingester {
         //throw new ToolException("Expected observation with time stamp.", ToolException.TOOL_CONFIGURATION_ERROR);
         return true;
     }
-
 }

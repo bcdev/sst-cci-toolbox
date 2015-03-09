@@ -307,6 +307,4 @@ public class IngestionTool extends BasicTool {
             }
         }
     }
-
-
 }
