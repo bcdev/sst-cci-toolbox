@@ -11,8 +11,6 @@ from workflow import SensorPair
 from workflow import Workflow
 
 
-
-# noinspection PyProtectedMember
 class WorkflowTests(unittest.TestCase):
     def test_period_construction(self):
         period_1 = Period((2007, 1, 1), '2008-01-01')
@@ -551,6 +549,46 @@ class WorkflowTests(unittest.TestCase):
             self.assertEqual('253 created, 0 running, 0 backlog, 253 processed, 0 failed\n', status.readline())
         with open('mms1.report', 'r') as report:
             self.assertEqual(253, len(report.readlines()))
+
+        os.remove('mms1.status')
+        os.remove('mms1.report')
+
+    def test_run_dual_sensor_usecase_without_aux(self):
+        usecase = 'mms1'
+        mmdtype = 'mmd1'
+        w = Workflow(usecase, Period('1991-01-01', '1992-01-01'))
+        w.add_primary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
+        w.add_primary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
+        w.add_primary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
+        w.add_secondary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
+        w.add_secondary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
+        w.add_secondary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
+        w.run(mmdtype, log_dir='.', simulation=True, without_aux=True)
+
+        with open('mms1.status', 'r') as status:
+            self.assertEqual('240 created, 0 running, 0 backlog, 240 processed, 0 failed\n', status.readline())
+        with open('mms1.report', 'r') as report:
+            self.assertEqual(240, len(report.readlines()))
+
+        os.remove('mms1.status')
+        os.remove('mms1.report')
+
+    def test_run_dual_sensor_usecase_without_arc(self):
+        usecase = 'mms1'
+        mmdtype = 'mmd1'
+        w = Workflow(usecase, Period('1991-01-01', '1992-01-01'))
+        w.add_primary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
+        w.add_primary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
+        w.add_primary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
+        w.add_secondary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
+        w.add_secondary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
+        w.add_secondary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
+        w.run(mmdtype, log_dir='.', simulation=True, without_arc=True)
+
+        with open('mms1.status', 'r') as status:
+            self.assertEqual('203 created, 0 running, 0 backlog, 203 processed, 0 failed\n', status.readline())
+        with open('mms1.report', 'r') as report:
+            self.assertEqual(203, len(report.readlines()))
 
         os.remove('mms1.status')
         os.remove('mms1.report')

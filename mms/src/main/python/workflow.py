@@ -580,6 +580,8 @@ class Workflow:
     def run(self, mmdtype, hosts=list([('localhost', 60)]), calls=list(), log_dir='trace',
             with_history=False,
             with_selection=False,
+            without_aux=False,
+            without_arc=False,
             simulation=False):
         """
 
@@ -606,15 +608,18 @@ class Workflow:
             self._execute_sampling(m, chunk)
             self._execute_clearing(m, chunk)
             self._execute_plotting(m, chunk, sampling_prefix)
-            self._execute_ingest_coincidences(m, chunk, sampling_prefix)
+            if not without_aux:
+                self._execute_ingest_aux(m, chunk, sampling_prefix)
             self._execute_create_sub_mmd_files(m, chunk)
             self._execute_create_nwp_mmd_files(m, chunk)
             self._execute_create_matchup_nwp_mmd_files(m, chunk)
-            self._execute_create_arc_mmd_files(m, chunk)
+            if not without_arc:
+                self._execute_create_arc_mmd_files(m, chunk)
             self._execute_ingest_sub_mmd_files(m, chunk)
             self._execute_ingest_nwp_mmd_files(m, chunk)
             self._execute_ingest_matchup_nwp_mmd_files(m, chunk)
-            self._execute_ingest_arc_mmd_files(m, chunk)
+            if not without_arc:
+                self._execute_ingest_arc_mmd_files(m, chunk)
             self._execute_create_final_mmd_files(m, chunk, mmdtype)
             if with_selection:
                 self._execute_selection(m, chunk, mmdtype, mmdtype.replace('mmd', 'sel', 1))
@@ -919,7 +924,7 @@ class Workflow:
                     monitor.execute(job)
                     date = _next_month(date)
 
-    def _execute_ingest_coincidences(self, monitor, chunk, sampling_prefix):
+    def _execute_ingest_aux(self, monitor, chunk, sampling_prefix):
         """
 
         :type monitor: Monitor
