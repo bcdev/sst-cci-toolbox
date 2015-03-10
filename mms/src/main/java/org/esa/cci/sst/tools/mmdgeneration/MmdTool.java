@@ -277,7 +277,7 @@ public class MmdTool extends BasicTool {
 
         if (!test.isOK()) {
             final String msg = String.format(
-                    "Observation (id=%d) does not contain reference observation and is ignored.", observation.getId());
+                    "Observation (id=%d) does not contain reference observation (id=%d) and is ignored.", observation.getId(), refObs.getId());
             logger.warning(msg);
             return false;
         }
