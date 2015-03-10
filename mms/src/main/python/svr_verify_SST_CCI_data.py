@@ -112,7 +112,7 @@ def check_netCDF4_available():
 #####################
 def load_var_and_check_limits(check_var, vars_in_file, limits_list, log):
     #
-    print "loading and checking " + check_var
+    # print "loading and checking " + check_var
     #
     # grab the limits associated with var..
     limits = limits_list.get(check_var)
