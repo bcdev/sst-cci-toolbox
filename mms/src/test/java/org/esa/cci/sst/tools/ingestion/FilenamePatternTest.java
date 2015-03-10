@@ -37,8 +37,8 @@ public class FilenamePatternTest {
     private static final String EXAMPLE_FILENAME_AVHRR_F_M02_2 = "AVHR_xxx_1B_M02_20121201005503Z_20121201023703Z_N_O_20121201014146Z.nat.gz";
 
     private static final String FILENAME_PATTERN_AMSR2 = "GW1AM2_[0-9]{12}_.{4}_L1SGRTBR_[0-9]{7}\\.h5(\\.gz)?";
-    private static final String FILENAME_PATTERN_AVHRR_F_M01 = "AVHRR_xxx_1B_M01_[0-9]{14}Z_[0-9]{14}Z_._._[0-9]{14}\\.nat(\\.gz)?";
-    private static final String FILENAME_PATTERN_AVHRR_F_M02 = "AVHRR_xxx_1B_M02_[0-9]{14}Z_[0-9]{14}Z_._._[0-9]{14}\\.nat(\\.gz)?";
+    private static final String FILENAME_PATTERN_AVHRR_F_M01 = "AVHR_xxx_1B_M01_[0-9]{14}Z_[0-9]{14}Z_._._[0-9]{14}Z\\.nat(\\.gz)?";
+    private static final String FILENAME_PATTERN_AVHRR_F_M02 = "AVHR_xxx_1B_M02_[0-9]{14}Z_[0-9]{14}Z_._._[0-9]{14}Z\\.nat(\\.gz)?";
 
     @Test
     public void testFilenamePattern_AMSR2() throws Exception {
