@@ -1,5 +1,6 @@
 package org.esa.beam.dataio.cci.sst;
 
+import org.esa.beam.common.NetcdfProductReaderTemplate;
 import org.esa.beam.framework.datamodel.Band;
 import org.esa.beam.framework.datamodel.FlagCoding;
 import org.esa.beam.framework.datamodel.Product;
@@ -37,7 +38,7 @@ public class NcAvhrrGacReaderTest {
 
         testBand.setValidPixelExpression("express yourself");
 
-        NcAvhrrGacProductReader.addValidPixelExpression(variable, testBand);
+        NetcdfProductReaderTemplate.addValidPixelExpression(variable, testBand);
 
         assertEquals("express yourself", testBand.getValidPixelExpression());
     }
@@ -47,7 +48,7 @@ public class NcAvhrrGacReaderTest {
         when(variable.findAttribute("valid_min")).thenReturn(attribute_1);
         when(attribute_1.getNumericValue()).thenReturn(20.0);
 
-        NcAvhrrGacProductReader.addValidPixelExpression(variable, testBand);
+        NetcdfProductReaderTemplate.addValidPixelExpression(variable, testBand);
 
         assertEquals("test.raw >= 20.0", testBand.getValidPixelExpression());
     }
@@ -57,7 +58,7 @@ public class NcAvhrrGacReaderTest {
         when(variable.findAttribute("valid_max")).thenReturn(attribute_2);
         when(attribute_2.getNumericValue()).thenReturn(21.0);
 
-        NcAvhrrGacProductReader.addValidPixelExpression(variable, testBand);
+        NetcdfProductReaderTemplate.addValidPixelExpression(variable, testBand);
 
         assertEquals("test.raw <= 21.0", testBand.getValidPixelExpression());
     }
@@ -69,7 +70,7 @@ public class NcAvhrrGacReaderTest {
         when(attribute_1.getNumericValue()).thenReturn(17.0);
         when(attribute_2.getNumericValue()).thenReturn(22.0);
 
-        NcAvhrrGacProductReader.addValidPixelExpression(variable, testBand);
+        NetcdfProductReaderTemplate.addValidPixelExpression(variable, testBand);
 
         assertEquals("test.raw >= 17.0 && test.raw <= 22.0", testBand.getValidPixelExpression());
     }
@@ -88,7 +89,7 @@ public class NcAvhrrGacReaderTest {
         when(attribute_1.getNumericValue(2)).thenReturn(4);
         when(attribute_2.getStringValue()).thenReturn("flag_1 flag_2 flag_3");
 
-        NcAvhrrGacProductReader.addFlagCoding(variable, testBand, product);
+        NetcdfProductReaderTemplate.addFlagCoding(variable, testBand, product);
 
         final FlagCoding flagCodingFromBand = testBand.getFlagCoding();
         assertNotNull(flagCodingFromBand);
@@ -110,7 +111,7 @@ public class NcAvhrrGacReaderTest {
         when(variable.findAttribute("flag_meanings")).thenReturn(attribute_2);
         when(variable.getFullName()).thenReturn("TestFlagCoding");
 
-        NcAvhrrGacProductReader.addFlagCoding(variable, testBand, product);
+        NetcdfProductReaderTemplate.addFlagCoding(variable, testBand, product);
 
         assertFlagCodingNotPresent(product);
     }
@@ -124,7 +125,7 @@ public class NcAvhrrGacReaderTest {
         when(variable.findAttribute("flag_meanings")).thenReturn(null);
         when(variable.getFullName()).thenReturn("TestFlagCoding");
 
-        NcAvhrrGacProductReader.addFlagCoding(variable, testBand, product);
+        NetcdfProductReaderTemplate.addFlagCoding(variable, testBand, product);
 
         assertFlagCodingNotPresent(product);
     }
@@ -138,7 +139,7 @@ public class NcAvhrrGacReaderTest {
         when(variable.findAttribute("flag_meanings")).thenReturn(null);
         when(variable.getFullName()).thenReturn("TestFlagCoding");
 
-        NcAvhrrGacProductReader.addFlagCoding(variable, testBand, product);
+        NetcdfProductReaderTemplate.addFlagCoding(variable, testBand, product);
 
         assertFlagCodingNotPresent(product);
     }
@@ -156,7 +157,7 @@ public class NcAvhrrGacReaderTest {
         when(attribute_1.getNumericValue(1)).thenReturn(2);
         when(attribute_2.getStringValue()).thenReturn("flag_1 flag_2 flag_3");
 
-        NcAvhrrGacProductReader.addFlagCoding(variable, testBand, product);
+        NetcdfProductReaderTemplate.addFlagCoding(variable, testBand, product);
 
         assertFlagCodingNotPresent(product);
     }

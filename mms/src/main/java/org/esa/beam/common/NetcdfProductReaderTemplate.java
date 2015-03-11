@@ -22,9 +22,12 @@ import org.esa.beam.dataio.netcdf.util.RasterDigest;
 import org.esa.beam.framework.dataio.AbstractProductReader;
 import org.esa.beam.framework.dataio.ProductReaderPlugIn;
 import org.esa.beam.framework.datamodel.Band;
+import org.esa.beam.framework.datamodel.FlagCoding;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.framework.datamodel.VirtualBand;
+import org.esa.beam.util.StringUtils;
+import ucar.ma2.DataType;
 import ucar.nc2.Attribute;
 import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFile;
@@ -48,6 +51,48 @@ public abstract class NetcdfProductReaderTemplate extends AbstractProductReader 
 
     protected NetcdfProductReaderTemplate(ProductReaderPlugIn readerPlugIn) {
         super(readerPlugIn);
+    }
+
+    public static void addValidPixelExpression(Variable variable, Band band) {
+        if (band.getValidPixelExpression() == null || band.getValidPixelExpression().isEmpty()) {
+            final Number validMin = getAttribute(variable, "valid_min");
+            final Number validMax = getAttribute(variable, "valid_max");
+
+            final String bandName = band.getName();
+            if (validMin != null && validMax != null) {
+                band.setValidPixelExpression(
+                        String.format("%s.raw >= %s && %s.raw <= %s", bandName, validMin, bandName, validMax));
+            } else if (validMin != null) {
+                band.setValidPixelExpression(String.format("%s.raw >= %s", bandName, validMin));
+            } else if (validMax != null) {
+                band.setValidPixelExpression(String.format("%s.raw <= %s", bandName, validMax));
+            }
+        }
+    }
+
+    public static void addFlagCoding(Variable variable, Band band, Product product) {
+        final Attribute masksAttribute = variable.findAttribute("flag_masks");
+        final Attribute meaningsAttribute = variable.findAttribute("flag_meanings");
+        if (masksAttribute == null || meaningsAttribute == null) {
+            return;
+        }
+
+        final int masksLength = masksAttribute.getLength();
+        final String meaningsString = meaningsAttribute.getStringValue();
+        final String[] flagMeanings = StringUtils.split(meaningsString, new char[]{' '}, true);
+        if (masksLength != flagMeanings.length) {
+            return;
+        }
+
+        final String variableFullName = variable.getFullName();
+        final FlagCoding flagCoding = new FlagCoding(variableFullName);
+        for (int i = 0; i < flagMeanings.length; i++) {
+            final Number maskNumerical = masksAttribute.getNumericValue(i);
+            flagCoding.addFlag(flagMeanings[i], DataType.unsignedShortToInt(maskNumerical.shortValue()), null);
+        }
+
+        band.setSampleCoding(flagCoding);
+        product.getFlagCodingGroup().add(flagCoding);
     }
 
     @Override
