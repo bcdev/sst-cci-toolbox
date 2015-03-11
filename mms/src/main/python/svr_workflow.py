@@ -1,5 +1,4 @@
 import os
-import time
 
 import svr_verify_SST_CCI_data
 
@@ -16,7 +15,6 @@ class Svr_Workflow:
         self.sensor_name = sensor_name
 
     def run(self):
-        #start_time = time.clock()
 
         file_list = self.glob_input_files()
 
@@ -26,8 +24,6 @@ class Svr_Workflow:
             print(input_file)
             svr_verify_SST_CCI_data.verify_SST_CCI_data(input_file, self.sensor_name, self.output_dir)
 
-        #stop_time = time.clock()
-        #print(stop_time - start_time)
 
     def glob_input_files(self):
         input_file_list = list()
@@ -35,7 +31,7 @@ class Svr_Workflow:
         for root, dirs, files in os.walk(self.input_path):
             for name in files:
                 if name.endswith(".nc"):
-                    path = os.path.join(root,name)
+                    path = os.path.join(root, name)
                     input_file_list.append(os.path.abspath(path))
 
         return input_file_list
@@ -43,7 +39,6 @@ class Svr_Workflow:
 
 if __name__ == "__main__":
     import sys
-
 
     w = Svr_Workflow(sys.argv[1], sys.argv[2], sys.argv[3])
     w.run()
