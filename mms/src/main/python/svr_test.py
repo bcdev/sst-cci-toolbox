@@ -15,5 +15,14 @@ class SvrTests(unittest.TestCase):
         input_path = self.svr.assemble_input_path("/archive/directory/root", "SensoR", "2008", "05")
         self.assertEquals("/archive/directory/root/SensoR/2008/05", input_path)
 
+    def test_extract_sensor_name(self):
+        self.assertEquals("AVHRR", self.svr.extract_sensor_name("AVHRRMTA_G"))
+        self.assertEquals("AVHRR", self.svr.extract_sensor_name("avhrrmta_g"))
+
+        self.assertEquals("ATSR", self.svr.extract_sensor_name("atsr.3"))
+        self.assertEquals("ATSR", self.svr.extract_sensor_name("ATSR.2.3"))
+
+        self.assertEquals("", self.svr.extract_sensor_name("MERIS_FRS"))
+
 if __name__ == '__main__':
     unittest.main()

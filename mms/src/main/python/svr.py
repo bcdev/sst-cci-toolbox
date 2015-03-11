@@ -22,7 +22,8 @@ class Svr:
 
     def run(self):
         input_path = self.assemble_input_path(archive_root, sensor_name, year, month)
-        call = self.assemble_call(python_path, input_path, output_dir, sensor_name)
+        call_sensor_name = self.extract_sensor_name(sensor_name)
+        call = self.assemble_call(python_path, input_path, output_dir, call_sensor_name)
 
         self.pm.execute(call, self.preconditions, list())
         self.pm.wait_for_completion()
@@ -33,6 +34,17 @@ class Svr:
     def assemble_input_path(self, archive_root, sensor, year, month):
         sensor_path = os.path.join(archive_root, sensor, year, month)
         return sensor_path
+
+    def extract_sensor_name(self, sensor_name):
+        sensor_name_uc = sensor_name.upper()
+
+        if "AVHRR" in sensor_name_uc:
+            return "AVHRR"
+        elif "ATSR" in sensor_name_uc:
+            return "ATSR"
+
+        return ""
+
 
 
 if __name__ == "__main__":
