@@ -124,9 +124,9 @@ class ProductVerifier:
             try:
                 # noinspection PyUnusedLocal
                 variable = dataset.variables[variable_name]
-                self.report[variable_name + '.exists'] = 0
+                self.report[variable_name + '.existence_check'] = 0
             except KeyError:
-                self.report[variable_name + '.exists'] = 1
+                self.report[variable_name + '.existence_check'] = 1
 
     @staticmethod
     def __get_masked_data(variable):
@@ -166,21 +166,14 @@ class ProductVerifier:
 
             try:
                 valid_max = variable.getncattr('valid_max')
-                invalid_data = ma.masked_less_or_equal(data, valid_max)
-                self.report[variable_name + '.count.valid_max_failure'] = invalid_data.count()
+                invalid_data = ma.masked_less_equal(data, valid_max)
+                self.report[variable_name + '.valid_max_check'] = invalid_data.count()
             except AttributeError:
                 pass
             try:
                 valid_min = variable.getncattr('valid_min')
-                invalid_data = ma.masked_greater_or_equal(data, valid_min)
-                self.report[variable_name + '.count.valid_min_failure'] = invalid_data.count()
-            except AttributeError:
-                pass
-            try:
-                valid_max = variable.getncattr('valid_max')
-                valid_min = variable.getncattr('valid_min')
-                valid_data = ma.masked_outside(data, valid_min, valid_max)
-                self.report[variable_name + '.count.inside'] = valid_data.count()
+                invalid_data = ma.masked_greater_equal(data, valid_min)
+                self.report[variable_name + '.valid_min_check'] = invalid_data.count()
             except AttributeError:
                 pass
 
@@ -207,9 +200,9 @@ class ProductVerifier:
         # noinspection PyNoneFunctionAssignment
         b = ma.getmaskarray(ProductVerifier.__get_data(dataset, objective_variable_name))
         false_negatives = ma.masked_equal(numpy.logical_or(numpy.logical_not(a), b), True)
-        self.report[objective_variable_name + '.mask.failure.false_negative'] = false_negatives.count()
+        self.report[objective_variable_name + '.mask_false_negative_check'] = false_negatives.count()
         false_positives = ma.masked_equal(numpy.logical_or(numpy.logical_not(b), a), True)
-        self.report[objective_variable_name + '.mask.failure.false_positive'] = false_positives.count()
+        self.report[objective_variable_name + '.mask_false_positive_check'] = false_positives.count()
 
     def _check_dataset(self, product_type):
         """
