@@ -3,6 +3,7 @@ __author__ = 'ralf'
 import os
 import re
 from netCDF4 import Dataset
+import json
 
 import numpy
 import numpy.ma as ma
@@ -58,7 +59,7 @@ class L2P(ProductType):
 
 
 class ProductVerifier:
-    def __init__(self, source_pathname, report_pathname='report.properties'):
+    def __init__(self, source_pathname, report_pathname='report.json'):
         """
 
         :type source_pathname: str
@@ -147,7 +148,6 @@ class ProductVerifier:
 
         :type dataset: Dataset
         :type variable_name: str
-
         :rtype : ma.MaskedArray
         """
         return ProductVerifier.__get_masked_data(dataset.variables[variable_name])
@@ -188,6 +188,7 @@ class ProductVerifier:
         suspicious_data = ma.masked_inside(sst_difference_data, -5.0, 10.0)
         self.report['geophysical_check'] = suspicious_data.count()
 
+    # noinspection PyNoneFunctionAssignment
     def _check_mask_consistency(self, dataset, reference_variable_name, objective_variable_name):
         """
 
@@ -195,12 +196,12 @@ class ProductVerifier:
         :type reference_variable_name: str
         :type objective_variable_name: str
         """
-        # noinspection PyNoneFunctionAssignment
         a = ma.getmaskarray(ProductVerifier.__get_data(dataset, reference_variable_name))
-        # noinspection PyNoneFunctionAssignment
         b = ma.getmaskarray(ProductVerifier.__get_data(dataset, objective_variable_name))
+        # false negatives: element is not masked in a, but masked in b
         false_negatives = ma.masked_equal(numpy.logical_or(numpy.logical_not(a), b), True)
         self.report[objective_variable_name + '.mask_false_negative_check'] = false_negatives.count()
+        # false positives: element is masked in a, but not masked in b
         false_positives = ma.masked_equal(numpy.logical_or(numpy.logical_not(b), a), True)
         self.report[objective_variable_name + '.mask_false_positive_check'] = false_positives.count()
 
@@ -229,20 +230,40 @@ class ProductVerifier:
         finally:
             dataset.close()
 
-    def write_report(self):
-        report_file = open(self.report_pathname, 'w')
+    @staticmethod
+    def load_report(report_pathname):
+        """
+
+        :type report_pathname: str
+        :rtype : dict
+        """
+        report_file = open(report_pathname, 'r')
         try:
-            report_keys = sorted(self.report.keys())
-            for key in report_keys:
-                report_file.write(key + ' = ' + str(self.report[key]) + '\n')
+            return json.load(report_file)
         finally:
             report_file.close()
+
+    @staticmethod
+    def dump_report(report, report_pathname):
+        """
+
+        :type report: dict
+        :type report_pathname: str
+        """
+        report_file = open(report_pathname, 'w')
+        try:
+            json.dump(report, report_file)
+        finally:
+            report_file.close()
+
+    def _write_report(self):
+        ProductVerifier.dump_report(self.get_report(), self.get_report_pathname())
 
     def verify(self):
         self._check_source_pathname()
         product_type = self._check_source_filename()
         self._check_dataset(product_type)
-        self.write_report()
+        self._write_report()
 
 
 if __name__ == "__main__":
@@ -259,5 +280,5 @@ if __name__ == "__main__":
         sys.exit(0)
     except VerificationException:
         sys.exit(1)
-    except Exception:
+    except:
         sys.exit(2)
