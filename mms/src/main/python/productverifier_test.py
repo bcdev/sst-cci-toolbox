@@ -34,11 +34,12 @@ class ProductVerifierTests(unittest.TestCase):
         report = verifier.get_report()
         self.assertEquals(0, report['source_filename_check'])
 
-    def test_check_dataset(self):
+    def test_verify(self):
         verifier = ProductVerifier('testdata/20100701003842-ESACCI-L2P_GHRSST-SSTskin-AVHRRMTA_G-X1-v02.0-fvX1.0.nc')
-        verifier._check_dataset(L2P())
+        verifier.verify()
 
-        self.assertEquals(ProductVerifier.load_report('testdata/report.json'), verifier.get_report())
+        expected_report = ProductVerifier.load_report('testdata/report.json')
+        self.assertEquals(expected_report, verifier.get_report())
 
     @staticmethod
     def create_new_file(pathname):

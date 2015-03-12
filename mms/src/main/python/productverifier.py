@@ -59,7 +59,7 @@ class L2P(ProductType):
 
 
 class ProductVerifier:
-    def __init__(self, source_pathname, report_pathname='report.json'):
+    def __init__(self, source_pathname, report_pathname=None):
         """
 
         :type source_pathname: str
@@ -93,7 +93,10 @@ class ProductVerifier:
         self._check_source_pathname()
         product_type = self._check_source_filename()
         self._check_dataset(product_type)
-        self._write_report()
+        if self.report_pathname is not None:
+            self._write_report()
+        else:
+            print json.dumps(self.report)
 
     def _check_source_pathname(self):
         ok = os.path.isfile(self.source_pathname)
@@ -220,7 +223,7 @@ class ProductVerifier:
         """
         try:
             dataset = Dataset(self.source_pathname)
-        except RuntimeError:
+        except:
             raise VerificationException
         try:
             self._check_variable_existence(dataset, product_type)
@@ -265,7 +268,7 @@ class ProductVerifier:
             report_file.close()
 
     def _write_report(self):
-        ProductVerifier.dump_report(self.get_report(), self.get_report_pathname())
+        ProductVerifier.dump_report(self.report, self.report_pathname)
 
 
 if __name__ == "__main__":
