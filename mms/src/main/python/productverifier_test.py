@@ -29,7 +29,6 @@ class ProductVerifierTests(unittest.TestCase):
     def test_check_source_filename(self):
         verifier = ProductVerifier('20100701003842-ESACCI-L2P_GHRSST-SSTskin-AVHRRMTA_G-X1-v02.0-fvX1.0.nc')
         product_type = verifier._check_source_filename()
-        self.assertIsNotNone(product_type)
         self.assertIsInstance(product_type, L2P)
 
         report = verifier.get_report()
