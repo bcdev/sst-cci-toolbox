@@ -274,8 +274,8 @@ class ProductVerifier:
 if __name__ == "__main__":
     # Call with two arguments:
     #
-    # 1 = source filepath
-    # 2 = report filepath
+    # 1 = source pathname
+    # 2 = report pathname
     import sys
 
     verifier = ProductVerifier(sys.argv[1], sys.argv[2])
