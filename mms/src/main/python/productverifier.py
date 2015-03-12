@@ -68,7 +68,9 @@ class ProductVerifier:
         self.source_pathname = source_pathname
         self.report_pathname = report_pathname
         self.report = {}
-        self.filename_patterns = {'[0-9]{14}-ESACCI-L2P_GHRSST-.*\\.nc': L2P()}
+        self.filename_patterns = {
+            '[0-9]{14}-ESACCI-L2P_GHRSST-.*\\.nc': L2P(),
+        }
 
     def get_source_pathname(self):
         """
@@ -86,6 +88,12 @@ class ProductVerifier:
 
     def get_report(self):
         return self.report
+
+    def verify(self):
+        self._check_source_pathname()
+        product_type = self._check_source_filename()
+        self._check_dataset(product_type)
+        self._write_report()
 
     def _check_source_pathname(self):
         ok = os.path.isfile(self.source_pathname)
@@ -258,12 +266,6 @@ class ProductVerifier:
 
     def _write_report(self):
         ProductVerifier.dump_report(self.get_report(), self.get_report_pathname())
-
-    def verify(self):
-        self._check_source_pathname()
-        product_type = self._check_source_filename()
-        self._check_dataset(product_type)
-        self._write_report()
 
 
 if __name__ == "__main__":
