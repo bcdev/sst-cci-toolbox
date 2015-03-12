@@ -1,5 +1,7 @@
-from pmonitor import PMonitor
 import os
+
+from pmonitor import PMonitor
+
 
 # input from "config"
 python_path = "python"
@@ -10,7 +12,6 @@ sensor_name = "AVHRRMTA_G"
 years = ["2007", "2008", "2009"]
 months = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
 output_dir = "/usr/local/data/delete"
-
 
 
 class Svr:
@@ -36,7 +37,7 @@ class Svr:
         self.pm.wait_for_completion()
 
     def assemble_call(self, python_path, input_dir, output_dir, sensor_name):
-        return python_path + " svr_workflow.py " + input_dir + " " + output_dir + " " + sensor_name
+        return "svr.sh " + python_path + " " + input_dir + " " + output_dir + " " + sensor_name
 
     def assemble_input_path(self, archive_root, sensor, year, month):
         sensor_path = os.path.join(archive_root, sensor, year, month)
