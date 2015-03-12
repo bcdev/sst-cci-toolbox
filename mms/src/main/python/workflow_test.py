@@ -607,8 +607,8 @@ class WorkflowTests(unittest.TestCase):
         with open('mms3.report', 'r') as report:
             self.assertEqual(337, len(report.readlines()))
 
-        os.remove('mms3.status')
-        os.remove('mms3.report')
+        #os.remove('mms3.status')
+        #os.remove('mms3.report')
 
 
 if __name__ == '__main__':

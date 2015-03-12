@@ -5,7 +5,6 @@ import unittest
 
 from productverifier import L2P
 from productverifier import ProductVerifier
-
 from productverifier import VerificationException
 
 
