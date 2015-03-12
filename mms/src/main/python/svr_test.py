@@ -1,5 +1,6 @@
 from svr import Svr
 
+import os
 import unittest
 
 class SvrTests(unittest.TestCase):
@@ -13,7 +14,7 @@ class SvrTests(unittest.TestCase):
 
     def test_assemble_input_path(self):
         input_path = self.svr.assemble_input_path("/archive/directory/root", "SensoR", "2008", "05")
-        self.assertEquals("/archive/directory/root/SensoR/2008/05", input_path)
+        self.assertEquals("/archive/directory/root" + os.sep + "SensoR" + os.sep + "2008"  + os.sep +"05", input_path)
 
     def test_extract_sensor_name(self):
         self.assertEquals("AVHRR", self.svr.extract_sensor_name("AVHRRMTA_G"))
@@ -23,6 +24,9 @@ class SvrTests(unittest.TestCase):
         self.assertEquals("ATSR", self.svr.extract_sensor_name("ATSR.2.3"))
 
         self.assertEquals("", self.svr.extract_sensor_name("MERIS_FRS"))
+
+    def test_create_post_condition(self):
+        self.assertEquals("/svr/SenSoR/2010/06", self.svr.create_post_condition("SenSoR", "2010", "06"))
 
 if __name__ == '__main__':
     unittest.main()
