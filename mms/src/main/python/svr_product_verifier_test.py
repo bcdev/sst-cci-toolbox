@@ -3,9 +3,9 @@ __author__ = 'ralf'
 import os
 import unittest
 
-from productverifier import L2P
-from productverifier import ProductVerifier
-from productverifier import VerificationException
+from svr_product_verifier import L2P
+from svr_product_verifier import ProductVerifier
+from svr_product_verifier import VerificationError
 
 
 class ProductVerifierTests(unittest.TestCase):
@@ -14,7 +14,7 @@ class ProductVerifierTests(unittest.TestCase):
         try:
             verifier._check_source_pathname()
             self.fail()
-        except VerificationException:
+        except VerificationError:
             report = verifier.get_report()
             self.assertEquals(1, report['source_pathname_check'])
 

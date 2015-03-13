@@ -3,14 +3,15 @@ __author__ = 'ralf'
 import os
 import re
 from netCDF4 import Dataset
+from netCDF4 import Variable
 import json
 
 import numpy
 import numpy.ma as ma
 
 
-class VerificationException(Exception):
-    pass
+class VerificationError(Exception):
+    exit_code = 2
 
 
 class ProductType:
@@ -140,6 +141,9 @@ class L4(ProductType):
 
 
 class ProductVerifier:
+    UNSPECIFIED_ERROR = 1
+    VERIFICATION_ERROR = 2
+
     def __init__(self, source_pathname, report_pathname=None):
         """
 
@@ -171,13 +175,16 @@ class ProductVerifier:
         return self.report
 
     def verify(self):
-        self._check_source_pathname()
-        product_type = self._check_source_filename()
-        self._check_dataset(product_type)
-        if self.report_pathname is not None:
-            self._write_report()
-        else:
-            print json.dumps(self.report)
+        try:
+            self._check_source_pathname()
+            product_type = self._check_source_filename()
+            dataset = self._check_product_can_be_opened()
+            self._check_dataset(dataset, product_type)
+        finally:
+            if self.report_pathname is None:
+                print json.dumps(self.report, indent=1)
+            else:
+                self._write_report()
 
     def _check_source_pathname(self):
         ok = os.path.isfile(self.source_pathname)
@@ -185,7 +192,7 @@ class ProductVerifier:
             self.report['source_pathname_check'] = 0
         else:
             self.report['source_pathname_check'] = 1
-            raise VerificationException
+            raise VerificationError
 
     def _check_source_filename(self):
         """
@@ -205,7 +212,7 @@ class ProductVerifier:
             return product_type
         else:
             self.report['source_filename_check'] = 1
-            raise VerificationException
+            raise VerificationError
 
     def _check_variable_existence(self, dataset, product_type):
         """
@@ -225,6 +232,7 @@ class ProductVerifier:
     def __get_masked_data(variable):
         """
 
+        :type variable: Variable
         :rtype : ma.MaskedArray
         """
         data = variable[:]
@@ -302,26 +310,31 @@ class ProductVerifier:
             false_positives = ma.masked_equal(numpy.logical_or(numpy.logical_not(b), a), True)
             self.report[objective_variable_name + '.mask_false_positive_check'] = false_positives.count()
 
-    def _check_dataset(self, product_type):
-        """
-
-        :type product_type: ProductType
-        """
+    def _check_product_can_be_opened(self):
         try:
             dataset = Dataset(self.source_pathname)
+            self.report['product_can_be_opened_check'] = 0
         except:
-            raise VerificationException
+            self.report['product_can_be_opened_check'] = 1
+            raise VerificationError
+        return dataset
+
+    def _check_dataset(self, dataset, product_type):
+        """
+
+        :type dataset: Dataset
+        :type product_type: ProductType
+        """
         try:
             self._check_variable_existence(dataset, product_type)
             self._check_variable_limits(dataset)
             self._check_geophysical(dataset, product_type)
             self._check_mask_consistency(dataset, product_type)
-
-        except:
-            raise VerificationException
         finally:
-            dataset.close()
-
+            try:
+                dataset.close()
+            except IOError:
+                pass
 
     @staticmethod
     def load_report(report_pathname):
@@ -365,7 +378,7 @@ if __name__ == "__main__":
     try:
         verifier.verify()
         sys.exit(0)
-    except VerificationException:
-        sys.exit(1)
+    except VerificationError:
+        sys.exit(VerificationError.exit_code)
     except:
-        sys.exit(2)
+        sys.exit(1)
