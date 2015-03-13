@@ -141,9 +141,6 @@ class L4(ProductType):
 
 
 class ProductVerifier:
-    UNSPECIFIED_ERROR = 1
-    VERIFICATION_ERROR = 2
-
     def __init__(self, source_pathname, report_pathname=None):
         """
 
@@ -181,10 +178,7 @@ class ProductVerifier:
             dataset = self._check_product_can_be_opened()
             self._check_dataset(dataset, product_type)
         finally:
-            if self.report_pathname is None:
-                print json.dumps(self.report, indent=1)
-            else:
-                self._write_report()
+            ProductVerifier.dump_report(self.report, self.report_pathname)
 
     def _check_source_pathname(self):
         ok = os.path.isfile(self.source_pathname)
@@ -350,34 +344,42 @@ class ProductVerifier:
             report_file.close()
 
     @staticmethod
-    def dump_report(report, report_pathname):
+    def dump_report(report, report_pathname=None):
         """
 
         :type report: dict
         :type report_pathname: str
         """
-        report_file = open(report_pathname, 'w')
-        try:
-            json.dump(report, report_file, indent=1)
-        finally:
-            report_file.close()
-
-    def _write_report(self):
-        ProductVerifier.dump_report(self.report, self.report_pathname)
+        if report_pathname is None:
+            print json.dumps(report, indent=1)
+        else:
+            report_file = open(report_pathname, 'w')
+            try:
+                json.dump(report, report_file, indent=1)
+            finally:
+                report_file.close()
 
 
 if __name__ == "__main__":
-    # Call with two arguments:
+    # Call with one or two arguments:
     #
     # 1 = source pathname
-    # 2 = report pathname
+    # 2 = report pathname (optional)
     import sys
 
-    verifier = ProductVerifier(sys.argv[1], sys.argv[2])
+    argument_count = len(sys.argv)
+    if argument_count == 2:
+        verifier = ProductVerifier(sys.argv[1])
+    elif argument_count == 3:
+        verifier = ProductVerifier(sys.argv[1], sys.argv[2])
+    else:
+        print 'usage:', sys.argv[0], '<source pathname> <report pathname>'
+        sys.exit(1)
+
     # noinspection PyBroadException
     try:
         verifier.verify()
-        sys.exit(0)
+        sys.exit()
     except VerificationError:
         sys.exit(VerificationError.exit_code)
     except:
