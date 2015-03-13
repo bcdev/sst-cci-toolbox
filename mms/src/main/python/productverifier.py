@@ -14,12 +14,16 @@ class VerificationException(Exception):
 
 
 class ProductType:
-    def __init__(self, variable_names):
+    def __init__(self, variable_names, geophysical_check_spec, mask_consistency_check_specs):
         """
 
         :type variable_names: list
+        :type geophysical_check_spec: list
+        :type mask_consistency_check_specs: list
         """
         self.variable_names = variable_names
+        self.geophysical_check_spec = geophysical_check_spec
+        self.mask_consistency_check_specs = mask_consistency_check_specs
 
     def get_variable_names(self):
         """
@@ -27,35 +31,112 @@ class ProductType:
         :rtype : list
         """
         return self.variable_names
+
+    def get_geophysical_check_spec(self):
+        """
+
+        :rtype : list
+        """
+        return self.geophysical_check_spec
+
+    def get_mask_consistency_check_specs(self):
+        """
+
+        :rtype : list
+        """
+        return self.mask_consistency_check_specs
 
 
 class L2P(ProductType):
     def __init__(self):
-        ProductType.__init__(self, [
-            'adjustment_uncertainty',
-            'l2p_flags',
-            'large_scale_correlated_uncertainty',
-            'lat',
-            'lon',
-            'quality_level'
-            'sea_surface_temperature',
-            'sea_surface_temperature_depth',
-            'sses_bias',
-            'sses_standard_deviation',
-            'sst_depth_total_uncertainty',
-            'sst_dtime',
-            'synoptically_correlated_uncertainty',
-            'time',
-            'uncorrelated_uncertainty',
-            'wind_speed',
-        ])
+        ProductType.__init__(self,
+                             [
+                                 'lat',
+                                 'lon',
+                                 'time',
+                                 'sst_dtime',
+                                 'sea_surface_temperature',
+                                 'sea_surface_temperature_depth',
+                                 'wind_speed',
+                                 'quality_level',
+                                 'sses_standard_deviation',
+                                 'sst_depth_total_uncertainty',
+                                 'large_scale_correlated_uncertainty',
+                                 'synoptically_correlated_uncertainty',
+                                 'uncorrelated_uncertainty',
+                                 'adjustment_uncertainty',
+                                 'l2p_flags',
+                                 'sses_bias'
+                             ],
+                             ['sea_surface_temperature', 'sea_surface_temperature_depth', -5.0, 10.0],
+                             [
+                                 ['sea_surface_temperature', 'sses_bias'],
+                                 ['sea_surface_temperature', 'sses_standard_deviation'],
+                                 ['sea_surface_temperature', 'large_scale_correlated_uncertainty'],
+                                 ['sea_surface_temperature', 'synoptically_correlated_uncertainty'],
+                                 ['sea_surface_temperature', 'uncorrelated_uncertainty'],
+                                 ['sea_surface_temperature', 'adjustment_uncertainty'],
+                                 ['sea_surface_temperature_depth', 'sst_depth_total_uncertainty']
+                             ])
 
-    def get_variable_names(self):
-        """
 
-        :rtype : list
-        """
-        return self.variable_names
+class L3U(ProductType):
+    def __init__(self):
+        ProductType.__init__(self,
+                             [
+                                 'lat',
+                                 'lat_bnds',
+                                 'lon',
+                                 'lon_bnds',
+                                 'time',
+                                 'time_bnds',
+                                 'sst_dtime',
+                                 'sea_surface_temperature',
+                                 'sea_surface_temperature_depth',
+                                 'wind_speed',
+                                 'quality_level',
+                                 'sses_standard_deviation',
+                                 'sst_depth_total_uncertainty',
+                                 'large_scale_correlated_uncertainty',
+                                 'synoptically_correlated_uncertainty',
+                                 'uncorrelated_uncertainty',
+                                 'adjustment_uncertainty',
+                                 'l2p_flags',
+                                 'sses_bias'
+                             ],
+                             ['sea_surface_temperature', 'sea_surface_temperature_depth', -5.0, 10.0],
+                             [
+                                 ['sea_surface_temperature', 'sses_bias'],
+                                 ['sea_surface_temperature', 'sses_standard_deviation'],
+                                 ['sea_surface_temperature', 'large_scale_correlated_uncertainty'],
+                                 ['sea_surface_temperature', 'synoptically_correlated_uncertainty'],
+                                 ['sea_surface_temperature', 'uncorrelated_uncertainty'],
+                                 ['sea_surface_temperature', 'adjustment_uncertainty'],
+                                 ['sea_surface_temperature_depth', 'sst_depth_total_uncertainty']
+                             ])
+
+
+class L4(ProductType):
+    def __init__(self):
+        ProductType.__init__(self,
+                             [
+                                 'lat',
+                                 'lat_bnds',
+                                 'lon',
+                                 'lon_bnds',
+                                 'time',
+                                 'time_bnds',
+                                 'analysed_sst',
+                                 'sea_ice_fraction',
+                                 'quality_level'
+                                 'analysis_error',
+                                 'sea_ice_fraction_error',
+                                 'mask',
+                             ], [],
+                             [
+                                 ['analysed_sst', 'analysis_error'],
+                                 ['sea_ice_fraction', 'sea_ice_fraction_error']
+                             ])
 
 
 class ProductVerifier:
@@ -188,33 +269,38 @@ class ProductVerifier:
             except AttributeError:
                 pass
 
-    def _check_geophysical(self, dataset):
+    def _check_geophysical(self, dataset, product_type):
         """
 
         :type dataset: Dataset
+        :type product_type: ProductType
         """
-        sst_data = ProductVerifier.__get_data(dataset, 'sea_surface_temperature')
-        sst_depth_data = ProductVerifier.__get_data(dataset, 'sea_surface_temperature_depth')
-        sst_difference_data = sst_data - sst_depth_data
-        suspicious_data = ma.masked_inside(sst_difference_data, -5.0, 10.0)
-        self.report['geophysical_check'] = suspicious_data.count()
+        spec = product_type.get_geophysical_check_spec()
+        if len(spec) != 0:
+            a = ProductVerifier.__get_data(dataset, spec[0])
+            b = ProductVerifier.__get_data(dataset, spec[1])
+            difference_data = a - b
+            suspicious_data = ma.masked_inside(difference_data, spec[2], spec[3])
+            self.report['geophysical_check'] = suspicious_data.count()
 
-    # noinspection PyNoneFunctionAssignment
-    def _check_mask_consistency(self, dataset, reference_variable_name, objective_variable_name):
+    # noinspection PyNoneFunctionAssignment,PyUnresolvedReferences
+    def _check_mask_consistency(self, dataset, product_type):
         """
 
         :type dataset: Dataset
-        :type reference_variable_name: str
-        :type objective_variable_name: str
+        :type product_type: ProductType
         """
-        a = ma.getmaskarray(ProductVerifier.__get_data(dataset, reference_variable_name))
-        b = ma.getmaskarray(ProductVerifier.__get_data(dataset, objective_variable_name))
-        # false negatives: element is not masked in a, but masked in b
-        false_negatives = ma.masked_equal(numpy.logical_or(numpy.logical_not(a), b), True)
-        self.report[objective_variable_name + '.mask_false_negative_check'] = false_negatives.count()
-        # false positives: element is masked in a, but not masked in b
-        false_positives = ma.masked_equal(numpy.logical_or(numpy.logical_not(b), a), True)
-        self.report[objective_variable_name + '.mask_false_positive_check'] = false_positives.count()
+        for spec in product_type.get_mask_consistency_check_specs():
+            reference_variable_name = spec[0]
+            objective_variable_name = spec[1]
+            a = ma.getmaskarray(ProductVerifier.__get_data(dataset, reference_variable_name))
+            b = ma.getmaskarray(ProductVerifier.__get_data(dataset, objective_variable_name))
+            # false negatives: element is not masked in a, but masked in b
+            false_negatives = ma.masked_equal(numpy.logical_or(numpy.logical_not(a), b), True)
+            self.report[objective_variable_name + '.mask_false_negative_check'] = false_negatives.count()
+            # false positives: element is masked in a, but not masked in b
+            false_positives = ma.masked_equal(numpy.logical_or(numpy.logical_not(b), a), True)
+            self.report[objective_variable_name + '.mask_false_positive_check'] = false_positives.count()
 
     def _check_dataset(self, product_type):
         """
@@ -228,18 +314,14 @@ class ProductVerifier:
         try:
             self._check_variable_existence(dataset, product_type)
             self._check_variable_limits(dataset)
-            self._check_geophysical(dataset)
-            self._check_mask_consistency(dataset, 'sea_surface_temperature', 'sses_bias')
-            self._check_mask_consistency(dataset, 'sea_surface_temperature', 'sses_standard_deviation')
-            self._check_mask_consistency(dataset, 'sea_surface_temperature', 'adjustment_uncertainty')
-            self._check_mask_consistency(dataset, 'sea_surface_temperature', 'large_scale_correlated_uncertainty')
-            self._check_mask_consistency(dataset, 'sea_surface_temperature', 'synoptically_correlated_uncertainty')
-            self._check_mask_consistency(dataset, 'sea_surface_temperature', 'uncorrelated_uncertainty')
-            self._check_mask_consistency(dataset, 'sea_surface_temperature_depth', 'sst_depth_total_uncertainty')
+            self._check_geophysical(dataset, product_type)
+            self._check_mask_consistency(dataset, product_type)
+
         except:
             raise VerificationException
         finally:
             dataset.close()
+
 
     @staticmethod
     def load_report(report_pathname):
@@ -263,7 +345,7 @@ class ProductVerifier:
         """
         report_file = open(report_pathname, 'w')
         try:
-            json.dump(report, report_file)
+            json.dump(report, report_file, indent=1)
         finally:
             report_file.close()
 
