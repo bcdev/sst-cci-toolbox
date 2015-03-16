@@ -37,7 +37,7 @@ class Svr:
         self.pm.wait_for_completion()
 
     def assemble_call(self, python_path, input_dir, output_dir, sensor_name):
-        return "svr.sh " + python_path + " " + input_dir + " " + output_dir + " " + sensor_name
+        return "../bin/svr.sh " + python_path + " " + input_dir + " " + output_dir + " " + sensor_name
 
     def assemble_input_path(self, archive_root, sensor, year, month):
         sensor_path = os.path.join(archive_root, sensor, year, month)
