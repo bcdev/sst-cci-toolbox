@@ -1,6 +1,6 @@
 import os
 
-import svr_verify_SST_CCI_data
+from svr_product_verifier import ProductVerifier
 
 
 class Svr_Workflow:
@@ -20,14 +20,16 @@ class Svr_Workflow:
 
         print("Found " + str(len(file_list)) + " input files in '" + self.input_path + "'")
 
-        for input_file in file_list:
-            print(input_file)
-            svr_verify_SST_CCI_data.verify_SST_CCI_data(input_file, self.sensor_name, self.output_dir)
-
+        for source_pathname in file_list:
+            print(source_pathname)
+            report_filename = os.path.basename(source_pathname) + '.json'
+            report_pathname = os.path.join(self.output_dir, report_filename)
+            verifier = ProductVerifier(source_pathname, report_pathname)
+            verifier.verify()
 
     def glob_input_files(self):
         input_file_list = list()
-
+        # TODO - find out how to use sensor name here
         for root, dirs, files in os.walk(self.input_path):
             for name in files:
                 if name.endswith(".nc"):
