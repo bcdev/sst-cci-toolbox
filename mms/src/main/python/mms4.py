@@ -19,4 +19,4 @@ w.add_primary_sensor('avhrr.n19', '2009-02-06', '2014-01-01')
 w.add_primary_sensor('avhrr.m02', '2006-11-21', '2014-01-01')
 w.set_samples_per_month(0)
 
-w.run(mmdtype, hosts=[('localhost', 1)], calls=[('sampling-start.sh', 1)], with_history=True)
+w.run(mmdtype, hosts=[('localhost', 4)], calls=[('sampling-start.sh', 1)], with_history=True)
