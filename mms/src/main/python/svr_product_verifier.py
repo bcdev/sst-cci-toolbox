@@ -15,16 +15,18 @@ class VerificationError(Exception):
 
 
 class ProductType:
-    def __init__(self, variable_names, geophysical_check_spec, mask_consistency_check_specs):
+    def __init__(self, variable_names, geophysical_check_spec, mask_consistency_check_specs, sst_variable_names):
         """
 
         :type variable_names: list
         :type geophysical_check_spec: list
         :type mask_consistency_check_specs: list
+        :type sst_variable_names: list
         """
         self.variable_names = variable_names
         self.geophysical_check_spec = geophysical_check_spec
         self.mask_consistency_check_specs = mask_consistency_check_specs
+        self.sst_variable_names = sst_variable_names
 
     def get_variable_names(self):
         """
@@ -46,6 +48,13 @@ class ProductType:
         :rtype : list
         """
         return self.mask_consistency_check_specs
+
+    def get_sst_variable_names(self):
+        """
+
+        :rtype : list
+        """
+        return self.sst_variable_names
 
 
 class L2P(ProductType):
@@ -78,6 +87,10 @@ class L2P(ProductType):
                                  ['sea_surface_temperature', 'uncorrelated_uncertainty'],
                                  ['sea_surface_temperature', 'adjustment_uncertainty'],
                                  ['sea_surface_temperature_depth', 'sst_depth_total_uncertainty']
+                             ],
+                             [
+                                 'sea_surface_temperature',
+                                 'sea_surface_temperature_depth'
                              ])
 
 
@@ -114,6 +127,10 @@ class L3U(ProductType):
                                  ['sea_surface_temperature', 'uncorrelated_uncertainty'],
                                  ['sea_surface_temperature', 'adjustment_uncertainty'],
                                  ['sea_surface_temperature_depth', 'sst_depth_total_uncertainty']
+                             ],
+                             [
+                                 'sea_surface_temperature',
+                                 'sea_surface_temperature_depth'
                              ])
 
 
@@ -137,6 +154,9 @@ class L4(ProductType):
                              [
                                  ['analysed_sst', 'analysis_error'],
                                  ['sea_ice_fraction', 'sea_ice_fraction_error']
+                             ],
+                             [
+                                 'analysed_sst'
                              ])
 
 
@@ -177,6 +197,9 @@ class ProductVerifier:
             product_type = self._check_source_filename()
             dataset = self._check_product_can_be_opened()
             self._check_dataset(dataset, product_type)
+        except VerificationError:
+            self.report['verification_error'] = self.get_source_pathname()
+            pass
         finally:
             ProductVerifier.dump_report(self.report, self.report_pathname)
 
@@ -215,11 +238,9 @@ class ProductVerifier:
         :type product_type: ProductType
         """
         for variable_name in product_type.get_variable_names():
-            try:
-                # noinspection PyUnusedLocal
-                variable = dataset.variables[variable_name]
+            if variable_name in dataset.variables:
                 self.report[variable_name + '.existence_check'] = 0
-            except KeyError:
+            else:
                 self.report[variable_name + '.existence_check'] = 1
 
     @staticmethod
@@ -324,6 +345,7 @@ class ProductVerifier:
             self._check_variable_limits(dataset)
             self._check_geophysical(dataset, product_type)
             self._check_mask_consistency(dataset, product_type)
+            self._check_corruptness(dataset, product_type)
         finally:
             try:
                 dataset.close()
@@ -359,6 +381,43 @@ class ProductVerifier:
             finally:
                 report_file.close()
 
+    def _check_corruptness(self, dataset, product_type):
+        """
+
+        :type dataset: Dataset
+        :type product_type: ProductType
+        """
+        ok = True
+        for variable_name in product_type.get_sst_variable_names():
+            if variable_name in dataset.variables:
+                variable = dataset.variables[variable_name]
+
+                data = ProductVerifier.__get_masked_data(variable)
+                valid_data_count = data.count()
+                if valid_data_count == 0:
+                    ok = False
+                try:
+                    valid_max = variable.getncattr('valid_max')
+                    invalid_data = ma.masked_less_equal(data, valid_max)
+                    valid_data_count = valid_data_count - invalid_data.count()
+                except AttributeError:
+                    pass
+                try:
+                    valid_min = variable.getncattr('valid_min')
+                    invalid_data = ma.masked_greater_equal(data, valid_min)
+                    valid_data_count = valid_data_count - invalid_data.count()
+                except AttributeError:
+                    pass
+                if valid_data_count == 0:
+                    ok = False
+            else:
+                ok = False
+        if ok:
+            self.report['corruptness_check'] = 0
+        else:
+            self.report['corruptness_check'] = 1
+            raise VerificationError
+
 
 if __name__ == "__main__":
     # Call with one or two arguments:
@@ -380,7 +439,5 @@ if __name__ == "__main__":
     try:
         verifier.verify()
         sys.exit()
-    except VerificationError:
-        sys.exit(VerificationError.exit_code)
     except:
         sys.exit(1)

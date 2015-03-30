@@ -20,11 +20,21 @@ class ReportAccumulator:
         self.summary_report = {'summary_report.count': 0}
 
     def accumulate_entry(self, k, v):
-        try:
-            a = self.summary_report[k]
-        except KeyError:
-            a = 0
-        self.summary_report[k] = a + v
+        """
+
+        :type k: str
+        """
+        if isinstance(v, str):
+            if k in self.summary_report:
+                if isinstance(v, str):
+                    previous = self.summary_report[k]
+                    """ :type previous: str """
+                    self.summary_report[k] = previous + ', ' + v
+                else:
+                    previous = self.summary_report[k]
+                    self.summary_report[k] = previous + v
+            else:
+                self.summary_report[k] = v
 
     def accumulate(self):
         try:
