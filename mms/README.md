@@ -72,6 +72,11 @@ The MMS software requires that the following software is installed on the target
 * A recent version of Git
 * A recent version of PostgreSQL with PostGIS extension
 
+#### Example: adding PostGIS on Linux
+
+    psql -d template1 -f ../../mms/software/support/share/postgresql/contrib/postgis-1.5/postgis.sql
+    psql -d template1 -f ../../mms/software/support/share/postgresql/contrib/postgis-1.5/spatial_ref_sys.sql
+
 #### Example: installing PostgreSQL and PostGIS on Mac OS
 
 Install [Homebrew](http://mxcl.github.com/homebrew/). Then from the Terminal type:
@@ -256,3 +261,34 @@ accompanying LICENSE.txt and NOTICE.txt files.
 
 * Ralf Quast (ralf.quast@brockmann-consult.de)
 * Tom Block (tom.block@brockmann-consult.de)
+
+
+CREATE TABLE mm_observation (
+    id integer NOT NULL,
+    name character varying(255),
+    recordno integer,
+    sensor character varying(255),
+    dtype character varying(255),
+    datafile_id integer,
+    location geography(4326),
+    "time" timestamp with time zone,
+    timeradius double precision,
+    dataset smallint,
+    point geography(Point,4326),
+    referenceflag smallint
+);
+
+CREATE TABLE mm_observation (
+    id integer NOT NULL,
+    name character varying(255),
+    recordno integer,
+    sensor character varying(255),
+    dtype character varying(255),
+    datafile_id integer,
+    location geography(GEOMETRY,4326),
+    "time" timestamp with time zone,
+    timeradius double precision,
+    dataset smallint,
+    point geography(Point,4326),
+    referenceflag smallint
+);
