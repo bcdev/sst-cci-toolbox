@@ -1,6 +1,6 @@
 import os
 
-from svr_product_verifier import ProductVerifier
+from productverifier import ProductVerifier
 
 
 class Svr_Workflow:
