@@ -1,13 +1,15 @@
-__author__ = 'ralf'
+__author__ = 'Ralf Quast'
 
 import os
 import re
 
-from svr_product_verifier import ProductVerifier
+from productverifier import ProductVerifier
+from svrrunner import SvrRunner
 
 
 class ReportAccumulator:
-    def __init__(self, report_dir_pathname='.', report_filename_pattern='.*\\.json', summary_report_pathname=None):
+    def __init__(self, report_dir_pathname, report_filename_pattern=SvrRunner.get_report_filename_pattern(),
+                 summary_report_pathname=None):
         """
 
         :type report_dir_pathname: str
@@ -54,22 +56,17 @@ class ReportAccumulator:
 if __name__ == "__main__":
     # Call with up to three arguments:
     #
-    # 1 = report dir pathname (optional)
-    # 2 = report filename pattern (optional)
-    # 3 = summary report pathname (optional)
+    # 1 = report dir pathname
+    # 2 = summary report pathname (optional)
     import sys
 
     argument_count = len(sys.argv)
-    if argument_count == 1:
-        accumulator = ReportAccumulator()
-    elif argument_count == 2:
+    if argument_count == 2:
         accumulator = ReportAccumulator(sys.argv[1])
     elif argument_count == 3:
         accumulator = ReportAccumulator(sys.argv[1], sys.argv[2])
-    elif argument_count == 4:
-        accumulator = ReportAccumulator(sys.argv[1], sys.argv[2], sys.argv[3])
     else:
-        print 'usage:', sys.argv[0], '<report dir pathname> <report filename pattern> <summary report pathname>'
+        print 'usage:', sys.argv[0], '<report dir pathname> <summary report pathname>'
         sys.exit(1)
 
     # noinspection PyBroadException

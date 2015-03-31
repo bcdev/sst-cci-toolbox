@@ -1,11 +1,11 @@
-__author__ = 'ralf'
+__author__ = 'Ralf Quast'
 
 import os
 import unittest
 
-from svr_product_verifier import L2P
-from svr_product_verifier import ProductVerifier
-from svr_product_verifier import VerificationError
+from productverifier import L2P
+from productverifier import ProductVerifier
+from productverifier import VerificationError
 
 
 class ProductVerifierTests(unittest.TestCase):

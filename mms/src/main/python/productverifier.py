@@ -1,4 +1,4 @@
-__author__ = 'ralf'
+__author__ = 'Ralf Quast'
 
 import os
 import re
@@ -199,7 +199,7 @@ class ProductVerifier:
             self._check_dataset(dataset, product_type)
         except VerificationError:
             self.report['verification_error'] = self.get_source_pathname()
-            pass
+            print 'VerificationError:', self.get_source_pathname()
         finally:
             ProductVerifier.dump_report(self.report, self.report_pathname)
 
