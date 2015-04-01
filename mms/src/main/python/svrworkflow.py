@@ -5,7 +5,6 @@ import datetime
 import exceptions
 
 from svrrunner import SvrRunner
-
 from workflow import Period
 from workflow import MultiPeriod
 from workflow import Sensor
@@ -17,6 +16,10 @@ class SvrWorkflow:
     def __init__(self, usecase, version, archive_root, verification_period=None):
         """
 
+        :param usecase: the product type (l2p, l3u, l4)
+        :param version: the version of the processor used to generate the products to be verified
+        :param archive_root: the root path of the product archive
+        :param verification_period: the verification period (optional)
         :type usecase: str
         :type version: str
         :type archive_root: str
