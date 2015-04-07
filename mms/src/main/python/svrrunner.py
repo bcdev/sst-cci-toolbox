@@ -93,9 +93,10 @@ if __name__ == "__main__":
     _usecase = sys.argv[4]
     _version = sys.argv[5]
     _archive_root = sys.argv[6]
+    _report_root = sys.argv[7]
 
     source_dirpath_for_month = SvrRunner.get_source_dirpath(_archive_root, _version, _usecase, _sensor, _year, _month)
-    report_dirpath_for_month = SvrRunner.get_report_dirpath(_archive_root, _version, _usecase, _sensor, _year, _month)
+    report_dirpath_for_month = SvrRunner.get_report_dirpath(_report_root, _version, _usecase, _sensor, _year, _month)
     w = SvrRunner(source_dirpath_for_month, report_dirpath_for_month)
 
     # noinspection PyBroadException

@@ -13,21 +13,23 @@ from workflow import Monitor
 
 
 class SvrWorkflow:
-    def __init__(self, usecase, version, archive_root, verification_period=None):
+    def __init__(self, usecase, version, archive_root, report_root, verification_period=None):
         """
 
         :param usecase: the product type (l2p, l3u, l4)
         :param version: the version of the processor used to generate the products to be verified
         :param archive_root: the root path of the product archive
+        :param report_root: the root path of the report archive
         :param verification_period: the verification period (optional)
         :type usecase: str
         :type version: str
         :type archive_root: str
         :type verification_period: Period
         """
-        self.archive_root = archive_root
         self.version = version
         self.usecase = usecase
+        self.archive_root = archive_root
+        self.report_root = report_root
         self.verification_period = verification_period
         self.sensors = set()
 
@@ -176,7 +178,7 @@ class SvrWorkflow:
                               'svr-start.sh',
                               list(),
                               ['/svr/' + sensor_name],
-                              [year, month, sensor_name, self.usecase, self.version, self.archive_root])
+                              [year, month, sensor_name, self.usecase, self.version, self.archive_root, self.report_root])
                     monitor.execute(job)
                     date = _next_month(date)
 
@@ -187,7 +189,7 @@ class SvrWorkflow:
         """
         for sensor in self._get_sensors_by_period():
             sensor_name = sensor.get_name()
-            report_dirpath = SvrRunner.get_report_dirpath(self.archive_root, self.version, self.usecase, sensor_name)
+            report_dirpath = SvrRunner.get_report_dirpath(self.report_root, self.version, self.usecase, sensor_name)
             summary_report_pathname = os.path.join(report_dirpath, sensor_name + '-summary.json')
             job = Job('svr-accumulate-start' + sensor_name,
                       'svr-accumulate-start.sh',
