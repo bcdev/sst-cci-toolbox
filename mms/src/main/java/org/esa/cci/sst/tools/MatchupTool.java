@@ -138,8 +138,8 @@ public class MatchupTool extends BasicTool {
     private Sensor seviriSensor;
     private Sensor avhrrSensor;
 
-    private List<Matchup> matchupAccu = new ArrayList<>();
-    private List<Coincidence> coincidenceAccu = new ArrayList<>();
+    private final List<Matchup> matchupAccu = new LinkedList<>();
+    private final List<Coincidence> coincidenceAccu = new LinkedList<>();
 
     static {
         OBSERVATION_QUERY_MAP.put(ReferenceObservation.class, COINCIDING_OBSERVATION_QUERY);
