@@ -12,7 +12,7 @@ report_root=$7
 
 task="svr"
 jobname="$task-$year-$month-$sensor-$usecase"
-command="${mms.python.exec} ${mms.home}/python/svrrunner.py $year $month $sensor $usecase $version $archive_root $report_root"
+command="$task-run.sh $year $month $sensor $usecase $version $archive_root $report_root"
 
 echo "`date -u +%Y%m%d-%H%M%S` submitting job '$jobname'"
 

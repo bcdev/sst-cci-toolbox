@@ -7,7 +7,7 @@ summary_report_pathname=$2
 
 task="svr-accumulate"
 jobname="$task-$report_dirpath-$summary_report_pathname"
-command="${mms.python.exec} ${mms.home}/python/reportaccumulator.py $report_dirpath $summary_report_pathname"
+command="$task-run.sh $report_dirpath $summary_report_pathname"
 
 echo "`date -u +%Y%m%d-%H%M%S` submitting job '$jobname'"
 
