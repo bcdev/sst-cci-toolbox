@@ -419,6 +419,19 @@ class ProductVerifier:
             raise VerificationError
 
 
+def check_netcdf_availability():
+    import sys
+
+    # noinspection PyBroadException
+    try:
+        import netCDF4
+
+        print "The netCDF4 module is available."
+    except:
+        print "The netCDF4 module is not available!"
+        sys.exit(1)
+
+
 if __name__ == "__main__":
     # Call with one or two arguments:
     #
@@ -434,6 +447,8 @@ if __name__ == "__main__":
     else:
         print 'usage:', sys.argv[0], '<source pathname> <report pathname>'
         sys.exit(1)
+
+    check_netcdf_availability()
 
     # noinspection PyBroadException
     try:

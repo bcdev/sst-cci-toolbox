@@ -21,7 +21,7 @@ class SvrRunner:
         print("Found " + str(len(source_pathnames)) + " source files in '" + self.source_dirpath + "'")
 
         for source_pathname in source_pathnames:
-            print source_pathname
+            print "Verifying:", source_pathname
             report_filename = path.basename(source_pathname) + ".json"
             report_pathname = path.join(self.report_dirpath, report_filename)
             verifier = ProductVerifier(source_pathname, report_pathname)
