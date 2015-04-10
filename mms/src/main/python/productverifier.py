@@ -438,9 +438,10 @@ def ensure_availability_of_imports():
     try:
         import netCDF4
 
-        print "The netCDF4 module is available."
+        print 'The netCDF4 module is available'
     except:
-        print "The netCDF4 module is not available!"
+        print 'The netCDF4 module is not available. Install netCDF4 by typing'
+        print 'pip install netCDF4'
         sys.exit(1)
 
 
