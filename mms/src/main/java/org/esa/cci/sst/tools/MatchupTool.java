@@ -639,6 +639,10 @@ public class MatchupTool extends BasicTool {
                     for (Coincidence c : coincidenceAccu) {
                         getPersistenceManager().persist(c);
                     }
+                    coincidenceAccu.clear();
+
+                    getPersistenceManager().commit();
+                    getPersistenceManager().transaction();
                 }
 
                 chunkStartTime = chunkStopTime;
