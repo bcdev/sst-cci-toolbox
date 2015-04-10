@@ -4,5 +4,5 @@ if [ -z "$1" ]; then
     ps -elf|grep python|grep -v grep
 else
     workflow=$(basename ${1%.py})
-    ps -elf|egrep "python|${workflow}"|grep -v grep|grep -v pmps
+    ps -elf|egrep "python|$workflow"|grep -v grep|grep -v pmps
 fi

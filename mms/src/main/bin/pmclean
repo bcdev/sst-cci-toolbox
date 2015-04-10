@@ -22,4 +22,4 @@ if [ -d trace ]; then
 fi
 mkdir trace
 
-rm -f ${usecase}.report ${usecase}.status ${usecase}.pid ${usecase}.out
+rm -f $usecase.report $usecase.status $usecase.pid $usecase.out
