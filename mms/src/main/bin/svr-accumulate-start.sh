@@ -6,15 +6,15 @@ report_dirpath=$1
 summary_report_pathname=$2
 
 task="svr-accumulate"
-jobname="${task}-${report_dirpath}-${summary_report_pathname}"
-command="${mms.python.exec} ${mms.home}/python/reportaccumulator.py ${report_dirpath} ${summary_report_pathname}"
+jobname="$task-$report_dirpath-$summary_report_pathname"
+command="${mms.python.exec} ${mms.home}/python/reportaccumulator.py $report_dirpath $summary_report_pathname"
 
-echo "`date -u +%Y%m%d-%H%M%S` submitting job '${jobname}'"
+echo "`date -u +%Y%m%d-%H%M%S` submitting job '$jobname'"
 
-read_task_jobs ${jobname}
+read_task_jobs $jobname
 
-if [ -z ${jobs} ]; then
-    submit_job ${jobname} ${command}
+if [ -z $jobs ]; then
+    submit_job $jobname $command
 fi
 
-wait_for_task_jobs_completion ${jobname}
+wait_for_task_jobs_completion $jobname
