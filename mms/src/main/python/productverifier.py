@@ -419,7 +419,7 @@ class ProductVerifier:
             raise VerificationError
 
 
-def check_netcdf_availability():
+def ensure_availability_of_imports():
     import sys
 
     # noinspection PyBroadException
@@ -448,7 +448,7 @@ if __name__ == "__main__":
         print 'usage:', sys.argv[0], '<source pathname> <report pathname>'
         sys.exit(1)
 
-    check_netcdf_availability()
+    ensure_availability_of_imports()
 
     # noinspection PyBroadException
     try:
