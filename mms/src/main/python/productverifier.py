@@ -193,9 +193,13 @@ class ProductVerifier:
 
     def verify(self):
         try:
+            print 'Checking source pathname'
             self._check_source_pathname()
+            print 'Checking source filename'
             product_type = self._check_source_filename()
+            print 'Checking dataset can be opened'
             dataset = self._check_product_can_be_opened()
+            print 'Checking dataset'
             self._check_dataset(dataset, product_type)
         except VerificationError:
             self.report['verification_error'] = self.get_source_pathname()
