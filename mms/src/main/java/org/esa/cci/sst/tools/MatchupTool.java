@@ -645,6 +645,7 @@ public class MatchupTool extends BasicTool {
                             coincidenceAccu.size(),
                             stopWatch.getElapsedMillis()));
                     coincidenceAccu.clear();
+                    stopWatch.start();
                 }
 
                 chunkStartTime = chunkStopTime;
