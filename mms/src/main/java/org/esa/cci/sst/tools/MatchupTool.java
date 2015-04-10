@@ -604,6 +604,7 @@ public class MatchupTool extends BasicTool {
             final long startTime = timeRange.getStartDate().getTime();
             final long stopTime = timeRange.getStopDate().getTime();
             long chunkStartTime = startTime;
+
             while (chunkStartTime < stopTime) {
                 long chunkStopTime = chunkStartTime + chunkSizeMillis;
                 if (chunkStopTime > stopTime) {
@@ -634,24 +635,27 @@ public class MatchupTool extends BasicTool {
                 }
                 getPersistenceManager().commit();
                 getPersistenceManager().transaction();
+
                 chunkStartTime = chunkStopTime;
                 if (matchups.size() > 2048) {
                     chunkSizeMillis = chunkSizeMillis / 2;
                 } else if (matchups.size() < 512) {
                     chunkSizeMillis = chunkSizeMillis * 2;
                 }
+
+                for (Coincidence c : coincidenceAccu) {
+                    getPersistenceManager().persist(c);
+                }
+
+                stopWatch.stop();
+                logger.info(MessageFormat.format("{0} coincidences stored in {1} ms.",
+                        coincidenceAccu.size(),
+                        stopWatch.getElapsedMillis()));
+                coincidenceAccu.clear();
+
+                getPersistenceManager().commit();
+                getPersistenceManager().transaction();
             }
-
-            for (Coincidence c : coincidenceAccu) {
-                getPersistenceManager().persist(c);
-            }
-
-            stopWatch.stop();
-            logger.info(MessageFormat.format("{0} coincidences stored in {1} ms.",
-                    coincidenceAccu.size(),
-                    stopWatch.getElapsedMillis()));
-            coincidenceAccu.clear();
-
             getPersistenceManager().commit();
         } catch (Exception e) {
             getPersistenceManager().rollback();
