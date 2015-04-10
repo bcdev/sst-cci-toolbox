@@ -205,7 +205,12 @@ class ProductVerifier:
             self.report['verification_error'] = self.get_source_pathname()
             print 'VerificationError:', self.get_source_pathname()
         finally:
-            ProductVerifier.dump_report(self.report, self.report_pathname)
+            # noinspection PyBroadException
+            try:
+                ProductVerifier.dump_report(self.report, self.report_pathname)
+            except:
+                print 'Error: could not write report to file, writing report to console instead.'
+                ProductVerifier.dump_report(self.report)
 
     def _check_source_pathname(self):
         ok = os.path.isfile(self.source_pathname)
@@ -379,6 +384,9 @@ class ProductVerifier:
         if report_pathname is None:
             print json.dumps(report, indent=1)
         else:
+            report_dirname = os.path.dirname(report_pathname)
+            if not os.path.exists(report_dirname):
+                os.makedirs(report_dirname)
             report_file = open(report_pathname, 'w')
             try:
                 json.dump(report, report_file, indent=1)
