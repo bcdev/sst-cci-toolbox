@@ -18,13 +18,14 @@ class SvrRunner:
     def run(self):
         source_pathnames = self.glob_source_pathnames()
 
-        print("Found " + str(len(source_pathnames)) + " source files in '" + self.source_dirpath + "'")
+        print ProductVerifier.get_current_time(), \
+            "found " + str(len(source_pathnames)) + " source files in '" + self.source_dirpath + "'"
 
         for source_pathname in source_pathnames:
-            print "Source pathname:", source_pathname
+            print ProductVerifier.get_current_time(), "source pathname:", source_pathname
             report_filename = path.basename(source_pathname) + ".json"
             report_pathname = path.join(self.report_dirpath, report_filename)
-            print "Report pathname:", report_pathname
+            print ProductVerifier.get_current_time(), "report pathname:", report_pathname
             verifier = ProductVerifier(source_pathname, report_pathname)
             verifier.verify()
 

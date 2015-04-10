@@ -44,7 +44,7 @@ class ReportAccumulator:
                 for filename in filenames:
                     if re.match(self.report_filename_pattern, filename):
                         report_pathname = os.path.join(root, filename)
-                        print 'Accumulating report', report_pathname
+                        print ProductVerifier.get_current_time(), 'accumulating report', report_pathname
                         report = ProductVerifier.load_report(report_pathname)
                         for k, v in report.iteritems():
                             self.accumulate_entry(k, v)

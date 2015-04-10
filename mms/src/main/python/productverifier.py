@@ -8,6 +8,7 @@ import json
 
 import numpy
 import numpy.ma as ma
+from time import gmtime, strftime
 
 
 class VerificationError(Exception):
@@ -193,13 +194,13 @@ class ProductVerifier:
 
     def verify(self):
         try:
-            print 'Checking source pathname'
+            print ProductVerifier.get_current_time(), 'checking source pathname'
             self._check_source_pathname()
-            print 'Checking source filename'
+            print ProductVerifier.get_current_time(), 'checking source filename'
             product_type = self._check_source_filename()
-            print 'Checking dataset can be opened'
+            print ProductVerifier.get_current_time(), 'checking dataset can be opened'
             dataset = self._check_product_can_be_opened()
-            print 'Checking dataset'
+            print ProductVerifier.get_current_time(), 'checking dataset'
             self._check_dataset(dataset, product_type)
         except VerificationError:
             self.report['verification_error'] = self.get_source_pathname()
@@ -209,7 +210,8 @@ class ProductVerifier:
             try:
                 ProductVerifier.dump_report(self.report, self.report_pathname)
             except:
-                print 'Error: could not write report to file, writing report to console instead.'
+                print ProductVerifier.get_current_time(), \
+                    'Error: could not write report to file, writing report to console instead.'
                 ProductVerifier.dump_report(self.report)
 
     def _check_source_pathname(self):
@@ -393,6 +395,10 @@ class ProductVerifier:
             finally:
                 report_file.close()
 
+    @staticmethod
+    def get_current_time():
+        return strftime("%Y-%m-%dT%H:%M:%S%Z", gmtime())
+
     def _check_corruptness(self, dataset, product_type):
         """
 
@@ -438,10 +444,9 @@ def ensure_availability_of_imports():
     try:
         import netCDF4
 
-        print 'The netCDF4 module is available'
+        print ProductVerifier.get_current_time(), 'The netCDF4 module is available'
     except:
-        print 'The netCDF4 module is not available. Install netCDF4 by typing'
-        print 'pip install netCDF4'
+        print ProductVerifier.get_current_time(), 'The netCDF4 module is not available. Please install netCDF4.'
         sys.exit(1)
 
 
