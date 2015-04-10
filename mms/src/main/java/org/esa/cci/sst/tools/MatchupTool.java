@@ -639,13 +639,6 @@ public class MatchupTool extends BasicTool {
                     for (Coincidence c : coincidenceAccu) {
                         getPersistenceManager().persist(c);
                     }
-
-                    stopWatch.stop();
-                    logger.info(MessageFormat.format("{0} coincidences stored in {1} ms.",
-                            coincidenceAccu.size(),
-                            stopWatch.getElapsedMillis()));
-                    coincidenceAccu.clear();
-                    stopWatch.start();
                 }
 
                 chunkStartTime = chunkStopTime;
@@ -654,6 +647,13 @@ public class MatchupTool extends BasicTool {
                 } else if (matchups.size() < 512) {
                     chunkSizeMillis = chunkSizeMillis * 2;
                 }
+
+                stopWatch.stop();
+                logger.info(MessageFormat.format("{0} matches up to {1} processed in {2} ms.",
+                        matchups.size(),
+                        TimeUtil.formatCcsdsUtcFormat(new Date(chunkStopTime)),
+                        stopWatch.getElapsedMillis()));
+                stopWatch.start();
 
 /*
                 for (Coincidence c : coincidenceAccu) {
