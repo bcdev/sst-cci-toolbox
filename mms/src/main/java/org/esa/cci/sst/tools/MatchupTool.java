@@ -617,24 +617,35 @@ public class MatchupTool extends BasicTool {
                 }
                 final List<Matchup> matchups = query.getResultList();
 
-                for (String sensorName : sensorNames) {
-                    final Sensor sensor = getStorage().getSensor(sensorName);
-                    final Class<? extends Observation> observationClass = getObservationClass(sensor);
-                    final String queryString = OBSERVATION_QUERY_MAP.get(observationClass);
-                    for (final Matchup matchup : matchups) {
+                for (final Matchup matchup : matchups) {
+                    for (String sensorName : sensorNames) {
+                        final Sensor sensor = getStorage().getSensor(sensorName);
+                        final Class<? extends Observation> observationClass = getObservationClass(sensor);
+                        final String queryString = OBSERVATION_QUERY_MAP.get(observationClass);
                         addCoincidence(matchup, sensorName, queryString, sensor.getPattern(), observationClass);
+/*
+                        stopWatch.stop();
+                        logger.info(MessageFormat.format("{0} {1} up to {2} processed in {3} ms.",
+                                matchups.size(),
+                                sensorName,
+                                TimeUtil.formatCcsdsUtcFormat(new Date(chunkStopTime)),
+                                stopWatch.getElapsedMillis()));
+                        stopWatch.start();
+*/
+                    }
+                    getPersistenceManager().commit();
+                    getPersistenceManager().transaction();
+
+                    for (Coincidence c : coincidenceAccu) {
+                        getPersistenceManager().persist(c);
                     }
 
                     stopWatch.stop();
-                    logger.info(MessageFormat.format("{0} {1} up to {2} processed in {3} ms.",
-                            matchups.size(),
-                            sensorName,
-                            TimeUtil.formatCcsdsUtcFormat(new Date(chunkStopTime)),
+                    logger.info(MessageFormat.format("{0} coincidences stored in {1} ms.",
+                            coincidenceAccu.size(),
                             stopWatch.getElapsedMillis()));
-                    stopWatch.start();
+                    coincidenceAccu.clear();
                 }
-                getPersistenceManager().commit();
-                getPersistenceManager().transaction();
 
                 chunkStartTime = chunkStopTime;
                 if (matchups.size() > 2048) {
@@ -643,6 +654,7 @@ public class MatchupTool extends BasicTool {
                     chunkSizeMillis = chunkSizeMillis * 2;
                 }
 
+/*
                 for (Coincidence c : coincidenceAccu) {
                     getPersistenceManager().persist(c);
                 }
@@ -655,6 +667,7 @@ public class MatchupTool extends BasicTool {
 
                 getPersistenceManager().commit();
                 getPersistenceManager().transaction();
+*/
             }
             getPersistenceManager().commit();
         } catch (Exception e) {
