@@ -357,6 +357,7 @@ public class MatchupTool extends BasicTool {
 
             final Query query = createIncrementalQuery(ATSR_MD, SENSOR_OBSERVATION_QUERY);
             for (int cursor = 0; ; ) {
+                @SuppressWarnings("unchecked")
                 final List<ReferenceObservation> atsrObservations = query.setFirstResult(cursor).getResultList();
                 if (atsrObservations.size() == 0) {
                     break;
@@ -469,6 +470,7 @@ public class MatchupTool extends BasicTool {
             stopWatch.start();
             final Query query = createIncrementalQuery(METOP, SECONDARY_OBSERVATION_QUERY);
             for (int cursor = 0; ; ) {
+                @SuppressWarnings("unchecked")
                 final List<ReferenceObservation> metopObservations = query.setFirstResult(cursor).getResultList();
                 if (metopObservations.isEmpty()) {
                     break;
@@ -540,6 +542,7 @@ public class MatchupTool extends BasicTool {
             stopWatch.start();
             final Query query = createIncrementalQuery(sensorName, SINGLE_SENSOR_OBSERVATION_QUERY);
             for (int cursor = 0; ; ) {
+                @SuppressWarnings("unchecked")
                 final List<ReferenceObservation> observations = query.setFirstResult(cursor).getResultList();
                 if (observations.isEmpty()) {
                     break;
@@ -615,6 +618,7 @@ public class MatchupTool extends BasicTool {
                 if (primarySensor != null) {
                     query.setParameter(3, primarySensor);
                 }
+                @SuppressWarnings("unchecked")
                 final List<Matchup> matchups = query.getResultList();
 
                 for (final Matchup matchup : matchups) {
@@ -623,15 +627,6 @@ public class MatchupTool extends BasicTool {
                         final Class<? extends Observation> observationClass = getObservationClass(sensor);
                         final String queryString = OBSERVATION_QUERY_MAP.get(observationClass);
                         addCoincidence(matchup, sensorName, queryString, sensor.getPattern(), observationClass);
-/*
-                        stopWatch.stop();
-                        logger.info(MessageFormat.format("{0} {1} up to {2} processed in {3} ms.",
-                                matchups.size(),
-                                sensorName,
-                                TimeUtil.formatCcsdsUtcFormat(new Date(chunkStopTime)),
-                                stopWatch.getElapsedMillis()));
-                        stopWatch.start();
-*/
                     }
                     getPersistenceManager().commit();
                     getPersistenceManager().transaction();
@@ -658,21 +653,6 @@ public class MatchupTool extends BasicTool {
                         TimeUtil.formatCcsdsUtcFormat(new Date(chunkStopTime)),
                         stopWatch.getElapsedMillis()));
                 stopWatch.start();
-
-/*
-                for (Coincidence c : coincidenceAccu) {
-                    getPersistenceManager().persist(c);
-                }
-
-                stopWatch.stop();
-                logger.info(MessageFormat.format("{0} coincidences stored in {1} ms.",
-                        coincidenceAccu.size(),
-                        stopWatch.getElapsedMillis()));
-                coincidenceAccu.clear();
-
-                getPersistenceManager().commit();
-                getPersistenceManager().transaction();
-*/
             }
             getPersistenceManager().commit();
         } catch (Exception e) {
@@ -737,9 +717,7 @@ public class MatchupTool extends BasicTool {
         try {
             return (Class<? extends Observation>) Class.forName(
                     String.format("%s.%s", Sensor.class.getPackage().getName(), sensor.getObservationType()));
-        } catch (ClassCastException e) {
-            throw new IllegalStateException(e);
-        } catch (ClassNotFoundException e) {
+        } catch (ClassCastException | ClassNotFoundException e) {
             throw new IllegalStateException(e);
         }
     }
@@ -832,7 +810,7 @@ public class MatchupTool extends BasicTool {
      * Factory method to create matchup for a reference observation.
      *
      * @param referenceObservation the reference observation constituting the matchup
-     * @param pattern
+     * @param pattern the matchup pattern
      * @return the new Matchup for the reference observation
      */
     private Matchup createMatchup(ReferenceObservation referenceObservation, long pattern) {
@@ -855,7 +833,9 @@ public class MatchupTool extends BasicTool {
      */
     static Coincidence createCoincidence(Matchup matchup, Observation observation) {
         Assert.argument(observation instanceof Timeable, "!(observation instanceof Timeable)");
+
         final Date matchupTime = matchup.getRefObs().getTime();
+        @SuppressWarnings("ConstantConditions")
         final Date observationTime = ((Timeable) observation).getTime();
         final double timeDifference = TimeUtil.getTimeDifferenceInSeconds(matchupTime, observationTime);
         final Coincidence coincidence = new Coincidence();
@@ -863,6 +843,7 @@ public class MatchupTool extends BasicTool {
         coincidence.setMatchup(matchup);
         coincidence.setObservation(observation);
         coincidence.setTimeDifference(timeDifference);
+
         return coincidence;
     }
 
