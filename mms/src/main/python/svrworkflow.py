@@ -195,7 +195,7 @@ class SvrWorkflow:
                       'svr-accumulate-start.sh',
                       ['/svr/' + sensor_name],
                       ['/sum/' + sensor_name],
-                      [report_dirpath, summary_report_pathname])
+                      [sensor_name, report_dirpath, summary_report_pathname])
             monitor.execute(job)
 
 

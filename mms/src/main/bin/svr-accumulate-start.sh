@@ -2,12 +2,13 @@
 
 . ${mms.home}/bin/mms-env.sh
 
-report_dirpath=$1
-summary_report_pathname=$2
+sensor=$1
+report_dirpath=$2
+summary_report_pathname=$3
 
 task="svr-accumulate"
-jobname="$task-$report_dirpath-$summary_report_pathname"
-command="$task-run.sh $report_dirpath $summary_report_pathname"
+jobname="$task-$sensor"
+command="$task-run.sh $sensor $report_dirpath $summary_report_pathname"
 
 echo "`date -u +%Y%m%d-%H%M%S` submitting job '$jobname'"
 

@@ -77,13 +77,13 @@ class SvrRunner:
         """
         if year is None:
             # /<archive-root>/<version>/<usecase>-svr/<sensor>
-            return path.join(archive_root, version, usecase + "-svr", sensor)
+            return path.join(archive_root, version, usecase, sensor)
         elif month is None:
             # /<archive-root>/<version>/<usecase>-svr/<sensor>/<yyyy>
-            return path.join(archive_root, version, usecase + "-svr", sensor, year)
+            return path.join(archive_root, version, usecase, sensor, year)
         else:
             # /<archive-root>/<version>/<usecase>-svr/<sensor>/<yyyy>/<mm>
-            return path.join(archive_root, version, usecase + "-svr", sensor, year, month)
+            return path.join(archive_root, version, usecase, sensor, year, month)
 
 
 if __name__ == "__main__":

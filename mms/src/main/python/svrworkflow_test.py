@@ -11,11 +11,11 @@ from svrworkflow import SvrWorkflow
 
 class SvrWorkflowTests(unittest.TestCase):
     def test_get_workflow_usecase(self):
-        w = SvrWorkflow('test', '1.0', '.')
+        w = SvrWorkflow('test', '1.0', '.', '.')
         self.assertEqual('test', w.get_usecase())
 
     def test_add_sensors_to_workflow(self):
-        w = SvrWorkflow('test', '1.0', '.')
+        w = SvrWorkflow('test', '1.0', '.', '.')
         w.add_sensor('AATSR', (2007, 1, 1), (2008, 1, 1))
         self.assertEqual(1, len(w._get_sensors()))
 
@@ -37,7 +37,7 @@ class SvrWorkflowTests(unittest.TestCase):
         self.assertEqual(3, len(w._get_sensors()))
 
     def test_get_sensors_by_period(self):
-        w = SvrWorkflow('test', '1.0', '.')
+        w = SvrWorkflow('test', '1.0', '.', '.')
         w.add_sensor('AVHRR10_G', (1986, 11, 17), (1991, 9, 16))
         w.add_sensor('AVHRR11_G', (1988, 11, 8), (1994, 12, 31))
         w.add_sensor('AVHRR12_G', (1991, 9, 16), (1998, 12, 14))
@@ -59,7 +59,7 @@ class SvrWorkflowTests(unittest.TestCase):
         self.assertEqual(Period('1991-09-16', '1998-12-14'), sensor_3.get_period())
 
     def test_get_data_period(self):
-        w = SvrWorkflow('test', '1.0', '.')
+        w = SvrWorkflow('test', '1.0', '.', '.')
         w.add_sensor('AVHRR10_G', (1986, 11, 17), (1991, 9, 16))
         w.add_sensor('AVHRR11_G', (1988, 11, 8), (1994, 12, 31))
         w.add_sensor('AVHRR12_G', (1991, 9, 16), (1998, 12, 14))
@@ -72,8 +72,9 @@ class SvrWorkflowTests(unittest.TestCase):
         usecase = 'l2p'
         version = 'v2.1.8'
         archive_root = '/group_workspaces/cems2/esacci_sst/output'
+        report_root = '/group_workspaces/cems2/esacci_sst/mms/svr'
 
-        w = SvrWorkflow(usecase, version, archive_root, Period('1991-01-01', '1992-01-01'))
+        w = SvrWorkflow(usecase, version, archive_root, report_root, Period('1991-01-01', '1992-01-01'))
         w.add_sensor('AVHRR10_G', (1986, 11, 17), (1991, 9, 16))
         w.add_sensor('AVHRR11_G', (1988, 11, 8), (1994, 12, 31))
         w.add_sensor('AVHRR12_G', (1991, 9, 16), (1998, 12, 14))
