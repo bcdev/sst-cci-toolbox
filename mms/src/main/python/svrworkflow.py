@@ -58,7 +58,7 @@ class SvrWorkflow:
                 raise exceptions.ValueError, "Periods of sensor '" + name + "' must not intersect."
         self.sensors.add(Sensor(name, period))
 
-    def run(self, hosts=list([('localhost', 60)]), calls=list(), log_dir='trace',
+    def run(self, hosts=list([('localhost', 240)]), calls=list(), log_dir='trace',
             simulation=False):
         """
 
