@@ -42,7 +42,16 @@ public class SensorNames {
 
     public static String getBasename(String sensorName) {
         final String standardName = getStandardName(sensorName);
-        return standardName.substring(0, standardName.indexOf("."));
+        final int dotIndex = standardName.indexOf(".");
+
+        final String basename;
+        if (dotIndex == -1) {
+            basename = standardName;
+        } else {
+            basename = standardName.substring(0, dotIndex);
+        }
+
+        return basename;
     }
 
     public static String getDimensionNameX(String sensorName) {
@@ -54,10 +63,10 @@ public class SensorNames {
     }
 
     public static boolean isOrbitName(String sensorName) {
-        return sensorName.matches("(orb_atsr\\.[1-3])|(orb_avhrr\\.[mn]([0-9]){2})f?");
+        return sensorName.matches("(orb_atsr\\.[1-3])|(orb_avhrr(_f)?\\.[mn]([0-9]){2})|(orb_amsr2)");
     }
 
     public static boolean isStandardName(String sensorName) {
-        return sensorName.matches("(atsr\\.[1-3])|(avhrr\\.[mn]([0-9]){2})f?");
+        return sensorName.matches("(atsr\\.[1-3])|(avhrr(_f)?\\.[mn]([0-9]){2})|(amsr2)");
     }
 }
