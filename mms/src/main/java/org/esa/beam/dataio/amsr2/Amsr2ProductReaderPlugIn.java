@@ -34,7 +34,7 @@ public class Amsr2ProductReaderPlugIn implements ProductReaderPlugIn {
     /**
      * The AMSR2 product file name pattern.
      */
-    public static final String AMSR2_FILE_NAME_PATTERN = "GW1AM2_[0-9]{12}_...._L1SGRTBR_[0-9]{7}\\.h5";
+    public static final String AMSR2_FILE_NAME_PATTERN = "GW1AM2_[0-9]{12}_...._L1SGRTBR_[0-9]{7}.*\\.h5";
     /**
      * The format name.
      */
@@ -54,7 +54,7 @@ public class Amsr2ProductReaderPlugIn implements ProductReaderPlugIn {
         } else {
             return DecodeQualification.UNABLE;
         }
-        if (!file.getName().matches(AMSR2_FILE_NAME_PATTERN)) {
+        if (!isCorrectFilename(file.getName())) {
             return DecodeQualification.UNABLE;
         }
         try {
@@ -64,6 +64,10 @@ public class Amsr2ProductReaderPlugIn implements ProductReaderPlugIn {
         } catch (IOException ignored) {
         }
         return DecodeQualification.UNABLE;
+    }
+
+    static boolean isCorrectFilename(String filename) {
+        return filename.matches(AMSR2_FILE_NAME_PATTERN);
     }
 
     @Override
