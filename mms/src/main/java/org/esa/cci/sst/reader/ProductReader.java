@@ -17,6 +17,7 @@
 package org.esa.cci.sst.reader;
 
 import com.bc.jexp.ParseException;
+import org.esa.beam.dataio.amsr2.Amsr2ProductReaderPlugIn;
 import org.esa.beam.dataio.cci.sst.NcAvhrrGacProductReaderPlugIn;
 import org.esa.beam.dataio.cci.sst.NcOsiProductReaderPlugIn;
 import org.esa.beam.dataio.cci.sst.PmwProductReaderPlugIn;
@@ -58,11 +59,12 @@ class ProductReader extends AbstractProductReader {
 
     ProductReader(String sensorName, String dirtyMaskExpression) {
         super(sensorName,
-              EnvisatConstants.ENVISAT_FORMAT_NAME,
-              NcAvhrrGacProductReaderPlugIn.FORMAT_NAME,
-              MetopReaderPlugIn.FORMAT_NAME,
-              NcOsiProductReaderPlugIn.FORMAT_NAME,
-              PmwProductReaderPlugIn.FORMAT_NAME);
+                EnvisatConstants.ENVISAT_FORMAT_NAME,
+                NcAvhrrGacProductReaderPlugIn.FORMAT_NAME,
+                MetopReaderPlugIn.FORMAT_NAME,
+                Amsr2ProductReaderPlugIn.FORMAT_NAME,
+                NcOsiProductReaderPlugIn.FORMAT_NAME,
+                PmwProductReaderPlugIn.FORMAT_NAME);
         this.dirtyMaskExpression = dirtyMaskExpression;
         this.bc = new BoundaryCalculator();
     }
@@ -137,10 +139,10 @@ class ProductReader extends AbstractProductReader {
         final ProductData.UTC startTime = product.getStartTime();
         final ProductData.UTC endTime = product.getEndTime();
         product = ProductFlipper.createFlippedProduct(product,
-                                                      true,
-                                                      ProductFlipper.FLIP_HORIZONTAL,
-                                                      product.getName(),
-                                                      product.getDescription());
+                true,
+                ProductFlipper.FLIP_HORIZONTAL,
+                product.getName(),
+                product.getDescription());
         product.setStartTime(startTime);
         product.setEndTime(endTime);
         return product;
