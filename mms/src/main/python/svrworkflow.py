@@ -178,7 +178,8 @@ class SvrWorkflow:
                               'svr-start.sh',
                               list(),
                               ['/svr/' + sensor_name],
-                              [year, month, sensor_name, self.usecase, self.version, self.archive_root, self.report_root])
+                              [year, month, sensor_name, self.usecase, self.version, self.archive_root,
+                               self.report_root])
                     monitor.execute(job)
                     date = _next_month(date)
 
@@ -187,8 +188,7 @@ class SvrWorkflow:
 
         :type monitor: Monitor
         """
-        for sensor in self._get_sensors_by_period():
-            sensor_name = sensor.get_name()
+        for sensor_name in self._get_sensor_names():
             report_dirpath = SvrRunner.get_report_dirpath(self.report_root, self.version, self.usecase, sensor_name)
             summary_report_pathname = os.path.join(report_dirpath, sensor_name + '-summary.json')
             job = Job('svr-accumulate-start' + sensor_name,
@@ -197,6 +197,14 @@ class SvrWorkflow:
                       ['/sum/' + sensor_name],
                       [sensor_name, report_dirpath, summary_report_pathname])
             monitor.execute(job)
+
+    def _get_sensor_names(self):
+        sensor_names = set()
+        for sensor in self._get_sensors_by_period():
+            sensor_name = sensor.get_name()
+            if sensor_name not in sensor_names:
+                sensor_names.add(sensor_name)
+        return sensor_names
 
 
 def _pathformat(date):
