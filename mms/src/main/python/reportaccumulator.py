@@ -8,17 +8,17 @@ from svrrunner import SvrRunner
 
 
 class ReportAccumulator:
-    def __init__(self, report_dir_pathname, report_filename_pattern=SvrRunner.get_report_filename_pattern(),
-                 summary_report_pathname=None):
+    def __init__(self, report_dir_pathname, summary_report_pathname=None,
+                 report_filename_pattern=SvrRunner.get_report_filename_pattern()):
         """
 
         :type report_dir_pathname: str
-        :type report_filename_pattern: str
         :type summary_report_pathname: str
+        :type report_filename_pattern: str
         """
         self.report_dir_pathname = report_dir_pathname
-        self.report_filename_pattern = report_filename_pattern
         self.summary_report_pathname = summary_report_pathname
+        self.report_filename_pattern = report_filename_pattern
         self.summary_report = {'summary_report.count': 0}
 
     def accumulate_entry(self, k, v):
