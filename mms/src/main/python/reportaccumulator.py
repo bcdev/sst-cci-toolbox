@@ -27,7 +27,7 @@ class ReportAccumulator:
         :type k: str
         """
         if k in self.summary_report:
-            if k == 'verification_error':
+            if k.endswith('_failed_for'):
                 previous = self.summary_report[k]
                 """ :type previous: str """
                 self.summary_report[k] = previous + ' ' + v

@@ -203,16 +203,9 @@ class ProductVerifier:
             print ProductVerifier.get_current_time(), 'checking dataset'
             self._check_dataset(dataset, product_type)
         except VerificationError:
-            self.report['verification_error'] = os.path.basename(self.get_source_pathname())
-            print 'VerificationError:', self.get_source_pathname()
+            print 'Verification error:', self.source_pathname
         finally:
-            # noinspection PyBroadException
-            try:
-                ProductVerifier.dump_report(self.report, self.report_pathname)
-            except:
-                print ProductVerifier.get_current_time(), \
-                    'Error: could not write report to file, writing report to console instead.'
-                ProductVerifier.dump_report(self.report)
+            ProductVerifier.dump_report(self.report, self.report_pathname)
 
     def _check_source_pathname(self):
         ok = os.path.isfile(self.source_pathname)
@@ -220,6 +213,7 @@ class ProductVerifier:
             self.report['source_pathname_check'] = 0
         else:
             self.report['source_pathname_check'] = 1
+            self.report['source_pathname_check_failed_for'] = self.source_pathname
             raise VerificationError
 
     def _check_source_filename(self):
@@ -240,6 +234,8 @@ class ProductVerifier:
             return product_type
         else:
             self.report['source_filename_check'] = 1
+            filename = os.path.basename(self.source_pathname)
+            self.report['source_filename_check_failed_for'] = filename
             raise VerificationError
 
     def _check_variable_existence(self, dataset, product_type):
@@ -340,10 +336,12 @@ class ProductVerifier:
         try:
             dataset = Dataset(self.source_pathname)
             self.report['product_can_be_opened_check'] = 0
+            return dataset
         except:
             self.report['product_can_be_opened_check'] = 1
+            filename = os.path.basename(self.source_pathname)
+            self.report['product_can_be_opened_check_failed_for'] = filename
             raise VerificationError
-        return dataset
 
     def _check_dataset(self, dataset, product_type):
         """
@@ -434,6 +432,8 @@ class ProductVerifier:
             self.report['corruptness_check'] = 0
         else:
             self.report['corruptness_check'] = 1
+            filename = os.path.basename(self.source_pathname)
+            self.report['corruptness_check_failed_for'] = filename
             raise VerificationError
 
 

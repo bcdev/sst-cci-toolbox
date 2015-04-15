@@ -99,11 +99,11 @@ if __name__ == "__main__":
 
     source_dirpath_for_month = SvrRunner.get_source_dirpath(_archive_root, _version, _usecase, _sensor, _year, _month)
     report_dirpath_for_month = SvrRunner.get_report_dirpath(_report_root, _version, _usecase, _sensor, _year, _month)
-    w = SvrRunner(source_dirpath_for_month, report_dirpath_for_month)
+    runner = SvrRunner(source_dirpath_for_month, report_dirpath_for_month)
 
     # noinspection PyBroadException
     try:
-        w.run()
+        runner.run()
     except:
         sys.exit(1)
 
