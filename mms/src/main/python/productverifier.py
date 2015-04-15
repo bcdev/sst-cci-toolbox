@@ -382,14 +382,14 @@ class ProductVerifier:
         :type report_pathname: str
         """
         if report_pathname is None:
-            print json.dumps(report, indent=1)
+            print json.dumps(report, indent=1, sort_keys=True)
         else:
             report_dirname = os.path.dirname(report_pathname)
             if not os.path.exists(report_dirname):
                 os.makedirs(report_dirname)
             report_file = open(report_pathname, 'w')
             try:
-                json.dump(report, report_file, indent=1)
+                json.dump(report, report_file, indent=1, sort_keys=True)
             finally:
                 report_file.close()
 
