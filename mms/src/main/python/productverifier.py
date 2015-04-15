@@ -173,6 +173,8 @@ class ProductVerifier:
         self.report = {}
         self.filename_patterns = {
             '[0-9]{14}-ESACCI-L2P_GHRSST-.*\\.nc': L2P(),
+            '[0-9]{14}-ESACCI-L3U_GHRSST-.*\\.nc': L2P(),
+            '[0-9]{14}-ESACCI-L4_GHRSST-.*\\.nc': L4(),
         }
 
     def get_source_pathname(self):
