@@ -53,7 +53,7 @@ class ReportAccumulator:
 
 
 if __name__ == "__main__":
-    # Call with up to three arguments:
+    # Call with up to two arguments:
     #
     # 1 = report dir pathname
     # 2 = summary report pathname (optional)
