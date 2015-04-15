@@ -203,7 +203,7 @@ class ProductVerifier:
             print ProductVerifier.get_current_time(), 'checking dataset'
             self._check_dataset(dataset, product_type)
         except VerificationError:
-            self.report['verification_error'] = self.get_source_pathname()
+            self.report['verification_error'] = os.path.basename(self.get_source_pathname())
             print 'VerificationError:', self.get_source_pathname()
         finally:
             # noinspection PyBroadException

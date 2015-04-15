@@ -26,17 +26,16 @@ class ReportAccumulator:
 
         :type k: str
         """
-        if isinstance(v, str):
-            if k in self.summary_report:
-                if isinstance(v, str):
-                    previous = self.summary_report[k]
-                    """ :type previous: str """
-                    self.summary_report[k] = previous + ', ' + v
-                else:
-                    previous = self.summary_report[k]
-                    self.summary_report[k] = previous + v
+        if k in self.summary_report:
+            if k == 'verification_error':
+                previous = self.summary_report[k]
+                """ :type previous: str """
+                self.summary_report[k] = previous + ' ' + v
             else:
-                self.summary_report[k] = v
+                previous = self.summary_report[k]
+                self.summary_report[k] = previous + v
+        else:
+            self.summary_report[k] = v
 
     def accumulate(self):
         try:
