@@ -89,7 +89,7 @@ final class Amsr2ScanDataQuality extends AbstractImplicitRule {
                 throw new RuleException("Cannot read scan data quality.");
             }
             final int pixelY = (int) pixelPos.y;
-            final int[] ints = new int[ny * nx];
+            final int[] ints = new int[ny * (nx / 4)];
             final Product product = reader.getProduct();
             if (product == null) {
                 throw new RuleException("Cannot read scan data quality.");
