@@ -19,10 +19,8 @@ package org.esa.cci.sst.assessment;
 import org.docx4j.wml.Drawing;
 import org.docx4j.wml.P;
 import org.docx4j.wml.R;
-import org.docx4j.wml.Text;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -122,7 +120,7 @@ public class WordDocumentTest {
 
         final Drawing drawing = wordDocument.createDrawing(getClass().getResource("newton-home.png"));
 
-        assertEquals("${replace.me}", wordDocument.replaceVariable("${replace.me}", drawing).getValue());
+        assertEquals("${replace.me}", wordDocument.replaceWithDrawing("${replace.me}", drawing).getValue());
         assertNull(wordDocument.findVariable("${replace.me}"));
 
         final R r = (R) p.getContent().get(0);

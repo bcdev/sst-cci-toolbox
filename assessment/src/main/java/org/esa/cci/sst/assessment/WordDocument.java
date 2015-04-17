@@ -16,30 +16,23 @@
 
 package org.esa.cci.sst.assessment;
 
+import org.docx4j.TextUtils;
 import org.docx4j.TraversalUtil;
 import org.docx4j.dml.wordprocessingDrawing.Inline;
 import org.docx4j.finders.ClassFinder;
 import org.docx4j.jaxb.Context;
+import org.docx4j.openpackaging.exceptions.Docx4JException;
 import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
 import org.docx4j.openpackaging.parts.WordprocessingML.BinaryPartAbstractImage;
 import org.docx4j.openpackaging.parts.WordprocessingML.MainDocumentPart;
-import org.docx4j.wml.BooleanDefaultTrue;
-import org.docx4j.wml.CTBookmark;
-import org.docx4j.wml.CTMarkupRange;
-import org.docx4j.wml.CTSimpleField;
-import org.docx4j.wml.ContentAccessor;
-import org.docx4j.wml.Drawing;
-import org.docx4j.wml.ObjectFactory;
-import org.docx4j.wml.P;
-import org.docx4j.wml.PPr;
-import org.docx4j.wml.PPrBase;
-import org.docx4j.wml.R;
-import org.docx4j.wml.RPr;
-import org.docx4j.wml.Text;
+import org.docx4j.wml.*;
 
 import javax.xml.bind.JAXBElement;
 import java.io.File;
+import java.io.IOException;
+import java.io.StringWriter;
 import java.math.BigInteger;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.List;
 
@@ -53,7 +46,7 @@ public class WordDocument {
     private final WordprocessingMLPackage wordMLPackage;
 
     /**
-     * Creates a new empty Word document.
+     * Creates a new empty instance of this class.
      *
      * @throws Exception if an error occurred.
      */
@@ -62,10 +55,31 @@ public class WordDocument {
     }
 
     /**
+     * Creates a new instance of this class from a URL pointing to a Word document file.
+     *
+     * @param url The URL.
+     */
+    public WordDocument(URL url) throws IOException, URISyntaxException {
+        this(new File(url.toURI()));
+    }
+
+    /**
+     * Creates a new instance of this class from a Word document file.
+     *
+     * @param wordFile The Word document file.
+     */
+    public WordDocument(File wordFile) throws IOException {
+        try {
+            this.wordMLPackage = WordprocessingMLPackage.load(wordFile);
+        } catch (Docx4JException e) {
+            throw new IOException(e);
+        }
+    }
+
+    /**
      * Saves this Word document to a target file.
      *
      * @param targetFile The target file.
-     *
      * @throws Exception if on error occurred.
      */
     public void save(File targetFile) throws Exception {
@@ -76,7 +90,6 @@ public class WordDocument {
      * Adds a title to the Word document.
      *
      * @param text The title text.
-     *
      * @return the enclosing "paragraph" element.
      */
     public P addTitle(String text) {
@@ -87,7 +100,6 @@ public class WordDocument {
      * Adds a first-level heading to the Word document.
      *
      * @param text The heading text.
-     *
      * @return the enclosing "paragraph" element.
      */
     public P addHeading1(String text) {
@@ -98,7 +110,6 @@ public class WordDocument {
      * Adds a second-level heading to the Word document.
      *
      * @param text The heading text.
-     *
      * @return the enclosing "paragraph" element.
      */
     public P addHeading2(String text) {
@@ -110,7 +121,6 @@ public class WordDocument {
      * Adds a new paragraph the Word document.
      *
      * @param text The paragraph text.
-     *
      * @return the enclosing "paragraph" element.
      */
     public P addParagraph(String text) {
@@ -121,7 +131,6 @@ public class WordDocument {
      * Adds a new figure the Word document.
      *
      * @param drawing The figure's drawing.
-     *
      * @return the enclosing "paragraph" element.
      */
     public P addFigure(Drawing drawing) throws Exception {
@@ -141,7 +150,6 @@ public class WordDocument {
      * @param label  The caption's label (e.g. "Figure").
      * @param number The caption's number (e.g. "1" or "1.1").
      * @param text   The caption's text.
-     *
      * @return the enclosing "paragraph" element.
      */
     public P addCaption(String label, String number, String text) {
@@ -210,7 +218,6 @@ public class WordDocument {
      * Add a "variable" to the Word document.
      *
      * @param variable The variable.
-     *
      * @return the enclosing "paragraph" element.
      */
     public P addVariable(String variable) {
@@ -230,9 +237,7 @@ public class WordDocument {
      * Creates a new drawing from a resource.
      *
      * @param resource The resource.
-     *
      * @return the drawing.
-     *
      * @throws Exception if an error occurred.
      */
     public Drawing createDrawing(URL resource) throws Exception {
@@ -244,9 +249,7 @@ public class WordDocument {
      * Creates a new drawing from an image file.
      *
      * @param imageFile The image file.
-     *
      * @return the drawing.
-     *
      * @throws Exception if an error occurred.
      */
     public Drawing createDrawing(File imageFile) throws Exception {
@@ -263,7 +266,6 @@ public class WordDocument {
      * Traverses a Word document and looks for the first occurrence of a "template variable".
      *
      * @param variable The template variable.
-     *
      * @return the enclosing "paragraph" element or {@code null}, if the requested template variable has not been found.
      */
     public P findVariable(String variable) {
@@ -274,22 +276,14 @@ public class WordDocument {
         for (final Object o : finder.results) {
             if (o instanceof P) {
                 final P p = (P) o;
-                final List<Object> c = p.getContent();
-                if (c.size() == 1) {
-                    final Object o1 = c.get(0);
-                    if (o1 instanceof R) {
-                        final R r = (R) o1;
-                        final List<Object> c1 = r.getContent();
-                        if (c1.size() == 1) {
-                            final Object o2 = c1.get(0);
-                            if (o2 instanceof Text) {
-                                final Text t = (Text) o2;
-                                if (variable.equalsIgnoreCase(t.getValue())) {
-                                    return p;
-                                }
-                            }
-                        }
+                final StringWriter sw = new StringWriter();
+                try {
+                    TextUtils.extractText(p, sw);
+                    final String text = sw.toString();
+                    if (variable.equalsIgnoreCase(text)) {
+                        return p;
                     }
+                } catch (Exception ignored) {
                 }
             }
         }
@@ -301,7 +295,6 @@ public class WordDocument {
      * Traverses a Word document and removes the first occurrence of a given "template variable".
      *
      * @param variable The template variable.
-     *
      * @return the enclosing "paragraph" removed or {@code null}, if the  template variable has not been removed.
      */
     public P removeVariable(String variable) {
@@ -321,10 +314,9 @@ public class WordDocument {
      *
      * @param variable The template variable.
      * @param drawing  The drawing.
-     *
      * @return the replaced "text" or {@code null}, if the requested template variable has not been found.
      */
-    public Text replaceVariable(String variable, Drawing drawing) {
+    public Text replaceWithDrawing(String variable, Drawing drawing) {
         final P p = findVariable(variable);
 
         if (p != null) {
@@ -332,6 +324,26 @@ public class WordDocument {
             final R r = (R) c.get(0);
             final List<Object> c1 = r.getContent();
             c1.add(drawing);
+            return (Text) c1.remove(0);
+        }
+
+        return null;
+    }
+
+    public Text replaceWithParagraph(String variable, String text) {
+        final P p = findVariable(variable);
+
+        if (p != null) {
+            final List<Object> c = p.getContent();
+            final R r = (R) c.get(0);
+            final List<Object> c1 = r.getContent();
+
+            final ObjectFactory factory = new ObjectFactory();
+            final Text t1 = factory.createText();
+            final JAXBElement<Text> textWrapped3 = factory.createRT(t1);
+            c1.add(textWrapped3);
+            t1.setValue(text);
+
             return (Text) c1.remove(0);
         }
 
