@@ -14,3 +14,7 @@ class ReportPlotterTests(unittest.TestCase):
     def test_plot_report_AATSR(self):
         plotter = ReportPlotter('l2p', 'AATSR', ProductVerifier.load_report('testdata/AATSR-summary.json'))
         plotter.plot()
+
+
+if __name__ == '__main__':
+    unittest.main()

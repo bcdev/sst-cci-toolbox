@@ -131,7 +131,8 @@ class ReportPlotter:
             'SST Min': 'sea_surface_temperature.valid_min_check',
             'SST Depth Max': 'sea_surface_temperature_depth.valid_max_check',
             'SST Depth Min': 'sea_surface_temperature_depth.valid_min_check',
-            'SST Geophysical': 'geophysical_check',
+            'SST Geophysical Min': 'geophysical_minimum_check',
+            'SST Geophysical Max': 'geophysical_maximum_check',
             'SSES Bias Max': 'sses_bias.valid_max_check',
             'SSES Bias Min': 'sses_bias.valid_min_check',
             'SSES St Dev Max': 'sses_standard_deviation.valid_max_check',
@@ -146,6 +147,8 @@ class ReportPlotter:
             'Uncorrelated Unc Min': 'uncorrelated_uncertainty.valid_min_check',
             'Wind Speed Max': 'wind_speed.valid_max_check',
             'Wind Speed Min': 'wind_speed.valid_min_check',
+            'Quality Level Mask N': 'quality_level.mask_false_negative_check',
+            'Quality Level Mask P': 'quality_level.mask_false_positive_check',
             'Adjustment Unc Mask N': 'adjustment_uncertainty.mask_false_negative_check',
             'Adjustment Unc Mask P': 'adjustment_uncertainty.mask_false_positive_check',
             'Large Scale Unc Mask N': 'large_scale_correlated_uncertainty.mask_false_negative_check',
@@ -158,6 +161,8 @@ class ReportPlotter:
             'SSES Bias Mask P': 'sses_bias.mask_false_positive_check',
             'SSES St Dev Mask N': 'sses_standard_deviation.mask_false_negative_check',
             'SSES St Dev Mask P': 'sses_standard_deviation.mask_false_positive_check',
+            'SST Depth Mask N': 'sea_surface_temperature_depth.mask_false_negative_check',
+            'SST Depth Mask P': 'sea_surface_temperature_depth.mask_false_positive_check',
             'SST Depth Unc Mask N': 'sst_depth_total_uncertainty.mask_false_negative_check',
             'SST Depth Unc Mask P': 'sst_depth_total_uncertainty.mask_false_positive_check',
         }
@@ -170,7 +175,10 @@ class ReportPlotter:
             'SST DTime Max',
             'SST Min',
             'SST Max',
-            'SST Geophysical',
+            'SST Geophysical Min',
+            'SST Geophysical Max',
+            'Quality Level Min',
+            'Quality Level Max',
             'SSES Bias Min',
             'SSES Bias Max',
             'SSES St Dev Min',
@@ -191,8 +199,8 @@ class ReportPlotter:
             'Wind Speed Max',
             'L2P Flags Min',
             'L2P Flags Max',
-            'Quality Level Min',
-            'Quality Level Max',
+            'Quality Level Mask N',
+            'Quality Level Mask P',
             'SSES Bias Mask N',
             'SSES Bias Mask P',
             'SSES St Dev Mask N',
@@ -205,6 +213,8 @@ class ReportPlotter:
             'Synoptic Unc Mask P',
             'Uncorrelated Unc Mask N',
             'Uncorrelated Unc Mask P',
+            'SST Depth Mask N',
+            'SST Depth Mask P',
             'SST Depth Unc Mask N',
             'SST Depth Unc Mask P',
         ]
@@ -235,12 +245,13 @@ class ReportPlotter:
         font_label = {'size': 9}
         font_title = {'size': 12}
 
-        for tick_label in reversed(check_labels):
-            tick_labels.append(tick_label)
-            check = checks[tick_label]
-            count = report[check]
-            counts.append('{:,}'.format(count))
-            percentages.append(count / (0.001 * reference_counts))
+        for label in reversed(check_labels):
+            check = checks[label]
+            if check in report:
+                count = report[check]
+                counts.append('{:,}'.format(count))
+                percentages.append(count / (0.001 * reference_counts))
+                tick_labels.append(label)
 
         figure, vertical_axis_l = plt.subplots(figsize=(9.0, 6.0 / 20 * len(tick_labels)))
         plt.subplots_adjust(left=0.25, right=0.85)

@@ -10,7 +10,7 @@ from productverifier import VerificationError
 
 class ProductVerifierTests(unittest.TestCase):
     def test_check_source_pathname(self):
-        verifier = ProductVerifier('20100701003842-ESACCI-L2P_GHRSST-SSTskin-AVHRRMTA_G-X1-v02.0-fvX1.0.nc')
+        verifier = ProductVerifier('20100505121116-ESACCI-L2P_GHRSST-SSTskin-AVHRRMTA_G-EXP1.2-v02.0-fv1.0.nc')
         try:
             verifier._check_source_pathname()
             self.fail()
@@ -27,7 +27,7 @@ class ProductVerifierTests(unittest.TestCase):
             os.remove(verifier.get_source_pathname())
 
     def test_check_source_filename(self):
-        verifier = ProductVerifier('20100701003842-ESACCI-L2P_GHRSST-SSTskin-AVHRRMTA_G-X1-v02.0-fvX1.0.nc')
+        verifier = ProductVerifier('20100505121116-ESACCI-L2P_GHRSST-SSTskin-AVHRRMTA_G-EXP1.2-v02.0-fv1.0.nc')
         product_type = verifier._check_source_filename()
         self.assertIsInstance(product_type, L2P)
 
@@ -35,7 +35,7 @@ class ProductVerifierTests(unittest.TestCase):
         self.assertEquals(0, report['source_filename_check'])
 
     def test_verify(self):
-        verifier = ProductVerifier('testdata/20100701003842-ESACCI-L2P_GHRSST-SSTskin-AVHRRMTA_G-X1-v02.0-fvX1.0.nc')
+        verifier = ProductVerifier('testdata/20100505121116-ESACCI-L2P_GHRSST-SSTskin-AVHRRMTA_G-EXP1.2-v02.0-fv1.0.nc')
         verifier.verify()
 
         expected_report = ProductVerifier.load_report('testdata/report.json')

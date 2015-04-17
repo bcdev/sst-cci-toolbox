@@ -81,13 +81,15 @@ class L2P(ProductType):
                              ],
                              ['sea_surface_temperature', 'sea_surface_temperature_depth', -5.0, 10.0],
                              [
+                                 ['sea_surface_temperature', 'quality_level'],
                                  ['sea_surface_temperature', 'sses_bias'],
                                  ['sea_surface_temperature', 'sses_standard_deviation'],
                                  ['sea_surface_temperature', 'large_scale_correlated_uncertainty'],
                                  ['sea_surface_temperature', 'synoptically_correlated_uncertainty'],
                                  ['sea_surface_temperature', 'uncorrelated_uncertainty'],
                                  ['sea_surface_temperature', 'adjustment_uncertainty'],
-                                 ['sea_surface_temperature_depth', 'sst_depth_total_uncertainty']
+                                 ['sea_surface_temperature', 'sea_surface_temperature_depth'],
+                                 ['sea_surface_temperature_depth', 'sst_depth_total_uncertainty'],
                              ],
                              [
                                  'sea_surface_temperature',
@@ -121,12 +123,14 @@ class L3U(ProductType):
                              ],
                              ['sea_surface_temperature', 'sea_surface_temperature_depth', -5.0, 10.0],
                              [
+                                 ['sea_surface_temperature', 'quality_level'],
                                  ['sea_surface_temperature', 'sses_bias'],
                                  ['sea_surface_temperature', 'sses_standard_deviation'],
                                  ['sea_surface_temperature', 'large_scale_correlated_uncertainty'],
                                  ['sea_surface_temperature', 'synoptically_correlated_uncertainty'],
                                  ['sea_surface_temperature', 'uncorrelated_uncertainty'],
                                  ['sea_surface_temperature', 'adjustment_uncertainty'],
+                                 ['sea_surface_temperature', 'sea_surface_temperature_depth'],
                                  ['sea_surface_temperature_depth', 'sst_depth_total_uncertainty']
                              ],
                              [
@@ -322,12 +326,20 @@ class ProductVerifier:
             a = ProductVerifier.__get_data(dataset, spec[0])
             b = ProductVerifier.__get_data(dataset, spec[1])
             difference_data = a - b
-            suspicious_data = ma.masked_inside(difference_data, spec[2], spec[3])
+            # count pixels with differences less than the minimum
+            suspicious_data = ma.masked_greater_equal(difference_data, spec[2])
             suspicious_data_count = suspicious_data.count()
-            self.report['geophysical_check'] = suspicious_data_count
+            self.report['geophysical_minimum_check'] = suspicious_data_count
             if suspicious_data_count > 0:
                 filename = os.path.basename(self.source_pathname)
-                self.report['geophysical_check_failed_for'] = filename
+                self.report['geophysical_minimum_check_failed_for'] = filename
+            # count pixels with differences greater than the maximum
+            suspicious_data = ma.masked_less_equal(difference_data, spec[3])
+            suspicious_data_count = suspicious_data.count()
+            self.report['geophysical_maximum_check'] = suspicious_data_count
+            if suspicious_data_count > 0:
+                filename = os.path.basename(self.source_pathname)
+                self.report['geophysical_maximum_check_failed_for'] = filename
 
     # noinspection PyNoneFunctionAssignment,PyUnresolvedReferences
     def _check_mask_consistency(self, dataset, product_type):
