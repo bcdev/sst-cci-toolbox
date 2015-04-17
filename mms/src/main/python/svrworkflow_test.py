@@ -81,9 +81,9 @@ class SvrWorkflowTests(unittest.TestCase):
         w.run(log_dir='.', simulation=True)
 
         with open('l2p.status', 'r') as status:
-            self.assertEqual('28 created, 0 running, 0 backlog, 28 processed, 0 failed\n', status.readline())
+            self.assertEqual('31 created, 0 running, 0 backlog, 31 processed, 0 failed\n', status.readline())
         with open('l2p.report', 'r') as report:
-            self.assertEqual(28, len(report.readlines()))
+            self.assertEqual(31, len(report.readlines()))
 
         os.remove('l2p.status')
         os.remove('l2p.report')

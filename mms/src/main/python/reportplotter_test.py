@@ -8,8 +8,5 @@ from productverifier import ProductVerifier
 
 class ReportPlotterTests(unittest.TestCase):
     def test_plot_report(self):
-        sensor = 'AVHRR12_G'
-        summary_report = ProductVerifier.load_report('testdata/summary.json')
-        usecase = 'l2p'
-        plotter = ReportPlotter(sensor, usecase, summary_report)
+        plotter = ReportPlotter('l2p', 'AVHRR12_G', ProductVerifier.load_report('testdata/summary.json'))
         plotter.plot()

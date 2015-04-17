@@ -77,6 +77,7 @@ class SvrWorkflow:
             self._execute_verification(m, chunk)
             date = _next_year_start(date)
         self._execute_report_accumulation(m)
+        self._execute_report_plotting(m)
         m.wait_for_completion_and_terminate()
 
     def _get_sensors(self):
@@ -190,13 +191,33 @@ class SvrWorkflow:
         """
         for sensor_name in self._get_sensor_names():
             report_dirpath = SvrRunner.get_report_dirpath(self.report_root, self.version, self.usecase, sensor_name)
-            summary_report_pathname = os.path.join(report_dirpath, sensor_name + '-summary.json')
+            summary_report_pathname = self.get_summary_report_pathname(report_dirpath, sensor_name)
             job = Job('svr-accumulate-start' + sensor_name,
                       'svr-accumulate-start.sh',
                       ['/svr/' + sensor_name],
                       ['/sum/' + sensor_name],
                       [sensor_name, report_dirpath, summary_report_pathname])
             monitor.execute(job)
+
+    def _execute_report_plotting(self, monitor):
+        """
+
+        :type monitor: Monitor
+        """
+        for sensor_name in self._get_sensor_names():
+            report_dirpath = SvrRunner.get_report_dirpath(self.report_root, self.version, self.usecase, sensor_name)
+            summary_report_pathname = self.get_summary_report_pathname(report_dirpath, sensor_name)
+            job = Job('svr-plot-start' + sensor_name,
+                      'svr-plot-start.sh',
+                      ['/sum/' + sensor_name],
+                      ['/plt/' + sensor_name],
+                      [self.get_usecase(), sensor_name, summary_report_pathname, report_dirpath])
+            monitor.execute(job)
+
+    def get_summary_report_pathname(self, report_dirpath, sensor_name):
+        summary_report_pathname = os.path.join(report_dirpath,
+                                               self.get_usecase() + '-' + sensor_name + '-summary.json')
+        return summary_report_pathname
 
     def _get_sensor_names(self):
         sensor_names = set()

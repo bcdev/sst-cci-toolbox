@@ -11,11 +11,12 @@ import numpy
 import pylab
 import os
 
+from productverifier import ProductVerifier
+
 
 class ReportPlotter:
-    def __init__(self, sensor, usecase, report, figure_dirpath='.'):
+    def __init__(self, usecase, sensor, report, figure_dirpath='.'):
         """
-
 
         :type sensor: str
         :type usecase: str
@@ -257,3 +258,28 @@ class ReportPlotter:
         vertical_axis_l.set_xlabel(plot_label, fontdict=font_label)
 
         figure.savefig(filepath)
+
+
+if __name__ == "__main__":
+    # Call with up to two arguments:
+    #
+    # 1 = usecase
+    # 2 = sensor
+    # 3 = summary report pathname
+    # 4 = figure directory path
+    import sys
+
+    argument_count = len(sys.argv)
+    if argument_count == 4:
+        plotter = ReportPlotter(sys.argv[1], sys.argv[2], ProductVerifier.load_report(sys.argv[3]), sys.argv[4])
+    else:
+        print 'usage:', sys.argv[0], '<usecase> <sensor> <summary report pathname> <figure dirpath>'
+        sys.exit(1)
+
+    # noinspection PyBroadException
+    try:
+        plotter.plot()
+    except:
+        sys.exit(1)
+
+    sys.exit()
