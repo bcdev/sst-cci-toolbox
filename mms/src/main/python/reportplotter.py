@@ -108,7 +108,7 @@ class ReportPlotter:
         report = self.get_report()
         reference_counts = report['summary_report.count']
         plot_title = self.get_usecase().upper() + ' ' + self.get_sensor().replace('_', '-')
-        plot_label = 'Failure Permillage (for ' + str(reference_counts) + ' files in total)'
+        plot_label = 'Failure Permillage (for ' + '{:,}'.format(reference_counts) + ' files in total)'
         filename = self.get_usecase().lower() + '-' + self.get_sensor() + "-figure1.pdf"
         filepath = os.path.join(self.get_figure_dirpath(), filename)
         ReportPlotter.plot_report(report, checks, check_labels, reference_counts, plot_title, plot_label, filepath)
@@ -211,7 +211,7 @@ class ReportPlotter:
         report = self.get_report()
         reference_counts = report['lat.count.total']
         plot_title = self.get_usecase().upper() + ' ' + self.get_sensor().replace('_', '-')
-        plot_label = 'Failure Permillage (for ' + str(reference_counts) + ' pixels in total)'
+        plot_label = 'Failure Permillage (for ' + '{:,}'.format(reference_counts) + ' pixels in total)'
         filename = self.get_usecase().lower() + '-' + self.get_sensor() + "-figure2.pdf"
         filepath = os.path.join(self.get_figure_dirpath(), filename)
         ReportPlotter.plot_report(report, checks, check_labels, reference_counts, plot_title, plot_label, filepath)
@@ -239,7 +239,7 @@ class ReportPlotter:
             tick_labels.append(tick_label)
             check = checks[tick_label]
             count = report[check]
-            counts.append(count)
+            counts.append('{:,}'.format(count))
             percentages.append(count / (0.001 * reference_counts))
 
         figure, vertical_axis_l = plt.subplots(figsize=(9.0, 6.0 / 20 * len(tick_labels)))
