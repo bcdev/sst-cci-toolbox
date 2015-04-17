@@ -251,6 +251,8 @@ class ProductVerifier:
                 self.report[variable_name + '.existence_check'] = 0
             else:
                 self.report[variable_name + '.existence_check'] = 1
+                filename = os.path.basename(self.source_pathname)
+                self.report[variable_name + '.existence_check_failed_for'] = filename
 
     @staticmethod
     def __get_masked_data(variable):
@@ -291,13 +293,21 @@ class ProductVerifier:
             try:
                 valid_max = variable.getncattr('valid_max')
                 invalid_data = ma.masked_less_equal(data, valid_max)
-                self.report[variable_name + '.valid_max_check'] = invalid_data.count()
+                invalid_data_count = invalid_data.count()
+                self.report[variable_name + '.valid_max_check'] = invalid_data_count
+                if invalid_data_count > 0:
+                    filename = os.path.basename(self.source_pathname)
+                    self.report[variable_name + '.valid_max_check_failed_for'] = filename
             except AttributeError:
                 pass
             try:
                 valid_min = variable.getncattr('valid_min')
                 invalid_data = ma.masked_greater_equal(data, valid_min)
-                self.report[variable_name + '.valid_min_check'] = invalid_data.count()
+                invalid_data_count = invalid_data.count()
+                self.report[variable_name + '.valid_min_check'] = invalid_data_count
+                if invalid_data_count > 0:
+                    filename = os.path.basename(self.source_pathname)
+                    self.report[variable_name + '.valid_min_check_failed_for'] = filename
             except AttributeError:
                 pass
 
@@ -313,7 +323,11 @@ class ProductVerifier:
             b = ProductVerifier.__get_data(dataset, spec[1])
             difference_data = a - b
             suspicious_data = ma.masked_inside(difference_data, spec[2], spec[3])
-            self.report['geophysical_check'] = suspicious_data.count()
+            suspicious_data_count = suspicious_data.count()
+            self.report['geophysical_check'] = suspicious_data_count
+            if suspicious_data_count > 0:
+                filename = os.path.basename(self.source_pathname)
+                self.report['geophysical_check_failed_for'] = filename
 
     # noinspection PyNoneFunctionAssignment,PyUnresolvedReferences
     def _check_mask_consistency(self, dataset, product_type):
@@ -329,10 +343,18 @@ class ProductVerifier:
             b = ma.getmaskarray(ProductVerifier.__get_data(dataset, objective_variable_name))
             # false negatives: element is not masked in a, but masked in b
             false_negatives = ma.masked_equal(numpy.logical_or(numpy.logical_not(a), b), True)
-            self.report[objective_variable_name + '.mask_false_negative_check'] = false_negatives.count()
+            false_negatives_count = false_negatives.count()
+            self.report[objective_variable_name + '.mask_false_negative_check'] = false_negatives_count
+            if false_negatives_count > 0:
+                filename = os.path.basename(self.source_pathname)
+                self.report[objective_variable_name + '.mask_false_negative_check_failed_for'] = filename
             # false positives: element is masked in a, but not masked in b
             false_positives = ma.masked_equal(numpy.logical_or(numpy.logical_not(b), a), True)
-            self.report[objective_variable_name + '.mask_false_positive_check'] = false_positives.count()
+            false_positives_count = false_positives.count()
+            self.report[objective_variable_name + '.mask_false_positive_check'] = false_positives_count
+            if false_positives_count > 0:
+                filename = os.path.basename(self.source_pathname)
+                self.report[objective_variable_name + '.mask_false_positive_check_failed_for'] = filename
 
     def _check_product_can_be_opened(self):
         try:
