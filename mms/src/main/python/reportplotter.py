@@ -7,21 +7,25 @@ matplotlib.rc('ytick', labelsize=9)
 matplotlib.use('PDF')
 
 import matplotlib.pyplot as plt
+import numpy
 import pylab
-import numpy as np
+import os
 
 
 class ReportPlotter:
-    def __init__(self, sensor, usecase, report):
+    def __init__(self, sensor, usecase, report, figure_dirpath='.'):
         """
+
 
         :type sensor: str
         :type usecase: str
         :type report: dict
+        :type figure_dirpath: str
         """
         self.sensor = sensor
         self.usecase = usecase
         self.report = report
+        self.figure_dirpath = figure_dirpath
 
     def get_sensor(self):
         """
@@ -44,36 +48,21 @@ class ReportPlotter:
         """
         return self.report
 
-    def plot(self):
-        self.plot_product_checks()
-        self.plot_pixel_checks()
+    def get_figure_dirpath(self):
+        """
 
-    def plot_product_checks(self):
-        labels = [
-            'Is File',
-            'Filename Convention',
-            'Can Open',
-            'Lat Exists',
-            'Lon Exists',
-            'SST Exists',
-            'Time Exists',
-            'SST DTime Exists',
-            'SSES Bias Exists',
-            'SSES St Dev Exists',
-            'Large Scale Unc Exists',
-            'Adjustment Unc Exists',
-            'Synoptic Unc Exists',
-            'Uncorrelated Unc Exists',
-            'SST Depth Exists',
-            'SST Depth Unc Exists',
-            'Wind Speed Exists',
-            'L2P Flags Exist',
-            'Quality Level Exists',
-            'SST Corrupt',
-        ]
-        label_dict = {
+        :rtype : str
+        """
+        return self.figure_dirpath
+
+    def plot(self):
+        self.plot_figure_1()
+        self.plot_figure_2()
+
+    def plot_figure_1(self):
+        checks = {
             'Is File': 'source_pathname_check',
-            'Filename Convention': 'source_filename_check',
+            'Filename': 'source_filename_check',
             'Can Open': 'product_can_be_opened_check',
             'SST Corrupt': 'corruptness_check',
             'Adjustment Unc Exists': 'adjustment_uncertainty.existence_check',
@@ -93,58 +82,38 @@ class ReportPlotter:
             'Uncorrelated Unc Exists': 'uncorrelated_uncertainty.existence_check',
             'Wind Speed Exists': 'wind_speed.existence_check',
         }
-        reference_counts = self.get_report()['summary_report.count']
-        self.plot_check_results(label_dict, labels, reference_counts, 'figure1.pdf')
-
-    def plot_pixel_checks(self):
-        labels = [
-            'Lat Min',
-            'Lat Max',
-            'Lon Min',
-            'Lon Max',
-            'SST DTime Min',
-            'SST DTime Max',
-            'SST Min',
-            'SST Max',
-            'SST Geophysical',
-            'SSES Bias Min',
-            'SSES Bias Max',
-            'SSES St Dev Min',
-            'SSES St Dev Max',
-            'Large Scale Unc Min',
-            'Large Scale Unc Max',
-            'Adjustment Unc Min',
-            'Adjustment Unc Max',
-            'Synoptic Unc Min',
-            'Synoptic Unc Max',
-            'Uncorrelated Unc Min',
-            'Uncorrelated Unc Max',
-            'SST Depth Min',
-            'SST Depth Max',
-            'SST Depth Unc Min',
-            'SST Depth Unc Max',
-            'Wind Speed Min',
-            'Wind Speed Max',
-            'L2P Flags Min',
-            'L2P Flags Max',
-            'Quality Level Min',
-            'Quality Level Max',
-            'SSES Bias Mask N',
-            'SSES Bias Mask P',
-            'SSES St Dev Mask N',
-            'SSES St Dev Mask P',
-            'Adjustment Unc Mask N',
-            'Adjustment Unc Mask P',
-            'Large Scale Unc Mask N',
-            'Large Scale Unc Mask P',
-            'Synoptic Unc Mask N',
-            'Synoptic Unc Mask P',
-            'Uncorrelated Unc Mask N',
-            'Uncorrelated Unc Mask P',
-            'SST Depth Unc Mask N',
-            'SST Depth Unc Mask P',
+        check_labels = [
+            'Is File',
+            'Filename',
+            'Can Open',
+            'Lat Exists',
+            'Lon Exists',
+            'SST Exists',
+            'Time Exists',
+            'SST DTime Exists',
+            'SSES Bias Exists',
+            'SSES St Dev Exists',
+            'Large Scale Unc Exists',
+            'Adjustment Unc Exists',
+            'Synoptic Unc Exists',
+            'Uncorrelated Unc Exists',
+            'SST Depth Exists',
+            'SST Depth Unc Exists',
+            'Wind Speed Exists',
+            'L2P Flags Exist',
+            'Quality Level Exists',
+            'SST Corrupt',
         ]
-        label_dict = {
+        report = self.get_report()
+        reference_counts = report['summary_report.count']
+        plot_title = self.get_usecase().upper() + ' ' + self.get_sensor().replace('_', '-') + ' File Checks'
+        plot_label = 'Failure Permillage (for ' + str(reference_counts) + ' files in total)'
+        filename = self.get_usecase().lower() + '-' + self.get_sensor() + "-figure1.pdf"
+        filepath = os.path.join(self.get_figure_dirpath(), filename)
+        ReportPlotter.plot_report(report, checks, check_labels, reference_counts, plot_title, plot_label, filepath)
+
+    def plot_figure_2(self):
+        checks = {
             'Adjustment Unc Max': 'adjustment_uncertainty.valid_max_check',
             'Adjustment Unc Min': 'adjustment_uncertainty.valid_min_check',
             'L2P Flags Max': 'l2p_flags.valid_max_check',
@@ -191,41 +160,100 @@ class ReportPlotter:
             'SST Depth Unc Mask N': 'sst_depth_total_uncertainty.mask_false_negative_check',
             'SST Depth Unc Mask P': 'sst_depth_total_uncertainty.mask_false_positive_check',
         }
-        reference_counts = self.get_report()['lat.count.total']
-        self.plot_check_results(label_dict, labels, reference_counts, 'figure2.pdf')
+        check_labels = [
+            'Lat Min',
+            'Lat Max',
+            'Lon Min',
+            'Lon Max',
+            'SST DTime Min',
+            'SST DTime Max',
+            'SST Min',
+            'SST Max',
+            'SST Geophysical',
+            'SSES Bias Min',
+            'SSES Bias Max',
+            'SSES St Dev Min',
+            'SSES St Dev Max',
+            'Large Scale Unc Min',
+            'Large Scale Unc Max',
+            'Adjustment Unc Min',
+            'Adjustment Unc Max',
+            'Synoptic Unc Min',
+            'Synoptic Unc Max',
+            'Uncorrelated Unc Min',
+            'Uncorrelated Unc Max',
+            'SST Depth Min',
+            'SST Depth Max',
+            'SST Depth Unc Min',
+            'SST Depth Unc Max',
+            'Wind Speed Min',
+            'Wind Speed Max',
+            'L2P Flags Min',
+            'L2P Flags Max',
+            'Quality Level Min',
+            'Quality Level Max',
+            'SSES Bias Mask N',
+            'SSES Bias Mask P',
+            'SSES St Dev Mask N',
+            'SSES St Dev Mask P',
+            'Adjustment Unc Mask N',
+            'Adjustment Unc Mask P',
+            'Large Scale Unc Mask N',
+            'Large Scale Unc Mask P',
+            'Synoptic Unc Mask N',
+            'Synoptic Unc Mask P',
+            'Uncorrelated Unc Mask N',
+            'Uncorrelated Unc Mask P',
+            'SST Depth Unc Mask N',
+            'SST Depth Unc Mask P',
+        ]
+        report = self.get_report()
+        reference_counts = report['lat.count.total']
+        plot_title = self.get_usecase().upper() + ' ' + self.get_sensor().replace('_', '-') + ' Pixel Checks'
+        plot_label = 'Failure Permillage (for ' + str(reference_counts) + ' pixels in total)'
+        filename = self.get_usecase().lower() + '-' + self.get_sensor() + "-figure2.pdf"
+        filepath = os.path.join(self.get_figure_dirpath(), filename)
+        ReportPlotter.plot_report(report, checks, check_labels, reference_counts, plot_title, plot_label, filepath)
 
-    def plot_check_results(self, label_dictionary, label_list, reference_counts, filename):
+    @staticmethod
+    def plot_report(report, checks, check_labels, reference_counts, plot_title, plot_label, filepath):
         """
 
-        :type label_list: list
-        :type label_dictionary: dict
+        :type report: dict
+        :type checks: dict
+        :type check_labels: list
         :type reference_counts: int
+        :type plot_title: str
+        :type plot_label: str
+        :type filepath: str
         """
-        labels = []
+        tick_labels = []
         counts = []
         percentages = []
 
-        for label in reversed(label_list):
-            labels.append(label)
-            check = label_dictionary[label]
-            check_result = self.get_report()[check]
-            counts.append(check_result)
-            percentages.append(check_result / (1.0 * reference_counts))
+        font_label = {'size': 9}
+        font_title = {'size': 12}
 
-        figure, vertical_axis_l = plt.subplots(figsize=(10, 7.5))
-        plt.subplots_adjust(left=0.18, right=0.88)
-        pos = np.arange(len(labels)) + 0.5
+        for tick_label in reversed(check_labels):
+            tick_labels.append(tick_label)
+            check = checks[tick_label]
+            count = report[check]
+            counts.append(count)
+            percentages.append(count / (0.001 * reference_counts))
+
+        figure, vertical_axis_l = plt.subplots(figsize=(9.0, 6.0 / 20 * len(tick_labels)))
+        plt.subplots_adjust(left=0.25, right=0.85)
+        pos = numpy.arange(len(tick_labels)) + 0.5
         vertical_axis_l.barh(pos, percentages, color='r', align='center', height=0.5)
-        pylab.yticks(pos, labels)
-        title = self.get_usecase().upper() + ' ' + self.get_sensor().replace('_', '-')
-        vertical_axis_l.set_title(title)
+        pylab.yticks(pos, tick_labels)
+        vertical_axis_l.set_title(plot_title, fontdict=font_title)
 
         vertical_axis_r = vertical_axis_l.twinx()
         vertical_axis_r.set_yticks(pos)
         vertical_axis_r.set_yticklabels(counts)
         vertical_axis_r.set_ylim(vertical_axis_l.get_ylim())
-        vertical_axis_r.set_ylabel('Failure Counts')
-        vertical_axis_l.set_xlabel('Failure Rate (for ' + str(reference_counts) + ' test cases in total)')
+        vertical_axis_r.set_ylabel('Failure Counts', fontdict=font_label)
+        vertical_axis_l.set_ylabel('Checks Conducted', fontdict=font_label)
+        vertical_axis_l.set_xlabel(plot_label, fontdict=font_label)
 
-        figure.savefig(filename)
-        #plt.show()
+        figure.savefig(filepath)
