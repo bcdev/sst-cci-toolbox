@@ -107,7 +107,7 @@ class ReportPlotter:
         ]
         report = self.get_report()
         reference_counts = report['summary_report.count']
-        plot_title = self.get_usecase().upper() + ' ' + self.get_sensor().replace('_', '-') + ' File Checks'
+        plot_title = self.get_usecase().upper() + ' ' + self.get_sensor().replace('_', '-')
         plot_label = 'Failure Permillage (for ' + str(reference_counts) + ' files in total)'
         filename = self.get_usecase().lower() + '-' + self.get_sensor() + "-figure1.pdf"
         filepath = os.path.join(self.get_figure_dirpath(), filename)
@@ -210,7 +210,7 @@ class ReportPlotter:
         ]
         report = self.get_report()
         reference_counts = report['lat.count.total']
-        plot_title = self.get_usecase().upper() + ' ' + self.get_sensor().replace('_', '-') + ' Pixel Checks'
+        plot_title = self.get_usecase().upper() + ' ' + self.get_sensor().replace('_', '-')
         plot_label = 'Failure Permillage (for ' + str(reference_counts) + ' pixels in total)'
         filename = self.get_usecase().lower() + '-' + self.get_sensor() + "-figure2.pdf"
         filepath = os.path.join(self.get_figure_dirpath(), filename)
