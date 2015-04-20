@@ -34,7 +34,6 @@ import java.io.StringWriter;
 import java.math.BigInteger;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -341,25 +340,32 @@ public class WordDocument {
     /**
      * Traverses a Word document and replaces the first occurrence of a "template variable" with an image.
      *
-     * @param variable The template variable.
-     * @param path     The path to the image file.
+     * @param variable  The template variable.
+     * @param imagePath The path to the image file.
      * @return the "paragraph" where the replacing occurred or {@code null}, if the requested template variable has not been found.
      */
-    public P replaceWithImage(String variable, String path) throws Exception {
-        return replaceWithImage(variable, new File(path));
+    public P replaceWithImage(String variable, String imagePath) throws Exception {
+        return replaceWithImage(variable, new File(imagePath));
     }
 
     /**
      * Traverses a Word document and replaces the first occurrence of a "template variable" with an image.
      *
-     * @param variable The template variable.
-     * @param file     The image file.
+     * @param variable  The template variable.
+     * @param imageFile The image file.
      * @return the "paragraph" where the replacing occurred or {@code null}, if the requested template variable has not been found.
      */
-    public P replaceWithImage(String variable, File file) throws Exception {
-        return replaceWithDrawing(variable, createDrawing(file));
+    public P replaceWithImage(String variable, File imageFile) throws Exception {
+        return replaceWithDrawing(variable, createDrawing(imageFile));
     }
 
+    /**
+     * Traverses a Word document and replaces the first occurrence of a "template variable" with a series of images.
+     *
+     * @param variable   The template variable.
+     * @param imageFiles The image files.
+     * @return the "paragraph" where the replacing occurred or {@code null}, if the requested template variable has not been found.
+     */
     public P replaceWithImages(String variable, File[] imageFiles) throws Exception {
         final P p = findVariable(variable);
 
