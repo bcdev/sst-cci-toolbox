@@ -1,6 +1,7 @@
 __author__ = 'Ralf Quast'
 
 import os
+import calendar
 import datetime
 import exceptions
 
@@ -174,15 +175,15 @@ class SvrWorkflow:
                 date = period.get_start_date()
                 end_date = period.get_end_date()
                 while date < end_date:
-                    (year, month) = _year_month(date)
-                    job = Job('svr-start' + '-' + year + '-' + month + '-' + sensor_name,
+                    (year, month, day) = _year_month_day(date)
+                    job = Job('svr-start' + '-' + year + '-' + month + '-' + day + '-' + sensor_name,
                               'svr-start.sh',
-                              list(),
+                              [],
                               ['/svr/' + sensor_name],
-                              [year, month, sensor_name, self.usecase, self.version, self.archive_root,
+                              [year, month, day, sensor_name, self.usecase, self.version, self.archive_root,
                                self.report_root])
                     monitor.execute(job)
-                    date = _next_month(date)
+                    date = _next_day(date)
 
     def _execute_report_accumulation(self, monitor):
         """
@@ -237,6 +238,19 @@ def _pathformat(date):
     return date.isoformat()[:7].replace('-', '/')
 
 
+def _next_day(date):
+    """
+
+    :type date: datetime.date
+    :rtype : datetime.date
+    """
+    last_day = calendar.monthrange(date.year, date.month)[1]
+    if date.day != last_day:
+        return datetime.date(date.year, date.month, date.day + 1)
+    else:
+        return _next_month(date)
+
+
 def _next_month(date):
     """
 
@@ -265,3 +279,12 @@ def _year_month(date):
     :rtype: tuple
     """
     return _pathformat(date).split('/', 1)
+
+
+def _year_month_day(date):
+    """
+
+    :type date: datetime.date
+    :rtype: tuple
+    """
+    return date.isoformat().replace('-', '/').split('/')

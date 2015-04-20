@@ -3,10 +3,11 @@ set -e
 
 year=$1
 month=$2
-sensor=$3
-usecase=$4
-version=$5
-archive_root=$6
-report_root=$7
+day=$3
+sensor=$4
+usecase=$5
+version=$6
+archive_root=$7
+report_root=$8
 
-${mms.python.exec} ${mms.home}/python/svrrunner.py $year $month $sensor $usecase $version $archive_root $report_root
+${mms.python.exec} ${mms.home}/python/svrrunner.py $year $month $day $sensor $usecase $version $archive_root $report_root
