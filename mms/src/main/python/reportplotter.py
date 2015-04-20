@@ -281,7 +281,7 @@ if __name__ == "__main__":
     import sys
 
     argument_count = len(sys.argv)
-    if argument_count == 4:
+    if argument_count == 5:
         plotter = ReportPlotter(sys.argv[1], sys.argv[2], ProductVerifier.load_report(sys.argv[3]), sys.argv[4])
     else:
         print 'usage:', sys.argv[0], '<usecase> <sensor> <summary report pathname> <figure dirpath>'
