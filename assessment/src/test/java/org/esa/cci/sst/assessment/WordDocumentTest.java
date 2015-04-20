@@ -120,7 +120,7 @@ public class WordDocumentTest {
 
         final Drawing drawing = wordDocument.createDrawing(getClass().getResource("newton-home.png"));
 
-        assertEquals("${replace.me}", wordDocument.replaceWithDrawing("${replace.me}", drawing).getValue());
+        assertSame(p, wordDocument.replaceWithDrawing("${replace.me}", drawing));
         assertNull(wordDocument.findVariable("${replace.me}"));
 
         final R r = (R) p.getContent().get(0);

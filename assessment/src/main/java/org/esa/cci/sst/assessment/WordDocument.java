@@ -153,60 +153,63 @@ public class WordDocument {
      * @return the enclosing "paragraph" element.
      */
     public P addCaption(String label, String number, String text) {
-        final ObjectFactory factory = new ObjectFactory();
-        final P p = factory.createP();
+        /*
+            Based on generated code, see http://webapp.docx4java.org/OnlineDemo/demo_landing.html
+         */
+        final ObjectFactory wmlObjectFactory = new ObjectFactory();
+        final P p = wmlObjectFactory.createP();
         // Create object for pPr
-        final PPr ppr = factory.createPPr();
+        final PPr ppr = wmlObjectFactory.createPPr();
         p.setPPr(ppr);
         // Create object for pStyle
-        final PPrBase.PStyle pPrBasePStyle = factory.createPPrBasePStyle();
+        final PPrBase.PStyle pPrBasePStyle = wmlObjectFactory.createPPrBasePStyle();
         ppr.setPStyle(pPrBasePStyle);
         pPrBasePStyle.setVal("Caption");
         // Create object for r
-        final R r = factory.createR();
+        final R r = wmlObjectFactory.createR();
         p.getContent().add(r);
         // Create object for t (wrapped in JAXBElement)
-        final Text t = factory.createText();
-        final JAXBElement<Text> textWrapped = factory.createRT(t);
+        final Text t = wmlObjectFactory.createText();
+        final JAXBElement<Text> textWrapped = wmlObjectFactory.createRT(t);
         r.getContent().add(textWrapped);
         t.setValue(label + " ");
         t.setSpace("preserve");
         // Create object for fldSimple (wrapped in JAXBElement)
-        final CTSimpleField simpleField = factory.createCTSimpleField();
-        final JAXBElement<CTSimpleField> simpleFieldWrapped = factory.createPFldSimple(simpleField);
+        final CTSimpleField simpleField = wmlObjectFactory.createCTSimpleField();
+        final JAXBElement<CTSimpleField> simpleFieldWrapped = wmlObjectFactory.createPFldSimple(simpleField);
         p.getContent().add(simpleFieldWrapped);
         simpleField.setInstr(" SEQ Figure \\* ARABIC ");
         // Create object for r
-        final R r2 = factory.createR();
+        final R r2 = wmlObjectFactory.createR();
         simpleField.getContent().add(r2);
         // Create object for rPr
-        final RPr rpr = factory.createRPr();
+        final RPr rpr = wmlObjectFactory.createRPr();
         r2.setRPr(rpr);
         // Create object for noProof
-        final BooleanDefaultTrue booleanDefaultTrue = factory.createBooleanDefaultTrue();
+        final BooleanDefaultTrue booleanDefaultTrue = wmlObjectFactory.createBooleanDefaultTrue();
         rpr.setNoProof(booleanDefaultTrue);
         // Create object for t (wrapped in JAXBElement)
-        final Text t2 = factory.createText();
-        final JAXBElement<Text> textWrapped2 = factory.createRT(t2);
+        final Text t2 = wmlObjectFactory.createText();
+        final JAXBElement<Text> textWrapped2 = wmlObjectFactory.createRT(t2);
         r2.getContent().add(textWrapped2);
         t2.setValue(number);
         // Create object for r
-        final R r3 = factory.createR();
+        final R r3 = wmlObjectFactory.createR();
         p.getContent().add(r3);
         // Create object for t (wrapped in JAXBElement)
-        final Text t3 = factory.createText();
-        final JAXBElement<Text> textWrapped3 = factory.createRT(t3);
+        final Text t3 = wmlObjectFactory.createText();
+        final JAXBElement<Text> textWrapped3 = wmlObjectFactory.createRT(t3);
         r3.getContent().add(textWrapped3);
         t3.setValue(": " + text);
         // Create object for bookmarkStart (wrapped in JAXBElement)
-        final CTBookmark bookmark = factory.createCTBookmark();
-        final JAXBElement<CTBookmark> bookmarkWrapped = factory.createPBookmarkStart(bookmark);
+        final CTBookmark bookmark = wmlObjectFactory.createCTBookmark();
+        final JAXBElement<CTBookmark> bookmarkWrapped = wmlObjectFactory.createPBookmarkStart(bookmark);
         p.getContent().add(bookmarkWrapped);
         bookmark.setName("_GoBack");
         bookmark.setId(BigInteger.valueOf(0));
         // Create object for bookmarkEnd (wrapped in JAXBElement)
-        final CTMarkupRange markupRange = factory.createCTMarkupRange();
-        final JAXBElement<CTMarkupRange> markupRangeWrapped = factory.createPBookmarkEnd(markupRange);
+        final CTMarkupRange markupRange = wmlObjectFactory.createCTMarkupRange();
+        final JAXBElement<CTMarkupRange> markupRangeWrapped = wmlObjectFactory.createPBookmarkEnd(markupRange);
         p.getContent().add(markupRangeWrapped);
         markupRange.setId(BigInteger.valueOf(0));
 
@@ -314,37 +317,51 @@ public class WordDocument {
      *
      * @param variable The template variable.
      * @param drawing  The drawing.
-     * @return the replaced "text" or {@code null}, if the requested template variable has not been found.
+     * @return the "paragraph" where the replacing occurred or {@code null}, if the requested template variable has not been found.
      */
-    public Text replaceWithDrawing(String variable, Drawing drawing) {
+    public P replaceWithDrawing(String variable, Drawing drawing) {
         final P p = findVariable(variable);
 
         if (p != null) {
-            final List<Object> c = p.getContent();
-            final R r = (R) c.get(0);
-            final List<Object> c1 = r.getContent();
-            c1.add(drawing);
-            return (Text) c1.remove(0);
+            final R r = replaceContentWithNewR(p, new ObjectFactory());
+
+            r.getContent().add(drawing);
+
+            return p;
         }
 
         return null;
     }
 
-    public Text replaceWithParagraph(String variable, String text) {
+    private static R replaceContentWithNewR(P p, ObjectFactory wmlObjectFactory) {
+        final List<Object> c = p.getContent();
+        c.clear();
+        final R r = wmlObjectFactory.createR();
+        c.add(r);
+        return r;
+    }
+
+    /**
+     * Traverses a Word document and replaces the first occurrence of a "template variable" with a paragraph of text.
+     *
+     * @param variable The template variable.
+     * @param text     The text.
+     * @return the "paragraph" where the replacing occurred or {@code null}, if the requested template variable has not been found.
+     */
+    public P replaceWithParagraph(String variable, String text) {
         final P p = findVariable(variable);
 
         if (p != null) {
-            final List<Object> c = p.getContent();
-            final R r = (R) c.get(0);
-            final List<Object> c1 = r.getContent();
+            final ObjectFactory wmlObjectFactory = new ObjectFactory();
+            final R r = replaceContentWithNewR(p, wmlObjectFactory);
 
-            final ObjectFactory factory = new ObjectFactory();
-            final Text t1 = factory.createText();
-            final JAXBElement<Text> textWrapped3 = factory.createRT(t1);
-            c1.add(textWrapped3);
-            t1.setValue(text);
+            final Text t = wmlObjectFactory.createText();
+            t.setValue(text);
 
-            return (Text) c1.remove(0);
+            final JAXBElement<Text> textWrapped = wmlObjectFactory.createRT(t);
+            r.getContent().add(textWrapped);
+
+            return p;
         }
 
         return null;
