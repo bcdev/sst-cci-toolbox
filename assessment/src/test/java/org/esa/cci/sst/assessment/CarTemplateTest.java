@@ -16,11 +16,13 @@
 
 package org.esa.cci.sst.assessment;
 
+import org.esa.beam.util.io.WildcardMatcher;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.File;
+import java.net.URL;
 import java.util.Properties;
 
 import static org.junit.Assert.assertNotNull;
@@ -123,4 +125,53 @@ public class CarTemplateTest {
 
         assertNotNull(wordDocument.replaceWithParagraph("${paragraph.plot_selection}", text));
     }
+
+    @Test
+    public void testReplaceFigure_2() throws Exception {
+        final String path = properties.getProperty("figure.Figure_2");
+
+        assertNotNull(path);
+
+        assertNotNull(wordDocument.replaceWithImage("${figure.Figure_2}", path));
+    }
+
+    @Test
+    public void testReplaceFigure_3() throws Exception {
+        final String path = properties.getProperty("figure.Figure_3");
+
+        assertNotNull(path);
+
+        assertNotNull(wordDocument.replaceWithImage("${figure.Figure_3}", path));
+    }
+
+    @Test
+    public void testReplaceFigure_4() throws Exception {
+        final String path = properties.getProperty("figure.Figure_4");
+
+        assertNotNull(path);
+
+        assertNotNull(wordDocument.replaceWithImage("${figure.Figure_4}", path));
+    }
+
+
+    @Test
+    public void testReplaceFigure_5() throws Exception {
+        final String path = properties.getProperty("figure.Figure_5");
+
+        assertNotNull(path);
+
+        assertNotNull(wordDocument.replaceWithImage("${figure.Figure_5}", path));
+    }
+
+    @Test
+    public void testReplaceFigures_lagcorr() throws Exception {
+        final String filePattern = properties.getProperty("figures.plot_lagcorr");
+
+        assertNotNull(filePattern);
+
+        final File[] files = WildcardMatcher.glob(filePattern);
+
+        assertNotNull(wordDocument.replaceWithImages("${figures.plot_lagcorr}", files));
+    }
+
 }

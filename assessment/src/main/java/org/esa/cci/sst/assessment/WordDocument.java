@@ -34,6 +34,7 @@ import java.io.StringWriter;
 import java.math.BigInteger;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -323,14 +324,78 @@ public class WordDocument {
         final P p = findVariable(variable);
 
         if (p != null) {
-            final R r = replaceContentWithNewR(p, new ObjectFactory());
+            return replaceContentWithDrawing(p, drawing);
+        }
 
-            r.getContent().add(drawing);
+        return null;
+    }
+
+    private P replaceContentWithDrawing(P p, Drawing drawing) {
+        final R r = replaceContentWithNewR(p, new ObjectFactory());
+
+        r.getContent().add(drawing);
+
+        return p;
+    }
+
+    /**
+     * Traverses a Word document and replaces the first occurrence of a "template variable" with an image.
+     *
+     * @param variable The template variable.
+     * @param path     The path to the image file.
+     * @return the "paragraph" where the replacing occurred or {@code null}, if the requested template variable has not been found.
+     */
+    public P replaceWithImage(String variable, String path) throws Exception {
+        return replaceWithImage(variable, new File(path));
+    }
+
+    /**
+     * Traverses a Word document and replaces the first occurrence of a "template variable" with an image.
+     *
+     * @param variable The template variable.
+     * @param file     The image file.
+     * @return the "paragraph" where the replacing occurred or {@code null}, if the requested template variable has not been found.
+     */
+    public P replaceWithImage(String variable, File file) throws Exception {
+        return replaceWithDrawing(variable, createDrawing(file));
+    }
+
+    public P replaceWithImages(String variable, File[] imageFiles) throws Exception {
+        final P p = findVariable(variable);
+
+        if (p != null) {
+            replaceContentWithDrawing(p, createDrawing(imageFiles[0]));
+
+            @SuppressWarnings("unchecked")
+            final List<Object> parent = (List<Object>) p.getParent();
+            final int index = parent.indexOf(p);
+            final ObjectFactory wmlObjectFactory = new ObjectFactory();
+
+            for (int i = 1; i < imageFiles.length; i++) {
+                final P q = wmlObjectFactory.createP();
+                final R r = wmlObjectFactory.createR();
+                final Drawing drawing = createDrawing(imageFiles[i]);
+                q.getContent().add(r);
+                r.getContent().add(drawing);
+
+                parent.add(index + i, q);
+            }
 
             return p;
         }
 
         return null;
+    }
+
+    /**
+     * Traverses a Word document and replaces the first occurrence of a "template variable" with an image.
+     *
+     * @param variable The template variable.
+     * @param url      The URL to the image.
+     * @return the "paragraph" where the replacing occurred or {@code null}, if the requested template variable has not been found.
+     */
+    public P replaceWithImage(String variable, URL url) throws Exception {
+        return replaceWithDrawing(variable, createDrawing(url));
     }
 
     private static R replaceContentWithNewR(P p, ObjectFactory wmlObjectFactory) {
