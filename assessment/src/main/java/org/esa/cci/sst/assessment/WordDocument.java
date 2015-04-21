@@ -243,7 +243,7 @@ public class WordDocument {
      * @return the drawing.
      * @throws Exception if an error occurred.
      */
-    public Drawing createDrawing(URL resource) throws Exception {
+    Drawing createDrawing(URL resource) throws Exception {
         final File imageFile = new File(resource.toURI());
         return createDrawing(imageFile);
     }
@@ -255,7 +255,7 @@ public class WordDocument {
      * @return the drawing.
      * @throws Exception if an error occurred.
      */
-    public Drawing createDrawing(File imageFile) throws Exception {
+    Drawing createDrawing(File imageFile) throws Exception {
         final ObjectFactory factory = Context.getWmlObjectFactory();
         final Drawing drawing = factory.createDrawing();
         final BinaryPartAbstractImage imagePart = BinaryPartAbstractImage.createImagePart(wordMLPackage, imageFile);
@@ -341,17 +341,6 @@ public class WordDocument {
      * Traverses a Word document and replaces the first occurrence of a "template variable" with an image.
      *
      * @param variable  The template variable.
-     * @param imagePath The path to the image file.
-     * @return the "paragraph" where the replacing occurred or {@code null}, if the requested template variable has not been found.
-     */
-    public P replaceWithImage(String variable, String imagePath) throws Exception {
-        return replaceWithImage(variable, new File(imagePath));
-    }
-
-    /**
-     * Traverses a Word document and replaces the first occurrence of a "template variable" with an image.
-     *
-     * @param variable  The template variable.
      * @param imageFile The image file.
      * @return the "paragraph" where the replacing occurred or {@code null}, if the requested template variable has not been found.
      */
@@ -370,46 +359,28 @@ public class WordDocument {
         final P p = findVariable(variable);
 
         if (p != null) {
-            replaceContentWithDrawing(p, createDrawing(imageFiles[0]));
+            final List<Object> c = getContent(p);
+            if (c != null) {
+                replaceContentWithDrawing(p, createDrawing(imageFiles[0]));
 
-            @SuppressWarnings("unchecked")
-            final List<Object> parent = (List<Object>) p.getParent();
-            final int index = parent.indexOf(p);
-            final ObjectFactory wmlObjectFactory = new ObjectFactory();
+                final int index = c.indexOf(p);
+                final ObjectFactory wmlObjectFactory = new ObjectFactory();
 
-            for (int i = 1; i < imageFiles.length; i++) {
-                final P q = wmlObjectFactory.createP();
-                final R r = wmlObjectFactory.createR();
-                final Drawing drawing = createDrawing(imageFiles[i]);
-                q.getContent().add(r);
-                r.getContent().add(drawing);
+                for (int i = 1; i < imageFiles.length; i++) {
+                    final P q = wmlObjectFactory.createP();
+                    final R r = wmlObjectFactory.createR();
+                    final Drawing drawing = createDrawing(imageFiles[i]);
+                    q.getContent().add(r);
+                    r.getContent().add(drawing);
 
-                parent.add(index + i, q);
+                    c.add(index + i, q);
+                }
+
+                return p;
             }
-
-            return p;
         }
 
         return null;
-    }
-
-    /**
-     * Traverses a Word document and replaces the first occurrence of a "template variable" with an image.
-     *
-     * @param variable The template variable.
-     * @param url      The URL to the image.
-     * @return the "paragraph" where the replacing occurred or {@code null}, if the requested template variable has not been found.
-     */
-    public P replaceWithImage(String variable, URL url) throws Exception {
-        return replaceWithDrawing(variable, createDrawing(url));
-    }
-
-    private static R replaceContentWithNewR(P p, ObjectFactory wmlObjectFactory) {
-        final List<Object> c = p.getContent();
-        c.clear();
-        final R r = wmlObjectFactory.createR();
-        c.add(r);
-        return r;
     }
 
     /**
@@ -436,5 +407,25 @@ public class WordDocument {
         }
 
         return null;
+    }
+
+    private static List<Object> getContent(P p) {
+        final Object parent = p.getParent();
+        if (parent instanceof ContentAccessor) {
+            return ((ContentAccessor) parent).getContent();
+        }
+        if (parent instanceof List<?>) {
+            //noinspection unchecked
+            return (List<Object>) parent;
+        }
+        return null;
+    }
+
+    private static R replaceContentWithNewR(P p, ObjectFactory wmlObjectFactory) {
+        final List<Object> c = p.getContent();
+        c.clear();
+        final R r = wmlObjectFactory.createR();
+        c.add(r);
+        return r;
     }
 }

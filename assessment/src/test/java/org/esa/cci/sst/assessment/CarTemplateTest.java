@@ -22,21 +22,25 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.File;
-import java.net.URL;
 import java.util.Properties;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class CarTemplateTest {
 
     private static Properties properties;
     private static WordDocument wordDocument;
+    private static File dataDir;
 
     @BeforeClass
     public static void setUp() throws Exception {
+        wordDocument = new WordDocument(CarTemplateTest.class.getResource("car-template.docx"));
+
         properties = new Properties();
         properties.load(CarTemplateTest.class.getResourceAsStream("car-template.properties"));
-        wordDocument = new WordDocument(CarTemplateTest.class.getResource("car-template.docx"));
+
+        dataDir = new File(System.getProperty("user.home"), "scratch/car/figures");
     }
 
     @AfterClass
@@ -45,7 +49,7 @@ public class CarTemplateTest {
     }
 
     @Test
-    public void testReplaceCommentVariables() throws Exception {
+    public void testReplaceComments() throws Exception {
         String text;
 
         text = properties.getProperty("comment.Figure_2");
@@ -96,15 +100,15 @@ public class CarTemplateTest {
 
         assertNotNull(wordDocument.replaceWithParagraph("${comment.decadal_wall_2001}", text));
 
-        text = properties.getProperty("comment.plot_lagcorr");
+        text = properties.getProperty("comment.plot_lag_corr");
 
         assertNotNull(text);
 
-        assertNotNull(wordDocument.replaceWithParagraph("${comment.plot_lagcorr}", text));
+        assertNotNull(wordDocument.replaceWithParagraph("${comment.plot_lag_corr}", text));
     }
 
     @Test
-    public void testReplaceParagraphVariables() throws Exception {
+    public void testReplaceParagraphs() throws Exception {
         String text;
 
         text = properties.getProperty("paragraph.summary_text");
@@ -127,51 +131,154 @@ public class CarTemplateTest {
     }
 
     @Test
+    public void testReplaceRegionMap() throws Exception {
+        if (dataDir.exists()) {
+            final String path = properties.getProperty("figure.region_map");
+
+            assertNotNull(path);
+
+            final File file = new File(dataDir, path);
+
+            assertTrue(file.exists());
+
+            assertNotNull(wordDocument.replaceWithImage("${figure.region_map}", file));
+        }
+    }
+
+    @Test
     public void testReplaceFigure_2() throws Exception {
-        final String path = properties.getProperty("figure.Figure_2");
+        if (dataDir.exists()) {
+            final String path = properties.getProperty("figure.Figure_2");
 
-        assertNotNull(path);
+            assertNotNull(path);
 
-        assertNotNull(wordDocument.replaceWithImage("${figure.Figure_2}", path));
+            final File file = new File(dataDir, path);
+
+            assertTrue(file.exists());
+
+            assertNotNull(wordDocument.replaceWithImage("${figure.Figure_2}", file));
+        }
     }
 
     @Test
     public void testReplaceFigure_3() throws Exception {
-        final String path = properties.getProperty("figure.Figure_3");
+        if (dataDir.exists()) {
+            final String path = properties.getProperty("figure.Figure_3");
 
-        assertNotNull(path);
+            assertNotNull(path);
 
-        assertNotNull(wordDocument.replaceWithImage("${figure.Figure_3}", path));
+            final File file = new File(dataDir, path);
+
+            assertTrue(file.exists());
+
+            assertNotNull(wordDocument.replaceWithImage("${figure.Figure_3}", file));
+        }
     }
 
     @Test
     public void testReplaceFigure_4() throws Exception {
-        final String path = properties.getProperty("figure.Figure_4");
+        if (dataDir.exists()) {
+            final String path = properties.getProperty("figure.Figure_4");
 
-        assertNotNull(path);
+            assertNotNull(path);
 
-        assertNotNull(wordDocument.replaceWithImage("${figure.Figure_4}", path));
+            final File file = new File(dataDir, path);
+
+            assertTrue(file.exists());
+
+            assertNotNull(wordDocument.replaceWithImage("${figure.Figure_4}", file));
+        }
     }
 
 
     @Test
     public void testReplaceFigure_5() throws Exception {
-        final String path = properties.getProperty("figure.Figure_5");
+        if (dataDir.exists()) {
+            final String path = properties.getProperty("figure.Figure_5");
 
-        assertNotNull(path);
+            assertNotNull(path);
 
-        assertNotNull(wordDocument.replaceWithImage("${figure.Figure_5}", path));
+            final File file = new File(dataDir, path);
+
+            assertTrue(file.exists());
+
+            assertNotNull(wordDocument.replaceWithImage("${figure.Figure_5}", file));
+        }
     }
 
     @Test
-    public void testReplaceFigures_lagcorr() throws Exception {
-        final String filePattern = properties.getProperty("figures.plot_lagcorr");
+    public void testReplaceFigures_dec_plot() throws Exception {
+        if (dataDir.exists()) {
+            final String filePattern = properties.getProperty("figures.dec_plot_temp_strip_rel_to_first");
 
-        assertNotNull(filePattern);
+            assertNotNull(filePattern);
 
-        final File[] files = WildcardMatcher.glob(filePattern);
+            final File[] files = WildcardMatcher.glob(new File(dataDir, filePattern).getPath());
 
-        assertNotNull(wordDocument.replaceWithImages("${figures.plot_lagcorr}", files));
+            assertTrue(files.length > 0);
+
+            assertNotNull(wordDocument.replaceWithImages("${figures.dec_plot_temp_strip_rel_to_first}", files));
+        }
+    }
+
+    @Test
+    public void testReplaceFigures_decadal_selection() throws Exception {
+        if (dataDir.exists()) {
+            final String filePattern = properties.getProperty("figures.decadal_selection");
+
+            assertNotNull(filePattern);
+
+            final File[] files = WildcardMatcher.glob(new File(dataDir, filePattern).getPath());
+
+            assertTrue(files.length > 0);
+
+            assertNotNull(wordDocument.replaceWithImages("${figures.decadal_selection}", files));
+        }
+    }
+
+    @Test
+    public void testReplaceFigures_plot_selection_COLOC() throws Exception {
+        if (dataDir.exists()) {
+            final String filePattern = properties.getProperty("figures.plot_selection_COLOC");
+
+            assertNotNull(filePattern);
+
+            final File[] files = WildcardMatcher.glob(new File(dataDir, filePattern).getPath());
+
+            assertTrue(files.length > 0);
+
+            assertNotNull(wordDocument.replaceWithImages("${figures.plot_selection_COLOC}", files));
+        }
+    }
+
+    @Test
+    public void testReplaceFigures_plot_selection() throws Exception {
+        if (dataDir.exists()) {
+            final String filePattern = properties.getProperty("figures.plot_selection");
+
+            assertNotNull(filePattern);
+
+            final File[] files = WildcardMatcher.glob(new File(dataDir, filePattern).getPath());
+
+            assertTrue(files.length > 0);
+
+            assertNotNull(wordDocument.replaceWithImages("${figures.plot_selection}", files));
+        }
+    }
+
+    @Test
+    public void testReplaceFigures_lag_corr() throws Exception {
+        if (dataDir.exists()) {
+            final String filePattern = properties.getProperty("figures.plot_lag_corr");
+
+            assertNotNull(filePattern);
+
+            final File[] files = WildcardMatcher.glob(new File(dataDir, filePattern).getPath());
+
+            assertTrue(files.length > 0);
+
+            assertNotNull(wordDocument.replaceWithImages("${figures.plot_lag_corr}", files));
+        }
     }
 
 }
