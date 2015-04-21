@@ -35,7 +35,7 @@ class ProductVerifierTests(unittest.TestCase):
         self.assertEquals(0, report['source_filename_check'])
 
     def test_verify(self):
-        verifier = ProductVerifier('testdata/20100505121116-ESACCI-L2P_GHRSST-SSTskin-AVHRRMTA_G-EXP1.2-v02.0-fv1.0.nc')
+        verifier = ProductVerifier('testdata/20100505121116-ESACCI-L2P_GHRSST-SSTskin-AVHRRMTA_G-EXP1.2-v02.0-fv1.0.nc', 'testdata/report.json')
         verifier.verify()
 
         expected_report = ProductVerifier.load_report('testdata/report.json')

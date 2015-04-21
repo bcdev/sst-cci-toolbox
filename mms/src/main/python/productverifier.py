@@ -81,15 +81,15 @@ class L2P(ProductType):
                              ],
                              ['sea_surface_temperature', 'sea_surface_temperature_depth', -5.0, 10.0],
                              [
-                                 ['sea_surface_temperature', 'quality_level'],
-                                 ['sea_surface_temperature', 'sses_bias'],
-                                 ['sea_surface_temperature', 'sses_standard_deviation'],
-                                 ['sea_surface_temperature', 'large_scale_correlated_uncertainty'],
-                                 ['sea_surface_temperature', 'synoptically_correlated_uncertainty'],
-                                 ['sea_surface_temperature', 'uncorrelated_uncertainty'],
-                                 ['sea_surface_temperature', 'adjustment_uncertainty'],
-                                 ['sea_surface_temperature', 'sea_surface_temperature_depth'],
-                                 ['sea_surface_temperature_depth', 'sst_depth_total_uncertainty'],
+                                 ['sea_surface_temperature', 'quality_level', 2],
+                                 ['sea_surface_temperature', 'sses_bias', None],
+                                 ['sea_surface_temperature', 'sses_standard_deviation', None],
+                                 ['sea_surface_temperature', 'large_scale_correlated_uncertainty', None],
+                                 ['sea_surface_temperature', 'synoptically_correlated_uncertainty', None],
+                                 ['sea_surface_temperature', 'uncorrelated_uncertainty', None],
+                                 ['sea_surface_temperature', 'adjustment_uncertainty', None],
+                                 ['sea_surface_temperature', 'sea_surface_temperature_depth', None],
+                                 ['sea_surface_temperature_depth', 'sst_depth_total_uncertainty', None],
                              ],
                              [
                                  'sea_surface_temperature',
@@ -123,15 +123,15 @@ class L3U(ProductType):
                              ],
                              ['sea_surface_temperature', 'sea_surface_temperature_depth', -5.0, 10.0],
                              [
-                                 ['sea_surface_temperature', 'quality_level'],
-                                 ['sea_surface_temperature', 'sses_bias'],
-                                 ['sea_surface_temperature', 'sses_standard_deviation'],
-                                 ['sea_surface_temperature', 'large_scale_correlated_uncertainty'],
-                                 ['sea_surface_temperature', 'synoptically_correlated_uncertainty'],
-                                 ['sea_surface_temperature', 'uncorrelated_uncertainty'],
-                                 ['sea_surface_temperature', 'adjustment_uncertainty'],
-                                 ['sea_surface_temperature', 'sea_surface_temperature_depth'],
-                                 ['sea_surface_temperature_depth', 'sst_depth_total_uncertainty']
+                                 ['sea_surface_temperature', 'quality_level', 2],
+                                 ['sea_surface_temperature', 'sses_bias', None],
+                                 ['sea_surface_temperature', 'sses_standard_deviation', None],
+                                 ['sea_surface_temperature', 'large_scale_correlated_uncertainty', None],
+                                 ['sea_surface_temperature', 'synoptically_correlated_uncertainty', None],
+                                 ['sea_surface_temperature', 'uncorrelated_uncertainty', None],
+                                 ['sea_surface_temperature', 'adjustment_uncertainty', None],
+                                 ['sea_surface_temperature', 'sea_surface_temperature_depth', None],
+                                 ['sea_surface_temperature_depth', 'sst_depth_total_uncertainty', None]
                              ],
                              [
                                  'sea_surface_temperature',
@@ -157,8 +157,8 @@ class L4(ProductType):
                                  'mask',
                              ], [],
                              [
-                                 ['analysed_sst', 'analysis_error'],
-                                 ['sea_ice_fraction', 'sea_ice_fraction_error']
+                                 ['analysed_sst', 'analysis_error', None],
+                                 ['sea_ice_fraction', 'sea_ice_fraction_error', None]
                              ],
                              [
                                  'analysed_sst'
@@ -351,8 +351,11 @@ class ProductVerifier:
         for spec in product_type.get_mask_consistency_check_specs():
             reference_variable_name = spec[0]
             objective_variable_name = spec[1]
+            objective_variable_minimum_value = spec[2]
             a = ma.getmaskarray(ProductVerifier.__get_data(dataset, reference_variable_name))
             b = ma.getmaskarray(ProductVerifier.__get_data(dataset, objective_variable_name))
+            if objective_variable_minimum_value is not None:
+                b = ma.masked_less(b, objective_variable_minimum_value)
             # false negatives: element is not masked in a, but masked in b
             false_negatives = ma.masked_equal(numpy.logical_or(numpy.logical_not(a), b), True)
             false_negatives_count = false_negatives.count()
