@@ -26,15 +26,15 @@ import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
 import org.docx4j.openpackaging.parts.WordprocessingML.BinaryPartAbstractImage;
 import org.docx4j.openpackaging.parts.WordprocessingML.MainDocumentPart;
 import org.docx4j.wml.*;
+import org.esa.beam.util.io.WildcardMatcher;
 
 import javax.xml.bind.JAXBElement;
-import java.io.File;
-import java.io.IOException;
-import java.io.StringWriter;
+import java.io.*;
 import java.math.BigInteger;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.List;
+import java.util.Properties;
 
 /**
  * A facade representing a Microsoft Word document.
@@ -80,7 +80,7 @@ public class WordDocument {
      * Saves this Word document to a target file.
      *
      * @param targetFile The target file.
-     * @throws Exception if on error occurred.
+     * @throws Exception if on error has occurred.
      */
     public void save(File targetFile) throws Exception {
         wordMLPackage.save(targetFile);
@@ -241,7 +241,7 @@ public class WordDocument {
      *
      * @param resource The resource.
      * @return the drawing.
-     * @throws Exception if an error occurred.
+     * @throws Exception if an error has occurred.
      */
     Drawing createDrawing(URL resource) throws Exception {
         final File imageFile = new File(resource.toURI());
@@ -253,7 +253,7 @@ public class WordDocument {
      *
      * @param imageFile The image file.
      * @return the drawing.
-     * @throws Exception if an error occurred.
+     * @throws Exception if an error has occurred.
      */
     Drawing createDrawing(File imageFile) throws Exception {
         final ObjectFactory factory = Context.getWmlObjectFactory();
@@ -423,4 +423,37 @@ public class WordDocument {
         c.add(r);
         return r;
     }
+
+    /**
+     * Creates a new Word document file from a template file.
+     *
+     * @param templateFile   The template file.
+     * @param propertiesFile The properties files with template variables to be resolved.
+     * @param figureRootDir  The root directory containing figure replacements.
+     * @param wordFile       The target word document file.
+     * @throws Exception If an error has occurred.
+     */
+    public static void createWordDocumentFromTemplate(File templateFile, File propertiesFile, File figureRootDir, File wordFile) throws Exception {
+        final WordDocument wordDocument = new WordDocument(templateFile);
+        final Properties properties = new Properties();
+        try (final Reader reader = new FileReader(propertiesFile)) {
+            properties.load(reader);
+        }
+
+        for (final String name : properties.stringPropertyNames()) {
+            final String value = properties.getProperty(name);
+            if (name.startsWith("comment.")) {
+                wordDocument.replaceWithParagraph(name, value);
+            } else if (name.startsWith("figure.")) {
+                wordDocument.replaceWithImage(name, new File(figureRootDir, value));
+            } else if (name.startsWith("figures.")) {
+                wordDocument.replaceWithImages(name, WildcardMatcher.glob(new File(figureRootDir, value).getPath()));
+            } else if (name.startsWith("paragraph.")) {
+                wordDocument.replaceWithParagraph(name, value);
+            }
+        }
+
+        wordDocument.save(wordFile);
+    }
+
 }
