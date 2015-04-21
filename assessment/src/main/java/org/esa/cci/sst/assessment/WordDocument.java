@@ -329,14 +329,6 @@ public class WordDocument {
         return null;
     }
 
-    private P replaceContentWithDrawing(P p, Drawing drawing) {
-        final R r = replaceContentWithNewR(p, new ObjectFactory());
-
-        r.getContent().add(drawing);
-
-        return p;
-    }
-
     /**
      * Traverses a Word document and replaces the first occurrence of a "template variable" with an image.
      *
@@ -359,25 +351,23 @@ public class WordDocument {
         final P p = findVariable(variable);
 
         if (p != null) {
-            final List<Object> c = getContent(p);
-            if (c != null) {
-                replaceContentWithDrawing(p, createDrawing(imageFiles[0]));
+            final List<Object> c = getParent(p);
+            final int index = c.indexOf(p);
+            final ObjectFactory wmlObjectFactory = new ObjectFactory();
 
-                final int index = c.indexOf(p);
-                final ObjectFactory wmlObjectFactory = new ObjectFactory();
+            replaceContentWithDrawing(p, createDrawing(imageFiles[0]));
 
-                for (int i = 1; i < imageFiles.length; i++) {
-                    final P q = wmlObjectFactory.createP();
-                    final R r = wmlObjectFactory.createR();
-                    final Drawing drawing = createDrawing(imageFiles[i]);
-                    q.getContent().add(r);
-                    r.getContent().add(drawing);
+            for (int i = 1; i < imageFiles.length; i++) {
+                final P q = wmlObjectFactory.createP();
+                final R r = wmlObjectFactory.createR();
+                final Drawing drawing = createDrawing(imageFiles[i]);
+                q.getContent().add(r);
+                r.getContent().add(drawing);
 
-                    c.add(index + i, q);
-                }
-
-                return p;
+                c.add(index + i, q);
             }
+
+            return p;
         }
 
         return null;
@@ -395,7 +385,7 @@ public class WordDocument {
 
         if (p != null) {
             final ObjectFactory wmlObjectFactory = new ObjectFactory();
-            final R r = replaceContentWithNewR(p, wmlObjectFactory);
+            final R r = replaceContentWithR(p, wmlObjectFactory);
 
             final Text t = wmlObjectFactory.createText();
             t.setValue(text);
@@ -409,19 +399,24 @@ public class WordDocument {
         return null;
     }
 
-    private static List<Object> getContent(P p) {
+    private static List<Object> getParent(P p) throws Exception {
         final Object parent = p.getParent();
-        if (parent instanceof ContentAccessor) {
-            return ((ContentAccessor) parent).getContent();
-        }
         if (parent instanceof List<?>) {
             //noinspection unchecked
             return (List<Object>) parent;
         }
-        return null;
+        throw new Exception("Illegal parent type for P.");
     }
 
-    private static R replaceContentWithNewR(P p, ObjectFactory wmlObjectFactory) {
+    private static P replaceContentWithDrawing(P p, Drawing drawing) {
+        final R r = replaceContentWithR(p, new ObjectFactory());
+
+        r.getContent().add(drawing);
+
+        return p;
+    }
+
+    private static R replaceContentWithR(P p, ObjectFactory wmlObjectFactory) {
         final List<Object> c = p.getContent();
         c.clear();
         final R r = wmlObjectFactory.createR();
