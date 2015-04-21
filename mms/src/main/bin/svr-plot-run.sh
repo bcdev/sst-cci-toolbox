@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-usecase=$2
+usecase=$1
 sensor=$2
 summary_report_pathname=$3
 figure_dirpath=$4
