@@ -79,10 +79,10 @@ wait_for_task_jobs_completion() {
 }
 
 submit_job() {
-    jobname=$1
-    command=$2
-    mem=$3
-    hrs=$4
+    mem=$1
+    hrs=$2
+    jobname=$3
+    command=$4
     bsubmit="bsub -R rusage[mem=${mem}] -m lotus241 -n 1 -W ${hrs} -P esacci_sst -cwd ${MMS_INST} -oo ${MMS_LOG}/${jobname}.out -eo ${MMS_LOG}/${jobname}.err -J ${jobname} ${mms.home}/bin/${command} ${@:5}"
 
     rm -f ${MMS_LOG}/${jobname}.out
