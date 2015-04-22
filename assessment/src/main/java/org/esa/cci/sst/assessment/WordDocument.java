@@ -303,7 +303,7 @@ public class WordDocument {
     public P removeVariable(String variable) {
         final P p = findVariable(variable);
         if (p != null) {
-            final List<?> parent = (List<?>) p.getParent();
+            final List<Object> parent = getParentContainer(p);
             final boolean removed = parent.remove(p);
             if (removed) {
                 return p;
@@ -351,7 +351,7 @@ public class WordDocument {
         final P p = findVariable(variable);
 
         if (p != null) {
-            final List<Object> c = getParent(p);
+            final List<Object> c = getParentContainer(p);
             final int index = c.indexOf(p);
             final ObjectFactory wmlObjectFactory = new ObjectFactory();
 
@@ -399,13 +399,16 @@ public class WordDocument {
         return null;
     }
 
-    private static List<Object> getParent(P p) throws Exception {
+    private static List<Object> getParentContainer(P p) {
         final Object parent = p.getParent();
         if (parent instanceof List<?>) {
             //noinspection unchecked
             return (List<Object>) parent;
         }
-        throw new Exception("Illegal parent type for P.");
+        if (parent instanceof ContentAccessor) {
+            return ((ContentAccessor) parent).getContent();
+        }
+        throw new RuntimeException("Unexpected parent type for P.");
     }
 
     private static P replaceContentWithDrawing(P p, Drawing drawing) {
