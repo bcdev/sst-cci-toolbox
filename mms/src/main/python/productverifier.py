@@ -5,10 +5,10 @@ import re
 from netCDF4 import Dataset
 from netCDF4 import Variable
 import json
+from time import gmtime, strftime
 
 import numpy
 import numpy.ma as ma
-from time import gmtime, strftime
 
 
 class VerificationError(Exception):
@@ -273,14 +273,29 @@ class ProductVerifier:
             return ma.array(data)
 
     @staticmethod
-    def __get_data(dataset, variable_name):
+    def __get_data(dataset, variable_name, scale=False):
         """
 
         :type dataset: Dataset
         :type variable_name: str
         :rtype : ma.MaskedArray
         """
-        return ProductVerifier.__get_masked_data(dataset.variables[variable_name])
+        variable = dataset.variables[variable_name]
+        data = ProductVerifier.__get_masked_data(variable)
+        if scale:
+            try:
+                scale_factor = variable.getncattr('scale_factor')
+                if scale_factor != 1.0:
+                    data = data * scale_factor
+            except AttributeError:
+                pass
+            try:
+                add_offset = variable.getncattr('add_offset')
+                if add_offset != 0.0:
+                    data = data + add_offset
+            except AttributeError:
+                pass
+        return data
 
     def _check_variable_limits(self, dataset):
         """
@@ -323,18 +338,18 @@ class ProductVerifier:
         """
         spec = product_type.get_geophysical_check_spec()
         if len(spec) != 0:
-            a = ProductVerifier.__get_data(dataset, spec[0])
-            b = ProductVerifier.__get_data(dataset, spec[1])
-            difference_data = a - b
+            a = ProductVerifier.__get_data(dataset, spec[0], scale=True)
+            b = ProductVerifier.__get_data(dataset, spec[1], scale=True)
+            d = a - b
             # count pixels with differences less than the minimum
-            suspicious_data = ma.masked_greater_equal(difference_data, spec[2])
+            suspicious_data = ma.masked_greater_equal(d, spec[2])
             suspicious_data_count = suspicious_data.count()
             self.report['geophysical_minimum_check'] = suspicious_data_count
             if suspicious_data_count > 0:
                 filename = os.path.basename(self.source_pathname)
                 self.report['geophysical_minimum_check_failed_for'] = filename
             # count pixels with differences greater than the maximum
-            suspicious_data = ma.masked_less_equal(difference_data, spec[3])
+            suspicious_data = ma.masked_less_equal(d, spec[3])
             suspicious_data_count = suspicious_data.count()
             self.report['geophysical_maximum_check'] = suspicious_data_count
             if suspicious_data_count > 0:
@@ -374,6 +389,7 @@ class ProductVerifier:
     def _check_product_can_be_opened(self):
         try:
             dataset = Dataset(self.source_pathname)
+            dataset.set_auto_maskandscale(False)
             self.report['product_can_be_opened_check'] = 0
             return dataset
         except:
