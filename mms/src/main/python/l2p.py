@@ -5,7 +5,7 @@ from svrworkflow import SvrWorkflow
 usecase = 'l2p'
 version = 'v2.1.8'
 archive_root = '/group_workspaces/cems2/esacci_sst/output'
-report_root = '/group_workspaces/cems2/esacci_sst/mms/svr/l2p'
+report_root = '/group_workspaces/cems2/esacci_sst/mms/svr'
 
 w = SvrWorkflow(usecase, version, archive_root, report_root)
 w.add_sensor('ATSR1', '1991-08-01', '1996-09-01')
