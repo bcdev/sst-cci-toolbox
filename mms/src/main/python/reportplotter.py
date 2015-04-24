@@ -219,7 +219,7 @@ class ReportPlotter:
             'SST Depth Unc Mask P',
         ]
         report = self.get_report()
-        reference_counts = report['lat.count.total']
+        reference_counts = report['quality_level.count.total']
         plot_title = self.get_usecase().upper() + ' ' + self.get_sensor().replace('_', '-')
         plot_label = 'Failure Permillage (for ' + '{:,}'.format(reference_counts) + ' pixels in total)'
         filename = self.get_usecase().lower() + '-' + self.get_sensor() + "-figure2.pdf"
@@ -254,7 +254,7 @@ class ReportPlotter:
                 tick_labels.append(label)
 
         figure, vertical_axis_l = plt.subplots(figsize=(9.0, 6.0 / 20 * len(tick_labels)))
-        plt.subplots_adjust(left=0.25, right=0.85)
+        plt.subplots_adjust(left=0.25, right=0.80)
         pos = numpy.arange(len(tick_labels)) + 0.5
         vertical_axis_l.barh(pos, percentages, color='r', align='center', height=0.5)
         pylab.yticks(pos, tick_labels)
