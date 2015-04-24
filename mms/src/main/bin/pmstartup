@@ -25,5 +25,5 @@ fi
 
 nohup ${mms.python.exec} ${mms.home}/python/$workflow.py > $MMS_INST/$workflow.out 2>&1 &
 echo $! > $MMS_INST/$workflow.pid
-sleep 2
+sleep 8
 cat $MMS_INST/$workflow.status
