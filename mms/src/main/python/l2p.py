@@ -3,7 +3,7 @@ __author__ = 'Ralf Quast'
 from svrworkflow import SvrWorkflow
 
 usecase = 'l2p'
-version = 'v2.1.8'
+version = 'EXP1.2-rc2'
 archive_root = '/group_workspaces/cems2/esacci_sst/output'
 report_root = '/group_workspaces/cems2/esacci_sst/mms/svr'
 
