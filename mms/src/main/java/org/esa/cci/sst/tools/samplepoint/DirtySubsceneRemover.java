@@ -157,7 +157,7 @@ public class DirtySubsceneRemover {
                         final Array maskData = reader.read(Constants.MASK_NAME_MMS_DIRTY, extractDefinition);
                         final int dirtyPixelCount = pixelCounter.count(maskData);
                         if (dirtyPixelCount <= maxDirtyPixelCount) {
-                            if (logger != null && logger.isLoggable(Level.FINE)) {
+                            if (logger != null && logger.isLoggable(Level.INFO)) {
                                 final String message = MessageFormat.format(
                                         "Adding sample: found {0}/{1} dirty pixels at ({2}, {3}; {4}, {5}).",
                                         dirtyPixelCount, maxDirtyPixelCount, lon, lat, pixelX, pixelY);
@@ -165,7 +165,7 @@ public class DirtySubsceneRemover {
                             }
                             cleanSamples.add(point);
                         } else {
-                            if (logger != null && logger.isLoggable(Level.FINE)) {
+                            if (logger != null && logger.isLoggable(Level.INFO)) {
                                 final String message = MessageFormat.format(
                                         "Removing sample: found {0}/{1} dirty pixels at ({2}, {3}; {4}, {5}).",
                                         dirtyPixelCount, maxDirtyPixelCount, lon, lat, pixelX, pixelY);
