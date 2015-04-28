@@ -18,7 +18,9 @@ package org.esa.cci.sst.tools.samplepoint;
 
 import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;
+import org.esa.beam.framework.datamodel.Mask;
 import org.esa.beam.framework.datamodel.PixelPos;
+import org.esa.beam.glayer.MaskLayerType;
 import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.common.ExtractDefinitionBuilder;
 import org.esa.cci.sst.data.DataFile;
@@ -126,6 +128,9 @@ public class DirtySubsceneRemover {
                 final int numCols = reader.getElementCount();
                 final int numRows = reader.getScanLineCount();
                 final GeoCoding geoCoding = reader.getGeoCoding(0);
+                final Mask mask = reader.getProduct().getMaskGroup().get(Constants.MASK_NAME_MMS_DIRTY);
+                final String expression = Mask.BandMathsType.getExpression(mask);
+                System.out.println("expression = " + expression);
 
                 for (final SamplingPoint point : points) {
                     final double lat = point.getLat();
