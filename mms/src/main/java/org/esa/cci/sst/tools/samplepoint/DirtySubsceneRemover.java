@@ -128,9 +128,6 @@ public class DirtySubsceneRemover {
                 final int numCols = reader.getElementCount();
                 final int numRows = reader.getScanLineCount();
                 final GeoCoding geoCoding = reader.getGeoCoding(0);
-                final Mask mask = reader.getProduct().getMaskGroup().get(Constants.MASK_NAME_MMS_DIRTY);
-                final String expression = Mask.BandMathsType.getExpression(mask);
-                System.out.println("expression = " + expression);
 
                 for (final SamplingPoint point : points) {
                     final double lat = point.getLat();
@@ -157,7 +154,7 @@ public class DirtySubsceneRemover {
                         final Array maskData = reader.read(Constants.MASK_NAME_MMS_DIRTY, extractDefinition);
                         final int dirtyPixelCount = pixelCounter.count(maskData);
                         if (dirtyPixelCount <= maxDirtyPixelCount) {
-                            if (logger != null && logger.isLoggable(Level.INFO)) {
+                            if (logger != null && logger.isLoggable(Level.FINE)) {
                                 final String message = MessageFormat.format(
                                         "Adding sample: found {0}/{1} dirty pixels at ({2}, {3}; {4}, {5}).",
                                         dirtyPixelCount, maxDirtyPixelCount, lon, lat, pixelX, pixelY);
@@ -165,7 +162,7 @@ public class DirtySubsceneRemover {
                             }
                             cleanSamples.add(point);
                         } else {
-                            if (logger != null && logger.isLoggable(Level.INFO)) {
+                            if (logger != null && logger.isLoggable(Level.FINE)) {
                                 final String message = MessageFormat.format(
                                         "Removing sample: found {0}/{1} dirty pixels at ({2}, {3}; {4}, {5}).",
                                         dirtyPixelCount, maxDirtyPixelCount, lon, lat, pixelX, pixelY);
