@@ -313,8 +313,11 @@ class ProductVerifier:
                 valid_max = variable.getncattr('valid_max')
                 invalid_data = ma.masked_less_equal(data, valid_max)
                 invalid_data_count = invalid_data.count()
-                self.report[variable_name + '.valid_max_check'] = invalid_data_count
-                if invalid_data_count > 0:
+                if invalid_data_count == 0:
+                    self.report[variable_name + '.valid_max_check'] = invalid_data_count
+                else:
+                    variable.getncattr('_FillValue')
+                    self.report[variable_name + '.valid_max_check'] = invalid_data_count
                     filename = os.path.basename(self.source_pathname)
                     self.report[variable_name + '.valid_max_check_failed_for'] = filename
             except AttributeError:
@@ -324,7 +327,11 @@ class ProductVerifier:
                 invalid_data = ma.masked_greater_equal(data, valid_min)
                 invalid_data_count = invalid_data.count()
                 self.report[variable_name + '.valid_min_check'] = invalid_data_count
-                if invalid_data_count > 0:
+                if invalid_data_count == 0:
+                    self.report[variable_name + '.valid_min_check'] = invalid_data_count
+                else:
+                    variable.getncattr('_FillValue')
+                    self.report[variable_name + '.valid_min_check'] = invalid_data_count
                     filename = os.path.basename(self.source_pathname)
                     self.report[variable_name + '.valid_min_check_failed_for'] = filename
             except AttributeError:
