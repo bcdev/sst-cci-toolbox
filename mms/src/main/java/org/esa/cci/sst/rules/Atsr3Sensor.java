@@ -19,7 +19,7 @@ package org.esa.cci.sst.rules;
 import org.esa.cci.sst.tools.Constants;
 
 /**
- * Sets the sensor to 'atsr_orb.3'.
+ * Sets the sensor to 'orb_atsr.3'.
  *
  * @author Thomas Storm
  */
