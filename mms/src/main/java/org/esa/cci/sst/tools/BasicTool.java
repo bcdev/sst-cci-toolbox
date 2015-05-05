@@ -71,7 +71,7 @@ public abstract class BasicTool {
         System.setProperty("beam.imageManager.enableSourceTileCaching", "true");
 
         JAI.enableDefaultTileCache();
-        JAI.getDefaultInstance().getTileCache().setMemoryCapacity(4L * 1024L * 1024L * 1024L);
+        JAI.getDefaultInstance().getTileCache().setMemoryCapacity(1024 * 1024 * 1024);
 
         GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis();
     }

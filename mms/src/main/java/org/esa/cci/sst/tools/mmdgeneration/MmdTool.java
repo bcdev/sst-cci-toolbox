@@ -159,6 +159,8 @@ public class MmdTool extends BasicTool {
                     }
 
                     final int targetRecordNo = recordNo;
+                    logger.info("writing data for target record " + targetRecordNo);
+
                     final ReferenceObservation referenceObservation = matchup.getRefObs();
                     final Observation observation = findObservation(sensorName, matchup, getPersistenceManager());
                     final List<Variable> variables = sensorMap.get(sensorName);

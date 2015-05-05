@@ -16,11 +16,15 @@ package org.esa.cci.sst.util;
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
+import org.esa.beam.framework.datamodel.Band;
+import org.esa.beam.framework.datamodel.Product;
+import org.esa.beam.framework.gpf.GPF;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.reader.ReaderFactory;
 import org.esa.cci.sst.tool.Configuration;
 
+import javax.media.jai.JAI;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Collection;
@@ -56,6 +60,13 @@ public final class ReaderCache {
                 throw new IOException(MessageFormat.format("Unable to open file ''{0}''.", path), e);
             }
             final Reader removedReader = readerCache.add(path, reader);
+            final Product product = reader.getProduct();
+            if (product != null) {
+                for (final Band band : product.getBands()) {
+                    JAI.getDefaultInstance().getTileCache().removeTiles(band.getGeophysicalImage());
+                    JAI.getDefaultInstance().getTileCache().removeTiles(band.getSourceImage());
+                }
+            }
             if (removedReader != null) {
                 removedReader.close();
             }
