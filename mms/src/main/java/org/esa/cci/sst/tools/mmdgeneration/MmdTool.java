@@ -151,6 +151,7 @@ public class MmdTool extends BasicTool {
 
             for (final Matchup matchup : matchups) {
                 try {
+                    logger.info("getting record number for matchup Id");
                     final Integer recordNo = matchupIdToRecordIndexMap.get(matchup.getId());
                     if (recordNo == null) {
                         logger.warning(
@@ -193,11 +194,14 @@ public class MmdTool extends BasicTool {
                             }
                         }
                     }
+                    logger.info("detaching matchup");
                     persistenceManager.detach(matchup);
                     if (observation != null) {
+                        logger.info("detaching observation");
                         persistenceManager.detach(observation);
                     }
                     if (referenceObservation != null) {
+                        logger.info("detaching reference observation");
                         persistenceManager.detach(referenceObservation);
                     }
                 } catch (IOException e) {
