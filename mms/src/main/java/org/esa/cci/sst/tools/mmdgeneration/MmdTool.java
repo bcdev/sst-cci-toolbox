@@ -164,15 +164,18 @@ public class MmdTool extends BasicTool {
                     final ReferenceObservation referenceObservation = matchup.getRefObs();
                     final Observation observation = findObservation(sensorName, matchup, getPersistenceManager());
                     final List<Variable> variables = sensorMap.get(sensorName);
+                    final boolean accurateCoincidence = observation != null && isAccurateCoincidence(referenceObservation, observation);
+
                     for (final Variable variable : variables) {
                         if (observation != null) {
-                            if (!isAccurateCoincidence(referenceObservation, observation)) {
+                            if (!accurateCoincidence) {
                                 continue;
                             }
                         }
                         final Item targetColumn = columnRegistry.getColumn(variable.getShortName());
                         final Item sourceColumn = columnRegistry.getSourceColumn(targetColumn);
                         if ("Implicit".equals(sourceColumn.getName())) {
+                            logger.info("writing data for variable " + variable.getShortName());
                             final Context context = new ContextBuilder(readerCache)
                                     .matchup(matchup)
                                     .observation(observation)
@@ -183,6 +186,7 @@ public class MmdTool extends BasicTool {
                             writeImplicitColumn(mmdWriter, variable, targetRecordNo, targetColumn, context);
                         } else {
                             if (observation != null) {
+                                logger.info("writing data for variable " + variable.getShortName());
                                 writeColumn(mmdWriter, variable, targetRecordNo, targetColumn, sourceColumn,
                                         observation,
                                         referenceObservation);
