@@ -52,8 +52,8 @@ public class WatermaskTest {
             }
         };
 
-        assertEquals(100, watermask.getWaterFraction(0, 0, geographic));
-        assertEquals(0, watermask.getWaterFraction(20, 0, geographic));
+        assertEquals(100, watermask.getWaterFraction(0, 0, geographic, 11, 11));
+        assertEquals(0, watermask.getWaterFraction(20, 0, geographic, 11, 11));
     }
 
     // for testing performance only - rq-20140212

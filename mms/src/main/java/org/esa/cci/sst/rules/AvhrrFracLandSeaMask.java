@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Brockmann Consult GmbH (info@brockmann-consult.de)
+ * Copyright (c) 2015 Brockmann Consult GmbH (info@brockmann-consult.de)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -16,31 +16,15 @@
 
 package org.esa.cci.sst.rules;
 
-import org.esa.beam.framework.datamodel.GeoCoding;
-import org.esa.beam.framework.datamodel.GeoPos;
-import org.esa.beam.framework.datamodel.PixelPos;
-import org.esa.beam.common.PixelLocator;
-import org.esa.cci.sst.data.ColumnBuilder;
-import org.esa.cci.sst.data.Item;
-import org.esa.cci.sst.reader.Reader;
-import org.esa.cci.sst.util.Watermask;
-import org.postgis.Point;
-import ucar.ma2.Array;
-import ucar.ma2.DataType;
-import ucar.ma2.Index;
-
-import java.awt.geom.Point2D;
-import java.io.IOException;
-
 /**
  * The default land/sea mask.
  *
  * @author Thomas Storm
  */
 @SuppressWarnings("UnusedDeclaration")
-final class LandSeaMask extends AbstractLandSeaMask {
+final class AvhrrFracLandSeaMask extends AbstractLandSeaMask{
 
-    LandSeaMask() {
-        super(11, 11);
+    AvhrrFracLandSeaMask() {
+        super(3, 3);
     }
 }

@@ -42,11 +42,9 @@ public final class Watermask {
         return Container.WATERMASK_IMAGE.getRaster().getSample(x, y, 0) != 0;
     }
 
-    public byte getWaterFraction(int x, int y, PixelLocator locator) {
+    public byte getWaterFraction(int x, int y, PixelLocator locator, int stepCountX, int stepCountY) {
         final Point2D g = new Point2D.Double();
 
-        final int stepCountX = 11;
-        final int stepCountY = 11;
         final double deltaX = 1.0 / (stepCountX - 1);
         final double deltaY = 1.0 / (stepCountY - 1);
 
@@ -54,9 +52,9 @@ public final class Watermask {
         int invalidCount = 0;
 
         for (int i = 0; i < stepCountX; i++) {
-            final double u = x + i * deltaX;
+            final double u = i == 0 ? x : x + i * deltaX;
             for (int j = 0; j < stepCountY; j++) {
-                final double v = y + j * deltaY;
+                final double v = j == 0 ? y : y + j * deltaY;
                 if (locator.getGeoLocation(u, v, g)) {
                     if (isWater(g.getX(), g.getY())) {
                         waterCount++;
