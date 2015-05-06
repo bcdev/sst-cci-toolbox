@@ -151,7 +151,6 @@ public class MmdTool extends BasicTool {
 
             for (final Matchup matchup : matchups) {
                 try {
-                    logger.info("getting record number for matchup Id");
                     final Integer recordNo = matchupIdToRecordIndexMap.get(matchup.getId());
                     if (recordNo == null) {
                         logger.warning(
@@ -160,7 +159,6 @@ public class MmdTool extends BasicTool {
                     }
 
                     final int targetRecordNo = recordNo;
-                    logger.info("writing data for target record " + targetRecordNo);
 
                     final ReferenceObservation referenceObservation = matchup.getRefObs();
                     final Observation observation = findObservation(sensorName, matchup, getPersistenceManager());
@@ -176,7 +174,6 @@ public class MmdTool extends BasicTool {
                         final Item targetColumn = columnRegistry.getColumn(variable.getShortName());
                         final Item sourceColumn = columnRegistry.getSourceColumn(targetColumn);
                         if ("Implicit".equals(sourceColumn.getName())) {
-                            logger.info("writing data for variable " + variable.getShortName());
                             final Context context = new ContextBuilder(readerCache)
                                     .matchup(matchup)
                                     .observation(observation)
@@ -187,21 +184,17 @@ public class MmdTool extends BasicTool {
                             writeImplicitColumn(mmdWriter, variable, targetRecordNo, targetColumn, context);
                         } else {
                             if (observation != null) {
-                                logger.info("writing data for variable " + variable.getShortName());
                                 writeColumn(mmdWriter, variable, targetRecordNo, targetColumn, sourceColumn,
                                         observation,
                                         referenceObservation);
                             }
                         }
                     }
-                    logger.info("detaching matchup");
                     persistenceManager.detach(matchup);
                     if (observation != null) {
-                        logger.info("detaching observation");
                         persistenceManager.detach(observation);
                     }
                     if (referenceObservation != null) {
-                        logger.info("detaching reference observation");
                         persistenceManager.detach(referenceObservation);
                     }
                 } catch (IOException e) {
