@@ -38,6 +38,12 @@ class AbstractLandSeaMask extends AbstractImplicitRule {
     protected final int stepCountY;
 
     protected AbstractLandSeaMask(int stepCountX, int stepCountY) {
+        if (stepCountX < 3) {
+            throw new IllegalArgumentException("stepCountX < 3");
+        }
+        if (stepCountY < 3) {
+            throw new IllegalArgumentException("stepCountY < 3");
+        }
         this.stepCountX = stepCountX;
         this.stepCountY = stepCountY;
     }

@@ -45,10 +45,10 @@ public final class Watermask {
     public byte getWaterFraction(int x, int y, PixelLocator locator, int stepCountX, int stepCountY) {
         final Point2D g = new Point2D.Double();
 
-        final double startX = x + 0.5 / stepCountX;
-        final double startY = y + 0.5 / stepCountY;
-        final double deltaX = 1.0 / stepCountX;
-        final double deltaY = 1.0 / stepCountY;
+        final double startX = x + 0.0;
+        final double startY = y + 0.0;
+        final double deltaX = 1.0 / (stepCountX - 1);
+        final double deltaY = 1.0 / (stepCountY - 1);
 
         int waterCount = 0;
         int invalidCount = 0;
@@ -71,6 +71,7 @@ public final class Watermask {
         if (invalidCount == count) {
             return INVALID_WATER_FRACTION;
         }
+
         return (byte) ((100.0 * waterCount) / count);
     }
 
