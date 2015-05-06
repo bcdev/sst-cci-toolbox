@@ -25,6 +25,6 @@ package org.esa.cci.sst.rules;
 final class AvhrrFracLandSeaMask extends AbstractLandSeaMask{
 
     AvhrrFracLandSeaMask() {
-        super(3, 3);
+        super(2, 2);
     }
 }
