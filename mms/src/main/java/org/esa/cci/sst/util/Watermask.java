@@ -45,16 +45,18 @@ public final class Watermask {
     public byte getWaterFraction(int x, int y, PixelLocator locator, int stepCountX, int stepCountY) {
         final Point2D g = new Point2D.Double();
 
-        final double deltaX = 1.0 / (stepCountX - 1);
-        final double deltaY = 1.0 / (stepCountY - 1);
+        final double startX = x + 0.5 / stepCountX;
+        final double startY = y + 0.5 / stepCountY;
+        final double deltaX = 1.0 / stepCountX;
+        final double deltaY = 1.0 / stepCountY;
 
         int waterCount = 0;
         int invalidCount = 0;
 
         for (int i = 0; i < stepCountX; i++) {
-            final double u = i == 0 ? x : x + i * deltaX;
+            final double u = startX + i * deltaX;
             for (int j = 0; j < stepCountY; j++) {
-                final double v = j == 0 ? y : y + j * deltaY;
+                final double v = startY + j * deltaY;
                 if (locator.getGeoLocation(u, v, g)) {
                     if (isWater(g.getX(), g.getY())) {
                         waterCount++;
