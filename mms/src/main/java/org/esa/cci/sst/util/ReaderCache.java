@@ -56,17 +56,14 @@ public final class ReaderCache {
                     logger.info(message);
                 }
                 reader = ReaderFactory.open(datafile, configuration);
+                if (logger != null && logger.isLoggable(Level.INFO)) {
+                    final String message = MessageFormat.format("Opened input file ''{0}''.", path);
+                    logger.info(message);
+                }
             } catch (Exception e) {
                 throw new IOException(MessageFormat.format("Unable to open file ''{0}''.", path), e);
             }
             final Reader removedReader = readerCache.add(path, reader);
-            final Product product = reader.getProduct();
-            if (product != null) {
-                for (final Band band : product.getBands()) {
-                    JAI.getDefaultInstance().getTileCache().removeTiles(band.getGeophysicalImage());
-                    JAI.getDefaultInstance().getTileCache().removeTiles(band.getSourceImage());
-                }
-            }
             if (removedReader != null) {
                 removedReader.close();
             }
