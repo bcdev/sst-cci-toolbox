@@ -7,7 +7,7 @@ from netCDF4 import Variable
 import json
 from time import gmtime, strftime
 
-import numpy
+import numpy as np
 import numpy.ma as ma
 
 
@@ -81,15 +81,24 @@ class L2P(ProductType):
                              ],
                              ['sea_surface_temperature', 'sea_surface_temperature_depth', -5.0, 10.0],
                              [
-                                 ['sea_surface_temperature', 'quality_level', 2],
-                                 ['sea_surface_temperature', 'sses_bias', None],
-                                 ['sea_surface_temperature', 'sses_standard_deviation', None],
-                                 ['sea_surface_temperature', 'large_scale_correlated_uncertainty', None],
-                                 ['sea_surface_temperature', 'synoptically_correlated_uncertainty', None],
-                                 ['sea_surface_temperature', 'uncorrelated_uncertainty', None],
-                                 ['sea_surface_temperature', 'adjustment_uncertainty', None],
-                                 ['sea_surface_temperature', 'sea_surface_temperature_depth', None],
-                                 ['sea_surface_temperature_depth', 'sst_depth_total_uncertainty', None],
+                                 ['sea_surface_temperature', 'quality_level', 'quality_level',
+                                  range(2, 6)],
+                                 ['sea_surface_temperature', 'sses_bias', 'quality_level',
+                                  range(0, 6)],
+                                 ['sea_surface_temperature', 'sses_standard_deviation', 'quality_level',
+                                  range(0, 6)],
+                                 ['sea_surface_temperature', 'large_scale_correlated_uncertainty', 'quality_level',
+                                  range(0, 6)],
+                                 ['sea_surface_temperature', 'synoptically_correlated_uncertainty', 'quality_level',
+                                  range(0, 6)],
+                                 ['sea_surface_temperature', 'uncorrelated_uncertainty', 'quality_level',
+                                  range(0, 6)],
+                                 ['sea_surface_temperature', 'adjustment_uncertainty', 'quality_level',
+                                  range(0, 6)],
+                                 ['sea_surface_temperature', 'sea_surface_temperature_depth', 'quality_level',
+                                  range(0, 6)],
+                                 ['sea_surface_temperature_depth', 'sst_depth_total_uncertainty', 'quality_level',
+                                  range(0, 6)],
                              ],
                              [
                                  'sea_surface_temperature',
@@ -123,15 +132,24 @@ class L3U(ProductType):
                              ],
                              ['sea_surface_temperature', 'sea_surface_temperature_depth', -5.0, 10.0],
                              [
-                                 ['sea_surface_temperature', 'quality_level', 2],
-                                 ['sea_surface_temperature', 'sses_bias', None],
-                                 ['sea_surface_temperature', 'sses_standard_deviation', None],
-                                 ['sea_surface_temperature', 'large_scale_correlated_uncertainty', None],
-                                 ['sea_surface_temperature', 'synoptically_correlated_uncertainty', None],
-                                 ['sea_surface_temperature', 'uncorrelated_uncertainty', None],
-                                 ['sea_surface_temperature', 'adjustment_uncertainty', None],
-                                 ['sea_surface_temperature', 'sea_surface_temperature_depth', None],
-                                 ['sea_surface_temperature_depth', 'sst_depth_total_uncertainty', None]
+                                 ['sea_surface_temperature', 'quality_level', 'quality_level',
+                                  range(2, 6)],
+                                 ['sea_surface_temperature', 'sses_bias', 'quality_level',
+                                  range(0, 6)],
+                                 ['sea_surface_temperature', 'sses_standard_deviation', 'quality_level',
+                                  range(0, 6)],
+                                 ['sea_surface_temperature', 'large_scale_correlated_uncertainty', 'quality_level',
+                                  range(0, 6)],
+                                 ['sea_surface_temperature', 'synoptically_correlated_uncertainty', 'quality_level',
+                                  range(0, 6)],
+                                 ['sea_surface_temperature', 'uncorrelated_uncertainty', 'quality_level',
+                                  range(0, 6)],
+                                 ['sea_surface_temperature', 'adjustment_uncertainty', 'quality_level',
+                                  range(0, 6)],
+                                 ['sea_surface_temperature', 'sea_surface_temperature_depth', 'quality_level',
+                                  range(0, 6)],
+                                 ['sea_surface_temperature_depth', 'sst_depth_total_uncertainty', 'quality_level',
+                                  range(0, 6)]
                              ],
                              [
                                  'sea_surface_temperature',
@@ -273,15 +291,62 @@ class ProductVerifier:
             return ma.array(data)
 
     @staticmethod
+    def __get_masked_data_of_quality(variable, quality_data, level):
+        """
+
+        :type variable: Variable
+        :type quality_data: Object
+        :type level: int
+        :rtype : ma.MaskedArray
+        """
+        mask = ma.masked_not_equal(quality_data, level).mask
+        data = ma.array(variable[:], mask=mask)
+        try:
+            fill_value = variable.getncattr('_FillValue')
+            return ma.array(data, mask=ma.masked_equal(data, fill_value).mask)
+        except AttributeError:
+            return data
+
+    @staticmethod
     def __get_data(dataset, variable_name, scale=False):
         """
 
+
         :type dataset: Dataset
         :type variable_name: str
+        :type scale: bool
         :rtype : ma.MaskedArray
         """
         variable = dataset.variables[variable_name]
         data = ProductVerifier.__get_masked_data(variable)
+        if scale:
+            try:
+                scale_factor = variable.getncattr('scale_factor')
+                if scale_factor != 1.0:
+                    data = data * scale_factor
+            except AttributeError:
+                pass
+            try:
+                add_offset = variable.getncattr('add_offset')
+                if add_offset != 0.0:
+                    data = data + add_offset
+            except AttributeError:
+                pass
+        return data
+
+    @staticmethod
+    def __get_data_of_quality(dataset, variable_name, quality_data, quality_level, scale=False):
+        """
+
+        :type dataset: Dataset
+        :type variable_name: str
+        :type quality_data: Object
+        :type quality_level: int
+        :type scale: bool
+        :rtype : ma.MaskedArray
+        """
+        variable = dataset.variables[variable_name]
+        data = ProductVerifier.__get_masked_data_of_quality(variable, quality_data, quality_level)
         if scale:
             try:
                 scale_factor = variable.getncattr('scale_factor')
@@ -363,7 +428,24 @@ class ProductVerifier:
                 filename = os.path.basename(self.source_pathname)
                 self.report['geophysical_maximum_check_failed_for'] = filename
 
-    # noinspection PyNoneFunctionAssignment,PyUnresolvedReferences
+    def __check_false_negatives(self, reference_mask, objective_mask, check_name):
+        # noinspection PyNoneFunctionAssignment,PyUnresolvedReferences
+        false_negatives = ma.masked_equal(np.logical_or(np.logical_not(reference_mask), objective_mask), True)
+        false_negatives_count = false_negatives.count()
+        self.report[check_name] = false_negatives_count
+        if false_negatives_count > 0:
+            filename = os.path.basename(self.source_pathname)
+            self.report[check_name + '_failed_for'] = filename
+
+    def __check_false_positives(self, reference_mask, objective_mask, check_name):
+        # noinspection PyNoneFunctionAssignment,PyUnresolvedReferences
+        false_positives = ma.masked_equal(np.logical_or(np.logical_not(objective_mask), reference_mask), True)
+        false_positives_count = false_positives.count()
+        self.report[check_name] = false_positives_count
+        if false_positives_count > 0:
+            filename = os.path.basename(self.source_pathname)
+            self.report[check_name + '_failed_for'] = filename
+
     def _check_mask_consistency(self, dataset, product_type):
         """
 
@@ -373,25 +455,29 @@ class ProductVerifier:
         for spec in product_type.get_mask_consistency_check_specs():
             reference_variable_name = spec[0]
             objective_variable_name = spec[1]
-            objective_variable_minimum_value = spec[2]
-            a = ma.getmaskarray(ProductVerifier.__get_data(dataset, reference_variable_name))
-            b = ma.getmaskarray(ProductVerifier.__get_data(dataset, objective_variable_name))
-            if objective_variable_minimum_value is not None:
-                b = ma.masked_less(b, objective_variable_minimum_value)
-            # false negatives: element is not masked in a, but masked in b
-            false_negatives = ma.masked_equal(numpy.logical_or(numpy.logical_not(a), b), True)
-            false_negatives_count = false_negatives.count()
-            self.report[objective_variable_name + '.mask_false_negative_check'] = false_negatives_count
-            if false_negatives_count > 0:
-                filename = os.path.basename(self.source_pathname)
-                self.report[objective_variable_name + '.mask_false_negative_check_failed_for'] = filename
-            # false positives: element is masked in a, but not masked in b
-            false_positives = ma.masked_equal(numpy.logical_or(numpy.logical_not(b), a), True)
-            false_positives_count = false_positives.count()
-            self.report[objective_variable_name + '.mask_false_positive_check'] = false_positives_count
-            if false_positives_count > 0:
-                filename = os.path.basename(self.source_pathname)
-                self.report[objective_variable_name + '.mask_false_positive_check_failed_for'] = filename
+            quality_variable_name = spec[2]
+
+            if quality_variable_name in dataset.variables:
+                quality_data = dataset.variables[quality_variable_name][:]
+                quality_levels = spec[3]
+                for l in quality_levels:
+                    a = ProductVerifier.__get_data_of_quality(dataset, reference_variable_name, quality_data, l).mask
+                    b = ProductVerifier.__get_data_of_quality(dataset, objective_variable_name, quality_data, l).mask
+                    # false negatives: element is not masked in a, but masked in b
+                    check_name = objective_variable_name + '.' + 'mask_false_negative_check_' + str(l)
+                    self.__check_false_negatives(a, b, check_name)
+                    # false positives: element is masked in a, but not masked in b
+                    check_name = objective_variable_name + '.' + 'mask_false_positive_check_' + str(l)
+                    self.__check_false_positives(a, b, check_name)
+            else:
+                a = ProductVerifier.__get_data(dataset, reference_variable_name).mask
+                b = ProductVerifier.__get_data(dataset, objective_variable_name).mask
+                # false negatives: element is not masked in a, but masked in b
+                check_name = objective_variable_name + '.mask_false_negative_check'
+                self.__check_false_negatives(a, b, check_name)
+                # false positives: element is masked in a, but not masked in b
+                check_name = objective_variable_name + '.' + 'mask_false_positive_check'
+                self.__check_false_positives(a, b, check_name)
 
     def _check_product_can_be_opened(self):
         try:
