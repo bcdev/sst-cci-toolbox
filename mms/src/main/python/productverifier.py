@@ -82,7 +82,7 @@ class L2P(ProductType):
                              ['sea_surface_temperature', 'sea_surface_temperature_depth', -5.0, 10.0],
                              [
                                  ['sea_surface_temperature', 'quality_level', 'quality_level',
-                                  range(2, 6)],
+                                  [0, 2, 3, 4, 5]],
                                  ['sea_surface_temperature', 'sses_bias', 'quality_level',
                                   range(0, 6)],
                                  ['sea_surface_temperature', 'sses_standard_deviation', 'quality_level',
@@ -133,7 +133,7 @@ class L3U(ProductType):
                              ['sea_surface_temperature', 'sea_surface_temperature_depth', -5.0, 10.0],
                              [
                                  ['sea_surface_temperature', 'quality_level', 'quality_level',
-                                  range(2, 6)],
+                                  [0, 2, 3, 4, 5]],
                                  ['sea_surface_temperature', 'sses_bias', 'quality_level',
                                   range(0, 6)],
                                  ['sea_surface_temperature', 'sses_standard_deviation', 'quality_level',
