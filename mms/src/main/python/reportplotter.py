@@ -373,7 +373,7 @@ class ReportPlotter:
         if legend_on:
             patches = []
             for i, c in enumerate(colors):
-                patches.append(mpatches.Patch(edgecolor='black', facecolor=c, label=str(i)))
+                patches.append(mpatches.Patch(color=c, label=str(i)))
             plt.legend(handles=patches, loc="best", bbox_to_anchor=(1.0, 1.0), frameon=False)
 
         figure.savefig(filepath)
