@@ -4,8 +4,10 @@ import matplotlib
 
 matplotlib.rc('xtick', labelsize=9)
 matplotlib.rc('ytick', labelsize=9)
+matplotlib.rc('legend', fontsize=9)
 matplotlib.use('PDF')
 
+import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import numpy as np
 import pylab
@@ -314,10 +316,10 @@ class ReportPlotter:
         plot_label = 'Failure Permillage (for ' + '{:,}'.format(reference_counts) + ' pixels in total)'
         filename = self.get_usecase().lower() + '-' + self.get_sensor() + "-figure2.pdf"
         filepath = os.path.join(self.get_figure_dirpath(), filename)
-        ReportPlotter.plot_report(report, checks, check_labels, reference_counts, plot_title, plot_label, filepath)
+        ReportPlotter.plot_report(report, checks, check_labels, reference_counts, plot_title, plot_label, filepath, legend_on=True)
 
     @staticmethod
-    def plot_report(report, checks, check_labels, reference_counts, plot_title, plot_label, filepath):
+    def plot_report(report, checks, check_labels, reference_counts, plot_title, plot_label, filepath, legend_on=False):
         """
 
         :type report: dict
@@ -334,6 +336,7 @@ class ReportPlotter:
 
         font_label = {'size': 9}
         font_title = {'size': 12}
+        colors = ['r', 'b', 'g', '#800080', '#008080', '#000080']
 
         for label in reversed(check_labels):
             permillages[label] = []
@@ -354,8 +357,7 @@ class ReportPlotter:
         for i, l in enumerate(labels):
             val = permillages[l]
             pos = np.array([i for v in val]) + 0.5
-            ReportPlotter.stacked_bar(vertical_axis_l, pos, val)
-        # vertical_axis_l.barh(pos, percentages, color='r', align='center', height=0.5)
+            ReportPlotter.stacked_bar(pos, val, colors)
         ticks = np.arange(len(labels)) + 0.5
         pylab.yticks(ticks, labels)
         vertical_axis_l.set_title(plot_title, fontdict=font_title)
@@ -368,15 +370,20 @@ class ReportPlotter:
         vertical_axis_l.set_ylabel('Checks Conducted', fontdict=font_label)
         vertical_axis_l.set_xlabel(plot_label, fontdict=font_label)
 
+        if legend_on:
+            patches = []
+            for i, c in enumerate(colors):
+                patches.append(mpatches.Patch(edgecolor='black', facecolor=c, label=str(i)))
+            plt.legend(handles=patches, loc="best", bbox_to_anchor=(1.0, 1.0), frameon=False)
+
         figure.savefig(filepath)
 
     @staticmethod
-    def stacked_bar(axis, pos, values):
-        colors = ['r', 'b', 'g', '#800080', '#008080', '#000080']
+    def stacked_bar(pos, values, colors):
         starts = np.zeros(len(values))
         for i in range(1, len(starts)):
             starts[i] = starts[i - 1] + values[i - 1]
-        axis.barh(pos, values, left=starts, color=colors, align='center', height=0.5)
+        plt.barh(pos, values, left=starts, color=colors, align='center', height=0.5)
 
 
 if __name__ == "__main__":
