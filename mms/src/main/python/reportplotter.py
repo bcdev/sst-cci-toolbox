@@ -341,11 +341,11 @@ class ReportPlotter:
             for check in checks[label]:
                 if check in report:
                     count = report[check]
-                    total_count += count
-                    permillage = count / (0.001 * reference_counts)
-                    permillages[label].append(permillage)
                 else:
-                    permillages[label].append(0.0)
+                    count = 0
+                total_count += count
+                permillage = count / (0.001 * reference_counts)
+                permillages[label].append(permillage)
             labels.append(label)
             counts.append('{:,}'.format(total_count))
 
