@@ -2,9 +2,12 @@ __author__ = 'Ralf Quast'
 
 import matplotlib
 
-matplotlib.rc('xtick', labelsize=9)
-matplotlib.rc('ytick', labelsize=9)
+matplotlib.rc('axes', linewidth=1)
+matplotlib.rc('font', size=9)
 matplotlib.rc('legend', fontsize=9)
+matplotlib.rc('lines', linewidth=1)
+matplotlib.rc('patch', linewidth=0.25)
+matplotlib.rc('patch', edgecolor='white')
 matplotlib.use('PDF')
 
 import matplotlib.patches as mpatches
@@ -171,7 +174,7 @@ class ReportPlotter:
                                       'adjustment_uncertainty.mask_false_positive_check_1',
                                       'adjustment_uncertainty.mask_false_positive_check_2',
                                       'adjustment_uncertainty.mask_false_positive_check_3',
-                                      'adjustment_uncertainty.mask_false_positive_check_4,'
+                                      'adjustment_uncertainty.mask_false_positive_check_4',
                                       'adjustment_uncertainty.mask_false_positive_check_5'],
             'Large Scale Unc Mask N': ['large_scale_correlated_uncertainty.mask_false_negative_check_0',
                                        'large_scale_correlated_uncertainty.mask_false_negative_check_1',
@@ -316,7 +319,8 @@ class ReportPlotter:
         plot_label = 'Failure Permillage (for ' + '{:,}'.format(reference_counts) + ' pixels in total)'
         filename = self.get_usecase().lower() + '-' + self.get_sensor() + "-figure2.pdf"
         filepath = os.path.join(self.get_figure_dirpath(), filename)
-        ReportPlotter.plot_report(report, checks, check_labels, reference_counts, plot_title, plot_label, filepath, legend_on=True)
+        ReportPlotter.plot_report(report, checks, check_labels, reference_counts, plot_title, plot_label, filepath,
+                                  legend_on=True)
 
     @staticmethod
     def plot_report(report, checks, check_labels, reference_counts, plot_title, plot_label, filepath, legend_on=False):
@@ -336,7 +340,7 @@ class ReportPlotter:
 
         font_label = {'size': 9}
         font_title = {'size': 12}
-        colors = ['r', 'b', 'g', '#800080', '#008080', '#000080']
+        colors = ['#4572A7', '#AA4643', '#89A54E', '#71588F', '#4198AF', '#DB843D']
 
         for label in reversed(check_labels):
             permillages[label] = []
@@ -344,16 +348,16 @@ class ReportPlotter:
             for check in checks[label]:
                 if check in report:
                     count = report[check]
+                    permillage = count / (0.001 * reference_counts)
+                    total_count += count
                 else:
-                    count = 0
-                total_count += count
-                permillage = count / (0.001 * reference_counts)
+                    permillage = 0.0
                 permillages[label].append(permillage)
             labels.append(label)
             counts.append('{:,}'.format(total_count))
 
         figure, vertical_axis_l = plt.subplots(figsize=(9.0, 6.0 / 20 * len(labels)))
-        plt.subplots_adjust(left=0.25, right=0.80)
+        plt.subplots_adjust(left=0.25, right=0.85)
         for i, l in enumerate(labels):
             val = permillages[l]
             pos = np.array([i for v in val]) + 0.5
@@ -371,10 +375,10 @@ class ReportPlotter:
         vertical_axis_l.set_xlabel(plot_label, fontdict=font_label)
 
         if legend_on:
-            patches = []
-            for i, c in enumerate(colors):
-                patches.append(mpatches.Patch(color=c, label=str(i)))
-            plt.legend(handles=patches, loc="best", bbox_to_anchor=(1.0, 1.0), frameon=False)
+            patches = [mpatches.Patch(color=colors[0], label='0 or all')]
+            for i in range(1, len(colors)):
+                patches.append(mpatches.Patch(color=colors[i], label=str(i)))
+            plt.legend(handles=patches, ncol=len(colors), loc="lower center", bbox_to_anchor=(0.5, -0.1), frameon=False)
 
         figure.savefig(filepath)
 
