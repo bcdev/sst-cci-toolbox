@@ -340,7 +340,7 @@ class ReportPlotter:
 
         font_label = {'size': 9}
         font_title = {'size': 12}
-        office_colors = ['#4572A7', '#AA4643', '#89A54E', '#71588F', '#4198AF', '#DB843D']
+        office_colors = ['#4572A7', '#AA4643', '#89A54E', '#71588F', '#4198AF', '#DB843D', '#93A9CF', '#D19392']
 
         for label in reversed(check_labels):
             permillages[label] = []
@@ -381,9 +381,9 @@ class ReportPlotter:
 
     @staticmethod
     def _create_legend(colors):
-        patches = [mpatches.Patch(color=colors[0], label='0 or all')]
+        patches = [mpatches.Patch(color=colors[0], label='all')]
         for i in range(1, len(colors)):
-            patches.append(mpatches.Patch(color=colors[i], label=str(i)))
+            patches.append(mpatches.Patch(color=colors[i], label=str(i - 1)))
         plt.legend(handles=patches, ncol=len(colors), loc="lower center", bbox_to_anchor=(0.5, -0.1), frameon=False)
 
     @staticmethod
@@ -391,7 +391,10 @@ class ReportPlotter:
         starts = np.zeros(len(values))
         for i in range(1, len(starts)):
             starts[i] = starts[i - 1] + values[i - 1]
-        plt.barh(pos, values, left=starts, color=colors, align='center', height=0.5)
+        if len(values) > 1:
+            plt.barh(pos, values, left=starts, color=colors[1:], align='center', height=0.5)
+        else:
+            plt.barh(pos, values, left=starts, color=colors[:1], align='center', height=0.5)
 
 
 if __name__ == "__main__":
