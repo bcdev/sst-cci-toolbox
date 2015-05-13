@@ -323,13 +323,6 @@ class ReportPlotter:
                                   legend_on=True)
 
     @staticmethod
-    def create_legend(colors):
-        patches = [mpatches.Patch(color=colors[0], label='0 or all')]
-        for i in range(1, len(colors)):
-            patches.append(mpatches.Patch(color=colors[i], label=str(i)))
-        plt.legend(handles=patches, ncol=len(colors), loc="lower center", bbox_to_anchor=(0.5, -0.1), frameon=False)
-
-    @staticmethod
     def plot_report(report, checks, check_labels, reference_counts, plot_title, plot_label, filepath, legend_on=False):
         """
 
@@ -368,7 +361,7 @@ class ReportPlotter:
         for i, l in enumerate(labels):
             val = permillages[l]
             pos = np.array([i for v in val]) + 0.5
-            ReportPlotter.stacked_bar(pos, val, office_colors)
+            ReportPlotter._stacked_bar(pos, val, office_colors)
         ticks = np.arange(len(labels)) + 0.5
         pylab.yticks(ticks, labels)
         vertical_axis_l.set_title(plot_title, fontdict=font_title)
@@ -382,12 +375,19 @@ class ReportPlotter:
         vertical_axis_l.set_xlabel(plot_label, fontdict=font_label)
 
         if legend_on:
-            ReportPlotter.create_legend(office_colors)
+            ReportPlotter._create_legend(office_colors)
 
         figure.savefig(filepath)
 
     @staticmethod
-    def stacked_bar(pos, values, colors):
+    def _create_legend(colors):
+        patches = [mpatches.Patch(color=colors[0], label='0 or all')]
+        for i in range(1, len(colors)):
+            patches.append(mpatches.Patch(color=colors[i], label=str(i)))
+        plt.legend(handles=patches, ncol=len(colors), loc="lower center", bbox_to_anchor=(0.5, -0.1), frameon=False)
+
+    @staticmethod
+    def _stacked_bar(pos, values, colors):
         starts = np.zeros(len(values))
         for i in range(1, len(starts)):
             starts[i] = starts[i - 1] + values[i - 1]
