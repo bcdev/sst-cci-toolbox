@@ -323,6 +323,13 @@ class ReportPlotter:
                                   legend_on=True)
 
     @staticmethod
+    def create_legend(colors):
+        patches = [mpatches.Patch(color=colors[0], label='0 or all')]
+        for i in range(1, len(colors)):
+            patches.append(mpatches.Patch(color=colors[i], label=str(i)))
+        plt.legend(handles=patches, ncol=len(colors), loc="lower center", bbox_to_anchor=(0.5, -0.1), frameon=False)
+
+    @staticmethod
     def plot_report(report, checks, check_labels, reference_counts, plot_title, plot_label, filepath, legend_on=False):
         """
 
@@ -340,7 +347,7 @@ class ReportPlotter:
 
         font_label = {'size': 9}
         font_title = {'size': 12}
-        colors = ['#4572A7', '#AA4643', '#89A54E', '#71588F', '#4198AF', '#DB843D']
+        office_colors = ['#4572A7', '#AA4643', '#89A54E', '#71588F', '#4198AF', '#DB843D']
 
         for label in reversed(check_labels):
             permillages[label] = []
@@ -361,7 +368,7 @@ class ReportPlotter:
         for i, l in enumerate(labels):
             val = permillages[l]
             pos = np.array([i for v in val]) + 0.5
-            ReportPlotter.stacked_bar(pos, val, colors)
+            ReportPlotter.stacked_bar(pos, val, office_colors)
         ticks = np.arange(len(labels)) + 0.5
         pylab.yticks(ticks, labels)
         vertical_axis_l.set_title(plot_title, fontdict=font_title)
@@ -375,10 +382,7 @@ class ReportPlotter:
         vertical_axis_l.set_xlabel(plot_label, fontdict=font_label)
 
         if legend_on:
-            patches = [mpatches.Patch(color=colors[0], label='0 or all')]
-            for i in range(1, len(colors)):
-                patches.append(mpatches.Patch(color=colors[i], label=str(i)))
-            plt.legend(handles=patches, ncol=len(colors), loc="lower center", bbox_to_anchor=(0.5, -0.1), frameon=False)
+            ReportPlotter.create_legend(office_colors)
 
         figure.savefig(filepath)
 
