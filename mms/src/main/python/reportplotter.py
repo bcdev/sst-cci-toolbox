@@ -375,7 +375,7 @@ class ReportPlotter:
         vertical_axis_l.set_xlabel(plot_label, fontdict=font_label)
 
         if legend_on:
-            ReportPlotter._create_legend(office_colors)
+            ReportPlotter._create_legend(office_colors[:7])
 
         figure.savefig(filepath)
 
