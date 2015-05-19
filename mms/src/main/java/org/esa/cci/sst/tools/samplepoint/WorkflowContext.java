@@ -28,6 +28,7 @@ public class WorkflowContext {
     private int searchTimeFuture2;
     private boolean landWanted;
     private boolean cloudsWanted;
+    private boolean mizOnly;
 
     public void setStartTime(long startTime) {
         this.startTime = startTime;
@@ -189,5 +190,13 @@ public class WorkflowContext {
 
     public void setCloudsWanted(boolean cloudsWanted) {
         this.cloudsWanted = cloudsWanted;
+    }
+
+    public boolean isMizOnly() {
+        return mizOnly;
+    }
+
+    public void setMizOnly(boolean mizOnly) {
+        this.mizOnly = mizOnly;
     }
 }

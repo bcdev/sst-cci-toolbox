@@ -72,6 +72,7 @@ public class Configuration {
     public static final String KEY_MMS_SAMPLING_INSITU_SOURCE_DIR = "mms.sampling.insitu.inputdirectory";
     public static final String KEY_MMS_SAMPLING_LAND_WANTED = "mms.sampling.landwanted";
     public static final String KEY_MMS_SAMPLING_CLOUDS_WANTED = "mms.sampling.cloudswanted";
+    public static final String KEY_MMS_SAMPLING_MIZ_ONLY = "mms.sampling.mizonly";
     public static final String KEY_MMS_SAMPLING_OVERLAPPING_WANTED = "mms.sampling.overlappingwanted";
     public static final String KEY_MMS_SAMPLING_MAX_SAMPLE_COUNT = "mms.sampling.maxsamplecount";
 

@@ -579,7 +579,8 @@ class Workflow:
 
     def run(self, mmdtype, hosts=list([('localhost', 60)]), calls=list(), log_dir='trace',
             with_history=False,
-            with_selection=False,
+            selected_only=False,
+            miz_only=False,
             without_aux=False,
             without_arc=False,
             simulation=False):
@@ -590,7 +591,8 @@ class Workflow:
         :type calls: list
         :type log_dir: str
         :type with_history: bool
-        :type with_selection: bool
+        :type selected_only: bool
+        :type miz_only: bool
         :type simulation: bool
         """
         if with_history:
@@ -621,8 +623,10 @@ class Workflow:
             if not without_arc:
                 self._execute_ingest_arc_mmd_files(m, chunk)
             self._execute_create_final_mmd_files(m, chunk, mmdtype)
-            if with_selection:
+            if selected_only:
                 self._execute_selection(m, chunk, mmdtype, mmdtype.replace('mmd', 'sel', 1))
+            if miz_only:
+                self._execute_miz_selection(m, chunk, mmdtype, mmdtype.replace('mmd', 'miz', 1))
             date = _next_year_start(date)
         m.wait_for_completion_and_terminate()
 
@@ -1172,6 +1176,30 @@ class Workflow:
                               'selection-start.sh',
                               ['/mmd/' + name + '/' + _pathformat(date)],
                               ['/sel/' + name + '/' + _pathformat(date)],
+                              [year, month, name, mmdtype, seltype, self.get_usecase()])
+                    monitor.execute(job)
+                    date = _next_month(date)
+
+    def _execute_miz_selection(self, monitor, chunk, mmdtype, seltype):
+        """
+
+        :type monitor: Monitor
+        :type chunk: Period
+        :type mmdtype: str
+        :type seltype: str
+        """
+        for sensor_pair in self._get_sensor_pairs():
+            name = sensor_pair.get_name()
+            period = sensor_pair.get_period().get_intersection(chunk)
+            if period is not None:
+                date = period.get_start_date()
+                end_date = period.get_end_date()
+                while date < end_date:
+                    (year, month) = _year_month(date)
+                    job = Job('miz-selection-start' + '-' + year + '-' + month + '-' + name + '-' + mmdtype,
+                              'miz-selection-start.sh',
+                              ['/mmd/' + name + '/' + _pathformat(date)],
+                              ['/miz/' + name + '/' + _pathformat(date)],
                               [year, month, name, mmdtype, seltype, self.get_usecase()])
                     monitor.execute(job)
                     date = _next_month(date)

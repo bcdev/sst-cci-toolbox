@@ -44,6 +44,17 @@ public class WorkflowContextTest {
     }
 
     @Test
+    public void testSetGetMizOnly() throws Exception {
+        assertFalse(workflowContext.isMizOnly());
+
+        workflowContext.setMizOnly(true);
+        assertTrue(workflowContext.isMizOnly());
+
+        workflowContext.setMizOnly(false);
+        assertFalse(workflowContext.isMizOnly());
+    }
+
+    @Test
     public void testSetGetStartTime() {
         final long start_1 = 44578;
         final long start_2 = 7331269;

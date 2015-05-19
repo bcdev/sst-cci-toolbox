@@ -11,6 +11,7 @@ public class GenerateSobolPointsWorkflow extends Workflow {
     private final SobolSamplePointGenerator generator;
     private final LandPointRemover landPointRemover;
     private final ClearSkyPointRemover clearSkyPointRemover;
+    private final IceFreePointRemover iceFreePointRemover;
 
     public GenerateSobolPointsWorkflow(WorkflowContext context) {
         super(context);
@@ -18,6 +19,7 @@ public class GenerateSobolPointsWorkflow extends Workflow {
         generator = new SobolSamplePointGenerator();
         landPointRemover = new LandPointRemover();
         clearSkyPointRemover = new ClearSkyPointRemover();
+        iceFreePointRemover = new IceFreePointRemover();
     }
 
     @Override
@@ -46,6 +48,12 @@ public class GenerateSobolPointsWorkflow extends Workflow {
             logInfo("Starting removing prior clear-sky samples...");
             clearSkyPointRemover.removeSamples(samples);
             logInfo(MessageFormat.format("Finished removing prior clear-sky samples ({0} samples left)", samples.size()));
+        }
+
+        if (workflowContext.isMizOnly()) {
+            logInfo("Starting removing ice-free samples...");
+            iceFreePointRemover.removeSamples(samples);
+            logInfo(MessageFormat.format("Finished removing ice-free samples ({0} samples left)", samples.size()));
         }
 
         return samples;
