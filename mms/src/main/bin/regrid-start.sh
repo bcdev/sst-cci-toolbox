@@ -1,18 +1,16 @@
 #!/bin/bash
 
-. ${mms.home}/bin/mms-env.sh
+.  /group_workspaces/cems2/esacci_sst/mms/software/sst-cci-mms-2.0-SNAPSHOT/bin/mms-env.sh
 
 year=$1
 month=$2
 sensor=$3
-usecase=$4
-version=$5
-archive_root=$6
-report_root=$7
+archive_root=$4
+target_root=$5
 
 task="regrid"
-jobname="$task-$year-$month-$day-$sensor-$usecase"
-command="$task-run.sh $year $month $sensortype $sensor $usecase $version $archive_root $report_root"
+jobname="$task-$year-$month-$sensor-$usecase"
+command="$task-run.sh $year $month $sensor $archive_root $target_root"
 
 echo "`date -u +%Y%m%d-%H%M%S` submitting job '$jobname'"
 

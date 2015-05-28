@@ -11,7 +11,7 @@ set -e
 # that need to be regridded.  Adapt as needed.
 
 # FIXME: this should not be hardcoded, but somehow coming from
-# configuration variables like ${mms.archive.root} or from cmdline input
+# configuration variables or from cmdline input
 propertiesrootdir="/home/users/gholl/projects/2015_esacci_sst_processing/sst_cci_test_results"
 regrid="/group_workspaces/cems2/esacci_sst/software/sst-cci-tools/v2.0/bin/regrid"
 
@@ -41,15 +41,15 @@ let d1="d + 32 * 86400"
 enddate=`date +%Y-%m-01 -u -d @${d1}`
 subdir="${sensortype}/${type}/${version}/${sensor}/${year}/${month}"
 
-mkdir -p ${targetrootdir}/${subdir}
+mkdir -p ${target_root}/${subdir}
 
 # Note: If this fails with a Java error “Could not reserve enough
 # space for object heap”, have a look at:
 #
 # http://stackoverflow.com/q/4401396/974555
 
-$regrid -e -l ALL -c ${propertiesrootdir}/regrid_${type}.properties \
+$regrid -e -l INFO -c ${propertiesrootdir}/regrid_${type}.properties \
 	--startDate ${year}-${month}-01 \
 	--endDate ${enddate} \
-    --CCI_L2P.dir ${archive_root}/${subdir} \
+    --CCI_${type}.dir ${archive_root}/${subdir} \
     --outputDir ${target_root}/${subdir}

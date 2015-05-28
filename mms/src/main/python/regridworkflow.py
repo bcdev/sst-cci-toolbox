@@ -64,6 +64,6 @@ class RegridWorkflow(svrworkflow.SvrWorkflow):
                         "regrid-start.sh",
                         [],
                         ["/regrid/{sensor_name}".format(**vars())],
-                        [year, month, sensor_name])
+                        [year, month, sensor_name, self.archive_root, self.target_root])
                     monitor.execute(job)
                     date = svrworkflow._next_month(date)
