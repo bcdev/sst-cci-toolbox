@@ -622,7 +622,7 @@ class Workflow:
             self._execute_ingest_matchup_nwp_mmd_files(m, chunk)
             if not without_arc:
                 self._execute_ingest_arc_mmd_files(m, chunk)
-            self._execute_create_final_mmd_files(m, chunk, mmdtype)
+            self._execute_create_final_mmd_files(m, chunk, mmdtype, without_arc)
             if selected_only:
                 self._execute_selection(m, chunk, mmdtype, mmdtype.replace('mmd', 'sel', 1))
             if miz_only:
@@ -1130,12 +1130,13 @@ class Workflow:
                     monitor.execute(job)
                     date = _next_month(date)
 
-    def _execute_create_final_mmd_files(self, monitor, chunk, mmdtype):
+    def _execute_create_final_mmd_files(self, monitor, chunk, mmdtype, without_arc):
         """
 
         :type monitor: Monitor
         :type chunk: Period
         :type mmdtype: str
+        :type without_arc: bool
         """
         for sensor_pair in self._get_sensor_pairs():
             sensor_1 = sensor_pair.get_primary_name()
@@ -1147,10 +1148,25 @@ class Workflow:
                 end_date = period.get_end_date()
                 while date < end_date:
                     (year, month) = _year_month(date)
+                    if without_arc:
+                        preconditions = ['/sub/' + sensor_1 + '/' + _pathformat(date),
+                                         '/nwp/' + sensor_1 + '/' + _pathformat(date),
+                                         '/con/' + sensor_1 + '/' + _pathformat(date),
+                                         '/sub/' + sensor_2 + '/' + _pathformat(date),
+                                         '/nwp/' + sensor_2 + '/' + _pathformat(date),
+                                         '/con/' + sensor_2 + '/' + _pathformat(date)]
+                    else:
+                        preconditions = ['/sub/' + sensor_1 + '/' + _pathformat(date),
+                                         '/nwp/' + sensor_1 + '/' + _pathformat(date),
+                                         '/arc/' + sensor_1 + '/' + _pathformat(date),
+                                         '/con/' + sensor_1 + '/' + _pathformat(date),
+                                         '/sub/' + sensor_2 + '/' + _pathformat(date),
+                                         '/nwp/' + sensor_2 + '/' + _pathformat(date),
+                                         '/arc/' + sensor_2 + '/' + _pathformat(date),
+                                         '/con/' + sensor_2 + '/' + _pathformat(date)]
                     job = Job('mmd-start' + '-' + year + '-' + month + '-' + name + '-' + mmdtype,
                               'mmd-start.sh',
-                              ['/con/' + sensor_1 + '/' + _pathformat(date),
-                               '/con/' + sensor_2 + '/' + _pathformat(date)],
+                              preconditions,
                               ['/mmd/' + name + '/' + _pathformat(date)],
                               [year, month, name, mmdtype, self.get_usecase()])
                     monitor.execute(job)
