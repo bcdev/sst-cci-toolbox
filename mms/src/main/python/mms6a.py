@@ -11,5 +11,5 @@ w.add_secondary_sensor('amsr2', '2012-07-02', '2015-04-01')
 w.set_samples_per_month(3000000)
 
 w.run(mmdtype, hosts=[('localhost', 24)],
-      calls=[('sampling-start.sh', 1), ('coincidence-start.sh', 4), ('sub-start.sh', 4), ('mmd-start.sh', 4)],
+      calls=[('sampling-start.sh', 1), ('coincidence-start.sh', 2), ('sub-start.sh', 2), ('mmd-start.sh', 2)],
       with_history=True, without_arc=True)
