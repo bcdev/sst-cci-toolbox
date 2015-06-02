@@ -99,7 +99,6 @@ submit_job() {
     if echo ${line} | grep -qF 'is submitted'
     then
         jobs=`echo ${line} | awk '{ print substr($2,2,length($2)-2) }'`
-        mkdir -p $(dirname ${MMS_TASKS}/${jobname}.tasks) $(dirname "${MMS_LOG}/${jobname}.out/${jobs}")
         echo "${MMS_LOG}/${jobname}.out/${jobs}" > ${MMS_TASKS}/${jobname}.tasks
     else
         echo "`date -u +%Y%m%d-%H%M%S`: tasks for ${jobname} failed (reason: was not submitted)"
