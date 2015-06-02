@@ -1,6 +1,6 @@
 #!/bin/bash
 
-.  /group_workspaces/cems2/esacci_sst/mms/software/sst-cci-mms-2.0-SNAPSHOT/bin/mms-env.sh
+. ${mms.home}/bin/mms-env.sh
 
 year=$1
 month=$2
