@@ -12,6 +12,7 @@ from workflow import Sensor
 from workflow import Job
 from workflow import Monitor
 
+# TODO - move this and related code to a new 'svr' module (rquast-2015-06-02)
 
 class SvrWorkflow:
     def __init__(self, usecase, version, archive_root, report_root, verification_period=None):

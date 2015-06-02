@@ -3,6 +3,9 @@ __author__ = "Gerrit Holl"
 import svrworkflow
 import workflow
 
+# TODO - resolve inheritance and implement dedicated workflow for re-gridding (rquast-2015-06-02)
+# TODO - move this and related code to the 'user-tools' module (rquast-2015-06-02)
+
 class RegridWorkflow(svrworkflow.SvrWorkflow):
     def __init__(self, usecase, archive_root, target_root,
             regrid_period=None):
