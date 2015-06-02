@@ -72,7 +72,21 @@ public class Projector {
         final int h = gridDef.getHeight();
         final float[][] projectedData = new float[variableCount][w * h];
 
-        final ExecutorService executorService = Executors.newCachedThreadPool();
+        /*
+            TODO - to exploit parallelism on CEMS use '-n' option
+            The job needs to be submitted with a request for the same number of
+            CPU slots (-n) as
+            the number of SMP threads that the main jobs will spool off in parallel. At the
+            minute that number of spooled threads is bigger than the maximum CPU
+            slots on the host which is leading to overloading.
+
+            Could you please have a look at your code. It should be limited to a
+            smaller number
+            of threads, and then submitted to LOTUS requesting that number of
+            threads (with the –n flag).
+         */
+        final int threadCount = Runtime.getRuntime().availableProcessors();
+        final ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
         final List<Future<float[][]>> futures = new ArrayList<>(h);
         for (int y = 0; y < h; y++) {
             final RowTask rowTask = new RowTask(sourceGrids, y, sourcePixelLocator);
