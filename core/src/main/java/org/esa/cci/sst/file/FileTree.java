@@ -31,7 +31,7 @@ public class FileTree {
     private Map<Integer, Map<Integer, Map<Integer, List<File>>>> yearMaps;
 
     public FileTree() {
-        this.yearMaps = new HashMap<Integer, Map<Integer, Map<Integer, List<File>>>>(32);
+        this.yearMaps = new HashMap<>(32);
     }
 
     public void add(Date date, File file) {
@@ -40,21 +40,21 @@ public class FileTree {
         int year = calendar.get(Calendar.YEAR);
         Map<Integer, Map<Integer, List<File>>> monthMaps = yearMaps.get(year);
         if (monthMaps == null) {
-            monthMaps = new HashMap<Integer, Map<Integer, List<File>>>(16);
+            monthMaps = new HashMap<>(16);
             yearMaps.put(year, monthMaps);
         }
 
         int month = calendar.get(Calendar.MONTH);
         Map<Integer, List<File>> dayLists = monthMaps.get(month);
         if (dayLists == null) {
-            dayLists = new HashMap<Integer, List<File>>(16);
+            dayLists = new HashMap<>(16);
             monthMaps.put(month, dayLists);
         }
 
         int day = calendar.get(Calendar.DATE);
         List<File> dayList = dayLists.get(day);
         if (dayList == null) {
-            dayList = new ArrayList<File>(32);
+            dayList = new ArrayList<>(32);
             dayLists.put(day, dayList);
         }
 
