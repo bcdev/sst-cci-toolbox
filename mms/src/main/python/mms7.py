@@ -10,4 +10,4 @@ w.add_primary_sensor('avhrr_f.m02', '2007-03-01', '2014-04-01')
 w.add_secondary_sensor('amsr2', '2012-07-02', '2015-04-01')
 w.set_samples_per_month(5000000)
 
-w.run(mmdtype, hosts=[('localhost', 24)], without_arc=True, miz_only=True)
+w.run(mmdtype, hosts=[('localhost', 12)], without_arc=True, miz_only=True)
