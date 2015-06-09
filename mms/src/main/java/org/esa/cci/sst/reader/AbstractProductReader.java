@@ -322,7 +322,7 @@ abstract class AbstractProductReader implements Reader {
 
     private static Rectangle createSubsceneRectangle(Point2D p, int[] shape) {
         final int w = shape.length > 2 ? shape[2] : 1;
-        final int h = shape[1];
+        final int h = shape.length > 1 ? shape[1] : 1;
         final int x = (int) Math.floor(p.getX()) - w / 2;
         final int y = (int) Math.floor(p.getY()) - h / 2;
 
