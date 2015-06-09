@@ -53,28 +53,28 @@ class NwpTool extends BasicTool {
 
     private static final String CDO_NWP_TEMPLATE =
             "#! /bin/sh\n" +
-            "${CDO} ${CDO_OPTS} -f nc2 mergetime ${GGAS_TIMESTEPS} ${GGAS_TIME_SERIES} && " +
+            "${CDO} ${CDO_OPTS} -f nc4c mergetime ${GGAS_TIMESTEPS} ${GGAS_TIME_SERIES} && " +
             "${CDO} ${CDO_OPTS} -f grb mergetime ${GGAM_TIMESTEPS} ${GGAM_TIME_SERIES} && " +
             "${CDO} ${CDO_OPTS} -f grb mergetime ${SPAM_TIMESTEPS} ${SPAM_TIME_SERIES} && " +
-            "${CDO} ${CDO_OPTS} -f nc2 mergetime ${GAFS_TIMESTEPS} ${GAFS_TIME_SERIES} && " +
+            "${CDO} ${CDO_OPTS} -f nc4c mergetime ${GAFS_TIMESTEPS} ${GAFS_TIME_SERIES} && " +
             // attention: chaining the operations below results in a loss of the y dimension in the result file
-            "${CDO} ${CDO_OPTS} -f nc2 -R -t ecmwf setreftime,${REFTIME} -remapbil,${GEO} -selname,Q,O3,CLWC,CIWC ${GGAM_TIME_SERIES} ${GGAM_TIME_SERIES_REMAPPED} && " +
-            "${CDO} ${CDO_OPTS} -f nc2 -R -t ecmwf setreftime,${REFTIME} -remapbil,${GEO} -sp2gp -selname,LNSP,T ${SPAM_TIME_SERIES} ${SPAM_TIME_SERIES_REMAPPED} && " +
-            "${CDO} ${CDO_OPTS} -f nc2 -R -t ecmwf setreftime,${REFTIME} -remapbil,${GEO} -selname,TP -selhour,0,6,12,18 ${GAFS_TIME_SERIES} ${GAFS_TIME_SERIES_REMAPPED} && " +
-            "${CDO} ${CDO_OPTS} -f nc2 merge -setreftime,${REFTIME} -remapbil,${GEO} -selname,CI,ASN,SSTK,TCWV,MSL,TCC,U10,V10,T2,D2,AL,SKT ${GGAS_TIME_SERIES} ${GGAM_TIME_SERIES_REMAPPED} ${SPAM_TIME_SERIES_REMAPPED} ${GAFS_TIME_SERIES_REMAPPED} ${NWP_TIME_SERIES}\n";
+            "${CDO} ${CDO_OPTS} -f nc4c -R -t ecmwf setreftime,${REFTIME} -remapbil,${GEO} -selname,Q,O3,CLWC,CIWC ${GGAM_TIME_SERIES} ${GGAM_TIME_SERIES_REMAPPED} && " +
+            "${CDO} ${CDO_OPTS} -f nc4c -R -t ecmwf setreftime,${REFTIME} -remapbil,${GEO} -sp2gp -selname,LNSP,T ${SPAM_TIME_SERIES} ${SPAM_TIME_SERIES_REMAPPED} && " +
+            "${CDO} ${CDO_OPTS} -f nc4c -R -t ecmwf setreftime,${REFTIME} -remapbil,${GEO} -selname,TP -selhour,0,6,12,18 ${GAFS_TIME_SERIES} ${GAFS_TIME_SERIES_REMAPPED} && " +
+            "${CDO} ${CDO_OPTS} -f nc4c merge -setreftime,${REFTIME} -remapbil,${GEO} -selname,CI,ASN,SSTK,TCWV,MSL,TCC,U10,V10,T2,D2,AL,SKT ${GGAS_TIME_SERIES} ${GGAM_TIME_SERIES_REMAPPED} ${SPAM_TIME_SERIES_REMAPPED} ${GAFS_TIME_SERIES_REMAPPED} ${NWP_TIME_SERIES}\n";
 
     private static final String CDO_MATCHUP_AN_TEMPLATE =
             "#! /bin/sh\n" +
-            "${CDO} ${CDO_OPTS} -f nc2 mergetime ${GGAS_TIMESTEPS} ${GGAS_TIME_SERIES} && " +
-            "${CDO} ${CDO_OPTS} -f nc2 setreftime,${REFTIME} -remapbil,${GEO} -selname,CI,SSTK,U10,V10 ${GGAS_TIME_SERIES} ${AN_TIME_SERIES}\n";
+            "${CDO} ${CDO_OPTS} -f nc4c mergetime ${GGAS_TIMESTEPS} ${GGAS_TIME_SERIES} && " +
+            "${CDO} ${CDO_OPTS} -f nc4c setreftime,${REFTIME} -remapbil,${GEO} -selname,CI,SSTK,U10,V10 ${GGAS_TIME_SERIES} ${AN_TIME_SERIES}\n";
 
     private static final String CDO_MATCHUP_FC_TEMPLATE =
             "#! /bin/sh\n" +
-            "${CDO} ${CDO_OPTS} -f nc2 mergetime ${GAFS_TIMESTEPS} ${GAFS_TIME_SERIES} && " +
-            "${CDO} ${CDO_OPTS} -f nc2 mergetime ${GGFS_TIMESTEPS} ${GGFS_TIME_SERIES} && " +
+            "${CDO} ${CDO_OPTS} -f nc4c mergetime ${GAFS_TIMESTEPS} ${GAFS_TIME_SERIES} && " +
+            "${CDO} ${CDO_OPTS} -f nc4c mergetime ${GGFS_TIMESTEPS} ${GGFS_TIME_SERIES} && " +
             // attention: chaining the operations below results in a loss of the y dimension in the result file
-            "${CDO} ${CDO_OPTS} -f nc2 setreftime,${REFTIME} -remapbil,${GEO} -selname,SSTK,MSL,BLH,U10,V10,T2,D2 ${GGFS_TIME_SERIES} ${GGFS_TIME_SERIES_REMAPPED} && " +
-            "${CDO} ${CDO_OPTS} -f nc2 merge -setreftime,${REFTIME} -remapbil,${GEO} -selname,SSHF,SLHF,SSRD,STRD,SSR,STR,EWSS,NSSS,E,TP ${GAFS_TIME_SERIES} ${GGFS_TIME_SERIES_REMAPPED} ${FC_TIME_SERIES}\n";
+            "${CDO} ${CDO_OPTS} -f nc4c setreftime,${REFTIME} -remapbil,${GEO} -selname,SSTK,MSL,BLH,U10,V10,T2,D2 ${GGFS_TIME_SERIES} ${GGFS_TIME_SERIES_REMAPPED} && " +
+            "${CDO} ${CDO_OPTS} -f nc4c merge -setreftime,${REFTIME} -remapbil,${GEO} -selname,SSHF,SLHF,SSRD,STRD,SSR,STR,EWSS,NSSS,E,TP ${GAFS_TIME_SERIES} ${GGFS_TIME_SERIES_REMAPPED} ${FC_TIME_SERIES}\n";
 
     private String cdoHome;
     private String sourceMmdLocation;
@@ -226,8 +226,8 @@ class NwpTool extends BasicTool {
         }
     }
 
-    String createForecastFile(String mmdFileLoacation) throws IOException, InterruptedException {
-        final NetcdfFile mmdFile = NetcdfFile.open(mmdFileLoacation);
+    String createForecastFile(String mmdFileLocation) throws IOException, InterruptedException {
+        final NetcdfFile mmdFile = NetcdfFile.open(mmdFileLocation);
         final List<String> subDirectories = NwpUtil.getRelevantNwpDirs(NwpUtil.findVariable(mmdFile, "matchup.time"));
 
         try {
@@ -483,12 +483,6 @@ class NwpTool extends BasicTool {
         return NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf4_classic, path);
     }
 
-    private static NetcdfFileWriter createNewLarge(String path) throws IOException {
-        final NetcdfFileWriter writer = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf3, path);
-        writer.setLargeFile(true);
-        return writer;
-    }
-
     private static void copyVariableData(String name, NetcdfFile sourceMmd, NetcdfFileWriter targetMmd) throws
                                                                                                         IOException,
                                                                                                         InvalidRangeException {
@@ -665,7 +659,7 @@ class NwpTool extends BasicTool {
                 return null;
             }
             final String sensorMmdLocation = NwpUtil.createTempFile("mmd", ".nc", deleteOnExit).getPath();
-            final NetcdfFileWriter targetMmd = createNewLarge(sensorMmdLocation);
+            final NetcdfFileWriter targetMmd = createNew(sensorMmdLocation);
 
             final int ny = nyDimension.getLength();
             final int nx = nxDimension.getLength();
@@ -731,7 +725,7 @@ class NwpTool extends BasicTool {
         final Dimension matchupDimension = NwpUtil.findDimension(mmd, "matchup");
 
         final String location = NwpUtil.createTempFile("geo", ".nc", deleteOnExit).getPath();
-        final NetcdfFileWriter geoFile = createNewLarge(location);
+        final NetcdfFileWriter geoFile = createNew(location);
 
         final int matchupCount = matchupDimension.getLength();
         geoFile.addDimension(null, "grid_size", matchupCount);
@@ -812,7 +806,7 @@ class NwpTool extends BasicTool {
         final Dimension nxDimension = NwpUtil.findDimension(mmd, sensorBasename + ".nx");
 
         final String location = NwpUtil.createTempFile("geo", ".nc", deleteOnExit).getPath();
-        final NetcdfFileWriter geoFile = createNewLarge(location);
+        final NetcdfFileWriter geoFile = createNew(location);
 
         final int matchupCount = matchupDimension.getLength();
         final int ny = nyDimension.getLength();
