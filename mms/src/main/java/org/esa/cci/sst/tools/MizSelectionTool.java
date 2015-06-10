@@ -62,6 +62,18 @@ public class MizSelectionTool extends BasicTool {
     }
 
     private void run() throws IOException {
+        /*
+        TODO - implement what is defined below: include only those sub-scenes that satisfy both 1) and 2)
+
+        So Ralf, our definition of the marginal ice zone is:
+
+        1) No pixel within the central 101 pixel square exhibits a sea ice fraction greater than zero
+        2) Any pixel within the 141 pixel square (but not within the central 101 pixel square) exhibits a sea ice fraction greater than 15%
+
+        Regards,
+
+        Kevin
+         */
         throw new ToolException("MIZ selection not implemented.", ToolException.TOOL_ERROR);
     }
 
