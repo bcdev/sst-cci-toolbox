@@ -483,6 +483,12 @@ class NwpTool extends BasicTool {
         return NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf4_classic, path);
     }
 
+    private static NetcdfFileWriter createNewLarge(String path) throws IOException {
+        final NetcdfFileWriter writer = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf3, path);
+        writer.setLargeFile(true);
+        return writer;
+    }
+
     private static void copyVariableData(String name, NetcdfFile sourceMmd, NetcdfFileWriter targetMmd) throws
                                                                                                         IOException,
                                                                                                         InvalidRangeException {
@@ -659,7 +665,7 @@ class NwpTool extends BasicTool {
                 return null;
             }
             final String sensorMmdLocation = NwpUtil.createTempFile("mmd", ".nc", deleteOnExit).getPath();
-            final NetcdfFileWriter targetMmd = createNew(sensorMmdLocation);
+            final NetcdfFileWriter targetMmd = createNewLarge(sensorMmdLocation);
 
             final int ny = nyDimension.getLength();
             final int nx = nxDimension.getLength();
@@ -725,7 +731,7 @@ class NwpTool extends BasicTool {
         final Dimension matchupDimension = NwpUtil.findDimension(mmd, "matchup");
 
         final String location = NwpUtil.createTempFile("geo", ".nc", deleteOnExit).getPath();
-        final NetcdfFileWriter geoFile = createNew(location);
+        final NetcdfFileWriter geoFile = createNewLarge(location);
 
         final int matchupCount = matchupDimension.getLength();
         geoFile.addDimension(null, "grid_size", matchupCount);
@@ -806,7 +812,7 @@ class NwpTool extends BasicTool {
         final Dimension nxDimension = NwpUtil.findDimension(mmd, sensorBasename + ".nx");
 
         final String location = NwpUtil.createTempFile("geo", ".nc", deleteOnExit).getPath();
-        final NetcdfFileWriter geoFile = createNew(location);
+        final NetcdfFileWriter geoFile = createNewLarge(location);
 
         final int matchupCount = matchupDimension.getLength();
         final int ny = nyDimension.getLength();
