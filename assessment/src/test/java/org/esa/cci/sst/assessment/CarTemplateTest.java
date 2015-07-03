@@ -26,6 +26,7 @@ import java.util.Properties;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class CarTemplateTest {
 
@@ -45,7 +46,14 @@ public class CarTemplateTest {
 
     @AfterClass
     public static void tearDown() throws Exception {
-        wordDocument.save(new File("car.docx"));
+        final File targetFile = new File("car.docx");
+        wordDocument.save(targetFile);
+
+        if (targetFile.isFile()) {
+            if (!targetFile.delete()) {
+                fail("Unable to delete test file");
+            }
+        }
     }
 
     @Test
@@ -53,57 +61,39 @@ public class CarTemplateTest {
         String text;
 
         text = properties.getProperty("comment.Figure_2");
-
         assertNotNull(text);
-
         assertNotNull(wordDocument.replaceWithParagraph("${comment.Figure_2}", text));
 
         text = properties.getProperty("comment.Figure_3");
-
         assertNotNull(text);
-
         assertNotNull(wordDocument.replaceWithParagraph("${comment.Figure_3}", text));
 
         text = properties.getProperty("comment.Figure_4");
-
         assertNotNull(text);
-
         assertNotNull(wordDocument.replaceWithParagraph("${comment.Figure_4}", text));
 
         text = properties.getProperty("comment.Figure_5");
-
         assertNotNull(text);
-
         assertNotNull(wordDocument.replaceWithParagraph("${comment.Figure_5}", text));
 
         text = properties.getProperty("comment.dec_plot_temp_strip_rel_to_first");
-
         assertNotNull(text);
-
         assertNotNull(wordDocument.replaceWithParagraph("${comment.dec_plot_temp_strip_rel_to_first}", text));
 
         text = properties.getProperty("comment.decadal_selection");
-
         assertNotNull(text);
-
         assertNotNull(wordDocument.replaceWithParagraph("${comment.decadal_selection}", text));
 
         text = properties.getProperty("comment.decadal_wall_1991");
-
         assertNotNull(text);
-
         assertNotNull(wordDocument.replaceWithParagraph("${comment.decadal_wall_1991}", text));
 
         text = properties.getProperty("comment.decadal_wall_2001");
-
         assertNotNull(text);
-
         assertNotNull(wordDocument.replaceWithParagraph("${comment.decadal_wall_2001}", text));
 
         text = properties.getProperty("comment.plot_lag_corr");
-
         assertNotNull(text);
-
         assertNotNull(wordDocument.replaceWithParagraph("${comment.plot_lag_corr}", text));
     }
 
@@ -112,173 +102,166 @@ public class CarTemplateTest {
         String text;
 
         text = properties.getProperty("paragraph.summary_text");
-
         assertNotNull(text);
-
         assertNotNull(wordDocument.replaceWithParagraph("${paragraph.summary_text}", text));
 
         text = properties.getProperty("paragraph.plot_selection_COLOC");
-
         assertNotNull(text);
-
         assertNotNull(wordDocument.replaceWithParagraph("${paragraph.plot_selection_COLOC}", text));
 
         text = properties.getProperty("paragraph.plot_selection");
-
         assertNotNull(text);
-
         assertNotNull(wordDocument.replaceWithParagraph("${paragraph.plot_selection}", text));
     }
 
     @Test
     public void testReplaceRegionMap() throws Exception {
-        if (dataDir.exists()) {
-            final String path = properties.getProperty("figure.region_map");
-
-            assertNotNull(path);
-
-            final File file = new File(dataDir, path);
-
-            assertTrue(file.exists());
-
-            assertNotNull(wordDocument.replaceWithImage("${figure.region_map}", file));
+        if (!dataDir.isDirectory()) {
+            System.out.println("Data directory for test is not installed. Test data is located at /fs1/projects/ongoing/SST-CCI/wp50");
+            return;
         }
+
+        final String path = properties.getProperty("figure.region_map");
+        assertNotNull(path);
+
+        final File file = new File(dataDir, path);
+        assertTrue(file.exists());
+        assertNotNull(wordDocument.replaceWithImage("${figure.region_map}", file));
     }
 
     @Test
     public void testReplaceFigure_2() throws Exception {
-        if (dataDir.exists()) {
-            final String path = properties.getProperty("figure.Figure_2");
-
-            assertNotNull(path);
-
-            final File file = new File(dataDir, path);
-
-            assertTrue(file.exists());
-
-            assertNotNull(wordDocument.replaceWithImage("${figure.Figure_2}", file));
+        if (!dataDir.isDirectory()) {
+            System.out.println("Data directory for test is not installed. Test data is located at /fs1/projects/ongoing/SST-CCI/wp50");
+            return;
         }
+
+        final String path = properties.getProperty("figure.Figure_2");
+        assertNotNull(path);
+
+        final File file = new File(dataDir, path);
+        assertTrue(file.exists());
+        assertNotNull(wordDocument.replaceWithImage("${figure.Figure_2}", file));
     }
 
     @Test
     public void testReplaceFigure_3() throws Exception {
-        if (dataDir.exists()) {
-            final String path = properties.getProperty("figure.Figure_3");
-
-            assertNotNull(path);
-
-            final File file = new File(dataDir, path);
-
-            assertTrue(file.exists());
-
-            assertNotNull(wordDocument.replaceWithImage("${figure.Figure_3}", file));
+        if (!dataDir.isDirectory()) {
+            System.out.println("Data directory for test is not installed. Test data is located at /fs1/projects/ongoing/SST-CCI/wp50");
+            return;
         }
+
+        final String path = properties.getProperty("figure.Figure_3");
+        assertNotNull(path);
+
+        final File file = new File(dataDir, path);
+        assertTrue(file.exists());
+        assertNotNull(wordDocument.replaceWithImage("${figure.Figure_3}", file));
     }
 
     @Test
     public void testReplaceFigure_4() throws Exception {
-        if (dataDir.exists()) {
-            final String path = properties.getProperty("figure.Figure_4");
-
-            assertNotNull(path);
-
-            final File file = new File(dataDir, path);
-
-            assertTrue(file.exists());
-
-            assertNotNull(wordDocument.replaceWithImage("${figure.Figure_4}", file));
+        if (!dataDir.isDirectory()) {
+            System.out.println("Data directory for test is not installed. Test data is located at /fs1/projects/ongoing/SST-CCI/wp50");
+            return;
         }
+
+        final String path = properties.getProperty("figure.Figure_4");
+        assertNotNull(path);
+
+        final File file = new File(dataDir, path);
+        assertTrue(file.exists());
+        assertNotNull(wordDocument.replaceWithImage("${figure.Figure_4}", file));
     }
 
 
     @Test
     public void testReplaceFigure_5() throws Exception {
-        if (dataDir.exists()) {
-            final String path = properties.getProperty("figure.Figure_5");
-
-            assertNotNull(path);
-
-            final File file = new File(dataDir, path);
-
-            assertTrue(file.exists());
-
-            assertNotNull(wordDocument.replaceWithImage("${figure.Figure_5}", file));
+        if (!dataDir.isDirectory()) {
+            System.out.println("Data directory for test is not installed. Test data is located at /fs1/projects/ongoing/SST-CCI/wp50");
+            return;
         }
+
+        final String path = properties.getProperty("figure.Figure_5");
+        assertNotNull(path);
+
+        final File file = new File(dataDir, path);
+        assertTrue(file.exists());
+        assertNotNull(wordDocument.replaceWithImage("${figure.Figure_5}", file));
     }
 
     @Test
     public void testReplaceFigures_dec_plot() throws Exception {
-        if (dataDir.exists()) {
-            final String filePattern = properties.getProperty("figures.dec_plot_temp_strip_rel_to_first");
-
-            assertNotNull(filePattern);
-
-            final File[] files = WildcardMatcher.glob(new File(dataDir, filePattern).getPath());
-
-            assertTrue(files.length > 0);
-
-            assertNotNull(wordDocument.replaceWithImages("${figures.dec_plot_temp_strip_rel_to_first}", files));
+        if (!dataDir.isDirectory()) {
+            System.out.println("Data directory for test is not installed. Test data is located at /fs1/projects/ongoing/SST-CCI/wp50");
+            return;
         }
+
+        final String filePattern = properties.getProperty("figures.dec_plot_temp_strip_rel_to_first");
+        assertNotNull(filePattern);
+
+        final File[] files = WildcardMatcher.glob(new File(dataDir, filePattern).getPath());
+        assertTrue(files.length > 0);
+        assertNotNull(wordDocument.replaceWithImages("${figures.dec_plot_temp_strip_rel_to_first}", files));
     }
 
     @Test
     public void testReplaceFigures_decadal_selection() throws Exception {
-        if (dataDir.exists()) {
-            final String filePattern = properties.getProperty("figures.decadal_selection");
-
-            assertNotNull(filePattern);
-
-            final File[] files = WildcardMatcher.glob(new File(dataDir, filePattern).getPath());
-
-            assertTrue(files.length > 0);
-
-            assertNotNull(wordDocument.replaceWithImages("${figures.decadal_selection}", files));
+        if (!dataDir.isDirectory()) {
+            System.out.println("Data directory for test is not installed. Test data is located at /fs1/projects/ongoing/SST-CCI/wp50");
+            return;
         }
+
+        final String filePattern = properties.getProperty("figures.decadal_selection");
+        assertNotNull(filePattern);
+
+        final File[] files = WildcardMatcher.glob(new File(dataDir, filePattern).getPath());
+        assertTrue(files.length > 0);
+        assertNotNull(wordDocument.replaceWithImages("${figures.decadal_selection}", files));
     }
 
     @Test
     public void testReplaceFigures_plot_selection_COLOC() throws Exception {
-        if (dataDir.exists()) {
-            final String filePattern = properties.getProperty("figures.plot_selection_COLOC");
-
-            assertNotNull(filePattern);
-
-            final File[] files = WildcardMatcher.glob(new File(dataDir, filePattern).getPath());
-
-            assertTrue(files.length > 0);
-
-            assertNotNull(wordDocument.replaceWithImages("${figures.plot_selection_COLOC}", files));
+        if (!dataDir.isDirectory()) {
+            System.out.println("Data directory for test is not installed. Test data is located at /fs1/projects/ongoing/SST-CCI/wp50");
+            return;
         }
+
+        final String filePattern = properties.getProperty("figures.plot_selection_COLOC");
+        assertNotNull(filePattern);
+
+        final File[] files = WildcardMatcher.glob(new File(dataDir, filePattern).getPath());
+        assertTrue(files.length > 0);
+        assertNotNull(wordDocument.replaceWithImages("${figures.plot_selection_COLOC}", files));
     }
 
     @Test
     public void testReplaceFigures_plot_selection() throws Exception {
-        if (dataDir.exists()) {
-            final String filePattern = properties.getProperty("figures.plot_selection");
-
-            assertNotNull(filePattern);
-
-            final File[] files = WildcardMatcher.glob(new File(dataDir, filePattern).getPath());
-
-            assertTrue(files.length > 0);
-
-            assertNotNull(wordDocument.replaceWithImages("${figures.plot_selection}", files));
+        if (!dataDir.isDirectory()) {
+            System.out.println("Data directory for test is not installed. Test data is located at /fs1/projects/ongoing/SST-CCI/wp50");
+            return;
         }
+
+        final String filePattern = properties.getProperty("figures.plot_selection");
+        assertNotNull(filePattern);
+
+        final File[] files = WildcardMatcher.glob(new File(dataDir, filePattern).getPath());
+        assertTrue(files.length > 0);
+        assertNotNull(wordDocument.replaceWithImages("${figures.plot_selection}", files));
     }
 
     @Test
     public void testReplaceFigures_lag_corr() throws Exception {
-        if (dataDir.exists()) {
-            final String filePattern = properties.getProperty("figures.plot_lag_corr");
-
-            assertNotNull(filePattern);
-
-            final File[] files = WildcardMatcher.glob(new File(dataDir, filePattern).getPath());
-
-            assertTrue(files.length > 0);
-
-            assertNotNull(wordDocument.replaceWithImages("${figures.plot_lag_corr}", files));
+        if (!dataDir.isDirectory()) {
+            System.out.println("Data directory for test is not installed. Test data is located at /fs1/projects/ongoing/SST-CCI/wp50");
+            return;
         }
-    }
 
+        final String filePattern = properties.getProperty("figures.plot_lag_corr");
+        assertNotNull(filePattern);
+
+        final File[] files = WildcardMatcher.glob(new File(dataDir, filePattern).getPath());
+        assertTrue(files.length > 0);
+        assertNotNull(wordDocument.replaceWithImages("${figures.plot_lag_corr}", files));
+    }
 }

@@ -29,6 +29,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.fail;
 
 /**
  * @author Ralf Quast
@@ -44,7 +45,14 @@ public class WordDocumentTest {
 
     @AfterClass
     public static void tearDown() throws Exception {
-        wordDocument.save(new File("test.docx"));
+        final File targetFile = new File("test.docx");
+        wordDocument.save(targetFile);
+
+        if (targetFile.isFile()) {
+            if (!targetFile.delete()) {
+                fail("Unable to delete word file");
+            }
+        }
     }
 
     @Test
