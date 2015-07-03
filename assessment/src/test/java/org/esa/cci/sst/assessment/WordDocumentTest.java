@@ -24,6 +24,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.IOException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -108,8 +109,8 @@ public class WordDocumentTest {
     public void testFindVariable() throws Exception {
         final P p = wordDocument.addVariable("${find.me}");
 
-        assertSame(p, wordDocument.findVariable("${find.me}"));
-        assertSame(p, wordDocument.findVariable("${FIND.ME}"));
+        assertSame(p, wordDocument.findVariableParagraph("${find.me}"));
+        assertSame(p, wordDocument.findVariableParagraph("${FIND.ME}"));
     }
 
     @Test
@@ -117,24 +118,47 @@ public class WordDocumentTest {
         final P p = wordDocument.addVariable("${remove.me}");
 
         assertSame(p, wordDocument.removeVariable("${remove.me}"));
-        assertNull(wordDocument.findVariable("${remove.me}"));
+        assertNull(wordDocument.findVariableParagraph("${remove.me}"));
     }
 
     @Test
     public void testReplaceVariableWithDrawing() throws Exception {
         final P p = wordDocument.addVariable("${replace.me}");
 
-        assertSame(p, wordDocument.findVariable("${replace.me}"));
+        assertSame(p, wordDocument.findVariableParagraph("${replace.me}"));
 
         final Drawing drawing = wordDocument.createDrawing(getClass().getResource("newton-home.png"));
 
         assertSame(p, wordDocument.replaceWithDrawing("${replace.me}", drawing));
-        assertNull(wordDocument.findVariable("${replace.me}"));
+        assertNull(wordDocument.findVariableParagraph("${replace.me}"));
 
         final R r = (R) p.getContent().get(0);
 
         assertSame(drawing, r.getContent().get(0));
 
         wordDocument.addCaption("Figure", "3", "The figure above is a replacement.");
+    }
+
+    @Test
+    public void testReplaceVariableWithText_oneOccurrence() throws IOException {
+        wordDocument.addVariable("${replace.me}");
+
+        wordDocument.replaceWithText("replace.me", "replaced!");
+
+        assertNull(wordDocument.findVariableParagraph("${replace.me}"));
+    }
+
+    @Test
+    public void testReplaceVariableWithText_threeOccurrences() throws IOException {
+        wordDocument.addVariable("${replace.me}");
+        wordDocument.addHeading1("blablabla");
+        wordDocument.addHeading2("wow");
+        wordDocument.addVariable("${replace.me}");
+        wordDocument.addHeading1("gnagnag");
+        wordDocument.addVariable("${replace.me}");
+
+        wordDocument.replaceWithText("replace.me", "replaced!");
+
+        assertNull(wordDocument.findVariableParagraph("${replace.me}"));
     }
 }

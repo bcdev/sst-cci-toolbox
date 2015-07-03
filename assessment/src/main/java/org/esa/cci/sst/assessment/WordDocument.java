@@ -21,6 +21,7 @@ import org.docx4j.TraversalUtil;
 import org.docx4j.dml.wordprocessingDrawing.Inline;
 import org.docx4j.finders.ClassFinder;
 import org.docx4j.jaxb.Context;
+import org.docx4j.model.datastorage.migration.VariablePrepare;
 import org.docx4j.openpackaging.exceptions.Docx4JException;
 import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
 import org.docx4j.openpackaging.parts.WordprocessingML.BinaryPartAbstractImage;
@@ -29,10 +30,12 @@ import org.docx4j.wml.*;
 import org.esa.beam.util.io.WildcardMatcher;
 
 import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
 import java.io.*;
 import java.math.BigInteger;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 
@@ -71,7 +74,8 @@ public class WordDocument {
     public WordDocument(File wordFile) throws IOException {
         try {
             this.wordMLPackage = WordprocessingMLPackage.load(wordFile);
-        } catch (Docx4JException e) {
+            VariablePrepare.prepare(wordMLPackage);
+        } catch (Exception e) {
             throw new IOException(e);
         }
     }
@@ -266,12 +270,12 @@ public class WordDocument {
     }
 
     /**
-     * Traverses a Word document and looks for the first occurrence of a "template variable".
+     * Traverses a Word document and looks for the first occurrence of a "template variable" as a complete paragraph.
      *
      * @param variable The template variable.
-     * @return the enclosing "paragraph" element or {@code null}, if the requested template variable has not been found.
+     * @return the enclosing "paragraph" element or {@code null}..
      */
-    public P findVariable(String variable) {
+    public P findVariableParagraph(String variable) {
         final MainDocumentPart documentPart = wordMLPackage.getMainDocumentPart();
         final ClassFinder finder = new ClassFinder(P.class);
         new TraversalUtil(documentPart.getContent(), finder);
@@ -295,13 +299,42 @@ public class WordDocument {
     }
 
     /**
+     * Traverses a Word document and looks for the first occurrence of a "template variable".
+     *
+     * @param variable The template variable.
+     * @return the enclosing "paragraph" element or {@code null}.
+     */
+    public P findVariable(String variable) {
+        final MainDocumentPart documentPart = wordMLPackage.getMainDocumentPart();
+        final ClassFinder finder = new ClassFinder(P.class);
+        new TraversalUtil(documentPart.getContent(), finder);
+
+        for (final Object o : finder.results) {
+            if (o instanceof P) {
+                final P p = (P) o;
+                final StringWriter sw = new StringWriter();
+                try {
+                    TextUtils.extractText(p, sw);
+                    final String text = sw.toString();
+                    if (text.contains(variable)) {
+                        return p;
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Traverses a Word document and removes the first occurrence of a given "template variable".
      *
      * @param variable The template variable.
      * @return the enclosing "paragraph" removed or {@code null}, if the  template variable has not been removed.
      */
     public P removeVariable(String variable) {
-        final P p = findVariable(variable);
+        final P p = findVariableParagraph(variable);
         if (p != null) {
             final List<Object> parent = getParentContainer(p);
             final boolean removed = parent.remove(p);
@@ -320,13 +353,25 @@ public class WordDocument {
      * @return the "paragraph" where the replacing occurred or {@code null}, if the requested template variable has not been found.
      */
     public P replaceWithDrawing(String variable, Drawing drawing) {
-        final P p = findVariable(variable);
+        final P p = findVariableParagraph(variable);
 
         if (p != null) {
             return replaceContentWithDrawing(p, drawing);
         }
 
         return null;
+    }
+
+    public void replaceWithText(String variable, String text) throws IOException {
+
+        final HashMap<String, String> mappings = new HashMap<>();
+        mappings.put(variable, text);
+
+        try {
+            wordMLPackage.getMainDocumentPart().variableReplace(mappings);
+        } catch (JAXBException | Docx4JException e) {
+            throw new IOException(e.getMessage());
+        }
     }
 
     /**
@@ -348,7 +393,7 @@ public class WordDocument {
      * @return the "paragraph" where the replacing occurred or {@code null}, if the requested template variable has not been found.
      */
     public P replaceWithImages(String variable, File[] imageFiles) throws Exception {
-        final P p = findVariable(variable);
+        final P p = findVariableParagraph(variable);
 
         if (p != null) {
             final List<Object> c = getParentContainer(p);
@@ -381,7 +426,7 @@ public class WordDocument {
      * @return the "paragraph" where the replacing occurred or {@code null}, if the requested template variable has not been found.
      */
     public P replaceWithParagraph(String variable, String text) {
-        final P p = findVariable(variable);
+        final P p = findVariableParagraph(variable);
 
         if (p != null) {
             final ObjectFactory wmlObjectFactory = new ObjectFactory();
@@ -458,5 +503,4 @@ public class WordDocument {
 
         wordDocument.save(wordFile);
     }
-
 }
