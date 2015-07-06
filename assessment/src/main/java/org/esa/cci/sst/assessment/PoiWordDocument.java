@@ -9,6 +9,8 @@ import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFRun;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTPicture;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -109,19 +111,24 @@ public class PoiWordDocument {
         final int beginRun = textSegement.getBeginRun();
         final int endRun = textSegement.getEndRun();
 
-        final FileInputStream inputStream = new FileInputStream(image);
+        FileInputStream inputStream = new FileInputStream(image);
+        final BufferedImage bufferedImage = ImageIO.read(inputStream);
+        final int width = Units.toEMU(bufferedImage.getWidth() * 0.2);
+        final int height = Units.toEMU(bufferedImage.getHeight() * 0.2);
+        inputStream.close();
 
+        inputStream = new FileInputStream(image);
         if (beginRun == endRun) {
             // replace single run variable
             final XWPFRun run = runs.get(beginRun);
             run.setText("", 0);
-            run.addPicture(inputStream, XWPFDocument.PICTURE_TYPE_PNG, image.getName(), Units.toEMU(300), Units.toEMU(300));
+            run.addPicture(inputStream, XWPFDocument.PICTURE_TYPE_PNG, image.getName(), width, height);
         } else {
             // variable is spread over multiple runs
 
             final XWPFRun partOne = runs.get(beginRun);
             partOne.setText("", 0);
-            partOne.addPicture(inputStream, XWPFDocument.PICTURE_TYPE_PNG, image.getName(), Units.toEMU(300), Units.toEMU(300));
+            partOne.addPicture(inputStream, XWPFDocument.PICTURE_TYPE_PNG, image.getName(), width, height);
 
             // Removing the text in the other Runs.
             for (int runPos = beginRun + 1; runPos <= endRun; runPos++) {
