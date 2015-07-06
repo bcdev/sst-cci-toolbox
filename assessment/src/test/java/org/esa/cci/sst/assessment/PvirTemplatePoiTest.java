@@ -1,10 +1,12 @@
 package org.esa.cci.sst.assessment;
 
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Properties;
 
 import static org.junit.Assert.assertFalse;
@@ -60,5 +62,34 @@ public class PvirTemplatePoiTest {
         assertTrue(document.containsVariable("${word.depth_or_skin}"));
         document.replaceWithText("${word.depth_or_skin}", depthOrSkin);
         assertFalse(document.containsVariable("${word.depth_or_skin}"));
+    }
+
+    @Test
+    public void testReplaceVariableWithFigure() throws IOException, InvalidFormatException {
+        final String inputDir = properties.getProperty("figures.directory");
+
+        final String dependenceImage = properties.getProperty("figure.dependence-av1");
+        assertTrue(document.containsVariable("${figure.dependence-av1}"));
+        File imageFile = new File(inputDir, dependenceImage);
+        document.replaceWithFigure("${figure.dependence-av1}", imageFile);
+        assertFalse(document.containsVariable("${figure.dependence-av1}"));
+
+        final String spatialImage = properties.getProperty("figure.spatial-av1");
+        assertTrue(document.containsVariable("${figure.spatial-av1}"));
+        imageFile = new File(inputDir, spatialImage);
+        document.replaceWithFigure("${figure.spatial-av1}", imageFile);
+        assertFalse(document.containsVariable("${figure.spatial-av1}"));
+
+        final String histogramImage = properties.getProperty("figure.histogram-av1");
+        assertTrue(document.containsVariable("${figure.histogram-av1}"));
+        imageFile = new File(inputDir, histogramImage);
+        document.replaceWithFigure("${figure.histogram-av1}", imageFile);
+        assertFalse(document.containsVariable("${figure.histogram-av1}"));
+
+        final String uncertImage = properties.getProperty("figure.uncert_val-av1");
+        assertTrue(document.containsVariable("${figure.uncert_val-av1}"));
+        imageFile = new File(inputDir, uncertImage);
+        document.replaceWithFigure("${figure.uncert_val-av1}", imageFile);
+        assertFalse(document.containsVariable("${figure.uncert_val-av1}"));
     }
 }

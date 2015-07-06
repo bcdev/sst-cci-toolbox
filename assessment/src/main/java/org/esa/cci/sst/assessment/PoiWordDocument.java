@@ -1,13 +1,17 @@
 package org.esa.cci.sst.assessment;
 
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.util.Units;
 import org.apache.poi.xwpf.usermodel.PositionInParagraph;
 import org.apache.poi.xwpf.usermodel.TextSegement;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFRun;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTPicture;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -57,6 +61,16 @@ public class PoiWordDocument {
         }
     }
 
+    public void replaceWithFigure(String variable, File imageFile) throws IOException, InvalidFormatException {
+        final List<XWPFParagraph> paragraphs = document.getParagraphs();
+        for (XWPFParagraph paragraph : paragraphs) {
+            final TextSegement textSegement = paragraph.searchText(variable, new PositionInParagraph());
+            if (textSegement != null) {
+                replaceVariable(imageFile, paragraph, textSegement);
+            }
+        }
+    }
+
     private void replaceVariable(String variable, String text, XWPFParagraph paragraph, TextSegement textSegement) {
         final List<XWPFRun> runs = paragraph.getRuns();
         final int beginRun = textSegement.getBeginRun();
@@ -82,6 +96,33 @@ public class PoiWordDocument {
             // The first Run receives the replaced String of all connected Runs
             final XWPFRun partOne = runs.get(beginRun);
             partOne.setText(replaced, 0);
+            // Removing the text in the other Runs.
+            for (int runPos = beginRun + 1; runPos <= endRun; runPos++) {
+                XWPFRun partNext = runs.get(runPos);
+                partNext.setText("", 0);
+            }
+        }
+    }
+
+    private void replaceVariable(File image, XWPFParagraph paragraph, TextSegement textSegement) throws IOException, InvalidFormatException {
+        final List<XWPFRun> runs = paragraph.getRuns();
+        final int beginRun = textSegement.getBeginRun();
+        final int endRun = textSegement.getEndRun();
+
+        final FileInputStream inputStream = new FileInputStream(image);
+
+        if (beginRun == endRun) {
+            // replace single run variable
+            final XWPFRun run = runs.get(beginRun);
+            run.setText("", 0);
+            run.addPicture(inputStream, XWPFDocument.PICTURE_TYPE_PNG, image.getName(), Units.toEMU(300), Units.toEMU(300));
+        } else {
+            // variable is spread over multiple runs
+
+            final XWPFRun partOne = runs.get(beginRun);
+            partOne.setText("", 0);
+            partOne.addPicture(inputStream, XWPFDocument.PICTURE_TYPE_PNG, image.getName(), Units.toEMU(300), Units.toEMU(300));
+
             // Removing the text in the other Runs.
             for (int runPos = beginRun + 1; runPos <= endRun; runPos++) {
                 XWPFRun partNext = runs.get(runPos);
