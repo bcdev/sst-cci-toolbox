@@ -20,7 +20,6 @@ public class PvirTemplatePoiTest {
 
     @Before
     public void setUp() throws Exception {
-
         document = new PoiWordDocument(CarTemplateTest.class.getResource("PVIR_appendix_example_v3.docx"));
         properties = new Properties();
         properties.load(CarTemplateTest.class.getResourceAsStream("pvir-template.properties"));
@@ -69,27 +68,40 @@ public class PvirTemplatePoiTest {
         final String inputDir = properties.getProperty("figures.directory");
 
         final String dependenceImage = properties.getProperty("figure.dependence-av1");
-        assertTrue(document.containsVariable("${figure.dependence-av1}"));
         File imageFile = new File(inputDir, dependenceImage);
+        assertTrue(document.containsVariable("${figure.dependence-av1}"));
         document.replaceWithFigure("${figure.dependence-av1}", imageFile);
         assertFalse(document.containsVariable("${figure.dependence-av1}"));
 
         final String spatialImage = properties.getProperty("figure.spatial-av1");
-        assertTrue(document.containsVariable("${figure.spatial-av1}"));
         imageFile = new File(inputDir, spatialImage);
+        assertTrue(document.containsVariable("${figure.spatial-av1}"));
         document.replaceWithFigure("${figure.spatial-av1}", imageFile);
         assertFalse(document.containsVariable("${figure.spatial-av1}"));
 
         final String histogramImage = properties.getProperty("figure.histogram-av1");
-        assertTrue(document.containsVariable("${figure.histogram-av1}"));
         imageFile = new File(inputDir, histogramImage);
+        assertTrue(document.containsVariable("${figure.histogram-av1}"));
         document.replaceWithFigure("${figure.histogram-av1}", imageFile);
         assertFalse(document.containsVariable("${figure.histogram-av1}"));
 
         final String uncertImage = properties.getProperty("figure.uncert_val-av1");
-        assertTrue(document.containsVariable("${figure.uncert_val-av1}"));
         imageFile = new File(inputDir, uncertImage);
+        assertTrue(document.containsVariable("${figure.uncert_val-av1}"));
         document.replaceWithFigure("${figure.uncert_val-av1}", imageFile);
         assertFalse(document.containsVariable("${figure.uncert_val-av1}"));
+    }
+
+    @Test
+    public void testReplaceVariableWithFigure_andScaling() throws IOException, InvalidFormatException {
+        final String inputDir = properties.getProperty("figures.directory");
+
+        final String dependenceImage = properties.getProperty("figure.dependence-av1");
+        final String scaleProperty = properties.getProperty("figure.dependence-av1.scale");
+        File imageFile = new File(inputDir, dependenceImage);
+
+        assertTrue(document.containsVariable("${figure.dependence-av1}"));
+        document.replaceWithFigure("${figure.dependence-av1}", imageFile, Double.parseDouble(scaleProperty));
+        assertFalse(document.containsVariable("${figure.dependence-av1}"));
     }
 }

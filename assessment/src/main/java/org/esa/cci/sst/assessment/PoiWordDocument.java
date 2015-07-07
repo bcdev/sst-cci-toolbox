@@ -22,6 +22,7 @@ import java.util.List;
 
 public class PoiWordDocument {
 
+    public static final double DEFAULT_SCALE = 0.2;
     private final XWPFDocument document;
 
     public PoiWordDocument() {
@@ -68,7 +69,17 @@ public class PoiWordDocument {
         for (XWPFParagraph paragraph : paragraphs) {
             final TextSegement textSegement = paragraph.searchText(variable, new PositionInParagraph());
             if (textSegement != null) {
-                replaceVariable(imageFile, paragraph, textSegement);
+                replaceVariable(imageFile, paragraph, textSegement, DEFAULT_SCALE);
+            }
+        }
+    }
+
+    public void replaceWithFigure(String variable, File imageFile, double scale) throws IOException, InvalidFormatException {
+        final List<XWPFParagraph> paragraphs = document.getParagraphs();
+        for (XWPFParagraph paragraph : paragraphs) {
+            final TextSegement textSegement = paragraph.searchText(variable, new PositionInParagraph());
+            if (textSegement != null) {
+                replaceVariable(imageFile, paragraph, textSegement, scale);
             }
         }
     }
@@ -106,15 +117,15 @@ public class PoiWordDocument {
         }
     }
 
-    private void replaceVariable(File image, XWPFParagraph paragraph, TextSegement textSegement) throws IOException, InvalidFormatException {
+    private void replaceVariable(File image, XWPFParagraph paragraph, TextSegement textSegement, double scale) throws IOException, InvalidFormatException {
         final List<XWPFRun> runs = paragraph.getRuns();
         final int beginRun = textSegement.getBeginRun();
         final int endRun = textSegement.getEndRun();
 
         FileInputStream inputStream = new FileInputStream(image);
         final BufferedImage bufferedImage = ImageIO.read(inputStream);
-        final int width = Units.toEMU(bufferedImage.getWidth() * 0.2);
-        final int height = Units.toEMU(bufferedImage.getHeight() * 0.2);
+        final int width = Units.toEMU(bufferedImage.getWidth() * scale);
+        final int height = Units.toEMU(bufferedImage.getHeight() * scale);
         inputStream.close();
 
         inputStream = new FileInputStream(image);
@@ -137,4 +148,6 @@ public class PoiWordDocument {
             }
         }
     }
+
+
 }
