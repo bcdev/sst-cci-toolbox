@@ -76,4 +76,19 @@
         </dependency>
     </dependencies>
 
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.5.3</version>
+                <configuration>
+                    <descriptors>
+                        <descriptor>src/main/assembly/assessment_tool.xml</descriptor>
+                    </descriptors>
+                    <finalName>assessment-tool</finalName>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>
