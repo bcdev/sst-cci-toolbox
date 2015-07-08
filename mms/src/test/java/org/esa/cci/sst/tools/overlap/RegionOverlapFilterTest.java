@@ -4,7 +4,6 @@ package org.esa.cci.sst.tools.overlap;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.SobolSequenceGenerator;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -253,13 +252,13 @@ public class RegionOverlapFilterTest {
             point.setReference(orbitRef);
             samplingPoints.add(point);
         }
-        final Timer timer = new Timer();
-        System.out.println("Initial count  = " + samplingPoints.size());
-        timer.start();
+//        final Timer timer = new Timer();
+//        System.out.println("Initial count  = " + samplingPoints.size());
+//        timer.start();
         final List<SamplingPoint> filtererList = filter.apply(samplingPoints);
-        timer.stop();
-        System.out.println("Filtered count = " + filtererList.size());
-        System.out.println("time [s]       = " + timer.deltaTInSecs());
+//        timer.stop();
+//        System.out.println("Filtered count = " + filtererList.size());
+//        System.out.println("time [s]       = " + timer.deltaTInSecs());
 
         assertEquals(82715, filtererList.size());
     }

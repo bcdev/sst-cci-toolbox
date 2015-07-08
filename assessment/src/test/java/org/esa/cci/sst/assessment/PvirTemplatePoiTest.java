@@ -25,7 +25,7 @@ public class PvirTemplatePoiTest {
         properties = new Properties();
         properties.load(CarTemplateTest.class.getResourceAsStream("pvir-template.properties"));
 
-        dataDir = new File(System.getProperty("user.home"), "scratch/car/figures");
+        dataDir = new File(System.getProperty("user.home"), "scratch/pvir/figures");
     }
 
     @After
