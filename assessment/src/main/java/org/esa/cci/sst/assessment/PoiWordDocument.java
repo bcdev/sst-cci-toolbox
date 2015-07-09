@@ -20,7 +20,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.List;
 
-public class PoiWordDocument {
+class PoiWordDocument {
 
     public static final double DEFAULT_SCALE = 0.2;
     private final XWPFDocument document;

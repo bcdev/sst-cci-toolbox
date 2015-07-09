@@ -21,7 +21,7 @@ public class PvirTemplatePoiTest {
 
     @Before
     public void setUp() throws Exception {
-        document = new PoiWordDocument(CarTemplateTest.class.getResource("PVIR_appendix_example_v3.docx"));
+        document = new PoiWordDocument(CarTemplateTest.class.getResource("PVIR_appendix_example_v4.docx"));
         properties = new Properties();
         properties.load(CarTemplateTest.class.getResourceAsStream("pvir-template.properties"));
 
@@ -72,29 +72,29 @@ public class PvirTemplatePoiTest {
             return;
         }
 
-        final String dependenceImage = properties.getProperty("figure.dependence-av1");
+        final String dependenceImage = properties.getProperty("figure.dependence");
         File imageFile = new File(dataDir, dependenceImage);
-        assertTrue(document.containsVariable("${figure.dependence-av1}"));
-        document.replaceWithFigure("${figure.dependence-av1}", imageFile);
-        assertFalse(document.containsVariable("${figure.dependence-av1}"));
+        assertTrue(document.containsVariable("${figure.dependence}"));
+        document.replaceWithFigure("${figure.dependence}", imageFile);
+        assertFalse(document.containsVariable("${figure.dependence}"));
 
-        final String spatialImage = properties.getProperty("figure.spatial-av1");
+        final String spatialImage = properties.getProperty("figure.spatial");
         imageFile = new File(dataDir, spatialImage);
-        assertTrue(document.containsVariable("${figure.spatial-av1}"));
-        document.replaceWithFigure("${figure.spatial-av1}", imageFile);
-        assertFalse(document.containsVariable("${figure.spatial-av1}"));
+        assertTrue(document.containsVariable("${figure.spatial}"));
+        document.replaceWithFigure("${figure.spatial}", imageFile);
+        assertFalse(document.containsVariable("${figure.spatial}"));
 
-        final String histogramImage = properties.getProperty("figure.histogram-av1");
+        final String histogramImage = properties.getProperty("figure.histogram");
         imageFile = new File(dataDir, histogramImage);
-        assertTrue(document.containsVariable("${figure.histogram-av1}"));
-        document.replaceWithFigure("${figure.histogram-av1}", imageFile);
-        assertFalse(document.containsVariable("${figure.histogram-av1}"));
+        assertTrue(document.containsVariable("${figure.histogram}"));
+        document.replaceWithFigure("${figure.histogram}", imageFile);
+        assertFalse(document.containsVariable("${figure.histogram}"));
 
-        final String uncertImage = properties.getProperty("figure.uncert_val-av1");
+        final String uncertImage = properties.getProperty("figure.uncert_val");
         imageFile = new File(dataDir, uncertImage);
-        assertTrue(document.containsVariable("${figure.uncert_val-av1}"));
-        document.replaceWithFigure("${figure.uncert_val-av1}", imageFile);
-        assertFalse(document.containsVariable("${figure.uncert_val-av1}"));
+        assertTrue(document.containsVariable("${figure.uncert_val}"));
+        document.replaceWithFigure("${figure.uncert_val}", imageFile);
+        assertFalse(document.containsVariable("${figure.uncert_val}"));
     }
 
     @Test
@@ -104,12 +104,12 @@ public class PvirTemplatePoiTest {
             return;
         }
 
-        final String dependenceImage = properties.getProperty("figure.dependence-av1");
-        final String scaleProperty = properties.getProperty("figure.dependence-av1.scale");
+        final String dependenceImage = properties.getProperty("figure.dependence");
+        final String scaleProperty = properties.getProperty("figure.dependence.scale");
         File imageFile = new File(dataDir, dependenceImage);
 
-        assertTrue(document.containsVariable("${figure.dependence-av1}"));
-        document.replaceWithFigure("${figure.dependence-av1}", imageFile, Double.parseDouble(scaleProperty));
-        assertFalse(document.containsVariable("${figure.dependence-av1}"));
+        assertTrue(document.containsVariable("${figure.dependence}"));
+        document.replaceWithFigure("${figure.dependence}", imageFile, Double.parseDouble(scaleProperty));
+        assertFalse(document.containsVariable("${figure.dependence}"));
     }
 }

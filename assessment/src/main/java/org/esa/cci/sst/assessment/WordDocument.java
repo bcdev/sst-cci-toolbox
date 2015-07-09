@@ -44,7 +44,7 @@ import java.util.Properties;
  *
  * @author Ralf Quast
  */
-public class WordDocument {
+class WordDocument {
 
     private final WordprocessingMLPackage wordMLPackage;
 

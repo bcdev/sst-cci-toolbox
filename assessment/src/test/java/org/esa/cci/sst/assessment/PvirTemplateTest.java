@@ -19,7 +19,7 @@ public class PvirTemplateTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        wordDocument = new WordDocument(CarTemplateTest.class.getResource("PVIR_appendix_example_v3.docx"));
+        wordDocument = new WordDocument(CarTemplateTest.class.getResource("PVIR_appendix_example_v4.docx"));
 
         properties = new Properties();
         properties.load(CarTemplateTest.class.getResourceAsStream("pvir-template.properties"));
