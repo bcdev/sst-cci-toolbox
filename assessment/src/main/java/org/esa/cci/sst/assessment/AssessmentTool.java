@@ -1,11 +1,17 @@
 package org.esa.cci.sst.assessment;
 
 
-import org.apache.commons.cli.*;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.PosixParser;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 
-import java.io.*;
-import java.util.Enumeration;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -32,7 +38,7 @@ class AssessmentTool {
     }
 
     void run(String[] args) throws IOException, InvalidFormatException {
-        final CmdLineParameter cmdLineParameter = parseCommandLine(args);
+        final CmdLineParameter cmdLineParameter = parseCommandLine(options, args);
         if (cmdLineParameter == null) {
             return;
         }
@@ -41,9 +47,6 @@ class AssessmentTool {
         final Properties properties = loadProperties(cmdLineParameter.getPropertiesFile());
 
         replaceVariables(wordDocument, properties);
-        // replace variable
-
-        //  - figure.* + scale
 
         saveDocument(wordDocument, cmdLineParameter.getOutputFile());
     }
@@ -81,24 +84,35 @@ class AssessmentTool {
         final String figuresDirectory = properties.getProperty("figures.directory");
 
         for (final String propertyName : propertyNames) {
-            if (propertyName.startsWith("figure.") && !propertyName.contains(".scale")) {
+            if (isFigureProperty(propertyName)) {
                 final String figureName = properties.getProperty(propertyName);
                 final File figure = new File(figuresDirectory, figureName);
                 if (!figure.isFile()) {
-                    logger.warning("Figure '" + figureName + "' at '" +figure.getAbsolutePath() + " does not exist.");
+                    logger.warning("Figure '" + figureName + "' at '" + figure.getAbsolutePath() + " does not exist.");
                     continue;
                 }
 
-                final String scaleName = figureName + ".scale";
-                final String scaleProperty = properties.getProperty(scaleName);
+                final String scaleProperty = properties.getProperty(createScaleName(figureName));
                 if (scaleProperty != null) {
                     final double scale = Double.parseDouble(scaleProperty);
-                    wordDocument.replaceWithFigure("${" + propertyName + "}", figure, scale);
+                    wordDocument.replaceWithFigure(makeWordVariable(propertyName), figure, scale);
                 } else {
-                    wordDocument.replaceWithFigure("${" + propertyName + "}", figure);
+                    wordDocument.replaceWithFigure(makeWordVariable(propertyName), figure);
                 }
             }
         }
+    }
+
+    static String makeWordVariable(String propertyName) {
+        return "${" + propertyName + "}";
+    }
+
+    static String createScaleName(String figureName) {
+        return figureName + ".scale";
+    }
+
+    static boolean isFigureProperty(String propertyName) {
+        return propertyName.startsWith("figure.") && !propertyName.contains(".scale");
     }
 
     private void replaceWordVariables(PoiWordDocument wordDocument, Properties properties) {
@@ -107,7 +121,7 @@ class AssessmentTool {
         for (final String propertyName : propertyNames) {
             if (propertyName.startsWith("word.")) {
                 final String variableValue = properties.getProperty(propertyName);
-                wordDocument.replaceWithText("${" + propertyName + "}", variableValue);
+                wordDocument.replaceWithText(makeWordVariable(propertyName), variableValue);
             }
         }
     }
@@ -138,14 +152,14 @@ class AssessmentTool {
         return poiWordDocument;
     }
 
-    private void printHelp() {
+    private static void printHelp(Options options) {
         final HelpFormatter helpFormatter = new HelpFormatter();
         helpFormatter.setNewLine("\n");
         helpFormatter.setWidth(80);
         helpFormatter.printHelp("assessment-tool [options]", "\nOptions:", options, "", false);
     }
 
-    private CmdLineParameter parseCommandLine(String[] args) {
+    static CmdLineParameter parseCommandLine(Options options, String[] args) {
         final CmdLineParameter cmdLineParameter = new CmdLineParameter();
         try {
             final CommandLine commandLine = new PosixParser().parse(options, args);
@@ -164,14 +178,14 @@ class AssessmentTool {
 
         } catch (ParseException e) {
             System.out.println(e.getMessage());
-            printHelp();
+            printHelp(options);
             return null;
         }
 
         return cmdLineParameter;
     }
 
-    private File createFileVerified(String filePath, String fileDescription) throws ParseException {
+    private static File createFileVerified(String filePath, String fileDescription) throws ParseException {
         final File file = new File(filePath);
         if (!file.isFile()) {
             throw new ParseException(fileDescription + " file '" + filePath + "` does not exist");
