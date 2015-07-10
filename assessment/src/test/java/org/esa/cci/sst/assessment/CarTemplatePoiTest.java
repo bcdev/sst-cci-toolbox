@@ -50,4 +50,16 @@ public class CarTemplatePoiTest {
         document.replaceParagraphText("${comment.Figure_3}", comment);
         assertFalse(document.containsVariable("${comment.Figure_3}"));
     }
+
+    @Test
+    public void testReplaceParagraphs() throws Exception {
+        // @todo 2 tb/tb the same functionality is already covered by the test above. Iterate with NR and GC about the
+        // variable names. Concequently all keys that start with paragraph replace a paragraph text. The comment.* keys then either
+        // are removed or should have another functionality. tb 2015-07-10
+
+        String paragraph = properties.getProperty("paragraph.summary_text");
+        assertTrue(document.containsVariable("${paragraph.summary_text}"));
+        document.replaceParagraphText("${paragraph.summary_text}", paragraph);
+        assertFalse(document.containsVariable("${paragraph.summary_text}"));
+    }
 }

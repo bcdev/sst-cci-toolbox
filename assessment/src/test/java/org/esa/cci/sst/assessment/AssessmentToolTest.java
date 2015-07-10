@@ -27,4 +27,13 @@ public class AssessmentToolTest {
          assertEquals("${yeah}", AssessmentTool.makeWordVariable("yeah"));
          assertEquals("${Oh.yeah}", AssessmentTool.makeWordVariable("Oh.yeah"));
     }
+
+    @Test
+    public void testIsParagraphProperty() {
+        assertFalse(AssessmentTool.isParagraphProperty("image"));
+        assertFalse(AssessmentTool.isParagraphProperty("word"));
+
+        assertTrue(AssessmentTool.isParagraphProperty("paragraph.really"));
+        assertTrue(AssessmentTool.isParagraphProperty("comment.really"));
+    }
 }

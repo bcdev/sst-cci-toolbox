@@ -74,6 +74,7 @@ class AssessmentTool {
 
     private void replaceVariables(PoiWordDocument wordDocument, Properties properties) throws IOException, InvalidFormatException {
         replaceWordVariables(wordDocument, properties);
+        replaceParagraphVariables(wordDocument, properties);
         replaceFigureVariables(wordDocument, properties);
 
         logger.info("Replaced variables in template");
@@ -103,16 +104,15 @@ class AssessmentTool {
         }
     }
 
-    static String makeWordVariable(String propertyName) {
-        return "${" + propertyName + "}";
-    }
+    private void replaceParagraphVariables(PoiWordDocument wordDocument, Properties properties) {
+        final Set<String> propertyNames = properties.stringPropertyNames();
 
-    static String createScaleName(String figureName) {
-        return figureName + ".scale";
-    }
-
-    static boolean isFigureProperty(String propertyName) {
-        return propertyName.startsWith("figure.") && !propertyName.contains(".scale");
+        for (final String propertyName : propertyNames) {
+            if (isParagraphProperty(propertyName)) {
+                final String variableValue = properties.getProperty(propertyName);
+                wordDocument.replaceParagraphText(makeWordVariable(propertyName), variableValue);
+            }
+        }
     }
 
     private void replaceWordVariables(PoiWordDocument wordDocument, Properties properties) {
@@ -144,6 +144,22 @@ class AssessmentTool {
         }
 
         return properties;
+    }
+
+    static String makeWordVariable(String propertyName) {
+        return "${" + propertyName + "}";
+    }
+
+    static String createScaleName(String figureName) {
+        return figureName + ".scale";
+    }
+
+    static boolean isFigureProperty(String propertyName) {
+        return propertyName.startsWith("figure.") && !propertyName.contains(".scale");
+    }
+
+    static boolean isParagraphProperty(String propertyName) {
+        return propertyName.startsWith("paragraph.") || propertyName.startsWith("comment.");
     }
 
     private PoiWordDocument loadWordTemplate(File templateFile) throws IOException {
