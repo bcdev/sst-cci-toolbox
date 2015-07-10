@@ -7,13 +7,11 @@ import org.apache.poi.xwpf.usermodel.TextSegement;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFRun;
-import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTPicture;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -64,6 +62,16 @@ class PoiWordDocument {
         }
     }
 
+    public void replaceParagraphText(String variable, String paragraphText) {
+        final List<XWPFParagraph> paragraphs = document.getParagraphs();
+        for (XWPFParagraph paragraph : paragraphs) {
+            final TextSegement textSegement = paragraph.searchText(variable, new PositionInParagraph());
+            if (textSegement != null) {
+                replaceParagraphText(paragraphText, paragraph);
+            }
+        }
+    }
+
     public void replaceWithFigure(String variable, File imageFile) throws IOException, InvalidFormatException {
         final List<XWPFParagraph> paragraphs = document.getParagraphs();
         for (XWPFParagraph paragraph : paragraphs) {
@@ -83,6 +91,16 @@ class PoiWordDocument {
             }
         }
     }
+
+    private void replaceParagraphText(String paragraphText, XWPFParagraph paragraph) {
+        final List<XWPFRun> runs = paragraph.getRuns();
+        // set text to first run;
+        final XWPFRun firstRun = runs.get(0);
+        firstRun.setText(paragraphText, 0);
+
+        clearRunText(runs, 1, runs.size());
+    }
+
 
     private void replaceVariable(String variable, String text, XWPFParagraph paragraph, TextSegement textSegement) {
         final List<XWPFRun> runs = paragraph.getRuns();
@@ -109,11 +127,8 @@ class PoiWordDocument {
             // The first Run receives the replaced String of all connected Runs
             final XWPFRun partOne = runs.get(beginRun);
             partOne.setText(replaced, 0);
-            // Removing the text in the other Runs.
-            for (int runPos = beginRun + 1; runPos <= endRun; runPos++) {
-                XWPFRun partNext = runs.get(runPos);
-                partNext.setText("", 0);
-            }
+
+            clearRunText(runs, beginRun, endRun + 1);
         }
     }
 
@@ -141,13 +156,14 @@ class PoiWordDocument {
             partOne.setText("", 0);
             partOne.addPicture(inputStream, XWPFDocument.PICTURE_TYPE_PNG, image.getName(), width, height);
 
-            // Removing the text in the other Runs.
-            for (int runPos = beginRun + 1; runPos <= endRun; runPos++) {
-                XWPFRun partNext = runs.get(runPos);
-                partNext.setText("", 0);
-            }
+            clearRunText(runs, beginRun, endRun + 1);
         }
     }
 
-
+    private void clearRunText(List<XWPFRun> runs, int beginRun, int endRun) {
+        for (int runPos = beginRun + 1; runPos < endRun; runPos++) {
+            XWPFRun partNext = runs.get(runPos);
+            partNext.setText("", 0);
+        }
+    }
 }
