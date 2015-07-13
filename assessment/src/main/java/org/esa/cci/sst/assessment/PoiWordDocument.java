@@ -72,22 +72,32 @@ class PoiWordDocument {
         }
     }
 
-    public void replaceWithFigure(String variable, File imageFile) throws IOException, InvalidFormatException {
+    public void replaceWithFigure(String variable, File figureFile) throws IOException, InvalidFormatException {
         final List<XWPFParagraph> paragraphs = document.getParagraphs();
         for (XWPFParagraph paragraph : paragraphs) {
             final TextSegement textSegement = paragraph.searchText(variable, new PositionInParagraph());
             if (textSegement != null) {
-                replaceVariable(imageFile, paragraph, textSegement, DEFAULT_SCALE);
+                replaceVariable(figureFile, paragraph, textSegement, DEFAULT_SCALE);
             }
         }
     }
 
-    public void replaceWithFigure(String variable, File imageFile, double scale) throws IOException, InvalidFormatException {
+    public void replaceWithFigure(String variable, File figureFile, double scale) throws IOException, InvalidFormatException {
         final List<XWPFParagraph> paragraphs = document.getParagraphs();
         for (XWPFParagraph paragraph : paragraphs) {
             final TextSegement textSegement = paragraph.searchText(variable, new PositionInParagraph());
             if (textSegement != null) {
-                replaceVariable(imageFile, paragraph, textSegement, scale);
+                replaceVariable(figureFile, paragraph, textSegement, scale);
+            }
+        }
+    }
+
+    public void replaceWithFigures(String variable, File[] figureFiles) throws IOException, InvalidFormatException {
+        final List<XWPFParagraph> paragraphs = document.getParagraphs();
+        for (XWPFParagraph paragraph : paragraphs) {
+            final TextSegement textSegement = paragraph.searchText(variable, new PositionInParagraph());
+            if (textSegement != null) {
+                replaceVariable(figureFiles, paragraph, textSegement, DEFAULT_SCALE);
             }
         }
     }
@@ -137,27 +147,54 @@ class PoiWordDocument {
         final int beginRun = textSegement.getBeginRun();
         final int endRun = textSegement.getEndRun();
 
+        if (beginRun == endRun) {
+            // replace single run variable
+            final XWPFRun run = runs.get(beginRun);
+            addImageToRun(image, scale, run);
+        } else {
+            // variable is spread over multiple runs
+            final XWPFRun partOne = runs.get(beginRun);
+            addImageToRun(image, scale, partOne);
+
+            clearRunText(runs, beginRun, endRun + 1);
+        }
+    }
+
+    private void replaceVariable(File[] figureFiles, XWPFParagraph paragraph, TextSegement textSegement, double scale) throws IOException, InvalidFormatException {
+        final List<XWPFRun> runs = paragraph.getRuns();
+        final int beginRun = textSegement.getBeginRun();
+        final int endRun = textSegement.getEndRun();
+
+        if (beginRun == endRun) {
+            // replace single run variable
+            final XWPFRun run = runs.get(beginRun);
+
+            for (File figureFile : figureFiles) {
+                addImageToRun(figureFile, scale, run);
+            }
+
+        } else {
+            // variable is spread over multiple runs
+            final XWPFRun partOne = runs.get(beginRun);
+            for (File figureFile : figureFiles) {
+                addImageToRun(figureFile, scale, partOne);
+            }
+
+            clearRunText(runs, beginRun, endRun + 1);
+        }
+    }
+
+    private void addImageToRun(File image, double scale, XWPFRun run) throws IOException, InvalidFormatException {
         FileInputStream inputStream = new FileInputStream(image);
         final BufferedImage bufferedImage = ImageIO.read(inputStream);
         final int width = Units.toEMU(bufferedImage.getWidth() * scale);
         final int height = Units.toEMU(bufferedImage.getHeight() * scale);
         inputStream.close();
 
+        run.setText("", 0);
         inputStream = new FileInputStream(image);
-        if (beginRun == endRun) {
-            // replace single run variable
-            final XWPFRun run = runs.get(beginRun);
-            run.setText("", 0);
-            run.addPicture(inputStream, XWPFDocument.PICTURE_TYPE_PNG, image.getName(), width, height);
-        } else {
-            // variable is spread over multiple runs
-
-            final XWPFRun partOne = runs.get(beginRun);
-            partOne.setText("", 0);
-            partOne.addPicture(inputStream, XWPFDocument.PICTURE_TYPE_PNG, image.getName(), width, height);
-
-            clearRunText(runs, beginRun, endRun + 1);
-        }
+        run.addPicture(inputStream, XWPFDocument.PICTURE_TYPE_PNG, image.getName(), width, height);
+        inputStream.close();
     }
 
     private void clearRunText(List<XWPFRun> runs, int beginRun, int endRun) {
