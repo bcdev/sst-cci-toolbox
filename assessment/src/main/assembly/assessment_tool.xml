@@ -30,8 +30,6 @@
         <dependencySet>
             <outputDirectory>/lib</outputDirectory>
             <excludes>
-                <!--<exclude>org.esa.smostbx:smos-dgg</exclude>-->
-                <!--<exclude>org.esa.smostbx:smos-lsmask</exclude>-->
             </excludes>
         </dependencySet>
     </dependencySets>

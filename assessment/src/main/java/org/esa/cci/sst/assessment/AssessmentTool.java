@@ -17,8 +17,12 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 class AssessmentTool {
+
+    private static final String VERSION = "1.0";
+
     private final Options options;
     private final Logger logger;
+
 
     AssessmentTool() {
         options = new Options();
@@ -172,7 +176,7 @@ class AssessmentTool {
         final HelpFormatter helpFormatter = new HelpFormatter();
         helpFormatter.setNewLine("\n");
         helpFormatter.setWidth(80);
-        helpFormatter.printHelp("assessment-tool [options]", "\nOptions:", options, "", false);
+        helpFormatter.printHelp("assessment-tool " + VERSION + " [options]", "\nOptions:", options, "", false);
     }
 
     static CmdLineParameter parseCommandLine(Options options, String[] args) {

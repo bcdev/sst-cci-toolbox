@@ -91,7 +91,7 @@
                     <descriptors>
                         <descriptor>src/main/assembly/assessment_tool.xml</descriptor>
                     </descriptors>
-                    <finalName>assessment-tool</finalName>
+                    <finalName>assessment-tool-${version}</finalName>
                 </configuration>
             </plugin>
         </plugins>
