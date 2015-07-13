@@ -1,0 +1,109 @@
+Assessment-tool version 1.0 Manual
+----------------------------------
+
+The assesment tool processes Microsoft Word template files in docx format and replaces
+variables in the template with parameters supplied in a file in Java Properties format
+(key-value) pairs.
+
+This software supports Windows and Linux operating systems.
+
+Usage:
+
+assessment-tool.bat/.sh [options]
+
+Where options are:
+    -o,--output <arg>       The output file name/path
+    -p,--properties <arg>   The properties file-path containing the variables
+    -t,--template <arg>     The word template file-path to use
+
+Properties file format
+----------------------
+
+The properties file format is described in detail at
+https://en.wikipedia.org/wiki/.properties
+
+The properties file contains key/value pairs defined in a single line, key and value are separated by '='.
+
+One important key that has to be supplied defined the directory where image files are located:
+
+    figures.directory  = /home/tom/scratch/pvir/figures
+
+All other entries in the properties file are variable definitions that are explained in the next section.
+
+Variables
+---------
+
+Varaibles in the word-document template are placeholders for content supplied by the assessment-tool. Variables in
+the word document follow the convention
+
+${variable_name}
+
+Variables can be replaced by text or figures. When replacing variables, the formatting of the word-document is
+not touched.
+
+Variables in the properties file are stored as mere names, without the surrounding '${' and '}'.
+
+The variable name has to follow a specific pattern that also defines the replacing functionality. A variable name
+consists of a functional description, the name and ann optional suffix, separated by a dot '.'.
+
+Example:
+    description.name.suffix
+
+The functional descriptions are:
+
+- word
+    Replaces each variable occurence with the variable value, preferrably one word. Replacement happens in-line with
+    the template text.
+    Example:
+        word.sensor = ATSR.2
+
+- comment
+    Replaces the variable occurrence with the variable value, creating a complete paragraph.
+    Example:
+        comment.Figure_2
+
+- paragraph
+    Replaces the variable occurrence with the variable value, creating a complete paragraph.
+    Example:
+        paragraph.summary_text
+
+- figure
+    Replaces the variable occurrence with a figure. The variable value must be an existing image file in PNG format,
+    stored in the directory defined by 'figures.directory'
+    Example:
+        figure.dependence = atsr3-skin-raw-drifter-dependence-av1.png
+
+- figures
+    Replaces the variable occurrence with multiple figures. The variable value can be any wildcard-pattern defining
+    an arbitrary number of images, stored in the directory defined by 'figures.directory'
+    Example:
+        figures.plot_lag_corr = lag_corr_*.png
+
+
+Suffixes
+
+- scale
+    Allows to supply an optional scaling factor for the 'figure' and 'figures' descriptors. The default value is 0.2.
+    Example:
+        figure.dependence.scale = 0.45
+
+Wildcard expressions
+--------------------
+
+To define a list of figures, wildcard expressions can be used. Wildcards supported by the assessment tool follow the
+"glob" filesystem command using (extended) Unix-style wildcards:
+
+'**' recursively matches directories and sub-directories
+'*'  matches parts or entire path names
+'?'  matches single characters
+character ranges expressed with '[]' will be correctly matched
+
+Example:
+    figures.plot_lag_corr = l?g_corr_*.png
+
+Multiple wildcard expressions are supported, the expressions have to be defined in one line, separated by ';'.
+
+Example:
+    figures.plot_lag_corr = lag_corr_Daily*.png;lag_corr_My*.png
+
+

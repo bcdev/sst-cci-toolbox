@@ -10,20 +10,27 @@
 
     <files>
         <file>
-            <source>${project.basedir}/src/main/bin/process_pvir.bat</source>
+            <source>${project.basedir}/src/main/bin/assessment-tool.bat</source>
             <outputDirectory>/</outputDirectory>
             <lineEnding>dos</lineEnding>
             <filtered>false</filtered>
         </file>
 
         <file>
-            <source>${project.basedir}/src/main/bin/process_pvir.sh</source>
+            <source>${project.basedir}/src/main/bin/assessment-tool</source>
             <outputDirectory>/</outputDirectory>
             <lineEnding>unix</lineEnding>
             <fileMode>0755</fileMode>
             <filtered>false</filtered>
         </file>
 
+        <file>
+            <source>${project.basedir}/src/main/doc/assessment-tool-manual.txt</source>
+            <outputDirectory>/doc</outputDirectory>
+            <lineEnding>unix</lineEnding>
+            <fileMode>0755</fileMode>
+            <filtered>false</filtered>
+        </file>
     </files>
 
     <dependencySets>
