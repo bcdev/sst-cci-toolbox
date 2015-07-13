@@ -17,7 +17,7 @@
         </file>
 
         <file>
-            <source>${project.basedir}/src/main/bin/assessment-tool</source>
+            <source>${project.basedir}/src/main/bin/assessment-tool.sh</source>
             <outputDirectory>/</outputDirectory>
             <lineEnding>unix</lineEnding>
             <fileMode>0755</fileMode>

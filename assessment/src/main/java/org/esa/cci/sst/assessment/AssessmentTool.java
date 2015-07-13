@@ -122,14 +122,13 @@ class AssessmentTool {
 
                 final ArrayList<File> fileList = applyWildCards(figuresDirectory, propertyName, figurePathesWildcards);
 
-                double scale = 0.2;
+                final File[] files = fileList.toArray(new File[fileList.size()]);
                 final String scaleProperty = properties.getProperty(createScaleName(propertyName));
                 if (scaleProperty != null) {
-                    scale = Double.parseDouble(scaleProperty);
-                }
-
-                for (final File figureFile : fileList) {
-                    wordDocument.replaceWithFigure(makeWordVariable(propertyName), figureFile, scale);
+                    final double scale = Double.parseDouble(scaleProperty);
+                    wordDocument.replaceWithFigures(makeWordVariable(propertyName), files, scale);
+                } else {
+                    wordDocument.replaceWithFigures(makeWordVariable(propertyName), files);
                 }
             }
         }
