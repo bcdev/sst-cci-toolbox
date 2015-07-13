@@ -23,9 +23,9 @@ public class CarTemplatePoiTest {
 
     @Before
     public void setUp() throws Exception {
-        document = new PoiWordDocument(CarTemplateTest.class.getResource("car-template.docx"));
+        document = new PoiWordDocument(CarTemplatePoiTest.class.getResource("car-template.docx"));
         properties = new Properties();
-        properties.load(CarTemplateTest.class.getResourceAsStream("car-template.properties"));
+        properties.load(CarTemplatePoiTest.class.getResourceAsStream("car-template.properties"));
 
         dataDir = new File(System.getProperty("user.home"), "scratch/car/figures");
     }

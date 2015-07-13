@@ -17,6 +17,14 @@ public class AssessmentToolTest {
     }
 
     @Test
+    public void testIsFiguresProperty() {
+        assertFalse(AssessmentTool.isFiguresProperty("picture"));
+        assertFalse(AssessmentTool.isFiguresProperty("figures.bla.scale"));
+
+        assertTrue(AssessmentTool.isFiguresProperty("figures.really_a_lot"));
+    }
+
+    @Test
     public void testCreateScaleName() {
         assertEquals("holla.scale", AssessmentTool.createScaleName("holla"));
         assertEquals("figure.thing.scale", AssessmentTool.createScaleName("figure.thing"));

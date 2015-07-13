@@ -40,12 +40,7 @@
             <artifactId>beam-core</artifactId>
             <version>5.0.2</version>
         </dependency>
-        <!-- docx4j -->
-        <dependency>
-            <groupId>org.docx4j</groupId>
-            <artifactId>docx4j</artifactId>
-            <version>3.2.1</version>
-        </dependency>
+
         <!-- apache POI -->
         <dependency>
             <groupId>org.apache.poi</groupId>

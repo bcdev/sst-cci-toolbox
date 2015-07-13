@@ -102,6 +102,16 @@ class PoiWordDocument {
         }
     }
 
+    public void replaceWithFigures(String variable, File[] figureFiles, double scale) throws IOException, InvalidFormatException {
+        final List<XWPFParagraph> paragraphs = document.getParagraphs();
+        for (XWPFParagraph paragraph : paragraphs) {
+            final TextSegement textSegement = paragraph.searchText(variable, new PositionInParagraph());
+            if (textSegement != null) {
+                replaceVariable(figureFiles, paragraph, textSegement, scale);
+            }
+        }
+    }
+
     private void replaceParagraphText(String paragraphText, XWPFParagraph paragraph) {
         final List<XWPFRun> runs = paragraph.getRuns();
         // set text to first run;

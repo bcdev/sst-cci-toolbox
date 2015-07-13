@@ -21,9 +21,9 @@ public class PvirTemplatePoiTest {
 
     @Before
     public void setUp() throws Exception {
-        document = new PoiWordDocument(CarTemplateTest.class.getResource("PVIR_appendix_example_v4.docx"));
+        document = new PoiWordDocument(PvirTemplatePoiTest.class.getResource("PVIR_appendix_example_v4.docx"));
         properties = new Properties();
-        properties.load(CarTemplateTest.class.getResourceAsStream("pvir-template.properties"));
+        properties.load(PvirTemplatePoiTest.class.getResourceAsStream("pvir-template.properties"));
 
         dataDir = new File(System.getProperty("user.home"), "scratch/pvir/figures");
     }

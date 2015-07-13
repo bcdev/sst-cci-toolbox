@@ -8,10 +8,13 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.esa.beam.util.StringUtils;
+import org.esa.beam.util.io.WildcardMatcher;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -80,6 +83,7 @@ class AssessmentTool {
         replaceWordVariables(wordDocument, properties);
         replaceParagraphVariables(wordDocument, properties);
         replaceFigureVariables(wordDocument, properties);
+        replaceMultipleFigureVariables(wordDocument, properties);
 
         logger.info("Replaced variables in template");
     }
@@ -106,6 +110,45 @@ class AssessmentTool {
                 }
             }
         }
+    }
+
+    private void replaceMultipleFigureVariables(PoiWordDocument wordDocument, Properties properties) throws IOException, InvalidFormatException {
+        final Set<String> propertyNames = properties.stringPropertyNames();
+        final String figuresDirectory = properties.getProperty("figures.directory");
+
+        for (final String propertyName : propertyNames) {
+            if (isFiguresProperty(propertyName)) {
+                final String figurePathesWildcards = properties.getProperty(propertyName);
+
+                final ArrayList<File> fileList = applyWildCards(figuresDirectory, propertyName, figurePathesWildcards);
+
+                double scale = 0.2;
+                final String scaleProperty = properties.getProperty(createScaleName(propertyName));
+                if (scaleProperty != null) {
+                    scale = Double.parseDouble(scaleProperty);
+                }
+
+                for (final File figureFile : fileList) {
+                    wordDocument.replaceWithFigure(makeWordVariable(propertyName), figureFile, scale);
+                }
+            }
+        }
+    }
+
+    private ArrayList<File> applyWildCards(String figuresDirectory, String propertyName, String figurePathesWildcards) throws IOException {
+        final ArrayList<File> fileList = new ArrayList<>();
+        final String[] splittedWildcards = StringUtils.split(figurePathesWildcards, new char[]{';'}, true);
+        for (final String wildcard : splittedWildcards) {
+            final File[] files = WildcardMatcher.glob(new File(figuresDirectory, wildcard).getPath());
+            for (final File file : files) {
+                if (!file.isFile()) {
+                    logger.warning("Figure '" + propertyName + "' at '" + file.getAbsolutePath() + " does not exist.");
+                    continue;
+                }
+                fileList.add(file);
+            }
+        }
+        return fileList;
     }
 
     private void replaceParagraphVariables(PoiWordDocument wordDocument, Properties properties) {
@@ -160,6 +203,10 @@ class AssessmentTool {
 
     static boolean isFigureProperty(String propertyName) {
         return propertyName.startsWith("figure.") && !propertyName.contains(".scale");
+    }
+
+    static boolean isFiguresProperty(String propertyName) {
+        return propertyName.startsWith("figures.") && !propertyName.contains(".scale");
     }
 
     static boolean isParagraphProperty(String propertyName) {
