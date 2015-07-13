@@ -1,10 +1,12 @@
 package org.esa.cci.sst.assessment;
 
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Properties;
 
 import static org.junit.Assert.assertFalse;
@@ -61,5 +63,41 @@ public class CarTemplatePoiTest {
         assertTrue(document.containsVariable("${paragraph.summary_text}"));
         document.replaceParagraphText("${paragraph.summary_text}", paragraph);
         assertFalse(document.containsVariable("${paragraph.summary_text}"));
+    }
+
+    @Test
+    public void testReplaceVariableWithFigure() throws IOException, InvalidFormatException {
+        if (!dataDir.isDirectory()) {
+            System.out.println("data directory nor found, skipping `testReplaceVariableWithFigure`");
+            return;
+        }
+
+        final String dependenceImage = properties.getProperty("figure.region_map");
+        File imageFile = new File(dataDir, dependenceImage);
+        assertTrue(document.containsVariable("${figure.region_map}"));
+        document.replaceWithFigure("${figure.region_map}", imageFile);
+        assertFalse(document.containsVariable("${figure.region_map}"));
+
+        final String spatialImage = properties.getProperty("figure.Figure_2");
+        imageFile = new File(dataDir, spatialImage);
+        assertTrue(document.containsVariable("${figure.Figure_2}"));
+        document.replaceWithFigure("${figure.Figure_2}", imageFile);
+        assertFalse(document.containsVariable("${figure.Figure_2}"));
+    }
+
+    @Test
+    public void testReplaceVariableWithFigure_andScaling() throws IOException, InvalidFormatException {
+        if (!dataDir.isDirectory()) {
+            System.out.println("data directory nor found, skipping `testReplaceVariableWithFigure_andScaling`");
+            return;
+        }
+
+        final String dependenceImage = properties.getProperty("figure.Figure_4");
+        final String scaleProperty = properties.getProperty("figure.Figure_4.scale");
+        File imageFile = new File(dataDir, dependenceImage);
+
+        assertTrue(document.containsVariable("${figure.Figure_4}"));
+        document.replaceWithFigure("${figure.Figure_4}", imageFile, Double.parseDouble(scaleProperty));
+        assertFalse(document.containsVariable("${figure.Figure_4}"));
     }
 }

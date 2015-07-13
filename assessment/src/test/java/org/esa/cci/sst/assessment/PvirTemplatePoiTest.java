@@ -100,7 +100,7 @@ public class PvirTemplatePoiTest {
     @Test
     public void testReplaceVariableWithFigure_andScaling() throws IOException, InvalidFormatException {
         if (!dataDir.isDirectory()) {
-            System.out.println("data directory nor found, skipping `testReplaceVariableWithFigure`");
+            System.out.println("data directory nor found, skipping `testReplaceVariableWithFigure_andScaling`");
             return;
         }
 
