@@ -251,7 +251,7 @@ Then use e.g. rsync to copy directories of data
 
 ## Copyright and licensing
 
-This software is under copyright 2010-2014 by Brockmann Consult GmbH.
+This software is under copyright 2010-2015 by Brockmann Consult GmbH.
 
 This software is distributed under the GNU General Public License. Further terms and conditions are described in the
 accompanying LICENSE.txt and NOTICE.txt files.
@@ -259,36 +259,4 @@ accompanying LICENSE.txt and NOTICE.txt files.
 
 ## Contact information
 
-* Ralf Quast (ralf.quast@brockmann-consult.de)
 * Tom Block (tom.block@brockmann-consult.de)
-
-
-CREATE TABLE mm_observation (
-    id integer NOT NULL,
-    name character varying(255),
-    recordno integer,
-    sensor character varying(255),
-    dtype character varying(255),
-    datafile_id integer,
-    location geography(4326),
-    "time" timestamp with time zone,
-    timeradius double precision,
-    dataset smallint,
-    point geography(Point,4326),
-    referenceflag smallint
-);
-
-CREATE TABLE mm_observation (
-    id integer NOT NULL,
-    name character varying(255),
-    recordno integer,
-    sensor character varying(255),
-    dtype character varying(255),
-    datafile_id integer,
-    location geography(GEOMETRY,4326),
-    "time" timestamp with time zone,
-    timeradius double precision,
-    dataset smallint,
-    point geography(Point,4326),
-    referenceflag smallint
-);
