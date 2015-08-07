@@ -13,7 +13,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-public class PvirTemplatePoiTest {
+public class PvirTemplateTest {
 
     private File dataDir;
     private PoiWordDocument document;
@@ -21,9 +21,9 @@ public class PvirTemplatePoiTest {
 
     @Before
     public void setUp() throws Exception {
-        document = new PoiWordDocument(PvirTemplatePoiTest.class.getResource("PVIR_appendix_example_v6.docx"));
+        document = new PoiWordDocument(PvirTemplateTest.class.getResource("PVIR_appendix_example_v6.docx"));
         properties = new Properties();
-        properties.load(PvirTemplatePoiTest.class.getResourceAsStream("pvir-template.properties"));
+        properties.load(PvirTemplateTest.class.getResourceAsStream("pvir-template.properties"));
 
         dataDir = new File(System.getProperty("user.home"), "scratch/pvir/figures");
     }

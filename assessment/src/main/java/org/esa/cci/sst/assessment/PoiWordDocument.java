@@ -55,8 +55,10 @@ class PoiWordDocument {
     public void replaceWithText(String variable, String text) {
         final List<XWPFParagraph> paragraphs = document.getParagraphs();
         for (XWPFParagraph paragraph : paragraphs) {
-            final TextSegement textSegement = paragraph.searchText(variable, new PositionInParagraph());
-            if (textSegement != null) {
+            final PositionInParagraph startPos = new PositionInParagraph();
+
+            TextSegement textSegement;
+            while ((textSegement = paragraph.searchText(variable, startPos)) != null) {
                 replaceVariable(variable, text, paragraph, textSegement);
             }
         }
