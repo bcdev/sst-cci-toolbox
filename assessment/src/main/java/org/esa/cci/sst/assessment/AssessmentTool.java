@@ -21,25 +21,13 @@ import java.util.logging.Logger;
 
 class AssessmentTool {
 
-    private static final String VERSION = "1.0";
+    private static final String VERSION = "1.1";
 
     private final Options options;
     private final Logger logger;
 
-
     AssessmentTool() {
-        options = new Options();
-        final Option templateOption = new Option("t", "template", true, "The word template file-path to use");
-        templateOption.setRequired(true);
-        options.addOption(templateOption);
-
-        final Option propertiesOption = new Option("p", "properties", true, "The properties file-path containing the variables");
-        propertiesOption.setRequired(true);
-        options.addOption(propertiesOption);
-
-        final Option outputFileOption = new Option("o", "output", true, "The output file name/path");
-        outputFileOption.setRequired(true);
-        options.addOption(outputFileOption);
+        options = createOptions();
 
         logger = Logger.getLogger("org.esa.cci.sst.assessment");
     }
@@ -64,6 +52,14 @@ class AssessmentTool {
         if (!outputDir.isDirectory()) {
             if (!outputDir.mkdirs()) {
                 final String message = "Unable to create target directory'" + outputDir.getAbsolutePath() + "'";
+                logger.severe(message);
+                throw new IOException(message);
+            }
+        }
+
+        if (outputFile.isFile() && options.hasOption("r"))  {
+            if (!outputFile.delete()) {
+                final String message = "Unable to delete target file'" + outputFile.getAbsolutePath() + "'";
                 logger.severe(message);
                 throw new IOException(message);
             }
@@ -257,5 +253,26 @@ class AssessmentTool {
             throw new ParseException(fileDescription + " file '" + filePath + "` does not exist");
         }
         return file;
+    }
+
+    static Options createOptions() {
+        final Options options = new Options();
+        final Option templateOption = new Option("t", "template", true, "The word template file-path to use");
+        templateOption.setRequired(true);
+        options.addOption(templateOption);
+
+        final Option propertiesOption = new Option("p", "properties", true, "The properties file-path containing the variables");
+        propertiesOption.setRequired(true);
+        options.addOption(propertiesOption);
+
+        final Option outputFileOption = new Option("o", "output", true, "The output file name/path");
+        outputFileOption.setRequired(true);
+        options.addOption(outputFileOption);
+
+        final Option replaceFileOption = new Option("r", "replace", true, "Replace output file if existing");
+        replaceFileOption.setRequired(false);
+        options.addOption(replaceFileOption);
+
+        return options;
     }
 }

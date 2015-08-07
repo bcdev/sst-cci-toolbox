@@ -1,4 +1,4 @@
-Assessment-tool version 1.0 Manual
+Assessment-tool version 1.1 Manual
 ----------------------------------
 
 The assesment tool processes Microsoft Word template files in docx format and replaces
@@ -15,6 +15,7 @@ Where options are:
     -o,--output <arg>       The output file name/path
     -p,--properties <arg>   The properties file-path containing the variables
     -t,--template <arg>     The word template file-path to use
+    -r, --replace           Replace output file if existing
 
 Properties file format
 ----------------------
@@ -107,3 +108,8 @@ Example:
     figures.plot_lag_corr = lag_corr_Daily*.png;lag_corr_My*.png
 
 
+CHANGELOG
+=========
+
+version 1.1
+- added replace option to overwrite existing output file
