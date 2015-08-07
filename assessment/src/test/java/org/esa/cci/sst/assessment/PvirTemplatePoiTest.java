@@ -21,7 +21,7 @@ public class PvirTemplatePoiTest {
 
     @Before
     public void setUp() throws Exception {
-        document = new PoiWordDocument(PvirTemplatePoiTest.class.getResource("PVIR_appendix_example_v4.docx"));
+        document = new PoiWordDocument(PvirTemplatePoiTest.class.getResource("PVIR_appendix_example_v6.docx"));
         properties = new Properties();
         properties.load(PvirTemplatePoiTest.class.getResourceAsStream("pvir-template.properties"));
 
