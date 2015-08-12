@@ -114,3 +114,4 @@ CHANGELOG
 version 1.1
 - added replace option to overwrite existing output file
 - fixed bug where a variable occuring more than once in a paragraph was not replaced correctly
+- fixed bug where figure scaling was not applied properly

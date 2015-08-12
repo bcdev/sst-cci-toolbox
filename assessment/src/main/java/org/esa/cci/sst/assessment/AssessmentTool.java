@@ -97,7 +97,7 @@ class AssessmentTool {
                     continue;
                 }
 
-                final String scaleProperty = properties.getProperty(createScaleName(figureName));
+                final String scaleProperty = properties.getProperty(createScaleName(propertyName));
                 if (scaleProperty != null) {
                     final double scale = Double.parseDouble(scaleProperty);
                     wordDocument.replaceWithFigure(makeWordVariable(propertyName), figure, scale);
@@ -271,6 +271,7 @@ class AssessmentTool {
 
         final Option replaceFileOption = new Option("r", "replace", true, "Replace output file if existing");
         replaceFileOption.setRequired(false);
+        replaceFileOption.setArgs(0);
         options.addOption(replaceFileOption);
 
         return options;
