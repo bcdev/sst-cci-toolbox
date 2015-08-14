@@ -1,6 +1,6 @@
 from workflow import Workflow
 
-usecase = 'mms4'
+usecase = 'mms4a'
 mmdtype = 'mmd4'
 
 w = Workflow(usecase)
