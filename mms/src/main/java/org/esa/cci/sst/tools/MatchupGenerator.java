@@ -16,6 +16,7 @@ import org.esa.cci.sst.tools.mmdgeneration.DimensionConfigurationInitializer;
 import org.esa.cci.sst.tools.samplepoint.DirtySubsceneRemover;
 import org.esa.cci.sst.tools.samplepoint.OverlapRemover;
 import org.esa.cci.sst.tools.samplepoint.SamplePointImporter;
+import org.esa.cci.sst.tools.samplepoint.TimeDeltaPointRemover;
 import org.esa.cci.sst.tools.samplepoint.TimeRange;
 import org.esa.cci.sst.util.ConfigUtil;
 import org.esa.cci.sst.util.GeometryUtil;
@@ -51,6 +52,7 @@ public class MatchupGenerator extends BasicTool {
     private long referenceSensorPattern;
     private String referenceSensorName;
     private int maxSampleCount;
+    private int matchupDeltaTime;
 
     public MatchupGenerator() {
         super("matchup-generator", "1.0");
@@ -91,6 +93,7 @@ public class MatchupGenerator extends BasicTool {
         referenceSensorName = config.getStringValue(Configuration.KEY_MMS_SAMPLING_REFERENCE_SENSOR);
         maxSampleCount = config.getIntValue(Configuration.KEY_MMS_SAMPLING_MAX_SAMPLE_COUNT, 0);
         referenceSensorPattern = config.getPattern(referenceSensorName, 0);
+        matchupDeltaTime = config.getIntValue("mms.sampling.deltatime", -1);
 
         final Set<String> dimensionNames = new TreeSet<>();
         dimensionNames.add(SensorNames.getDimensionNameX(sensorName1));
@@ -122,6 +125,10 @@ public class MatchupGenerator extends BasicTool {
             throw new ToolException("No samples found.", ToolException.NO_MATCHUPS_FOUND_ERROR);
         }
 
+        if (matchupDeltaTime > 0) {
+            removeWrongTimeSamples(samples);
+        }
+
         int w = overlappingWanted ? 1 : subSceneWidth1;
         int h = overlappingWanted ? 1 : subSceneHeight1;
         do {
@@ -130,6 +137,8 @@ public class MatchupGenerator extends BasicTool {
 
         createMatchups(logger, samples);
     }
+
+
 
     static void createMatchups(List<SamplingPoint> samples, String referenceSensorName, String primarySensorName,
                                String secondarySensorName, long referenceSensorPattern, PersistenceManager pm,
@@ -422,6 +431,13 @@ public class MatchupGenerator extends BasicTool {
         final OverlapRemover overlapRemover = createOverlapRemover(w, h);
         overlapRemover.removeSamples(samples);
         // TODO - remove duplicated samples (i.e. samples that have the same in-situ measurement and same satellite coordinates)
+        logInfo(logger, "Finished removing overlapping samples (" + samples.size() + " samples left)");
+    }
+
+    private void removeWrongTimeSamples(List<SamplingPoint> samples) {
+        logInfo(logger, "Starting removing wrong timing samples...");
+        final TimeDeltaPointRemover timeDeltaPointRemover = new TimeDeltaPointRemover();
+        timeDeltaPointRemover.removeSamples(samples, matchupDeltaTime);
         logInfo(logger, "Finished removing overlapping samples (" + samples.size() + " samples left)");
     }
 

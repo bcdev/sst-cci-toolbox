@@ -34,5 +34,4 @@ public class IceFreePointRemover {
         samples.clear();
         samples.addAll(iceFreeSamples);
     }
-
 }
