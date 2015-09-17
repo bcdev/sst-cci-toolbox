@@ -77,29 +77,16 @@ public class MmdIngestionTool extends BasicTool {
         final String archiveRootPath = config.getStringValue(Configuration.KEY_MMS_ARCHIVE_ROOT);
         final File archiveRoot = new File(archiveRootPath);
         final String mmdFileLocation = config.getStringValue(Configuration.KEY_MMS_REINGESTION_SOURCE);
+
         final File mmdFile = new File(mmdFileLocation);
         if (!mmdFile.exists()) {
             logger.warning("missing source file: " + mmdFile);
             logger.warning("reingestion skipped");
             return;
         }
-        if (!mmdFile.isAbsolute()) {
-            final String message = MessageFormat.format("Property key {0}: absolute path expected.",
-                    Configuration.KEY_MMS_REINGESTION_SOURCE);
-            throw new ToolException(message, ToolException.TOOL_CONFIGURATION_ERROR);
-        }
-        if (!mmdFile.getAbsolutePath().startsWith(archiveRootPath)) {
-            final String message = MessageFormat.format(
-                    "Property key {0}: absolute path within archive root {1} expected.",
-                    Configuration.KEY_MMS_REINGESTION_SOURCE,
-                    archiveRootPath);
-            throw new ToolException(message, ToolException.TOOL_CONFIGURATION_ERROR);
-        }
-        if (!mmdFile.isFile()) {
-            final String message = MessageFormat.format("Property key {0}: absolute path to file expected.",
-                    Configuration.KEY_MMS_REINGESTION_SOURCE);
-            throw new ToolException(message, ToolException.TOOL_CONFIGURATION_ERROR);
-        }
+
+        verifyCorrectMmdFile(archiveRootPath, mmdFile);
+
         final String mmdFileRelativePath = mmdFileLocation.substring(archiveRootPath.length() + 1);
         final Storage storage = getStorage();
 
@@ -112,10 +99,11 @@ public class MmdIngestionTool extends BasicTool {
                 getPersistenceManager().transaction();
                 try {
                     getPersistenceManager().persist(sensor);
-                    getPersistenceManager().commit();
                 } catch (PersistenceException e) {
+                    logger.severe(e.getMessage());
                     getPersistenceManager().rollback();
                 }
+                getPersistenceManager().commit();
                 sensor = storage.getSensor(sensorName);
             }
             datafile = createDataFile(sensor, mmdFileRelativePath);
@@ -126,27 +114,47 @@ public class MmdIngestionTool extends BasicTool {
                 getPersistenceManager().commit();
             }
         }
+
         initReader(datafile, archiveRoot);
         getPersistenceManager().transaction();
         try {
             persistColumns(sensorName);
-            getPersistenceManager().commit();
         } catch (PersistenceException ignored) {
             getPersistenceManager().rollback();
         }
+        getPersistenceManager().commit();
+
         getPersistenceManager().transaction();
         try {
             if (!datafilePersisted) {
                 storeDataFile(datafile, storage);
             }
             ingestObservations(pattern);
-            getPersistenceManager().commit();
         } catch (PersistenceException e) {
             try {
                 getPersistenceManager().rollback();
             } catch (PersistenceException ignored) {
             }
             throw new ToolException(e.getMessage(), e, ToolException.TOOL_ERROR);
+        }
+        getPersistenceManager().commit();
+    }
+
+    // @todo 3 tb/tb can be static, add tests 2015-09-17
+    private void verifyCorrectMmdFile(String archiveRootPath, File mmdFile) {
+        if (!mmdFile.isAbsolute()) {
+            final String message = MessageFormat.format("Property key {0}: absolute path expected.", Configuration.KEY_MMS_REINGESTION_SOURCE);
+            throw new ToolException(message, ToolException.TOOL_CONFIGURATION_ERROR);
+        }
+
+        if (!mmdFile.getAbsolutePath().startsWith(archiveRootPath)) {
+            final String message = MessageFormat.format("Property key {0}: absolute path within archive root {1} expected.",  Configuration.KEY_MMS_REINGESTION_SOURCE,  archiveRootPath);
+            throw new ToolException(message, ToolException.TOOL_CONFIGURATION_ERROR);
+        }
+
+        if (!mmdFile.isFile()) {
+            final String message = MessageFormat.format("Property key {0}: absolute path to file expected.", Configuration.KEY_MMS_REINGESTION_SOURCE);
+            throw new ToolException(message, ToolException.TOOL_CONFIGURATION_ERROR);
         }
     }
 
