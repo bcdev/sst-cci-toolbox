@@ -65,7 +65,7 @@ public abstract class Tool {
         }
 
         if (commandLine.getArgs().length == 0 && commandLine.getOptions().length == 0) {
-            throw new ToolException("", ToolException.TOOL_USAGE_ERROR);
+            throw new ToolException("No cmd-line parameter supplied.", ToolException.TOOL_USAGE_ERROR);
         }
 
         dumpStackTrace = commandLine.hasOption("errors");

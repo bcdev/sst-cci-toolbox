@@ -68,7 +68,7 @@ public class RegriddingTool extends Tool {
                     TemporalResolution.values()) + ".");
 
     private static final Parameter PARAM_REGION = new Parameter("region", "REGION",
-            "Global=-180,90,180,-90 (NAME=REGION)",
+            "Global=-180,90,180,-90",
             "The sub-region to be used (optional). Coordinates in the format W,N,E,S.");
 
     public static final Parameter PARAM_PRODUCT_TYPE = new Parameter("productType", "NAME", null,
@@ -138,7 +138,7 @@ public class RegriddingTool extends Tool {
 
         final String toolHome = configuration.getToolHome();
         final String climatologyDirPath = configuration.getMandatoryStringValue(PARAM_CLIMATOLOGY_DIR.getName(), PARAM_CLIMATOLOGY_DIR.getDefaultValue());
-        final File climatologyDir = FileUtil.getExistingFile(climatologyDirPath, toolHome);
+        final File climatologyDir = FileUtil.getExistingDirectory(climatologyDirPath, toolHome);
         final Climatology climatology = Climatology.create(climatologyDir, productType.getGridDef());
 
         final String productDir = configuration.getMandatoryStringValue(productType + ".dir", ".");
@@ -188,6 +188,7 @@ public class RegriddingTool extends Tool {
         final Writer writer = new Writer(
                 productType, TOOL_NAME, TOOL_VERSION, FILE_FORMAT_VERSION, totalUncertainty, maxTotalUncertainty,
                 targetDir, sourceFilenameRegex, sstDepth, temporalResolution, regionMaskList.get(0));
+
         final RegriddingAggregator aggregator = new RegriddingAggregator(fileStore,
                 climatology,
                 sstDepth,
