@@ -5,4 +5,4 @@ Tools for the ESA SST-CCI project.
 ## Contact information
 
 
-* Tom Block (ralf.quast@brockmann-consult.de)
+* Tom Block (tom.block@brockmann-consult.de)
