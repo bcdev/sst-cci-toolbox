@@ -6,6 +6,7 @@ import org.esa.cci.sst.tool.Configuration;
 import org.esa.cci.sst.tool.Tool;
 import org.esa.cci.sst.tool.ToolException;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -36,6 +37,7 @@ public class RegridIntegrationTest {
     }
 
     @Test
+    @Ignore
     public void test_L3U_one_day_10_deg_noTotalUncert() {
 
         System.out.print(new File("").getAbsolutePath());
@@ -43,7 +45,8 @@ public class RegridIntegrationTest {
         configuration.setToolHome(new File("").getAbsolutePath());
         configuration.put("productType", "CCI_L3U");
         configuration.put("totalUncertainty", "false");
-        configuration.put("climatologyDir", "/auxdata");
+        final File climatologyDir = new File(testDataDirectory, "climatology");
+        configuration.put("climatologyDir", climatologyDir.getAbsolutePath());
 
         regriddingTool.run(configuration, new String[0]);
     }
