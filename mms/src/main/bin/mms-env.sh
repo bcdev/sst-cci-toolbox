@@ -86,7 +86,7 @@ submit_job() {
         mkdir "$MMS_TASKS"
     fi
     if [ ! -d "$MMS_LOG" ]
-        mkdir "$MMS_LOG" ]
+        mkdir "$MMS_LOG"
     fi
     bsubmit="bsub -R rusage[mem=20480] -m lotus241 -W 24:00 -P esacci_sst -cwd ${MMS_INST} -oo ${MMS_LOG}/${jobname}.out -eo ${MMS_LOG}/${jobname}.err -J ${jobname} ${mms.home}/bin/${command} ${@:3}"
 
