@@ -10,6 +10,6 @@ usecase=$6
 
 echo "`date -u +%Y%m%d-%H%M%S` selection ${year}/${month} sensors ${sensors} type ${mmdtype} ..."
 
-${mms.home}/bin/miz-selection-tool.sh -c ${mms.home}/config/${usecase}-config.properties \
--Dmms.selection.source=${mms.archive.root}/${usecase}/${mmdtype}/${sensors}/${year}/${sensors}-${mmdtype}-${year}-${month}.nc \
--Dmms.selection.target=${mms.archive.root}/${usecase}/${mmdtype}/${sensors}/${year}/${sensors}-${seltype}-${year}-${month}.nc
+${mms_home}/bin/miz-selection-tool.sh -c ${mms_home}/config/${usecase}-config.properties \
+-Dmms.selection.source=${mms_archive_root}/${usecase}/${mmdtype}/${sensors}/${year}/${sensors}-${mmdtype}-${year}-${month}.nc \
+-Dmms.selection.target=${mms_archive_root}/${usecase}/${mmdtype}/${sensors}/${year}/${sensors}-${seltype}-${year}-${month}.nc

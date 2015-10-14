@@ -8,7 +8,7 @@ usecase=$3
 
 echo "`date -u +%Y%m%d-%H%M%S` ingestion ${year}/${month} ..."
 
-${mms.home}/bin/ingestion-tool.sh -c ${mms.home}/config/${usecase}-config.properties \
+${mms_home}/bin/ingestion-tool.sh -c ${mms_home}/config/${usecase}-config.properties \
 -Dmms.source.11.inputDirectory=atsr.1/v2.1/${year}/${month} \
 -Dmms.source.12.inputDirectory=atsr.2/v2.1/${year}/${month} \
 -Dmms.source.13.inputDirectory=atsr.3/v2.1/${year}/${month} \

@@ -13,9 +13,9 @@ let d1="d + 32 * 86400"
 
 echo "`date -u +%Y%m%d-%H%M%S` reingestion ${year}/${month} sensor ${sensor} type ${mmdtype} ..."
 
-${mms.home}/bin/reingestion-tool.sh -c ${mms.home}/config/${usecase}-config.properties \
+${mms_home}/bin/reingestion-tool.sh -c ${mms_home}/config/${usecase}-config.properties \
 -Dmms.db.useindex=true \
--Dmms.reingestion.source=${mms.archive.root}/${usecase}/${mmdtype}/${sensor}/${year}/${sensor}-${mmdtype}-${year}-${month}.nc \
+-Dmms.reingestion.source=${mms_archive_root}/${usecase}/${mmdtype}/${sensor}/${year}/${sensor}-${mmdtype}-${year}-${month}.nc \
 -Dmms.reingestion.sensor=${mmdtype}_${sensor} \
 -Dmms.reingestion.pattern=0 \
 -Dmms.reingestion.located=false \

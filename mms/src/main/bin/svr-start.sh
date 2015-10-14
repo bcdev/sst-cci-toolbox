@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. ${mms.home}/bin/mms-env-svr.sh
+. ${mms_home}/bin/mms-env-svr.sh
 
 year=$1
 month=$2
