@@ -81,6 +81,13 @@ wait_for_task_jobs_completion() {
 submit_job() {
     jobname=$1
     command=$2
+    # Make sure directories for MMS_TASKS and MMS_LOG exist
+    if [ ! -d "$MMS_TASKS" ]
+        mkdir "$MMS_TASKS"
+    fi
+    if [ ! -d "$MMS_LOG" ]
+        mkdir "$MMS_LOG" ]
+    fi
     bsubmit="bsub -R rusage[mem=20480] -m lotus241 -W 24:00 -P esacci_sst -cwd ${MMS_INST} -oo ${MMS_LOG}/${jobname}.out -eo ${MMS_LOG}/${jobname}.err -J ${jobname} ${mms.home}/bin/${command} ${@:3}"
 
     rm -f ${MMS_LOG}/${jobname}.out
