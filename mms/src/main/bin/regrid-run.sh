@@ -35,7 +35,7 @@ case "${sensor:0:5}" in
         version="v01.0"
         type="L2P"
         ;;
-    'all_sensors' )
+    'all_s' )
         sensortype=""
         version=""
         type="L2P"
