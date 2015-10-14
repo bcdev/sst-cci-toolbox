@@ -39,6 +39,7 @@ case "${sensor:0:5}" in
         sensortype=""
         version=""
         type="L2P"
+        ;;
 esac
 
 d=`date +%s -u -d "${year}-${month}-01 00:00:00"`
