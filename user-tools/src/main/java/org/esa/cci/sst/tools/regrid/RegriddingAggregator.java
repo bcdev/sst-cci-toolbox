@@ -182,7 +182,7 @@ class RegriddingAggregator extends AbstractAggregator {
         CellGrid<SpatialAggregationCell> targetGrid = null;
 
         for (final FileList singleDayFiles : allFiles) {
-            final int doy = TimeUtil.getYear(singleDayFiles.getDate());
+            final int doy = TimeUtil.createUtcCalendar(singleDayFiles.getDate()).get(Calendar.DAY_OF_YEAR);
             logger.info("Day of year is " + doy);
 
             aggregationContext.setClimatologySstGrid(climatology.getSstGrid(doy));

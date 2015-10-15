@@ -90,11 +90,11 @@ public class RegriddingTool extends Tool {
     public static final Parameter PARAM_END_DATE = new Parameter("endDate", "DATE", "2020-12-31",
             "The end date for the analysis given in the format YYYY-MM-DD");
 
-    private static final Parameter PARAM_TOTAL_UNCERTAINTY = new Parameter("totalUncertainty", "BOOL", "false",
+    public static final Parameter PARAM_TOTAL_UNCERTAINTY = new Parameter("totalUncertainty", "BOOL", "false",
             "A Boolean variable indicating whether total or " +
                     "separated uncertainties are written to the output file. Must be either 'true' or 'false'.");
 
-    private static final Parameter PARAM_CLIMATOLOGY_DIR = new Parameter("climatologyDir", "DIR", "./climatology",
+    public static final Parameter PARAM_CLIMATOLOGY_DIR = new Parameter("climatologyDir", "DIR", "./climatology",
             "The directory path to the reference climatology.");
 
     private static final Parameter PARAM_MIN_COVERAGE = new Parameter("minCoverage", "NUM", "0.0",
@@ -116,7 +116,7 @@ public class RegriddingTool extends Tool {
 
     public static final Parameter PARAM_COVERAGE_UNCERTAINTY_FILE_X0SPACE = new Parameter("coverageUncertainty.x0Space",
             "FILE",
-            "./config/auxdata/x0_space.txt",
+            "./auxdata/x0_space.txt",
             "A txt file that provides lookup table 3/3 for coverage uncertainties.");
 
     private ProductType productType;
