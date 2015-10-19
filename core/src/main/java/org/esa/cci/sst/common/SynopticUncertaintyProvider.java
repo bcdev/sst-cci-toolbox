@@ -52,7 +52,9 @@ public class SynopticUncertaintyProvider {
      * @return the synoptic uncertainty.
      */
     public double calculate(AggregationCell cell, double a) {
-        return a / eta(cell.getY(), cell.getSampleCount());
+        final long sampleCount = cell.getSampleCount();
+        final double a_2 = a * a;
+        return Math.sqrt(a_2 * eta(cell.getY(), sampleCount)) / sampleCount;
     }
 
     /**
@@ -141,6 +143,6 @@ public class SynopticUncertaintyProvider {
      * @return the effective number of synoptic areas.
      */
     double eta(int y, long sampleCount) {
-        return sampleCount / (1.0 + r(y) * (sampleCount - 1));
+        return 1.0 + r(y) * (sampleCount - 1);
     }
 }

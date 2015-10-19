@@ -226,20 +226,20 @@ public class SynopticUncertaintyProviderTest {
     @Test
     public void test_eta() {
         SynopticUncertaintyProvider sup = new SynopticUncertaintyProvider(SpatialResolution.DEGREE_0_05, TemporalResolution.weekly5d);
-        assertEquals(2.7121519513732206, sup.eta(14, 156), 1e-8);
+        assertEquals(57.518901151911436, sup.eta(14, 156), 1e-8);
 
         sup = new SynopticUncertaintyProvider(SpatialResolution.DEGREE_0_15, TemporalResolution.weekly5d);
-        assertEquals(2.771316127976776, sup.eta(16, 209), 1e-8);
+        assertEquals(75.415430917505, sup.eta(16, 209), 1e-8);
     }
 
     @Test
     public void test_calculate() {
         final AggregationCell testCell = new TestCell(19, 211);
         SynopticUncertaintyProvider sup = new SynopticUncertaintyProvider(SpatialResolution.DEGREE_0_60, TemporalResolution.weekly7d);
-        assertEquals(0.8571179770138263, sup.calculate(testCell, 2.6), 1e-8);
+        assertEquals(0.10276985607975611, sup.calculate(testCell, 2.6), 1e-8);
 
         sup = new SynopticUncertaintyProvider(SpatialResolution.DEGREE_0_75, TemporalResolution.weekly5d);
-        assertEquals(1.0216628434543982, sup.calculate(testCell, 3.2), 1e-8);
+        assertEquals(0.12447655518902133, sup.calculate(testCell, 3.2), 1e-8);
     }
 
     private class TestCell implements AggregationCell {
