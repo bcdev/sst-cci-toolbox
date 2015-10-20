@@ -136,4 +136,4 @@ Computer running Linux, Windows or Mac OS; 20 GB RAM (the tools use up to 16 GB 
 
 ## Contact information
 
-* Ralf Quast (ralf.quast@brockmann-consult.de)
+* Tom Block (tom.block@brockmann-consult.de)
