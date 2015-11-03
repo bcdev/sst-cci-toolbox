@@ -195,7 +195,8 @@ class NwpTool extends BasicTool {
 
     String createAnalysisFile(String mmdFileLocation) throws IOException, InterruptedException {
         final NetcdfFile mmdFile = NetcdfFile.open(mmdFileLocation);
-        final List<String> subDirectories = NwpUtil.getRelevantNwpDirs(NwpUtil.findVariable(mmdFile, "matchup.time"));
+        final Variable timeVariable = NwpUtil.findVariable(mmdFile, "matchup.time");
+        final List<String> subDirectories = NwpUtil.getRelevantNwpDirs(timeVariable, logger);
 
         try {
             final String geoFileLocation = writeMatchupGeoFile(mmdFile, deleteOnExit);
@@ -228,7 +229,8 @@ class NwpTool extends BasicTool {
 
     String createForecastFile(String mmdFileLocation) throws IOException, InterruptedException {
         final NetcdfFile mmdFile = NetcdfFile.open(mmdFileLocation);
-        final List<String> subDirectories = NwpUtil.getRelevantNwpDirs(NwpUtil.findVariable(mmdFile, "matchup.time"));
+        final Variable timeVariable = NwpUtil.findVariable(mmdFile, "matchup.time");
+        final List<String> subDirectories = NwpUtil.getRelevantNwpDirs(timeVariable, logger);
 
         try {
             final String geoFileLocation = writeMatchupGeoFile(mmdFile, true);
@@ -270,7 +272,7 @@ class NwpTool extends BasicTool {
         try {
             final Variable timeVariable = NwpUtil.findVariable(mmdFile, sensorName + ".time");
             logger.info("Looking for relevant NWP sub-directories...");
-            final List<String> subDirectories = NwpUtil.getRelevantNwpDirs(timeVariable);
+            final List<String> subDirectories = NwpUtil.getRelevantNwpDirs(timeVariable, logger);
             logger.info("Found NWP sub-directories: " + Arrays.toString(subDirectories.toArray(new String[subDirectories.size()])));
             final String sensorBasename = getSensorBasename(sensorName);
             final int nx = Integer.parseInt(dimensions.getProperty(sensorBasename + ".nx"));

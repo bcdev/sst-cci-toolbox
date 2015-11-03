@@ -41,6 +41,7 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.logging.Logger;
 
 /**
  * Provides some helper methods for nwp generation.
@@ -50,10 +51,13 @@ import java.util.TimeZone;
  */
 class NwpUtil {
 
+    private static final int SEVENTY_TWO_HOURS = 72 * 60 * 60;
+    private static final int FORTY_EIGHT_HOURS = 48 * 60 * 60;
+
     private NwpUtil() {
     }
 
-    static List<String> getRelevantNwpDirs(Variable timeVariable) throws IOException {
+    static List<String> getRelevantNwpDirs(Variable timeVariable, Logger logger) throws IOException {
         final Number fillValue = timeVariable.findAttribute("_FillValue").getNumericValue();
         int startTime = Integer.MAX_VALUE;
         int endTime = Integer.MIN_VALUE;
@@ -72,11 +76,12 @@ class NwpUtil {
 
         // TODO - throw exception, if start time or end time are invalid
 
-        final int seventyTwoHours = 72 * 60 * 60;
-        final int fortyEightHours = 48 * 60 * 60;
+        final Date startDate = TimeUtil.secondsSince1978ToDate(startTime - SEVENTY_TWO_HOURS);
+        final Date stopDate = TimeUtil.secondsSince1978ToDate(endTime + FORTY_EIGHT_HOURS);
+        if (logger != null) {
+            logger.info("NWP time interval from source: " + startDate + " - " + stopDate);
+        }
 
-        final Date startDate = TimeUtil.secondsSince1978ToDate(startTime - seventyTwoHours);
-        final Date stopDate = TimeUtil.secondsSince1978ToDate(endTime + fortyEightHours);
         final GregorianCalendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
         calendar.setTime(startDate);
         calendar.set(Calendar.HOUR_OF_DAY, 0);

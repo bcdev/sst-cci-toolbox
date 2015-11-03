@@ -103,7 +103,7 @@ public class TimeUtilTest {
         assertEquals(13, utcCalendar.get(Calendar.HOUR_OF_DAY));
         assertEquals(49, utcCalendar.get(Calendar.MINUTE));
         assertEquals(6, utcCalendar.get(Calendar.SECOND));
-    }
+   }
 
     @Test
     public void testParseInsituFileNameDateFormat() throws ParseException {
