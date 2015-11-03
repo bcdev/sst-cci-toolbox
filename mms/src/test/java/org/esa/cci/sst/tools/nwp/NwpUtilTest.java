@@ -97,4 +97,16 @@ public class NwpUtilTest {
         assertEquals("1985/01/01", relevantNwpDirs.get(3));
         assertEquals("1985/01/03", relevantNwpDirs.get(5));
     }
+
+    @Test
+    public void testGetRelevantNwpDirs_threeMeasurements_onlyFillValue() throws IOException {
+        when(array.getSize()).thenReturn(3L);
+        when(array.getInt(0)).thenReturn(Integer.MIN_VALUE);
+        when(array.getInt(1)).thenReturn(Integer.MIN_VALUE);
+        when(array.getInt(2)).thenReturn(Integer.MIN_VALUE);
+
+        final List<String> relevantNwpDirs = NwpUtil.getRelevantNwpDirs(variable, null);
+        assertNotNull(relevantNwpDirs);
+        assertEquals(0, relevantNwpDirs.size());
+    }
 }

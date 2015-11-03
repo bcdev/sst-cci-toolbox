@@ -21,26 +21,14 @@ import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.util.TimeUtil;
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;
-import ucar.nc2.Attribute;
-import ucar.nc2.Dimension;
-import ucar.nc2.NetcdfFile;
-import ucar.nc2.NetcdfFileWriter;
-import ucar.nc2.Variable;
+import ucar.nc2.*;
 
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.List;
-import java.util.Map;
-import java.util.TimeZone;
+import java.util.*;
 import java.util.logging.Logger;
 
 /**
@@ -79,7 +67,7 @@ class NwpUtil {
         final Date startDate = TimeUtil.secondsSince1978ToDate(startTime - SEVENTY_TWO_HOURS);
         final Date stopDate = TimeUtil.secondsSince1978ToDate(endTime + FORTY_EIGHT_HOURS);
         if (logger != null) {
-            logger.info("NWP time interval from source: " + startDate + " - " + stopDate);
+            logger.info("NWP time interval from source '" + timeVariable.getFullName() + "': " + startDate + " - " + stopDate);
         }
 
         final GregorianCalendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
@@ -135,10 +123,10 @@ class NwpUtil {
     }
 
     static void copyValues(Map<Variable, Variable> map,
-                                   NetcdfFileWriter targetFile,
-                                   int targetMatchup,
-                                   int[] sourceStart,
-                                   int[] sourceShape) throws IOException, InvalidRangeException {
+                           NetcdfFileWriter targetFile,
+                           int targetMatchup,
+                           int[] sourceStart,
+                           int[] sourceShape) throws IOException, InvalidRangeException {
         for (final Variable targetVariable : map.keySet()) {
             final Variable sourceVariable = map.get(targetVariable);
             final Array sourceData = sourceVariable.read(sourceStart, sourceShape);
@@ -151,7 +139,7 @@ class NwpUtil {
     }
 
     static void copyVariables(NetcdfFile source, NetcdfFileWriter target, Map<Variable, Variable> map,
-                                      final String id) {
+                              final String id) {
         for (final Variable s : source.getVariables()) {
             if (s.getRank() == 4) {
                 if (s.getDimension(1).getLength() == 1) {
