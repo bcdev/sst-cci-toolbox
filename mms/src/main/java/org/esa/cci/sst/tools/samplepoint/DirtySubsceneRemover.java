@@ -18,9 +18,7 @@ package org.esa.cci.sst.tools.samplepoint;
 
 import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;
-import org.esa.beam.framework.datamodel.Mask;
 import org.esa.beam.framework.datamodel.PixelPos;
-import org.esa.beam.glayer.MaskLayerType;
 import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.common.ExtractDefinitionBuilder;
 import org.esa.cci.sst.data.DataFile;
@@ -28,14 +26,15 @@ import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.orm.Storage;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.reader.ReaderFactory;
-import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.tool.Configuration;
+import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.util.LocationTest;
 import org.esa.cci.sst.util.PixelCounter;
 import org.esa.cci.sst.util.SamplingPoint;
 import ucar.ma2.Array;
 
+import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -121,9 +120,17 @@ public class DirtySubsceneRemover {
             }
 
             final DataFile datafile = observation.getDatafile();
+            final String datafilePath = datafile.getPath();
+            final String archiveRootPath = config.getStringValue(Configuration.KEY_MMS_ARCHIVE_ROOT, ".");
+            final File archiveRoot = new File(archiveRootPath);
+            final File sourceFile = new File(archiveRoot, datafilePath);
+            if (!sourceFile.isFile()) {
+                logger.warning("Input file does not exist: " + sourceFile.getAbsolutePath());
+                continue;
+            }
+
             try (final Reader reader = ReaderFactory.open(datafile, config)) {
-                logInfo(MessageFormat.format("Starting removing dirty samples: data file ''{0}''...",
-                                             datafile.getPath()));
+                logInfo(MessageFormat.format("Starting removing dirty samples: data file ''{0}''...", datafilePath));
 
                 final int numCols = reader.getElementCount();
                 final int numRows = reader.getScanLineCount();
@@ -173,17 +180,17 @@ public class DirtySubsceneRemover {
                         if (logger != null && logger.isLoggable(Level.FINE)) {
                             final String message = MessageFormat.format(
                                     "Could not find pixel at ({0}, {1}) in datafile ''{2}''.", lon, lat,
-                                    datafile.getPath());
+                                    datafilePath);
                             logger.fine(message);
                         }
                     }
                 }
                 logInfo(MessageFormat.format(
                         "Finished removing dirty samples: data file ''{0}'' ({1} clean samples)",
-                        datafile.getPath(), cleanSamples.size()));
+                        datafilePath, cleanSamples.size()));
             } catch (IOException e) {
                 throw new ToolException(
-                        MessageFormat.format("Cannot read data file ''{0}''.", datafile.getPath()), e,
+                        MessageFormat.format("Cannot read data file ''{0}''.", datafilePath), e,
                         ToolException.TOOL_IO_ERROR);
             }
         }
@@ -191,7 +198,7 @@ public class DirtySubsceneRemover {
         samples.addAll(cleanSamples);
 
         logInfo(MessageFormat.format("Finished removing dirty samples: {0} clean samples found in total",
-                                     samples.size()));
+                samples.size()));
     }
 
     private void logInfo(String message) {
