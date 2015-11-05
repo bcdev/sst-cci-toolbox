@@ -23,20 +23,25 @@ import static org.junit.Assert.fail;
 public class GbcsToolTest {
 
     @Test
-    public void testInputFilename_ATSR1() throws Exception {
+    public void testInputFilename_ATSR() throws Exception {
         assertEquals("MMD_ATSR1.inp", GbcsTool.getConfigurationFilename("atsr.1"));
-
-    }
-
-    @Test
-    public void testInputFilename_ATSR2() throws Exception {
         assertEquals("MMD_ATSR2.inp", GbcsTool.getConfigurationFilename("atsr.2"));
-
+        assertEquals("MMD_AATSR.inp", GbcsTool.getConfigurationFilename("atsr.3"));
     }
 
     @Test
-    public void testInputFilename_ATSR3() throws Exception {
-        assertEquals("MMD_AATSR.inp", GbcsTool.getConfigurationFilename("atsr.3"));
+    public void testInputFilename_AVHRR_Metop() throws Exception {
+        assertEquals("MMD_METOP02.inp", GbcsTool.getConfigurationFilename("avhrr.m02"));
+    }
+
+    @Test
+    public void testInputFilename_AVHRR_NOAA() throws Exception {
+        assertEquals("MMD_NOAA19.inp", GbcsTool.getConfigurationFilename("avhrr.n19"));
+        assertEquals("MMD_NOAA16.inp", GbcsTool.getConfigurationFilename("avhrr.n16"));
+        assertEquals("MMD_NOAA09.inp", GbcsTool.getConfigurationFilename("avhrr.n09"));
+        assertEquals("MMD_NOAA08.inp", GbcsTool.getConfigurationFilename("avhrr.n08"));
+        assertEquals("MMD_NOAA07.inp", GbcsTool.getConfigurationFilename("avhrr.n07"));
+        assertEquals("MMD_NOAA06.inp", GbcsTool.getConfigurationFilename("avhrr.n06"));
     }
 
     @Test

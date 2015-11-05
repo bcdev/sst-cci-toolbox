@@ -128,6 +128,14 @@ public class GbcsTool extends BasicTool {
                 return "MMD_ATSR2.inp";
             case "atsr.3":
                 return "MMD_AATSR.inp";
+            case "avhrr.n06":
+                return "MMD_NOAA06.inp";
+            case "avhrr.n07":
+                return "MMD_NOAA07.inp";
+            case "avhrr.n08":
+                return "MMD_NOAA08.inp";
+            case "avhrr.n09":
+                return "MMD_NOAA09.inp";
             case "avhrr.n10":
                 return "MMD_NOAA10.inp";
             case "avhrr.n11":
