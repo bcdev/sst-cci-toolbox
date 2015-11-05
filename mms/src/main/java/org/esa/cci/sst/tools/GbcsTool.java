@@ -164,5 +164,4 @@ public class GbcsTool extends BasicTool {
                         ToolException.TOOL_CONFIGURATION_ERROR);
         }
     }
-
 }
