@@ -156,6 +156,7 @@ class NwpUtil {
         }
     }
 
+    // package access for testing only tb 2015-11-09
     static int nearestTimeStep(Array sourceTimes, int targetTime) {
         int timeStep = 0;
         int minTimeDelta = Math.abs(targetTime - sourceTimes.getInt(0));
@@ -240,7 +241,6 @@ class NwpUtil {
                 return v;
             }
         }
-        throw new IOException(
-                MessageFormat.format("Expected to find any variable in ''{0}''.", Arrays.toString(names)));
+        throw new IOException(MessageFormat.format("Expected to find any variable in ''{0}''.", Arrays.toString(names)));
     }
 }

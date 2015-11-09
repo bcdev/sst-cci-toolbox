@@ -109,4 +109,44 @@ public class NwpUtilTest {
         assertNotNull(relevantNwpDirs);
         assertEquals(0, relevantNwpDirs.size());
     }
+
+    @Test
+    public void testNearestTimeStep_oneTimeValue() {
+        when(array.getSize()).thenReturn(1L);
+        when(array.getInt(0)).thenReturn(15);
+
+        final int nearestTimeStep = NwpUtil.nearestTimeStep(array, 18);
+        assertEquals(0, nearestTimeStep);
+    }
+
+    @Test
+    public void testNearestTimeStep_twoTimeValues() {
+        when(array.getSize()).thenReturn(2L);
+        when(array.getInt(0)).thenReturn(15);
+        when(array.getInt(1)).thenReturn(19);
+
+        final int nearestTimeStep = NwpUtil.nearestTimeStep(array, 18);
+        assertEquals(1, nearestTimeStep);
+    }
+
+    @Test
+    public void testNearestTimeStep_twoTimeValues_invertedOrder() {
+        when(array.getSize()).thenReturn(2L);
+        when(array.getInt(0)).thenReturn(19);
+        when(array.getInt(1)).thenReturn(15);
+
+        final int nearestTimeStep = NwpUtil.nearestTimeStep(array, 18);
+        assertEquals(0, nearestTimeStep);
+    }
+
+    @Test
+    public void testNearestTimeStep_threeTimeValues() {
+        when(array.getSize()).thenReturn(3L);
+        when(array.getInt(0)).thenReturn(21);
+        when(array.getInt(1)).thenReturn(17);
+        when(array.getInt(2)).thenReturn(13);
+
+        final int nearestTimeStep = NwpUtil.nearestTimeStep(array, 18);
+        assertEquals(1, nearestTimeStep);
+    }
 }

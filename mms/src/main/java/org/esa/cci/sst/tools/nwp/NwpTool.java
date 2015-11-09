@@ -130,10 +130,8 @@ class NwpTool extends BasicTool {
     private void run() throws IOException, InterruptedException {
         final boolean exists = new File(sourceMmdLocation).exists();
         if (!exists) {
-            logger.warning(
-                    MessageFormat.format("missing source file: {0}", sourceMmdLocation));
-            logger.warning(
-                    MessageFormat.format("skipping target file: {0}", targetNwpLocation));
+            logger.warning(MessageFormat.format("missing source file: {0}", sourceMmdLocation));
+            logger.warning(MessageFormat.format("skipping target file: {0}", targetNwpLocation));
             return;
         }
 
@@ -151,11 +149,9 @@ class NwpTool extends BasicTool {
                     MessageFormat.format("completed extracting matchups from source file: {0}", sourceMmdLocation));
 
             if (sensorMmdLocation == null) {
-                logger.warning(
-                        MessageFormat.format("no records with pattern {0} found in source file: {1}",
+                logger.warning(MessageFormat.format("no records with pattern {0} found in source file: {1}",
                                              sensorPattern, sourceMmdLocation));
-                logger.warning(
-                        MessageFormat.format("skipping target file: {0}", targetNwpLocation));
+                logger.warning(MessageFormat.format("skipping target file: {0}", targetNwpLocation));
                 return;
             }
 
@@ -183,13 +179,10 @@ class NwpTool extends BasicTool {
                     MessageFormat.format("completed extracting NWP forecast data for source file: {0}",
                                          sourceMmdLocation));
 
-            logger.info(
-                    MessageFormat.format("writing matchup NWP data for source file: {0}", sourceMmdLocation));
+            logger.info(MessageFormat.format("writing matchup NWP data for source file: {0}", sourceMmdLocation));
             writeMatchupNwpFile(sourceMmdLocation, forecastFileLocation, analysisFileLocation,
                                 targetNwpLocation, forecastTimeStepCount, analysisTimeStepCount);
-            logger.info(
-                    MessageFormat.format("completed writing matchup NWP data for source file: {0}",
-                                         sourceMmdLocation));
+            logger.info(MessageFormat.format("completed writing matchup NWP data for source file: {0}", sourceMmdLocation));
         }
     }
 
