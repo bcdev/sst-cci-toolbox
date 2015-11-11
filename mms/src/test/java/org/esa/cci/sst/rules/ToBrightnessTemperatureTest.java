@@ -18,6 +18,7 @@ package org.esa.cci.sst.rules;
 
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
+import org.junit.Test;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
 
@@ -34,8 +35,10 @@ public class ToBrightnessTemperatureTest extends AbstractRuleTest {
                 .standardName("somebrightnesstemperature")
                 .longName("brightness temperature")
                 .unit("K")
-                .type(DataType.FLOAT)
-                .fillValue(-1.e+30f);
+                .type(DataType.SHORT)
+                .fillValue(-1.e+30f)
+                .scaleFactor(0.01)
+                .addOffset(273.15);
     }
 
     @Override
@@ -50,6 +53,16 @@ public class ToBrightnessTemperatureTest extends AbstractRuleTest {
         Array targetArray = getRule().apply(sourceArray, getSourceColumn());
         assertEquals(-32768, targetArray.getShort(0));
         assertEquals(-32768, targetArray.getShort(1));
-        assertEquals(2315*5, targetArray.getShort(2));
+        assertEquals(7991, targetArray.getShort(2));
+    }
+
+    @Test
+    public void testConvert_AVHRR_N08_ch3b() throws RuleException {
+        Array sourceArray = Array.factory(new float[]{-1096, -2109, 2150});
+
+        Array targetArray = getRule().apply(sourceArray, getSourceColumn());
+        assertEquals(1095, targetArray.getShort(0));
+        assertEquals(-3970, targetArray.getShort(1));
+        assertEquals(17325, targetArray.getShort(2));
     }
 }

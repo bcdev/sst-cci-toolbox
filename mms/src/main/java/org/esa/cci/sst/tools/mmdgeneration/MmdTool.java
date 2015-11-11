@@ -328,8 +328,10 @@ public class MmdTool extends BasicTool {
             final Array sourceArray = reader.read(role, extractDefinition);
             if (sourceArray != null) {
                 if (logger.isLoggable(Level.FINE)) {
-                    logger.fine(MessageFormat.format("source column: {0}, {1}", sourceColumn.getName(),
-                            sourceColumn.getRole()));
+                    logger.fine(MessageFormat.format("source column: {0}, {1}", sourceColumn.getName(), sourceColumn.getRole()));
+                }
+                if (i == 73 && sourceColumn.getName().contains("ch3b")) {
+                    logger.info("SOURCE_ARRAY :" + sourceArray.getShort(0) + ", " + sourceArray.getShort(1) + ", " + sourceArray.getShort(2) + ", " + sourceArray.getShort(3));
                 }
                 sourceColumn = reader.getColumn(role);
                 if (sourceColumn == null) {
@@ -337,6 +339,10 @@ public class MmdTool extends BasicTool {
                 }
                 final Converter converter = columnRegistry.getConverter(targetColumn, sourceColumn);
                 final Array targetArray = converter.apply(sourceArray);
+
+                if (i == 73 && sourceColumn.getName().contains("ch3b")) {
+                    logger.info("TARGET_ARRAY :" + targetArray.getShort(0) + ", " + targetArray.getShort(1) + ", " + targetArray.getShort(2) + ", " + targetArray.getShort(3));
+                }
 
                 final int[] targetStart = new int[variable.getRank()];
                 targetStart[0] = i;
