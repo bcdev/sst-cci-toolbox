@@ -607,26 +607,26 @@ class Workflow:
         while date < production_period.get_end_date():
             chunk = Period(date, _next_year_start(date))
             self._execute_ingest_sensor_data(m, chunk)
-            self._execute_sampling(m, chunk)
-            self._execute_clearing(m, chunk)
-            self._execute_plotting(m, chunk, sampling_prefix)
-            if not without_aux:
-                self._execute_ingest_aux(m, chunk, sampling_prefix)
-            self._execute_create_sub_mmd_files(m, chunk)
-            self._execute_create_nwp_mmd_files(m, chunk)
-            self._execute_create_matchup_nwp_mmd_files(m, chunk)
-            if not without_arc:
-                self._execute_create_arc_mmd_files(m, chunk)
-            self._execute_ingest_sub_mmd_files(m, chunk)
-            self._execute_ingest_nwp_mmd_files(m, chunk)
-            self._execute_ingest_matchup_nwp_mmd_files(m, chunk)
-            if not without_arc:
-                self._execute_ingest_arc_mmd_files(m, chunk)
-            self._execute_create_final_mmd_files(m, chunk, mmdtype, without_arc)
-            if selected_only:
-                self._execute_selection(m, chunk, mmdtype, mmdtype.replace('mmd', 'sel', 1))
-            if miz_only:
-                self._execute_miz_selection(m, chunk, mmdtype, mmdtype.replace('mmd', 'miz', 1))
+            #self._execute_sampling(m, chunk)
+            #self._execute_clearing(m, chunk)
+            #self._execute_plotting(m, chunk, sampling_prefix)
+            #if not without_aux:
+            #    self._execute_ingest_aux(m, chunk, sampling_prefix)
+            #self._execute_create_sub_mmd_files(m, chunk)
+            #self._execute_create_nwp_mmd_files(m, chunk)
+            #self._execute_create_matchup_nwp_mmd_files(m, chunk)
+            #if not without_arc:
+            #    self._execute_create_arc_mmd_files(m, chunk)
+            #self._execute_ingest_sub_mmd_files(m, chunk)
+            #self._execute_ingest_nwp_mmd_files(m, chunk)
+            #self._execute_ingest_matchup_nwp_mmd_files(m, chunk)
+            #if not without_arc:
+            #    self._execute_ingest_arc_mmd_files(m, chunk)
+            #self._execute_create_final_mmd_files(m, chunk, mmdtype, without_arc)
+            #if selected_only:
+            #    self._execute_selection(m, chunk, mmdtype, mmdtype.replace('mmd', 'sel', 1))
+            #if miz_only:
+            #    self._execute_miz_selection(m, chunk, mmdtype, mmdtype.replace('mmd', 'miz', 1))
             date = _next_year_start(date)
         m.wait_for_completion_and_terminate()
 
