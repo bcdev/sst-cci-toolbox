@@ -607,7 +607,7 @@ class Workflow:
         while date < production_period.get_end_date():
             chunk = Period(date, _next_year_start(date))
             self._execute_ingest_sensor_data(m, chunk)
-            #self._execute_sampling(m, chunk)
+            self._execute_sampling(m, chunk)
             #self._execute_clearing(m, chunk)
             #self._execute_plotting(m, chunk, sampling_prefix)
             #if not without_aux:
