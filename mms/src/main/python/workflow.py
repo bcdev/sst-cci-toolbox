@@ -609,7 +609,7 @@ class Workflow:
             self._execute_ingest_sensor_data(m, chunk)
             self._execute_sampling(m, chunk)
             self._execute_clearing(m, chunk)
-            #self._execute_plotting(m, chunk, sampling_prefix)
+            self._execute_plotting(m, chunk, sampling_prefix)
             #if not without_aux:
             #    self._execute_ingest_aux(m, chunk, sampling_prefix)
             #self._execute_create_sub_mmd_files(m, chunk)
