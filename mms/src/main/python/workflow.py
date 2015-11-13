@@ -612,7 +612,7 @@ class Workflow:
             self._execute_plotting(m, chunk, sampling_prefix)
             if not without_aux:
                 self._execute_ingest_aux(m, chunk, sampling_prefix)
-            #self._execute_create_sub_mmd_files(m, chunk)
+            self._execute_create_sub_mmd_files(m, chunk)
             #self._execute_create_nwp_mmd_files(m, chunk)
             #self._execute_create_matchup_nwp_mmd_files(m, chunk)
             #if not without_arc:
