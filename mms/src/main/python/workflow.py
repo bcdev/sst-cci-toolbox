@@ -615,8 +615,8 @@ class Workflow:
             self._execute_create_sub_mmd_files(m, chunk)
             self._execute_create_nwp_mmd_files(m, chunk)
             self._execute_create_matchup_nwp_mmd_files(m, chunk)
-            #if not without_arc:
-            #    self._execute_create_arc_mmd_files(m, chunk)
+            if not without_arc:
+                self._execute_create_arc_mmd_files(m, chunk)
             #self._execute_ingest_sub_mmd_files(m, chunk)
             #self._execute_ingest_nwp_mmd_files(m, chunk)
             #self._execute_ingest_matchup_nwp_mmd_files(m, chunk)
