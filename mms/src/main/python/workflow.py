@@ -623,10 +623,10 @@ class Workflow:
             if not without_arc:
                 self._execute_ingest_arc_mmd_files(m, chunk)
             self._execute_create_final_mmd_files(m, chunk, mmdtype, without_arc)
-            #if selected_only:
-            #    self._execute_selection(m, chunk, mmdtype, mmdtype.replace('mmd', 'sel', 1))
-            #if miz_only:
-            #    self._execute_miz_selection(m, chunk, mmdtype, mmdtype.replace('mmd', 'miz', 1))
+            if selected_only:
+                self._execute_selection(m, chunk, mmdtype, mmdtype.replace('mmd', 'sel', 1))
+            if miz_only:
+                self._execute_miz_selection(m, chunk, mmdtype, mmdtype.replace('mmd', 'miz', 1))
             date = _next_year_start(date)
         m.wait_for_completion_and_terminate()
 
