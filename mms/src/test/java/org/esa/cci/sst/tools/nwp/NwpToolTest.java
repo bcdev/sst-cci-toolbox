@@ -17,10 +17,11 @@
 package org.esa.cci.sst.tools.nwp;
 
 import org.junit.Test;
+import ucar.ma2.Array;
 
-import java.io.IOException;
-
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Thomas Storm
@@ -47,5 +48,51 @@ public class NwpToolTest {
     public void testComputePastTimeStepCount() throws Exception {
         assertEquals(20, NwpTool.computePastTimeStepCount(33));
         assertEquals(10, NwpTool.computePastTimeStepCount(17));
+    }
+
+    @Test
+    public void testGetMatchupCount_noInputData() {
+        final Array array = mock(Array.class);
+        when(array.getSize()).thenReturn(0L);
+
+        final int matchupCount = NwpTool.getMatchupCount(array, 800);
+        assertEquals(0, matchupCount);
+    }
+
+    @Test
+    public void testGetMatchupCount_noMatchingPattern() {
+        final Array array = mock(Array.class);
+        when(array.getSize()).thenReturn(3L);
+        when(array.getInt(0)).thenReturn(200);
+        when(array.getInt(1)).thenReturn(1600);
+        when(array.getInt(2)).thenReturn(400);
+
+        final int matchupCount = NwpTool.getMatchupCount(array, 800);
+        assertEquals(0, matchupCount);
+    }
+
+    @Test
+    public void testGetMatchupCount_matchingPattern() {
+        final Array array = mock(Array.class);
+        when(array.getSize()).thenReturn(4L);
+        when(array.getInt(0)).thenReturn(400);
+        when(array.getInt(1)).thenReturn(1600);
+        when(array.getInt(2)).thenReturn(800);
+        when(array.getInt(3)).thenReturn(8);
+
+        final int matchupCount = NwpTool.getMatchupCount(array, 800);
+        assertEquals(1, matchupCount);
+    }
+
+    @Test
+    public void testCalculateStride() {
+        assertEquals(1, NwpTool.calculateStride(108, 0));
+        assertEquals(1, NwpTool.calculateStride(108, 1));
+
+        assertEquals(107, NwpTool.calculateStride(108, 2));
+        assertEquals(53, NwpTool.calculateStride(108, 3));
+
+        assertEquals(200, NwpTool.calculateStride(201, 2));
+        assertEquals(149, NwpTool.calculateStride(300, 3));
     }
 }
