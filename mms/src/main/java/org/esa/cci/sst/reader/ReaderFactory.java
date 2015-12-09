@@ -51,6 +51,8 @@ public class ReaderFactory {
      * @throws IOException if the {@link Reader} could not be initialized.
      */
     public static Reader open(DataFile datafile, Configuration configuration) throws IOException {
+        // @todo 1 tb/tb remove this debug out 2015-12-09
+        System.err.println("*** ReaderFactory: opening " + datafile.getPath());
         final String sensorName = datafile.getSensor().getName();
         final String readerSpec = configuration.getStringValue("mms.reader." + sensorName, DEFAULT_READER_SPEC);
         final String dirtyMaskExpression = configuration.getDirtyMaskExpression(sensorName);
