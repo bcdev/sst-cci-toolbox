@@ -262,7 +262,7 @@ class NwpTool extends BasicTool {
             final int nwpNy = Integer.parseInt(dimensions.getProperty(sensorBasename + ".nwp.ny"));
 
             final int strideX = calculateStride(nx, nwpNx);
-            final int strideY= calculateStride(ny, nwpNy);
+            final int strideY = calculateStride(ny, nwpNy);
 
             final String geoFileLocation = writeSensorGeoFile(mmdFile, nwpNx, nwpNy, strideX, strideY, sensorName, deleteOnExit);
 
@@ -319,7 +319,6 @@ class NwpTool extends BasicTool {
             }
         }
     }
-
 
 
     private static void writeMatchupNwpFile(String sourceMmdLocation,
