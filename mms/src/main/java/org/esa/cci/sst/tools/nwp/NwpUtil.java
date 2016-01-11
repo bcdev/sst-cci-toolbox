@@ -116,9 +116,6 @@ class NwpUtil {
                 return index;
             }
         }
-        System.out.println("sourceTimes[0] = " + sourceTimes.getInt(0));
-        System.out.println("sourceTimes[n] = " + sourceTimes.getInt((int) (sourceTimes.getSize() - 1)));
-        System.out.println("targetTime = " + targetTime);
         throw new ToolException("Not enough time steps in NWP time series.", ToolException.TOOL_ERROR);
     }
 

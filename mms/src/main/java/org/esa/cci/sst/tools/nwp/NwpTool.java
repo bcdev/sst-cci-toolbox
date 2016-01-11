@@ -334,8 +334,11 @@ class NwpTool extends BasicTool {
 
         try {
             sourceMmd = NetcdfFile.open(sourceMmdLocation);
+            System.err.println("souceMMD: " + sourceMmdLocation);
             forecastFile = NetcdfFile.open(forecastFileLocation);
+            System.err.println("forecast file: " + forecastFileLocation);
             analysisFile = NetcdfFile.open(analysisFileLocation);
+            System.err.println("analysis file: " + analysisFileLocation);
 
             final Dimension matchupDimension = NwpUtil.findDimension(sourceMmd, "matchup");
             final Dimension callsignDimension = NwpUtil.findDimension(sourceMmd, "callsign_length");
