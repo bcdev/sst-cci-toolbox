@@ -321,7 +321,7 @@ class NwpTool extends BasicTool {
     }
 
 
-    private static void writeMatchupNwpFile(String sourceMmdLocation,
+    static void writeMatchupNwpFile(String sourceMmdLocation,
                                             String forecastFileLocation,
                                             String analysisFileLocation,
                                             String targetMmdLocation,
