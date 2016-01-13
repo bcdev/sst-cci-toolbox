@@ -16,12 +16,8 @@
 
 package org.esa.cci.sst.tools.nwp;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import ucar.ma2.Array;
-
-import java.io.File;
-import java.io.IOException;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -98,18 +94,5 @@ public class NwpToolTest {
 
         assertEquals(200, NwpTool.calculateStride(201, 2));
         assertEquals(149, NwpTool.calculateStride(300, 3));
-    }
-
-    @Test
-    @Ignore
-    public void testWriteMatchupNwpFile() throws IOException {
-        final File mmdInput = new File("D:/Satellite/SST-CCI/NWP_testData/avhrr.n14-sub-2000-08.nc");
-        final File foreCastFile = new File("D:/Satellite/SST-CCI/NWP_testData/forecast6802156666270329374.nc");
-        final File analysisFile = new File("D:/Satellite/SST-CCI/NWP_testData/analysis6337997998220323059.nc");
-        final File mmdOutput = new File("D:/Satellite/SST-CCI/NWP_testData/target.nc");
-        NwpTool.writeMatchupNwpFile(mmdInput.getAbsolutePath(),
-                foreCastFile.getAbsolutePath(),
-                analysisFile.getAbsolutePath(),
-                mmdOutput.getAbsolutePath(),33, 17 );
     }
 }
