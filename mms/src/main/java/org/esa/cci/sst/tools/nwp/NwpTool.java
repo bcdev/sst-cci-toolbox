@@ -321,7 +321,7 @@ class NwpTool extends BasicTool {
     }
 
 
-    private static void writeMatchupNwpFile(String sourceMmdLocation,
+    static void writeMatchupNwpFile(String sourceMmdLocation,
                                             String forecastFileLocation,
                                             String analysisFileLocation,
                                             String targetMmdLocation,
@@ -388,14 +388,14 @@ class NwpTool extends BasicTool {
             copyVariableData(Constants.MATCHUP_DATASET_ID, sourceMmd, targetMmd);
 
             // write forecast data
-            final Array fcTargetTimes = mmdTime.read();
+            final Array targetTimes = mmdTime.read();
             final Array fcSourceTimes = NwpUtil.findVariable(forecastFile, "time", "t").read();
             final int[] fcSourceShape = {targetFcTimeStepCount, 1, gy, gx};
             final int fcPastTimeStepCount = NwpTool.computePastTimeStepCount(targetFcTimeStepCount);
             final int fcFutureTimeStepCount = NwpTool.computeFutureTimeStepCount(targetFcTimeStepCount);
             final int[] centerTimes = new int[matchupCount];
             for (int i = 0; i < matchupCount; i++) {
-                final int targetTime = fcTargetTimes.getInt(i);
+                final int targetTime = targetTimes.getInt(i);
                 final int timeStep = NwpUtil.nearestTimeStep(fcSourceTimes, targetTime);
                 if (timeStep - fcPastTimeStepCount < 0 || timeStep + fcFutureTimeStepCount > fcSourceTimes.getSize() - 1) {
                     throw new ToolException("Not enough time steps in NWP time series.", ToolException.TOOL_ERROR);
@@ -407,20 +407,19 @@ class NwpTool extends BasicTool {
             targetMmd.write(fcT0, Array.factory(centerTimes));
 
             // write analysis data
-            final Array anTargetTimes = mmdTime.read();
             final Array anSourceTimes = NwpUtil.findVariable(analysisFile, "time", "t").read();
             final int[] anSourceShape = {targetAnTimeStepCount, 1, gy, gx};
             final int anPastTimeStepCount = NwpTool.computePastTimeStepCount(targetAnTimeStepCount);
             final int anFutureTimeStepCount = NwpTool.computeFutureTimeStepCount(targetAnTimeStepCount);
             for (int i = 0; i < matchupCount; i++) {
-                final int targetTime = anTargetTimes.getInt(i);
+                final int targetTime = targetTimes.getInt(i);
                 final int timeStep = NwpUtil.nearestTimeStep(anSourceTimes, targetTime);
                 if (timeStep - anPastTimeStepCount < 0 || timeStep + anFutureTimeStepCount > anSourceTimes.getSize() - 1) {
                     throw new ToolException("Not enough time steps in NWP time series.", ToolException.TOOL_ERROR);
                 }
                 final int[] sourceStart = {timeStep - anPastTimeStepCount, 0, i * gy, 0};
                 NwpUtil.copyValues(anMap, targetMmd, i, sourceStart, anSourceShape);
-                centerTimes[i] = fcSourceTimes.getInt(timeStep);
+                centerTimes[i] = anSourceTimes.getInt(timeStep);
             }
             targetMmd.write(anT0, Array.factory(centerTimes));
         } catch (InvalidRangeException e) {
