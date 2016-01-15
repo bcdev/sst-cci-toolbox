@@ -504,11 +504,9 @@ public class InsituReaderTest {
 
     @Test
     public void testReadObservation_SST_CCI_V2_Argo_Data() throws Exception {
-        final InsituObservation observation;
-
         try (InsituReader reader = createReader("insitu_5_WMOID_69036_20001006_20020906.nc")) {
             assertEquals(1, reader.getNumRecords());
-            observation = reader.readObservation(0);
+            final InsituObservation observation = reader.readObservation(0);
 
             assertCorrectDate(2001, 8, 21, observation.getTime().getTime());
 
@@ -527,6 +525,55 @@ public class InsituReaderTest {
             final Point endPoint = geometry.getLastPoint();
             assertEquals(-22.798, endPoint.getX(), 1e-6);
             assertEquals(35.347, endPoint.getY(), 1e-6);
+        }
+    }
+
+    @Test
+    public void testReadObservation_SST_CCI_V3_1_Argo_Data() throws Exception {
+        try (InsituReader reader = createReader("insitu_5_WMOID_7900590_20150131_20150430.nc")) {
+            assertEquals(1, reader.getNumRecords());
+
+            final InsituObservation observation = reader.readObservation(0);
+            assertCorrectDate(2015, 2, 16, observation.getTime().getTime());
+            assertEquals(3845204.5, observation.getTimeRadius(), 0.0);
+
+            final PGgeometry location = observation.getLocation();
+            assertNotNull(location);
+
+            final Geometry geometry = location.getGeometry();
+            assertThat(geometry, is(instanceOf(LineString.class)));
+
+            final Point startPoint = geometry.getFirstPoint();
+            assertEquals(145.487, startPoint.getX(), 1e-6);
+            assertEquals(25.142, startPoint.getY(), 1e-5);
+
+            final Point endPoint = geometry.getLastPoint();
+            assertEquals(139.079, endPoint.getX(), 1e-5);
+            assertEquals(28.242, endPoint.getY(), 1e-6);
+
+            final ExtractDefinitionBuilder builder = prepareExtractBuilder(2015, 2, 16);
+            builder.shape(new int[]{1, 2});
+            final ExtractDefinition extractDefinition = builder.build();
+
+            Array array = reader.read("insitu.sea_surface_temperature", extractDefinition);
+            assertEquals(2, array.getSize());
+            assertEquals(20.136, array.getDouble(0), 1e-6);
+            assertEquals(-32768.0, array.getDouble(1), 1e-6);
+
+            array = reader.read("insitu.sst_depth", extractDefinition);
+            assertEquals(2, array.getSize());
+            assertEquals(3.18, array.getDouble(0), 1e-6);
+            assertEquals(-32768.0, array.getDouble(1), 1e-6);
+
+            array = reader.read("insitu.sst_qc_flag", extractDefinition);
+            assertEquals(2, array.getSize());
+            assertEquals(0.0, array.getDouble(0), 1e-6);
+            assertEquals(-32768.0, array.getDouble(1), 1e-6);
+
+            array = reader.read("insitu.sst_track_flag", extractDefinition);
+            assertEquals(2, array.getSize());
+            assertEquals(3.0, array.getDouble(0), 1e-6);
+            assertEquals(-32768.0, array.getDouble(1), 1e-6);
         }
     }
 
