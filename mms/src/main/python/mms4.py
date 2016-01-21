@@ -4,11 +4,12 @@ usecase = 'mms4'
 mmdtype = 'mmd4'
 
 w = Workflow(usecase)
-w.add_primary_sensor('avhrr.n07', '1981-09-01', '1985-02-01')
-w.add_primary_sensor('avhrr.n08', '1983-05-04', '1985-10-03')
-w.add_primary_sensor('avhrr.n09', '1985-02-25', '1988-11-07')
-w.add_primary_sensor('avhrr.n10', '1986-11-17', '1991-09-17')
-w.add_primary_sensor('avhrr.n11', '1988-11-08', '1994-09-14')
+#w.add_primary_sensor('avhrr.n07', '1981-09-01', '1985-02-01')
+#w.add_primary_sensor('avhrr.n08', '1983-05-04', '1985-10-03')
+#w.add_primary_sensor('avhrr.n09', '1985-02-25', '1988-11-07')
+w.add_primary_sensor('avhrr.n09', '1985-05-01', '1985-05-31')
+#w.add_primary_sensor('avhrr.n10', '1986-11-17', '1991-09-17')
+#w.add_primary_sensor('avhrr.n11', '1988-11-08', '1994-09-14')
 #w.add_primary_sensor('avhrr.n12', '1991-09-16', '1998-12-15')
 #w.add_primary_sensor('avhrr.n14', '1995-01-01', '2000-01-01')
 #w.add_primary_sensor('avhrr.n15', '1998-10-26', '2003-04-09')
