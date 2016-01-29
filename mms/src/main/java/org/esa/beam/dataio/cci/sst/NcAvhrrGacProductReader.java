@@ -176,12 +176,14 @@ public class NcAvhrrGacProductReader extends NetcdfProductReaderTemplate {
         final int sourceHeight = band.getSceneRasterHeight();
         final java.awt.Dimension tileSize = band.getProduct().getPreferredTileSize();
 
-        if (variable.getRank() > 2) {
+        if (mustCreateImageVariableImage(variable)) {
             return new ImageVariableOpImageImpl(variable, bufferType, sourceWidth, sourceHeight, tileSize);
         } else {
             return new ScanLineVariableOpImageImpl(variable, bufferType, sourceWidth, sourceHeight, tileSize);
         }
     }
+
+
 
     @Override
     protected void setTime(Product product) throws IOException {
@@ -207,6 +209,20 @@ public class NcAvhrrGacProductReader extends NetcdfProductReaderTemplate {
         }
     }
 
+    static boolean mustCreateImageVariableImage(Variable variable) {
+        final int rank = variable.getRank();
+        if (rank > 2) {
+            return true;
+        } else if (rank == 2) {
+            final int[] shape = variable.getShape();
+            if (shape[0] > 1) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // @todo 3 tb/tb make package local and write test 2016-01-29
     private static int[] columnShape(Variable variable) {
         final int[] shape = variable.getShape();
         for (int i = 0; i < shape.length; i++) {

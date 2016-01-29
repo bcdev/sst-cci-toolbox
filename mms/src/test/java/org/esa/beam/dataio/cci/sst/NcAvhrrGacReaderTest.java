@@ -10,8 +10,16 @@ import org.junit.Test;
 import ucar.nc2.Attribute;
 import ucar.nc2.Variable;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 public class NcAvhrrGacReaderTest {
@@ -76,7 +84,7 @@ public class NcAvhrrGacReaderTest {
     }
 
     @Test
-    public void testAddFlagCoding()  {
+    public void testAddFlagCoding() {
         final Product product = new Product("test_prod", "tst_type", 2, 2);
         product.addBand(testBand);
 
@@ -103,7 +111,7 @@ public class NcAvhrrGacReaderTest {
     }
 
     @Test
-    public void testAddFlagCoding_missingFlagMasksAttribute()  {
+    public void testAddFlagCoding_missingFlagMasksAttribute() {
         final Product product = new Product("test_prod", "tst_type", 2, 2);
         product.addBand(testBand);
 
@@ -117,7 +125,7 @@ public class NcAvhrrGacReaderTest {
     }
 
     @Test
-    public void testAddFlagCoding_missingFlagMeaningsAttribute()  {
+    public void testAddFlagCoding_missingFlagMeaningsAttribute() {
         final Product product = new Product("test_prod", "tst_type", 2, 2);
         product.addBand(testBand);
 
@@ -131,7 +139,7 @@ public class NcAvhrrGacReaderTest {
     }
 
     @Test
-    public void testAddFlagCoding_missingBothAttributes()  {
+    public void testAddFlagCoding_missingBothAttributes() {
         final Product product = new Product("test_prod", "tst_type", 2, 2);
         product.addBand(testBand);
 
@@ -145,7 +153,7 @@ public class NcAvhrrGacReaderTest {
     }
 
     @Test
-    public void testAddFlagCoding_attributesHaveDifferenrNumberOfValues()  {
+    public void testAddFlagCoding_attributesHaveDifferenrNumberOfValues() {
         final Product product = new Product("test_prod", "tst_type", 2, 2);
         product.addBand(testBand);
 
@@ -160,6 +168,50 @@ public class NcAvhrrGacReaderTest {
         NetcdfProductReaderTemplate.addFlagCoding(variable, testBand, product);
 
         assertFlagCodingNotPresent(product);
+    }
+
+    @Test
+    public void testMustCreateImageVariableImage_Image_oldFormat() {
+        when(variable.getRank()).thenReturn(3);
+
+        assertTrue(NcAvhrrGacProductReader.mustCreateImageVariableImage(variable));
+
+        verify(variable, times(1)).getRank();
+        verifyNoMoreInteractions(variable);
+    }
+
+    @Test
+    public void testMustCreateImageVariableImage_Image_newFormat() {
+        when(variable.getRank()).thenReturn(2);
+        when(variable.getShape()).thenReturn(new int[] {128, 16});
+
+        assertTrue(NcAvhrrGacProductReader.mustCreateImageVariableImage(variable));
+
+        verify(variable, times(1)).getRank();
+        verify(variable, times(1)).getShape();
+        verifyNoMoreInteractions(variable);
+    }
+
+    @Test
+    public void testMustCreateImageVariableImage_ScanLine_oldFormat() {
+        when(variable.getRank()).thenReturn(2);
+        when(variable.getShape()).thenReturn(new int[] {1, 512});
+
+        assertFalse(NcAvhrrGacProductReader.mustCreateImageVariableImage(variable));
+
+        verify(variable, times(1)).getRank();
+        verify(variable, times(1)).getShape();
+        verifyNoMoreInteractions(variable);
+    }
+
+    @Test
+    public void testMustCreateImageVariableImage_ScanLine_newFormat() {
+        when(variable.getRank()).thenReturn(1);
+
+        assertFalse(NcAvhrrGacProductReader.mustCreateImageVariableImage(variable));
+
+        verify(variable, times(1)).getRank();
+        verifyNoMoreInteractions(variable);
     }
 
     private void assertFlagCodingNotPresent(Product product) {

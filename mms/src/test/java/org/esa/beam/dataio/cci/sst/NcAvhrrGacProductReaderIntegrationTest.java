@@ -33,45 +33,12 @@ public class NcAvhrrGacProductReaderIntegrationTest {
         final Product product = reader.readProductNodes(path, null);
         assertNotNull(product);
         try {
-            final Band ch1Band = product.getBand("ch1");
-            assertNotNull(ch1Band);
-            assertEquals(1e-4, ch1Band.getScalingFactor(), 1e-8);
-            assertEquals("reflectance", ch1Band.getUnit());
-            assertEquals(0.0, ProductUtils.getGeophysicalSampleDouble(ch1Band, 1, 1, 0), 1e-8);
+            assertBandCorrect("ch1", 1, 1, 0.0, 1e-4, 0.0, "reflectance", product);
+            assertBandCorrect("ch2", 2, 2, 0.002499999936844688, 1e-4, 0.0, "reflectance", product);
+            assertBandCorrect("ch3b", 3, 3, -54.529998779296875, 0.01, 273.1499938964844, "kelvin", product);
+            assertBandCorrect("ch4", 4, 4, 233.56999478116632, 0.01, 273.1499938964844, "kelvin", product);
 
-            final Band ch2Band = product.getBand("ch2");
-            assertNotNull(ch2Band);
-            assertEquals(1e-4, ch2Band.getScalingFactor(), 1e-8);
-            assertEquals("reflectance", ch2Band.getUnit());
-            assertEquals(0.002499999936844688, ProductUtils.getGeophysicalSampleDouble(ch2Band, 2, 2, 0), 1e-8);
-
-            final Band ch3bBand = product.getBand("ch3b");
-            assertNotNull(ch3bBand);
-            assertEquals(0.01, ch3bBand.getScalingFactor(), 1e-8);
-            assertEquals(273.15, ch3bBand.getScalingOffset(), 1e-5);
-            assertEquals("kelvin", ch3bBand.getUnit());
-            assertEquals(-54.529998779296875, ProductUtils.getGeophysicalSampleDouble(ch3bBand, 3, 3, 0), 1e-8);
-
-            final Band ch4Band = product.getBand("ch4");
-            assertNotNull(ch4Band);
-            assertEquals(0.01, ch4Band.getScalingFactor(), 1e-8);
-            assertEquals(273.15, ch4Band.getScalingOffset(), 1e-5);
-            assertEquals("kelvin", ch4Band.getUnit());
-            assertEquals(233.56999478116632, ProductUtils.getGeophysicalSampleDouble(ch4Band, 4, 4, 0), 1e-8);
-
-            final Band cloudMaskBand = product.getBand("cloud_mask");
-            assertNotNull(cloudMaskBand);
-            assertEquals(7.0, ProductUtils.getGeophysicalSampleDouble(cloudMaskBand, 6, 6, 0), 1e-8);
-            final IndexCoding indexCoding = cloudMaskBand.getIndexCoding();
-            assertNotNull(indexCoding);
-            final String[] indexNames = indexCoding.getIndexNames();
-            assertNotNull(indexNames);
-            assertArrayEquals(new String[]{"clear", "probably_clear", "probably_cloudy", "cloudy", "unprocessed"}, indexNames);
-            assertEquals(0, indexCoding.getIndexValue("clear"));
-            assertEquals(1, indexCoding.getIndexValue("probably_clear"));
-            assertEquals(2, indexCoding.getIndexValue("probably_cloudy"));
-            assertEquals(3, indexCoding.getIndexValue("cloudy"));
-            assertEquals(7, indexCoding.getIndexValue("unprocessed"));
+            assertCloudBandCorrect(product);
 
             final Band cloudProbabilityBand = product.getBand("cloud_probability");
             assertNotNull(cloudProbabilityBand);
@@ -98,7 +65,7 @@ public class NcAvhrrGacProductReaderIntegrationTest {
             final FlagCoding flagCoding = qualFlagsBand.getFlagCoding();
             assertNotNull(flagCoding);
             final String[] flagNames = flagCoding.getFlagNames();
-            assertArrayEquals(new String[] {"bad_navigation", "bad_calibration", "bad_timing", "missing_line", "bad_data"}, flagNames);
+            assertArrayEquals(new String[]{"bad_navigation", "bad_calibration", "bad_timing", "missing_line", "bad_data"}, flagNames);
             assertEquals(1, flagCoding.getFlagMask("bad_navigation"));
             assertEquals(2, flagCoding.getFlagMask("bad_calibration"));
             assertEquals(4, flagCoding.getFlagMask("bad_timing"));
@@ -125,5 +92,54 @@ public class NcAvhrrGacProductReaderIntegrationTest {
         } finally {
             product.dispose();
         }
+    }
+
+
+
+    @Test
+    public void testReadL1B_v_1_2_TestProduct() throws Exception {
+        final String path = TestHelper.getResourcePath(NcAvhrrGacProductReaderIntegrationTest.class, "19830601031700-ESACCI-L1C-AVHRR07_G-fv01.0.nc");
+        assertNotNull(path);
+
+        final Product product = reader.readProductNodes(path, null);
+        assertNotNull(product);
+
+        try {
+            assertBandCorrect("ch1", 1, 1, 0.2635999933409039, 1e-4, 0.0, "reflectance", product);
+            assertBandCorrect("ch2", 2, 2, 0.20239999488694593, 1e-4, 0.0, "reflectance", product);
+            assertBandCorrect("ch3b", 3, 3, 289.92999352142215, 0.01, 273.1499938964844, "kelvin", product);
+            assertBandCorrect("ch4", 4, 4, 269.36999398097396, 0.01, 273.1499938964844, "kelvin", product);
+
+            assertCloudBandCorrect(product);
+
+            assertBandCorrect("cloud_probability", 5, 5, -0.00393599271774292, 0.0039369999431073666, 0.5, null, product);
+        } finally {
+            product.dispose();
+        }
+    }
+
+    private void assertBandCorrect(String name, int x, int y, double value, double scaleFactor, double scaleOffset, String unit, Product product) {
+        final Band band = product.getBand(name);
+        assertNotNull(band);
+        assertEquals(scaleFactor, band.getScalingFactor(), 1e-8);
+        assertEquals(scaleOffset, band.getScalingOffset(), 1e-8);
+        assertEquals(unit, band.getUnit());
+        assertEquals(value, ProductUtils.getGeophysicalSampleDouble(band, x, y, 0), 1e-8);
+    }
+
+    private void assertCloudBandCorrect(Product product) {
+        final Band cloudMaskBand = product.getBand("cloud_mask");
+        assertNotNull(cloudMaskBand);
+        assertEquals(7.0, ProductUtils.getGeophysicalSampleDouble(cloudMaskBand, 6, 6, 0), 1e-8);
+        final IndexCoding indexCoding = cloudMaskBand.getIndexCoding();
+        assertNotNull(indexCoding);
+        final String[] indexNames = indexCoding.getIndexNames();
+        assertNotNull(indexNames);
+        assertArrayEquals(new String[]{"clear", "probably_clear", "probably_cloudy", "cloudy", "unprocessed"}, indexNames);
+        assertEquals(0, indexCoding.getIndexValue("clear"));
+        assertEquals(1, indexCoding.getIndexValue("probably_clear"));
+        assertEquals(2, indexCoding.getIndexValue("probably_cloudy"));
+        assertEquals(3, indexCoding.getIndexValue("cloudy"));
+        assertEquals(7, indexCoding.getIndexValue("unprocessed"));
     }
 }
