@@ -84,8 +84,7 @@ public class NcAvhrrGacProductReaderIntegrationTest {
             assertBandCorrect("lat", 7, 7, 47.566001892089844, 1.0, 0.0, "degrees_north", product);
             assertBandCorrect("lon", 8, 8, -174.86199951171875, 1.0, 0.0, "degrees_east", product);
 
-            // @todo 1 tb/tb wait for Claires answer and adapt 2016-02-01
-            //assertCorrectFlagsBand(product);
+            assertCorrectFlagsBand(product);
 
             assertBandCorrect("relative_azimuth_angle", 10, 10, -327.67999267578125, 0.01, 0.0, "angular_degree", product);
             assertBandCorrect("satellite_zenith_angle", 11, 11, 63.6699985768646, 0.01, 0.0, "angular_degree", product);
