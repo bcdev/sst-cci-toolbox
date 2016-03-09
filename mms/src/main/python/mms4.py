@@ -4,6 +4,7 @@ usecase = 'mms4'
 mmdtype = 'mmd4'
 
 w = Workflow(usecase)
+w.add_primary_sensor('avhrr.n06', '1979-07-12', '1982-03-17')
 w.add_primary_sensor('avhrr.n07', '1981-09-01', '1985-02-01')
 w.add_primary_sensor('avhrr.n08', '1983-05-04', '1985-10-04')
 w.add_primary_sensor('avhrr.n09', '1985-02-27', '1988-11-08')
