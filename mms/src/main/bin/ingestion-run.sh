@@ -12,6 +12,7 @@ ${mms.home}/bin/ingestion-tool.sh -c ${mms.home}/config/${usecase}-config.proper
 -Dmms.source.11.inputDirectory=atsr.1/v2.1/${year}/${month} \
 -Dmms.source.12.inputDirectory=atsr.2/v2.1/${year}/${month} \
 -Dmms.source.13.inputDirectory=atsr.3/v2.1/${year}/${month} \
+-Dmms.source.18.inputDirectory=avhrr.n06/v01.2/${year}/${month} \
 -Dmms.source.19.inputDirectory=avhrr.n07/v01.2/${year}/${month} \
 -Dmms.source.20.inputDirectory=avhrr.n08/v01.2/${year}/${month} \
 -Dmms.source.21.inputDirectory=avhrr.n09/v01.2/${year}/${month} \
