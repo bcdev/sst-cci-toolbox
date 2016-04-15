@@ -21,13 +21,21 @@ w = Workflow(usecase)
 # w.add_primary_sensor('avhrr.m02', '2006-10-30', '2015-12-01')
 
 # this one does the after-failure-processing 2016-03-09
-w.add_primary_sensor('avhrr.n14', '1995-01-01', '2002-10-08')
-w.add_primary_sensor('avhrr.n15', '2006-12-01', '2013-01-01')
-w.add_primary_sensor('avhrr.n16', '2006-01-01', '2013-01-01')
-w.add_primary_sensor('avhrr.n17', '2005-12-01', '2013-01-01')
-w.add_primary_sensor('avhrr.n18', '2005-11-01', '2015-12-01')
-w.add_primary_sensor('avhrr.n19', '2009-02-07', '2015-12-01')
-w.add_primary_sensor('avhrr.m02', '2006-10-30', '2015-12-01')
+#w.add_primary_sensor('avhrr.n14', '1995-01-01', '2002-10-08')
+#w.add_primary_sensor('avhrr.n15', '2006-12-01', '2013-01-01')
+#w.add_primary_sensor('avhrr.n16', '2006-01-01', '2013-01-01')
+#w.add_primary_sensor('avhrr.n17', '2005-12-01', '2013-01-01')
+#w.add_primary_sensor('avhrr.n18', '2005-11-01', '2015-12-01')
+#w.add_primary_sensor('avhrr.n19', '2009-02-07', '2015-12-01')
+#w.add_primary_sensor('avhrr.m02', '2006-10-30', '2015-12-01')
+
+# this one does the after-failure-processing 2016-04-15
+w.add_primary_sensor('avhrr.n15', '2010-04-01', '2013-01-01')
+w.add_primary_sensor('avhrr.n16', '2010-11-01', '2013-01-01')
+w.add_primary_sensor('avhrr.n17', '2010-10-01', '2013-01-01')
+w.add_primary_sensor('avhrr.n18', '2011-01-01', '2015-12-01')
+w.add_primary_sensor('avhrr.n19', '2011-01-01', '2015-12-01')
+w.add_primary_sensor('avhrr.m02', '2011-01-01', '2015-12-01')
 w.set_samples_per_month(0)
 
 w.run(mmdtype, hosts=[('localhost', 8)], calls=[('sampling-start.sh', 1), ('coincidence-start.sh', 1)], with_history=True)
