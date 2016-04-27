@@ -85,8 +85,8 @@ class PMonitor:
         Initiates monitor, marks inputs, reads report, creates thread pool
         """
         try:
-            os.system('mkdir -p ' + log_dir)
             self._mutex.acquire()
+            os.system('mkdir -p ' + log_dir)
             self._hostConstraints = PMonitor._constraints_of(hosts)
             self._typeConstraints = PMonitor._constraints_of(types)
             self._weightConstraints = PMonitor._constraints_of(weights)
