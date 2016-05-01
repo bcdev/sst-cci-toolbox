@@ -10,4 +10,4 @@ version=$6
 archive_root=$7
 report_root=$8
 
-${mms.python.exec} ${mms.home}/python/svrrunner.py $year $month $day $sensor $usecase $version $archive_root $report_root
+${mms_python_exec} ${mms_home}/python/svrrunner.py $year $month $day $sensor $usecase $version $archive_root $report_root

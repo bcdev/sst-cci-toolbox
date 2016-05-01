@@ -6,12 +6,12 @@ export PGDATA=${mms.pg.data}
 
 if [ -n "${LD_LIBRARY_PATH}" ]
 then
-    export LD_LIBRARY_PATH=${mms.pg.home}/lib:${LD_LIBRARY_PATH}
+    export LD_LIBRARY_PATH=${mms_pg_home}/lib:${LD_LIBRARY_PATH}
 else
-    export LD_LIBRARY_PATH=${mms.pg.home}/lib
+    export LD_LIBRARY_PATH=${mms_pg_home}/lib
 fi
 
-export PATH=${mms.home}/bin:${mms.pg.home}/bin:${PATH}
+export PATH=${mms_home}/bin:${mms_pg_home}/bin:${PATH}
 
-echo "using MMS software in ${mms.home}. Path is"
+echo "using MMS software in ${mms_home}. Path is"
 echo ${PATH}

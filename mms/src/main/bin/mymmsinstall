@@ -2,7 +2,7 @@
 
 # fetch changes from github and install
 currentdir=`pwd`
-cd ${mms.github}
+cd ${mms_github}
 ${mms.git.exec} pull
 ${mms.mvn.exec} clean package install
 cd ${currentdir}
@@ -11,16 +11,16 @@ cd ${currentdir}
 #commithash=`git log --abbrev-commit -1 --pretty=%h`
 
 # build new software version
-${mms.mvn.exec} -f ${mms.github}/mms/pom.xml package assembly:assembly
+${mms.mvn.exec} -f ${mms_github}/mms/pom.xml package assembly:assembly
 
 # remove previous software version
-echo removing software in ${mms.home}
-rm -rf ${mms.home}
+echo removing software in ${mms_home}
+rm -rf ${mms_home}
 
 # copy assembly to target directory
-echo copying assembly to $(dirname ${mms.home})
-cp -R ${mms.github}/target/sst-cci-mms-${project.version}-bin/sst-cci-mms-${project.version} $(dirname ${mms.home})
+echo copying assembly to $(dirname ${mms_home})
+cp -R ${mms_github}/target/sst-cci-mms-${project_version}-bin/sst-cci-mms-${project_version} $(dirname ${mms_home})
 
 # change file permissions manually because maven assembly does not do this
 echo changing file permissions
-chmod -R ug+X ${mms.home}
+chmod -R ug+X ${mms_home}

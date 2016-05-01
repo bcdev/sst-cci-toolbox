@@ -6,8 +6,8 @@ if [ ! -z ${MMS_DEBUG} ]; then
 fi
 
 java \
-    -Dmms.home="${mms.home}" \
+    -Dmms_home="${mms_home}" \
     -Xms1G -Xmx1G ${MMS_OPTIONS} \
-    -Djava.io.tmpdir=${mms.tmpdir} \
-    -classpath "${mms.home}/lib/*" \
+    -Djava.io.tmpdir=${mms_tmpdir} \
+    -classpath "${mms_home}/lib/*" \
     org.esa.cci.sst.tools.PlotSamplingPointFileTool "$@"
