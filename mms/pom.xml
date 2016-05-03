@@ -218,7 +218,7 @@
                 <!-- The Intel compiler version to use -->
                 <mms.gbcs.intelversion>12.1.5</mms.gbcs.intelversion>
                 <!-- Path to the CDO installation to use -->
-                <mms.nwp.cdo.home>/group_workspaces/cems2/esacci_sst/software/cdo/1.6.4</mms.nwp.cdo.home>
+                <mms.nwp.cdo.home>/group_workspaces/cems2/esacci_sst/software/cdo/1.6.9</mms.nwp.cdo.home>
 
                 <mms.python.exec>/group_workspaces/cems2/esacci_sst/software/python/bin/python2.7</mms.python.exec>
 
