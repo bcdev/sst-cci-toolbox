@@ -185,7 +185,7 @@ class NwpTool extends BasicTool {
 
             final Properties properties = new Properties();
             properties.setProperty("CDO", cdoHome + "/bin/cdo");
-            properties.setProperty("CDO_OPTS", "-M");
+            properties.setProperty("CDO_OPTS", "-M -R");
             properties.setProperty("REFTIME", "1978-01-01,00:00:00,seconds");
 
             properties.setProperty("GEO", geoFileLocation);
@@ -219,7 +219,7 @@ class NwpTool extends BasicTool {
 
             final Properties properties = new Properties();
             properties.setProperty("CDO", "cdo");
-            properties.setProperty("CDO_OPTS", "-M");
+            properties.setProperty("CDO_OPTS", "-M -R");
             properties.setProperty("REFTIME", "1978-01-01,00:00:00,seconds");
 
             properties.setProperty("GEO", geoFileLocation);
@@ -269,7 +269,7 @@ class NwpTool extends BasicTool {
 
             final Properties properties = new Properties();
             properties.setProperty("CDO", "cdo");
-            properties.setProperty("CDO_OPTS", "-M");
+            properties.setProperty("CDO_OPTS", "-M -R");
             properties.setProperty("REFTIME", "1978-01-01,00:00:00,seconds");
 
             properties.setProperty("GEO", geoFileLocation);

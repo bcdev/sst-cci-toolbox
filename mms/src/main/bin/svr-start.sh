@@ -20,7 +20,7 @@ echo "`date -u +%Y%m%d-%H%M%S` submitting job '$jobname'"
 read_task_jobs $jobname
 
 if [ -z $jobs ]; then
-    submit_job 8192 0:30 $jobname $command
+    submit_job 8192 1:00 $jobname $command
 fi
 
 wait_for_task_jobs_completion $jobname
