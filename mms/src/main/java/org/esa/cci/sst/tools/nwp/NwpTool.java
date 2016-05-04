@@ -107,6 +107,7 @@ class NwpTool extends BasicTool {
 
         deleteOnExit = config.getBooleanValue(Configuration.KEY_MMS_IO_TMPDELETEONEXIT, true);
         cdoHome = config.getStringValue(Configuration.KEY_MMS_NWP_CDO_HOME);
+        logger.info("using CDO binaries from: " + cdoHome);
         dimensionFilePath = config.getStringValue(Configuration.KEY_MMS_MMD_DIMENSIONS);
         sourceMmdLocation = config.getStringValue(Configuration.KEY_MMS_NWP_MMD_SOURCE);
         sourceNwpLocation = config.getStringValue(Configuration.KEY_MMS_NWP_NWP_SOURCE);
