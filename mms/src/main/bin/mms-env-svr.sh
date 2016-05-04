@@ -46,7 +46,7 @@ wait_for_task_jobs_completion() {
         # 619457  rquast  RUN   lotus      lotus.jc.rl host209.jc. *r.n12-sub Aug 14 10:15
         # 619458  rquast  RUN   lotus      lotus.jc.rl host209.jc. *r.n11-sub Aug 14 10:15
         # 619452  rquast  RUN   lotus      lotus.jc.rl host043.jc. *r.n10-sub Aug 14 10:15
-        if bjobs -P esacci_sst | egrep -q "^$jobs\\>"
+        if bjobs -P esacci_sst_svr | egrep -q "^$jobs\\>"
         then
             continue
         fi
@@ -83,7 +83,7 @@ submit_job() {
     hrs=$2
     jobname=$3
     command=$4
-    bsubmit="bsub -R rusage[mem=${mem}] -m lotus241 -n 1 -W ${hrs} -P esacci_sst -cwd ${MMS_INST} -oo ${MMS_LOG}/${jobname}.out -eo ${MMS_LOG}/${jobname}.err -J ${jobname} ${mms.home}/bin/${command} ${@:5}"
+    bsubmit="bsub -R rusage[mem=${mem}] -m lotus241 -n 1 -W ${hrs} -P esacci_sst_svr -cwd ${MMS_INST} -oo ${MMS_LOG}/${jobname}.out -eo ${MMS_LOG}/${jobname}.err -J ${jobname} ${mms.home}/bin/${command} ${@:5}"
 
     rm -f ${MMS_LOG}/${jobname}.out
     rm -f ${MMS_LOG}/${jobname}.err
