@@ -77,7 +77,10 @@ class L2P(ProductType):
                                  'uncorrelated_uncertainty',
                                  'adjustment_uncertainty',
                                  'l2p_flags',
-                                 'sses_bias'
+                                 'sses_bias',
+                                 'aerosol_dynamic_indicator',
+                                 'probability_clear',
+                                 'sensitivity'
                              ],
                              ['sea_surface_temperature', 'sea_surface_temperature_depth', -5.0, 10.0],
                              [
@@ -128,7 +131,9 @@ class L3U(ProductType):
                                  'uncorrelated_uncertainty',
                                  'adjustment_uncertainty',
                                  'l2p_flags',
-                                 'sses_bias'
+                                 'sses_bias',
+                                 'aerosol_dynamic_indicator',
+                                 'sensitivity'
                              ],
                              ['sea_surface_temperature', 'sea_surface_temperature_depth', -5.0, 10.0],
                              [
