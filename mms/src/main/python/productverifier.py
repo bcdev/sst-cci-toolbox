@@ -2,6 +2,8 @@ __author__ = 'Ralf Quast'
 
 import os
 import re
+import numbers
+import base64
 from netCDF4 import Dataset
 from netCDF4 import Variable
 import json
@@ -234,6 +236,7 @@ class ProductVerifier:
         except VerificationError:
             print 'Verification error:', self.source_pathname
         finally:
+            ProductVerifier.ensure_correct_integer_types(self.report)
             ProductVerifier.dump_report(self.report, self.report_pathname)
 
     def _check_source_pathname(self):
@@ -503,16 +506,27 @@ class ProductVerifier:
         :type product_type: ProductType
         """
         try:
-            self._check_variable_existence(dataset, product_type)
-            self._check_variable_limits(dataset)
-            self._check_geophysical(dataset, product_type)
-            self._check_mask_consistency(dataset, product_type)
-            self._check_corruptness(dataset, product_type)
+            # self._check_variable_existence(dataset, product_type)
+            # self._check_variable_limits(dataset)
+            # self._check_geophysical(dataset, product_type)
+             self._check_mask_consistency(dataset, product_type)
+            # self._check_corruptness(dataset, product_type)
         finally:
             try:
                 dataset.close()
             except IOError:
                 pass
+
+    @staticmethod
+    def ensure_correct_integer_types(report):
+        """
+
+        :type report: Dictionary
+        """
+        for key,value in report.items():
+            if isinstance(value, np.int64):
+                report[key] = value.astype(int)
+
 
     @staticmethod
     def load_report(report_pathname):
@@ -540,11 +554,14 @@ class ProductVerifier:
             report_dirname = os.path.dirname(report_pathname)
             if not os.path.exists(report_dirname):
                 os.makedirs(report_dirname)
-            report_file = open(report_pathname, 'w')
-            try:
-                json.dump(report, report_file, indent=1, sort_keys=True)
-            finally:
-                report_file.close()
+
+            with open(report_pathname, 'w') as f:
+                json.dump(report, f, indent=4, sort_keys=True)
+            # report_file = open(report_pathname, 'w')
+            # try:
+            #     json.dump(report, report_file, indent=1, sort_keys=True)
+            # finally:
+            #     report_file.close()
 
     @staticmethod
     def get_current_time():
@@ -625,5 +642,6 @@ if __name__ == "__main__":
     try:
         verifier.verify()
         sys.exit()
-    except:
+    except Exception as e:
+        print "Error {0}".format(e.message)
         sys.exit(1)
