@@ -2,10 +2,7 @@ __author__ = 'Ralf Quast'
 
 import os
 import re
-import numbers
-import base64
 from netCDF4 import Dataset
-from netCDF4 import Variable
 import json
 from time import gmtime, strftime
 
@@ -202,7 +199,7 @@ class ProductVerifier:
         self.report = {}
         self.filename_patterns = {
             '[0-9]{14}-ESACCI-L2P_GHRSST-.*\\.nc': L2P(),
-            '[0-9]{14}-ESACCI-L3U_GHRSST-.*\\.nc': L2P(),
+            '[0-9]{14}-ESACCI-L3U_GHRSST-.*\\.nc': L3U(),
             '[0-9]{14}-ESACCI-L4_GHRSST-.*\\.nc': L4(),
         }
 
@@ -506,11 +503,11 @@ class ProductVerifier:
         :type product_type: ProductType
         """
         try:
-            # self._check_variable_existence(dataset, product_type)
-            # self._check_variable_limits(dataset)
-            # self._check_geophysical(dataset, product_type)
+             self._check_variable_existence(dataset, product_type)
+             self._check_variable_limits(dataset)
+             self._check_geophysical(dataset, product_type)
              self._check_mask_consistency(dataset, product_type)
-            # self._check_corruptness(dataset, product_type)
+             self._check_corruptness(dataset, product_type)
         finally:
             try:
                 dataset.close()

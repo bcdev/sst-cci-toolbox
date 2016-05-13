@@ -87,6 +87,12 @@ class ReportPlotter:
             'Time Exists': ['time.existence_check'],
             'Uncorrelated Unc Exists': ['uncorrelated_uncertainty.existence_check'],
             'Wind Speed Exists': ['wind_speed.existence_check'],
+            'Aerosol Dyn Ind Exists': ['aerosol_dynamic_indicator.existence_check'],
+            'Probability Clear Exists': ['probability_clear.existence_check'],
+            'Sensitivity Exists': ['sensitivity.existence_check'],
+            'Lat Bnds Exists': ['lat_bnds.existence_check'],
+            'Lon Bnds Exists': ['lon_bnds.existence_check'],
+            'Time Bnds Exists': ['time_bnds.existence_check'],
         }
         check_labels = [
             'Is File',
@@ -109,6 +115,12 @@ class ReportPlotter:
             'L2P Flags Exist',
             'Quality Level Exists',
             'SST Corrupt',
+            'Aerosol Dyn Ind Exists',
+            'Probability Clear Exists',
+            'Sensitivity Exists',
+            'Lat Bnds Exists',
+            'Lon Bnds Exists',
+            'Time Bnds Exists',
         ]
         report = self.get_report()
         reference_counts = report['summary_report.count']
@@ -416,7 +428,8 @@ if __name__ == "__main__":
     # noinspection PyBroadException
     try:
         plotter.plot()
-    except:
+    except Exception as e:
+        print "Error {0}".format(e.message)
         sys.exit(1)
 
     sys.exit()
