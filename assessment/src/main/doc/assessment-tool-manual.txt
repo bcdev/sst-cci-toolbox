@@ -34,7 +34,7 @@ All other entries in the properties file are variable definitions that are expla
 Variables
 ---------
 
-Varaibles in the word-document template are placeholders for content supplied by the assessment-tool. Variables in
+Variables in the word-document template are placeholders for content supplied by the assessment-tool. Variables in
 the word document follow the convention
 
 ${variable_name}
@@ -45,7 +45,7 @@ not touched.
 Variables in the properties file are stored as mere names, without the surrounding '${' and '}'.
 
 The variable name has to follow a specific pattern that also defines the replacing functionality. A variable name
-consists of a functional description, the name and ann optional suffix, separated by a dot '.'.
+consists of a functional description, the name and an optional suffix, separated by a dot '.'.
 
 Example:
     description.name.suffix
