@@ -66,7 +66,7 @@ public final class AveragingTool extends Tool {
     private static final String FILE_FORMAT_VERSION = "1.1";
 
     private static final String TOOL_NAME = "org/esa/cci/sst/tools/regavg";
-    private static final String TOOL_VERSION = "3.0";
+    private static final String TOOL_VERSION = "3.1";
     private static final String TOOL_SYNTAX = TOOL_NAME + " [OPTIONS]";
     private static final String TOOL_HEADER = "\n" +
             "The regavg tool is used to generate regional average time-series from ARC (L2P, L3U) and " +
@@ -237,7 +237,7 @@ public final class AveragingTool extends Tool {
 
         final String outputDirString = configuration.getMandatoryStringValue(PARAM_OUTPUT_DIR.getName(), PARAM_OUTPUT_DIR.getDefaultValue());
         final File outputDir = FileUtil.getExistingDirectory(outputDirString, toolHome);
-        final boolean writeText = configuration.getBooleanValue(PARAM_WRITE_TEXT.getName());
+        final boolean writeText = configuration.getBooleanValue(PARAM_WRITE_TEXT.getName(), false);
         try {
             writeOutputs(outputDir, writeText, productType, filenameRegex,
                     sstDepth, startDate, endDate, temporalResolution, regionMaskList, timeSteps);

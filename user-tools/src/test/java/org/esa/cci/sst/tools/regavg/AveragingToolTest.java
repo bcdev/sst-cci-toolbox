@@ -26,7 +26,7 @@ public class AveragingToolTest {
         tool.setProductType(ProductType.CCI_L3U);
 
         final String filename = tool.getOutputFilename("20000101", "20101231", "Global", ProcessingLevel.L3U, "SSTskin", "PS", "DM");
-        assertEquals("20000101-20101231-Global_average-ESACCI-L3U_GHRSST-SSTskin-PS-DM-v3.0-fv1.1.nc", filename);
+        assertEquals("20000101-20101231-Global_average-ESACCI-L3U_GHRSST-SSTskin-PS-DM-v3.1-fv1.1.nc", filename);
     }
 
     @Test
@@ -41,7 +41,7 @@ public class AveragingToolTest {
 
     @Test
     public void testGetVersion() {
-        assertEquals("3.0", tool.getVersion());
+        assertEquals("3.1", tool.getVersion());
     }
 
     @Test

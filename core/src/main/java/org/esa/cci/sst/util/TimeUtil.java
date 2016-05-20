@@ -219,6 +219,11 @@ public final class TimeUtil {
         return utcCalendar.get(Calendar.YEAR);
     }
 
+    public static int getDayOfYear(Date date) {
+        final GregorianCalendar utcCalendar = createUtcCalendar(date);
+        return utcCalendar.get(Calendar.DAY_OF_YEAR);
+    }
+
     public static int getMonth(Date date) {
         final GregorianCalendar utcCalendar = createUtcCalendar(date);
         return utcCalendar.get(Calendar.MONTH) + 1;

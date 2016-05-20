@@ -193,6 +193,19 @@ public class TimeUtilTest {
     }
 
     @Test
+    public void testGetDayOfYear() {
+        Calendar calendar = createCalendar(2012, 11, 22, 18, 24, 53);
+        Date date = calendar.getTime();
+
+        assertEquals(357, TimeUtil.getDayOfYear(date));
+
+        calendar = createCalendar(1998, 4, 9, 11, 17, 38);
+        date = calendar.getTime();
+
+        assertEquals(129, TimeUtil.getDayOfYear(date));
+    }
+
+    @Test
     public void testGetMonth() {
         Calendar calendar = createCalendar(2011, 8, 19, 18, 24, 53);
         Date date = calendar.getTime();

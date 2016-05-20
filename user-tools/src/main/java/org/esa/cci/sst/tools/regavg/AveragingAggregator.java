@@ -178,7 +178,7 @@ class AveragingAggregator extends AbstractAggregator {
                     gridWatch.start();
 
                     final Date date = fileType.readDate(dataFile);
-                    final int dayOfYear = TimeUtil.getYear(date);
+                    final int dayOfYear = TimeUtil.getDayOfYear(date);
                     logger.fine("Day of year is " + dayOfYear);
 
                     context.setClimatologySstGrid(climatology.getSstGrid(dayOfYear));
