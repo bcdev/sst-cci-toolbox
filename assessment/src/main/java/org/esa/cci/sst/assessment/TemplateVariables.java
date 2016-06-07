@@ -9,9 +9,11 @@ import java.util.Set;
 
 class TemplateVariables {
 
+    private static final String DEFAULT = ".default";
+
     private Properties properties;
 
-    public TemplateVariables() {
+    TemplateVariables() {
         properties = new Properties();
     }
 
@@ -25,13 +27,38 @@ class TemplateVariables {
 
         for (final String propertyName : propertyNames) {
             if (propertyName.startsWith("word.")) {
-                final String propertyValue = properties.getProperty(propertyName);
-                // @todo 1 tb/tb add handling of default values 2016-06-06
+                if (isDefaultProperty(propertyName)) {
+                    final String originalProperty = getPropertyNameFromDefault(propertyName);
+                    String propertyValue = properties.getProperty(originalProperty);
+                    if (propertyValue == null) {
+                        propertyValue = properties.getProperty(propertyName);
+                    }
+                    if (resultMap.containsKey(originalProperty)) {
+                        continue;
+                    }
 
-                resultMap.put(propertyValue, propertyValue);
+                    resultMap.put(originalProperty, propertyValue);
+                } else {
+                    // @todo 2 tb/tb remove scale properties. There shouldn't be scaled word.* properties, but you never know 2016-06-07
+                    final String propertyValue = properties.getProperty(propertyName);
+
+                    resultMap.put(propertyName, propertyValue);
+                }
             }
         }
 
         return resultMap;
+    }
+
+    static boolean isDefaultProperty(String propertyName) {
+        return propertyName.endsWith(DEFAULT);
+    }
+
+    static String getPropertyNameFromDefault(String defaultPropertyName) {
+        final int defaultIndex = defaultPropertyName.indexOf(DEFAULT);
+        if (defaultIndex > 0) {
+            return defaultPropertyName.substring(0, defaultIndex);
+        }
+        return defaultPropertyName;
     }
 }
