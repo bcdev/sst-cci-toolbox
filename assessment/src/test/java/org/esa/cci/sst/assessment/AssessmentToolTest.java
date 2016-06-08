@@ -40,15 +40,6 @@ public class AssessmentToolTest {
     }
 
     @Test
-    public void testIsParagraphProperty() {
-        assertFalse(AssessmentTool.isParagraphProperty("image"));
-        assertFalse(AssessmentTool.isParagraphProperty("word"));
-
-        assertTrue(AssessmentTool.isParagraphProperty("paragraph.really"));
-        assertTrue(AssessmentTool.isParagraphProperty("comment.really"));
-    }
-
-    @Test
     public void testCreateOptions() {
         final Options options = AssessmentTool.createOptions();
         assertNotNull(options);

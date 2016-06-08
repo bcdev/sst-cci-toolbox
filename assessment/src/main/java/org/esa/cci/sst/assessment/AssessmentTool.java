@@ -15,6 +15,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -39,11 +40,35 @@ class AssessmentTool {
         }
 
         final PoiWordDocument wordDocument = loadWordTemplate(cmdLineParameter.getTemplateFile());
-        final Properties properties = loadProperties(cmdLineParameter.getPropertiesFile());
+        final File propertiesFile = cmdLineParameter.getPropertiesFile();
+        final Properties properties = loadProperties(propertiesFile);
 
-        replaceVariables(wordDocument, properties);
+        final TemplateVariables templateVariables = loadTemplateVariables(propertiesFile);
+
+        replaceVariables(wordDocument, properties, templateVariables);
 
         saveDocument(wordDocument, cmdLineParameter.getOutputFile());
+    }
+
+    // @todo 3 tb/** make static, package local and test 2016-06-08
+    private TemplateVariables loadTemplateVariables(File propertiesFile) throws IOException {
+        final TemplateVariables templateVariables = new TemplateVariables();
+
+        FileInputStream inStream = null;
+        try {
+            inStream = new FileInputStream(propertiesFile);
+            templateVariables.load(inStream);
+            logger.info("Loaded properties file '" + propertiesFile + "'");
+        } finally {
+            if (inStream != null) {
+                try {
+                    inStream.close();
+                } catch (IOException ignore) {
+                }
+            }
+        }
+
+        return templateVariables;
     }
 
     private void saveDocument(PoiWordDocument wordDocument, File outputFile) throws IOException {
@@ -57,7 +82,7 @@ class AssessmentTool {
             }
         }
 
-        if (outputFile.isFile() && options.hasOption("r"))  {
+        if (outputFile.isFile() && options.hasOption("r")) {
             if (!outputFile.delete()) {
                 final String message = "Unable to delete target file'" + outputFile.getAbsolutePath() + "'";
                 logger.severe(message);
@@ -75,9 +100,9 @@ class AssessmentTool {
         logger.info("Saved precessed Word document to '" + absoluteFile.getAbsolutePath() + "'");
     }
 
-    private void replaceVariables(PoiWordDocument wordDocument, Properties properties) throws IOException, InvalidFormatException {
-        replaceWordVariables(wordDocument, properties);
-        replaceParagraphVariables(wordDocument, properties);
+    private void replaceVariables(PoiWordDocument wordDocument, Properties properties, TemplateVariables templateVariables) throws IOException, InvalidFormatException {
+        replaceWordVariables(wordDocument, templateVariables);
+        replaceParagraphVariables(wordDocument, templateVariables);
         replaceFigureVariables(wordDocument, properties);
         replaceMultipleFigureVariables(wordDocument, properties);
 
@@ -146,25 +171,19 @@ class AssessmentTool {
         return fileList;
     }
 
-    private void replaceParagraphVariables(PoiWordDocument wordDocument, Properties properties) {
-        final Set<String> propertyNames = properties.stringPropertyNames();
-
-        for (final String propertyName : propertyNames) {
-            if (isParagraphProperty(propertyName)) {
-                final String variableValue = properties.getProperty(propertyName);
-                wordDocument.replaceParagraphText(makeWordVariable(propertyName), variableValue);
-            }
+    private void replaceParagraphVariables(PoiWordDocument wordDocument, TemplateVariables templateVariables) {
+        final Map<String, String> paragraphVariables = templateVariables.getParagraphVariables();
+        final Set<Map.Entry<String, String>> entries = paragraphVariables.entrySet();
+        for (Map.Entry<String, String> entry : entries) {
+            wordDocument.replaceParagraphText(makeWordVariable(entry.getKey()), entry.getValue());
         }
     }
 
-    private void replaceWordVariables(PoiWordDocument wordDocument, Properties properties) {
-        final Set<String> propertyNames = properties.stringPropertyNames();
-
-        for (final String propertyName : propertyNames) {
-            if (propertyName.startsWith("word.")) {
-                final String variableValue = properties.getProperty(propertyName);
-                wordDocument.replaceWithText(makeWordVariable(propertyName), variableValue);
-            }
+    private void replaceWordVariables(PoiWordDocument wordDocument, TemplateVariables templateVariables) {
+        final Map<String, String> wordVariables = templateVariables.getWordVariables();
+        final Set<Map.Entry<String, String>> entries = wordVariables.entrySet();
+        for (Map.Entry<String, String> entry : entries) {
+            wordDocument.replaceWithText(makeWordVariable(entry.getKey()), entry.getValue());
         }
     }
 
@@ -202,10 +221,6 @@ class AssessmentTool {
 
     static boolean isFiguresProperty(String propertyName) {
         return propertyName.startsWith("figures.") && !propertyName.contains(".scale");
-    }
-
-    static boolean isParagraphProperty(String propertyName) {
-        return propertyName.startsWith("paragraph.") || propertyName.startsWith("comment.");
     }
 
     private PoiWordDocument loadWordTemplate(File templateFile) throws IOException {

@@ -42,7 +42,9 @@ public class TemplateVariablesTest {
 
     @Test
     public void testGetWordVariables() throws IOException {
-        final String properties = "word.schnick=juchee\nword.schnack=blablabla";
+        final String properties = "word.schnick=juchee\n" +
+                "word.schnack=blablabla\n" +
+                "something.else=weDoNotSeeThis";
         final ByteArrayInputStream inputStream = new ByteArrayInputStream(properties.getBytes());
 
         variables.load(inputStream);
@@ -56,7 +58,9 @@ public class TemplateVariablesTest {
 
     @Test
     public void testGetWordVariables_withDefaults() throws IOException {
-        final String properties = "word.schnick=juchee\nword.schnick.default=hurra\nword.schnack.default=bla_default";
+        final String properties = "word.schnick=juchee\n" +
+                "word.schnick.default=hurra\n" +
+                "word.schnack.default=bla_default";
         final ByteArrayInputStream inputStream = new ByteArrayInputStream(properties.getBytes());
 
         variables.load(inputStream);
@@ -82,5 +86,46 @@ public class TemplateVariablesTest {
 
         assertEquals("the.property.scale", TemplateVariables.getPropertyNameFromDefault("the.property.scale"));
         assertEquals("the.property", TemplateVariables.getPropertyNameFromDefault("the.property"));
+    }
+
+    @Test
+    public void testGetParagraphVariables() throws IOException {
+        final String properties = "paragraph.full=this is a complete paragraph\n" +
+                "strange.key=willBeSkipped\n" +
+                "comment.schnack=me too";
+        final ByteArrayInputStream inputStream = new ByteArrayInputStream(properties.getBytes());
+
+        variables.load(inputStream);
+
+        final Map<String, String> wordVariables = variables.getParagraphVariables();
+        assertEquals(2, wordVariables.size());
+
+        assertEquals("this is a complete paragraph", wordVariables.get("paragraph.full"));
+        assertEquals("me too", wordVariables.get("comment.schnack"));
+    }
+
+    @Test
+    public void testGetParagraphVariables_withDefault() throws IOException {
+        final String properties = "paragraph.full=this is a complete paragraph\n" +
+                "sparagraph.full.default=willBeSkipped\n" +
+                "comment.schnack.default=willBeDisplayed";
+        final ByteArrayInputStream inputStream = new ByteArrayInputStream(properties.getBytes());
+
+        variables.load(inputStream);
+
+        final Map<String, String> wordVariables = variables.getParagraphVariables();
+        assertEquals(2, wordVariables.size());
+
+        assertEquals("this is a complete paragraph", wordVariables.get("paragraph.full"));
+        assertEquals("willBeDisplayed", wordVariables.get("comment.schnack"));
+    }
+
+    @Test
+    public void testIsParagraphProperty() {
+        assertFalse(TemplateVariables.isParagraphProperty("image.some"));
+        assertFalse(TemplateVariables.isParagraphProperty("word.written"));
+
+        assertTrue(TemplateVariables.isParagraphProperty("paragraph.really"));
+        assertTrue(TemplateVariables.isParagraphProperty("comment.really"));
     }
 }

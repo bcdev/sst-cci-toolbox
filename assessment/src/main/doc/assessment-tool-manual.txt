@@ -1,7 +1,7 @@
 Assessment-tool version 1.1 Manual
 ----------------------------------
 
-The assesment tool processes Microsoft Word template files in docx format and replaces
+The assessment tool processes Microsoft Word template files in docx format and replaces
 variables in the template with parameters supplied in a file in Java Properties format
 (key-value) pairs.
 
@@ -25,7 +25,7 @@ https://en.wikipedia.org/wiki/.properties
 
 The properties file contains key/value pairs defined in a single line, key and value are separated by '='.
 
-One important key that has to be supplied defined the directory where image files are located:
+One important key that has to be supplied defines the directory where image files are located:
 
     figures.directory  = /home/tom/scratch/pvir/figures
 
@@ -88,6 +88,12 @@ Suffixes
     Example:
         figure.dependence.scale = 0.45
 
+- default
+    Allows to supply a default value for any variable whis is used incase the variable is not set. This is an optional suffix.
+    Example:
+        paragraph.summary_text.default = TODO: we need to write something here
+
+
 Wildcard expressions
 --------------------
 
@@ -110,6 +116,9 @@ Example:
 
 CHANGELOG
 =========
+
+version 1.2
+- introduced default values
 
 version 1.1
 - added replace option to overwrite existing output file

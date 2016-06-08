@@ -27,23 +27,19 @@ class TemplateVariables {
 
         for (final String propertyName : propertyNames) {
             if (propertyName.startsWith("word.")) {
-                if (isDefaultProperty(propertyName)) {
-                    final String originalProperty = getPropertyNameFromDefault(propertyName);
-                    String propertyValue = properties.getProperty(originalProperty);
-                    if (propertyValue == null) {
-                        propertyValue = properties.getProperty(propertyName);
-                    }
-                    if (resultMap.containsKey(originalProperty)) {
-                        continue;
-                    }
+                extractProperty(resultMap, propertyName);
+            }
+        }
 
-                    resultMap.put(originalProperty, propertyValue);
-                } else {
-                    // @todo 2 tb/tb remove scale properties. There shouldn't be scaled word.* properties, but you never know 2016-06-07
-                    final String propertyValue = properties.getProperty(propertyName);
+        return resultMap;
+    }
 
-                    resultMap.put(propertyName, propertyValue);
-                }
+    Map<String, String> getParagraphVariables() {
+        final Set<String> propertyNames = properties.stringPropertyNames();
+        final HashMap<String, String> resultMap = new HashMap<>();
+        for (final String propertyName : propertyNames) {
+            if (isParagraphProperty(propertyName)) {
+                extractProperty(resultMap, propertyName);
             }
         }
 
@@ -60,5 +56,30 @@ class TemplateVariables {
             return defaultPropertyName.substring(0, defaultIndex);
         }
         return defaultPropertyName;
+    }
+
+    static boolean isParagraphProperty(String propertyName) {
+        return propertyName.startsWith("paragraph.") || propertyName.startsWith("comment.");
+    }
+
+    private void extractProperty(HashMap<String, String> resultMap, String propertyName) {
+        if (isDefaultProperty(propertyName)) {
+            final String originalProperty = getPropertyNameFromDefault(propertyName);
+            if (resultMap.containsKey(originalProperty)) {
+                return;
+            }
+
+            String propertyValue = properties.getProperty(originalProperty);
+            if (propertyValue == null) {
+                propertyValue = properties.getProperty(propertyName);
+            }
+
+            resultMap.put(originalProperty, propertyValue);
+        } else {
+            // @todo 2 tb/tb remove scale properties. There shouldn't be scaled word.* properties, but you never know 2016-06-07
+            final String propertyValue = properties.getProperty(propertyName);
+
+            resultMap.put(propertyName, propertyValue);
+        }
     }
 }
