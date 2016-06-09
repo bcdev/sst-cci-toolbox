@@ -22,7 +22,7 @@ import java.util.logging.Logger;
 
 class AssessmentTool {
 
-    private static final String VERSION = "1.1";
+    private static final String VERSION = "1.2";
 
     private final Options options;
     private final Logger logger;
