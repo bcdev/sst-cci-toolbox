@@ -46,6 +46,10 @@ class TemplateVariables {
         return resultMap;
     }
 
+    String getFiguresDirectory() {
+        return properties.getProperty("figures.directory");
+    }
+
     static boolean isDefaultProperty(String propertyName) {
         return propertyName.endsWith(DEFAULT);
     }
@@ -82,4 +86,5 @@ class TemplateVariables {
             resultMap.put(propertyName, propertyValue);
         }
     }
+
 }

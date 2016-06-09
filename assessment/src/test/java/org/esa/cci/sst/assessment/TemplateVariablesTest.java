@@ -10,6 +10,7 @@ import java.util.Map;
 
 import static org.junit.Assert.*;
 
+@SuppressWarnings("ThrowFromFinallyBlock")
 public class TemplateVariablesTest {
 
     private TemplateVariables variables;
@@ -23,6 +24,11 @@ public class TemplateVariablesTest {
     public void testCreation_emptyVariables() {
         final Map<String, String> wordVariables = variables.getWordVariables();
         assertEquals(0, wordVariables.size());
+
+        final Map<String, String> paragraphVariables = variables.getParagraphVariables();
+        assertEquals(0, paragraphVariables.size());
+
+        assertNull(variables.getFiguresDirectory());
     }
 
     @Test
@@ -97,11 +103,11 @@ public class TemplateVariablesTest {
 
         variables.load(inputStream);
 
-        final Map<String, String> wordVariables = variables.getParagraphVariables();
-        assertEquals(2, wordVariables.size());
+        final Map<String, String> paragraphVariables = variables.getParagraphVariables();
+        assertEquals(2, paragraphVariables.size());
 
-        assertEquals("this is a complete paragraph", wordVariables.get("paragraph.full"));
-        assertEquals("me too", wordVariables.get("comment.schnack"));
+        assertEquals("this is a complete paragraph", paragraphVariables.get("paragraph.full"));
+        assertEquals("me too", paragraphVariables.get("comment.schnack"));
     }
 
     @Test
@@ -113,11 +119,11 @@ public class TemplateVariablesTest {
 
         variables.load(inputStream);
 
-        final Map<String, String> wordVariables = variables.getParagraphVariables();
-        assertEquals(2, wordVariables.size());
+        final Map<String, String> paragraphVariables = variables.getParagraphVariables();
+        assertEquals(2, paragraphVariables.size());
 
-        assertEquals("this is a complete paragraph", wordVariables.get("paragraph.full"));
-        assertEquals("willBeDisplayed", wordVariables.get("comment.schnack"));
+        assertEquals("this is a complete paragraph", paragraphVariables.get("paragraph.full"));
+        assertEquals("willBeDisplayed", paragraphVariables.get("comment.schnack"));
     }
 
     @Test
@@ -127,5 +133,16 @@ public class TemplateVariablesTest {
 
         assertTrue(TemplateVariables.isParagraphProperty("paragraph.really"));
         assertTrue(TemplateVariables.isParagraphProperty("comment.really"));
+    }
+
+    @Test
+    public void testGetFiguresDirectory() throws IOException {
+        final String properties = "figures.directory=where_it_is\n" +
+                "sparagraph.full.default=willBeSkipped";
+        final ByteArrayInputStream inputStream = new ByteArrayInputStream(properties.getBytes());
+
+        variables.load(inputStream);
+
+        assertEquals("where_it_is", variables.getFiguresDirectory());
     }
 }

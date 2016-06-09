@@ -103,15 +103,19 @@ class AssessmentTool {
     private void replaceVariables(PoiWordDocument wordDocument, Properties properties, TemplateVariables templateVariables) throws IOException, InvalidFormatException {
         replaceWordVariables(wordDocument, templateVariables);
         replaceParagraphVariables(wordDocument, templateVariables);
-        replaceFigureVariables(wordDocument, properties);
-        replaceMultipleFigureVariables(wordDocument, properties);
+        replaceFigureVariables(wordDocument, properties, templateVariables);
+        replaceMultipleFigureVariables(wordDocument, properties, templateVariables);
 
         logger.info("Replaced variables in template");
     }
 
-    private void replaceFigureVariables(PoiWordDocument wordDocument, Properties properties) throws IOException, InvalidFormatException {
+    private void replaceFigureVariables(PoiWordDocument wordDocument, Properties properties, TemplateVariables templateVariables) throws IOException, InvalidFormatException {
         final Set<String> propertyNames = properties.stringPropertyNames();
-        final String figuresDirectory = properties.getProperty("figures.directory");
+        final String figuresDirectory = templateVariables.getFiguresDirectory();
+        if (StringUtils.isNullOrEmpty(figuresDirectory)) {
+            logger.severe("Figures directory not configured.");
+            return;
+        }
 
         for (final String propertyName : propertyNames) {
             if (isFigureProperty(propertyName)) {
@@ -133,9 +137,13 @@ class AssessmentTool {
         }
     }
 
-    private void replaceMultipleFigureVariables(PoiWordDocument wordDocument, Properties properties) throws IOException, InvalidFormatException {
+    private void replaceMultipleFigureVariables(PoiWordDocument wordDocument, Properties properties, TemplateVariables templateVariables) throws IOException, InvalidFormatException {
         final Set<String> propertyNames = properties.stringPropertyNames();
-        final String figuresDirectory = properties.getProperty("figures.directory");
+        final String figuresDirectory = templateVariables.getFiguresDirectory();
+        if (StringUtils.isNullOrEmpty(figuresDirectory)) {
+            logger.severe("Figures directory not configured.");
+            return;
+        }
 
         for (final String propertyName : propertyNames) {
             if (isFiguresProperty(propertyName)) {
