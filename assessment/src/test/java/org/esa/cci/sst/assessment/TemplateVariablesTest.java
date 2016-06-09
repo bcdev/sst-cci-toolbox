@@ -136,6 +136,14 @@ public class TemplateVariablesTest {
     }
 
     @Test
+    public void testIsFigureProperty() {
+        assertFalse(TemplateVariables.isFigureProperty("image"));
+        assertFalse(TemplateVariables.isFigureProperty("figure.bla.scale"));
+
+        assertTrue(TemplateVariables.isFigureProperty("figure.really"));
+    }
+
+    @Test
     public void testGetFiguresDirectory() throws IOException {
         final String properties = "figures.directory=where_it_is\n" +
                 "sparagraph.full.default=willBeSkipped";
@@ -144,5 +152,21 @@ public class TemplateVariablesTest {
         variables.load(inputStream);
 
         assertEquals("where_it_is", variables.getFiguresDirectory());
+    }
+
+    @Test
+    public void testGetFigureVariables() throws IOException {
+        final String properties = "figure.one=a_valid_figure\n" +
+                "strange.key=somethingElse\n" +
+                "figure.second=another_figure";
+        final ByteArrayInputStream inputStream = new ByteArrayInputStream(properties.getBytes());
+
+        variables.load(inputStream);
+
+        final Map<String, String> figureVariables = variables.getFigureVariables();
+        assertEquals(2, figureVariables.size());
+
+        assertEquals("a_valid_figure", figureVariables.get("figure.one"));
+        assertEquals("another_figure", figureVariables.get("figure.second"));
     }
 }

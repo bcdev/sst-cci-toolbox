@@ -46,6 +46,18 @@ class TemplateVariables {
         return resultMap;
     }
 
+    Map<String, String> getFigureVariables() {
+        final Set<String> propertyNames = properties.stringPropertyNames();
+        final HashMap<String, String> resultMap = new HashMap<>();
+        for (final String propertyName : propertyNames) {
+            if (isFigureProperty(propertyName)) {
+                extractProperty(resultMap, propertyName);
+            }
+        }
+
+        return resultMap;
+    }
+
     String getFiguresDirectory() {
         return properties.getProperty("figures.directory");
     }
@@ -64,6 +76,10 @@ class TemplateVariables {
 
     static boolean isParagraphProperty(String propertyName) {
         return propertyName.startsWith("paragraph.") || propertyName.startsWith("comment.");
+    }
+
+    static boolean isFigureProperty(String propertyName) {
+        return propertyName.startsWith("figure.") && !propertyName.contains(".scale");
     }
 
     private void extractProperty(HashMap<String, String> resultMap, String propertyName) {
@@ -86,5 +102,4 @@ class TemplateVariables {
             resultMap.put(propertyName, propertyValue);
         }
     }
-
 }
