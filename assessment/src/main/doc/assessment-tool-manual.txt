@@ -1,4 +1,4 @@
-Assessment-tool version 1.1 Manual
+Assessment-tool version 1.2 Manual
 ----------------------------------
 
 The assessment tool processes Microsoft Word template files in docx format and replaces
