@@ -169,4 +169,71 @@ public class TemplateVariablesTest {
         assertEquals("a_valid_figure", figureVariables.get("figure.one"));
         assertEquals("another_figure", figureVariables.get("figure.second"));
     }
+
+    @Test
+    public void testGetFigureVariables_withDefault() throws IOException {
+        final String properties = "figure.one.default=a_valid_default_figure\n" +
+                "strange.key=somethingElse\n" +
+                "figure.second=another_figure\n" +
+                "figure.second.default=another_figure_skipped";
+        final ByteArrayInputStream inputStream = new ByteArrayInputStream(properties.getBytes());
+
+        variables.load(inputStream);
+
+        final Map<String, String> figureVariables = variables.getFigureVariables();
+        assertEquals(2, figureVariables.size());
+
+        assertEquals("a_valid_default_figure", figureVariables.get("figure.one"));
+        assertEquals("another_figure", figureVariables.get("figure.second"));
+    }
+
+    @Test
+    public void testGetScale_defaultValue() {
+         assertEquals(0.2, variables.getScale("figure.not_defined"), 1e-8);
+    }
+
+    @Test
+    public void testGetScale() throws IOException {
+        final String properties = "figure.one.default=a_valid_default_figure\n" +
+                "strange.key=somethingElse\n" +
+                "figure.one.scale=0.45\n" +
+                "figure.second=another_figure\n" +
+                "figure.second.scale=0.56";
+        final ByteArrayInputStream inputStream = new ByteArrayInputStream(properties.getBytes());
+
+        variables.load(inputStream);
+
+        assertEquals(0.45, variables.getScale("figure.one"), 1e-8);
+        assertEquals(0.56, variables.getScale("figure.second"), 1e-8);
+    }
+
+    @Test
+    public void testCreateScaleName() {
+        assertEquals("holla.scale", TemplateVariables.createScaleName("holla"));
+        assertEquals("figure.thing.scale", TemplateVariables.createScaleName("figure.thing"));
+    }
+
+    @Test
+    public void testGetFiguresVariables() throws IOException {
+        final String properties = "figures.cool=some_valid_figure_files\n" +
+                "strange.key=somethingElse\n" +
+                "figures.more=another_set_of_figures";
+        final ByteArrayInputStream inputStream = new ByteArrayInputStream(properties.getBytes());
+
+        variables.load(inputStream);
+
+        final Map<String, String> figuresVariables = variables.getFiguresVariables();
+        assertEquals(2, figuresVariables.size());
+
+        assertEquals("some_valid_figure_files", figuresVariables.get("figures.cool"));
+        assertEquals("another_set_of_figures", figuresVariables.get("figures.more"));
+    }
+
+    @Test
+    public void testIsFiguresProperty() {
+        assertFalse(TemplateVariables.isFiguresProperty("picture"));
+        assertFalse(TemplateVariables.isFiguresProperty("figures.bla.scale"));
+
+        assertTrue(TemplateVariables.isFiguresProperty("figures.really_a_lot"));
+    }
 }

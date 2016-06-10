@@ -1,5 +1,7 @@
 package org.esa.cci.sst.assessment;
 
+import org.esa.beam.util.StringUtils;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -58,6 +60,29 @@ class TemplateVariables {
         return resultMap;
     }
 
+    Map<String, String> getFiguresVariables() {
+        final Set<String> propertyNames = properties.stringPropertyNames();
+        final HashMap<String, String> resultMap = new HashMap<>();
+        for (final String propertyName : propertyNames) {
+            if (isFiguresProperty(propertyName)) {
+                extractProperty(resultMap, propertyName);
+            }
+        }
+
+        return resultMap;
+    }
+
+    double getScale(String figureKey) {
+        final String propertyName = getPropertyNameFromDefault(figureKey);
+        final String scalePropertyName = createScaleName(propertyName);
+        final String scaleValueString = properties.getProperty(scalePropertyName);
+        if (StringUtils.isNullOrEmpty(scaleValueString)) {
+            return 0.2;
+        }
+
+        return Double.parseDouble(scaleValueString.trim());
+    }
+
     String getFiguresDirectory() {
         return properties.getProperty("figures.directory");
     }
@@ -80,6 +105,14 @@ class TemplateVariables {
 
     static boolean isFigureProperty(String propertyName) {
         return propertyName.startsWith("figure.") && !propertyName.contains(".scale");
+    }
+
+    static boolean isFiguresProperty(String propertyName) {
+        return propertyName.startsWith("figures.") && !propertyName.contains(".scale");
+    }
+
+    static String createScaleName(String figureName) {
+        return figureName + ".scale";
     }
 
     private void extractProperty(HashMap<String, String> resultMap, String propertyName) {

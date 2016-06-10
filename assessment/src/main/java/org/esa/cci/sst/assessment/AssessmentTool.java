@@ -16,7 +16,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -40,12 +39,11 @@ class AssessmentTool {
         }
 
         final PoiWordDocument wordDocument = loadWordTemplate(cmdLineParameter.getTemplateFile());
-        final File propertiesFile = cmdLineParameter.getPropertiesFile();
-        final Properties properties = loadProperties(propertiesFile);
 
+        final File propertiesFile = cmdLineParameter.getPropertiesFile();
         final TemplateVariables templateVariables = loadTemplateVariables(propertiesFile);
 
-        replaceVariables(wordDocument, properties, templateVariables);
+        replaceVariables(wordDocument, templateVariables);
 
         saveDocument(wordDocument, cmdLineParameter.getOutputFile());
     }
@@ -100,66 +98,55 @@ class AssessmentTool {
         logger.info("Saved precessed Word document to '" + absoluteFile.getAbsolutePath() + "'");
     }
 
-    private void replaceVariables(PoiWordDocument wordDocument, Properties properties, TemplateVariables templateVariables) throws IOException, InvalidFormatException {
+    private void replaceVariables(PoiWordDocument wordDocument, TemplateVariables templateVariables) throws IOException, InvalidFormatException {
         replaceWordVariables(wordDocument, templateVariables);
         replaceParagraphVariables(wordDocument, templateVariables);
-        replaceFigureVariables(wordDocument, properties, templateVariables);
-        replaceMultipleFigureVariables(wordDocument, properties, templateVariables);
+        replaceFigureVariables(wordDocument, templateVariables);
+        replaceMultipleFigureVariables(wordDocument, templateVariables);
 
         logger.info("Replaced variables in template");
     }
 
-    private void replaceFigureVariables(PoiWordDocument wordDocument, Properties properties, TemplateVariables templateVariables) throws IOException, InvalidFormatException {
-        final Set<String> propertyNames = properties.stringPropertyNames();
+    private void replaceFigureVariables(PoiWordDocument wordDocument, TemplateVariables templateVariables) throws IOException, InvalidFormatException {
         final String figuresDirectory = templateVariables.getFiguresDirectory();
         if (StringUtils.isNullOrEmpty(figuresDirectory)) {
             logger.severe("Figures directory not configured.");
             return;
         }
 
-        for (final String propertyName : propertyNames) {
-            if (isFigureProperty(propertyName)) {
-                final String figureName = properties.getProperty(propertyName);
-                final File figure = new File(figuresDirectory, figureName);
-                if (!figure.isFile()) {
-                    logger.warning("Figure '" + figureName + "' at '" + figure.getAbsolutePath() + " does not exist.");
-                    continue;
-                }
-
-                final String scaleProperty = properties.getProperty(createScaleName(propertyName));
-                if (scaleProperty != null) {
-                    final double scale = Double.parseDouble(scaleProperty);
-                    wordDocument.replaceWithFigure(makeWordVariable(propertyName), figure, scale);
-                } else {
-                    wordDocument.replaceWithFigure(makeWordVariable(propertyName), figure);
-                }
+        final Map<String, String> figureVariables = templateVariables.getFigureVariables();
+        final Set<Map.Entry<String, String>> entries = figureVariables.entrySet();
+        for (Map.Entry<String, String> entry : entries) {
+            final String figureName = entry.getValue();
+            final File figure = new File(figuresDirectory, figureName);
+            if (!figure.isFile()) {
+                logger.warning("Figure '" + figureName + "' at '" + figure.getAbsolutePath() + " does not exist.");
+                continue;
             }
+
+            final String propertyName = entry.getKey();
+            final double scale = templateVariables.getScale(propertyName);
+            wordDocument.replaceWithFigure(makeWordVariable(propertyName), figure, scale);
         }
     }
 
-    private void replaceMultipleFigureVariables(PoiWordDocument wordDocument, Properties properties, TemplateVariables templateVariables) throws IOException, InvalidFormatException {
-        final Set<String> propertyNames = properties.stringPropertyNames();
+    private void replaceMultipleFigureVariables(PoiWordDocument wordDocument, TemplateVariables templateVariables) throws IOException, InvalidFormatException {
         final String figuresDirectory = templateVariables.getFiguresDirectory();
         if (StringUtils.isNullOrEmpty(figuresDirectory)) {
             logger.severe("Figures directory not configured.");
             return;
         }
 
-        for (final String propertyName : propertyNames) {
-            if (isFiguresProperty(propertyName)) {
-                final String figurePathesWildcards = properties.getProperty(propertyName);
+        final Map<String, String> figureVariables = templateVariables.getFigureVariables();
+        final Set<Map.Entry<String, String>> entries = figureVariables.entrySet();
+        for (Map.Entry<String, String> entry : entries) {
+            final String figurePathsWildcards = entry.getValue();
+            final String propertyName = entry.getKey();
+            final ArrayList<File> fileList = applyWildCards(figuresDirectory, propertyName, figurePathsWildcards);
+            final File[] files = fileList.toArray(new File[fileList.size()]);
+            final double scale = templateVariables.getScale(propertyName);
+            wordDocument.replaceWithFigures(makeWordVariable(propertyName), files, scale);
 
-                final ArrayList<File> fileList = applyWildCards(figuresDirectory, propertyName, figurePathesWildcards);
-
-                final File[] files = fileList.toArray(new File[fileList.size()]);
-                final String scaleProperty = properties.getProperty(createScaleName(propertyName));
-                if (scaleProperty != null) {
-                    final double scale = Double.parseDouble(scaleProperty);
-                    wordDocument.replaceWithFigures(makeWordVariable(propertyName), files, scale);
-                } else {
-                    wordDocument.replaceWithFigures(makeWordVariable(propertyName), files);
-                }
-            }
         }
     }
 
@@ -195,40 +182,8 @@ class AssessmentTool {
         }
     }
 
-    private Properties loadProperties(File propertiesFile) throws IOException {
-        final Properties properties = new Properties();
-
-        FileInputStream inStream = null;
-        try {
-            inStream = new FileInputStream(propertiesFile);
-            properties.load(inStream);
-            logger.info("Loaded properties file '" + propertiesFile + "'");
-        } finally {
-            if (inStream != null) {
-                try {
-                    inStream.close();
-                } catch (IOException ignore) {
-                }
-            }
-        }
-
-        return properties;
-    }
-
     static String makeWordVariable(String propertyName) {
         return "${" + propertyName + "}";
-    }
-
-    static String createScaleName(String figureName) {
-        return figureName + ".scale";
-    }
-
-    static boolean isFigureProperty(String propertyName) {
-        return propertyName.startsWith("figure.") && !propertyName.contains(".scale");
-    }
-
-    static boolean isFiguresProperty(String propertyName) {
-        return propertyName.startsWith("figures.") && !propertyName.contains(".scale");
     }
 
     private PoiWordDocument loadWordTemplate(File templateFile) throws IOException {
