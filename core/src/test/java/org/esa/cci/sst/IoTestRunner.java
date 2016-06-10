@@ -19,6 +19,7 @@ package org.esa.cci.sst;
 import org.junit.runner.Description;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.BlockJUnit4ClassRunner;
+import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 
 public class IoTestRunner extends BlockJUnit4ClassRunner {
@@ -34,6 +35,9 @@ public class IoTestRunner extends BlockJUnit4ClassRunner {
         this.clazz = klass;
 
         executeIoTests = Boolean.getBoolean(PROPERTYNAME_EXECUTE_IO_TESTS);
+        if (!executeIoTests) {
+            System.out.println("Product Tests disabled. Set VM param -D" + PROPERTYNAME_EXECUTE_IO_TESTS + "=true to enable.");
+        }
     }
 
     @Override
@@ -42,14 +46,13 @@ public class IoTestRunner extends BlockJUnit4ClassRunner {
     }
 
     @Override
-    public void run(RunNotifier runNotifier) {
+    protected void runChild(FrameworkMethod method, RunNotifier notifier) {
         if (executeIoTests) {
-            System.out.println("Executing IOTests in class " + clazz);
-            super.run(runNotifier);
+            super.runChild(method, notifier);
         } else {
             final Description description = Description.createTestDescription(clazz, "allMethods. SST-CCI IO tests disabled. " +
                     "Set VM param -D" + PROPERTYNAME_EXECUTE_IO_TESTS + "=true to enable.");
-            runNotifier.fireTestIgnored(description);
+            notifier.fireTestIgnored(description);
         }
     }
 }
