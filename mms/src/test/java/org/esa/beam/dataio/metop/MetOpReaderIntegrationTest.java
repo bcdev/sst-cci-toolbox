@@ -50,6 +50,7 @@ public class MetOpReaderIntegrationTest {
             assertPixelValue("temp_3b", 60, 60, 242.97332763671875, product);
             assertPixelValue("temp_4", 70, 70, 249.91310119628906, product);
             assertPixelValue("temp_5", 80, 80, 250.7367706298828, product);
+            assertPixelValue("internal_target_temperature", 82, 82, 286.13, product);
 
             assertTiePointValue("sun_zenith", 90, 90 , 96.77499389648438,  product);
             assertTiePointValue("view_zenith", 100, 100 , 59.54999923706055,  product);
