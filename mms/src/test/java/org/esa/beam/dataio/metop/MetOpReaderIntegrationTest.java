@@ -58,9 +58,13 @@ public class MetOpReaderIntegrationTest {
             assertTiePointValue("view_azimuth", 120, 120, 87.81999969482422, product);
 
             assertPixelValue("cloud_flags", 130, 130, 16678, product);
+            // @todo 3 tb/tb check flags 2016-06-15
             assertPixelValue("quality_indicator_flags", 140, 140, 0, product);
-
             assertQualityIndicatorFlagCoding(product);
+
+            assertPixelValue("scan_line_quality_flags", 150, 150, 0, product);
+            assertScanlineQualityFlagCoding(product);
+
         } finally {
             product.dispose();
         }
@@ -87,6 +91,11 @@ public class MetOpReaderIntegrationTest {
         assertEquals(1L, flag.getData().getElemUInt());
         assertEquals("PSEUDO_NOISE", flag.getName());
         assertEquals("Pseudo noise occurred on this frame", flag.getDescription());
+    }
+
+    private void assertScanlineQualityFlagCoding(Product product) {
+        final FlagCoding qualityIndicatorFlags = product.getFlagCodingGroup().get("scan_line_quality_flags");
+        assertNotNull(qualityIndicatorFlags);
     }
 
     private void assertTiePointValue(String gridName, int x, int y, double expected, Product product) {

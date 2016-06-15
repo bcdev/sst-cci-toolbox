@@ -11,20 +11,22 @@ import java.text.MessageFormat;
 
 class ScanlineValueIntReader implements BandReader {
 
-    private static final int QUALITY_INDICATOR_OFFSET = 22204;
 
     private final MetopFile metopFile;
     private final ImageInputStream inputStream;
+    private final ScanlineBandDescription description;
+    private final int lineOffset;
 
-    ScanlineValueIntReader(MetopFile metopFile, ImageInputStream inputStream) {
+    ScanlineValueIntReader(MetopFile metopFile, ImageInputStream inputStream, ScanlineBandDescription description) {
         this.metopFile = metopFile;
         this.inputStream = inputStream;
+        this.description = description;
+        this.lineOffset = description.getLineOffset();
     }
 
     @Override
     public String getBandName() {
-        // @todo 1 tb/tb make parameter 2016-06-15
-        return "quality_indicator_flags";
+        return description.getName();
     }
 
     @Override
@@ -34,7 +36,7 @@ class ScanlineValueIntReader implements BandReader {
 
     @Override
     public String getBandDescription() {
-        return "Quality indicator bit field";
+        return description.getDescription();
     }
 
     @Override
@@ -44,7 +46,7 @@ class ScanlineValueIntReader implements BandReader {
 
     @Override
     public int getDataType() {
-        return ProductData.TYPE_INT32;
+        return description.getDataType();
     }
 
     @Override
@@ -60,7 +62,7 @@ class ScanlineValueIntReader implements BandReader {
                 break;
             }
 
-            int flagOffset = metopFile.getScanLineOffset(sourceY) + QUALITY_INDICATOR_OFFSET;
+            int flagOffset = metopFile.getScanLineOffset(sourceY) + lineOffset;
             inputStream.seek(flagOffset);
             final long value = inputStream.readUnsignedInt();
 

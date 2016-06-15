@@ -25,6 +25,7 @@ import org.esa.beam.dataio.avhrr.calibration.Radiance2ReflectanceFactorCalibrato
 import org.esa.beam.dataio.avhrr.calibration.Radiance2TemperatureCalibrator;
 import org.esa.beam.dataio.avhrr.calibration.RadianceCalibrator;
 import org.esa.beam.framework.datamodel.MetadataElement;
+import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.framework.datamodel.ProductData.UTC;
 
 import javax.imageio.stream.FileImageInputStream;
@@ -422,7 +423,19 @@ class MetopFile extends AvhrrFile {
         return new InternalTargetTemperatureBandReader(this, inputStream, giadrRadiance);
     }
 
-    public ScanlineValueIntReader createScanlineValueIntReader() {
-        return new ScanlineValueIntReader(this, inputStream);
+    public ScanlineValueIntReader createQualityIndicatorReader() {
+        final ScanlineBandDescription description = new ScanlineBandDescription("quality_indicator_flags",
+                "Quality indicator bit field",
+                ProductData.TYPE_INT32,
+                22204);
+        return new ScanlineValueIntReader(this, inputStream, description);
+    }
+
+    public ScanlineValueIntReader createScanlineQualityReader() {
+        final ScanlineBandDescription description = new ScanlineBandDescription("scan_line_quality_flags",
+                "Scan line quality",
+                ProductData.TYPE_INT32,
+                22208);
+        return new ScanlineValueIntReader(this, inputStream, description);
     }
 }

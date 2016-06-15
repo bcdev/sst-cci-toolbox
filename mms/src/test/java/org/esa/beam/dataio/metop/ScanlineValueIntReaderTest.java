@@ -13,8 +13,13 @@ public class ScanlineValueIntReaderTest {
 
     @Before
     public void setUp(){
-        // wo do not access the MetopFile or the inputStream in this test - set to null tb 2016-06-15
-        reader =  new ScanlineValueIntReader(null, null);
+
+        final ScanlineBandDescription description = new ScanlineBandDescription("quality_indicator_flags",
+                "Quality indicator bit field",
+                ProductData.TYPE_INT32,
+                45);
+        reader =  new ScanlineValueIntReader(null, null, description);
+        // we do not access the MetopFile or the inputStream in this test - set to null tb 2016-06-15
     }
 
     @Test

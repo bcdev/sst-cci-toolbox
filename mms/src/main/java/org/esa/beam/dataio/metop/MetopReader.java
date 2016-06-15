@@ -81,6 +81,7 @@ public class MetopReader extends AvhrrReader implements AvhrrConstants {
         final MetopFile metopFile = (MetopFile) this.avhrrFile;
         addInternalTargetTemperatureBand(product, metopFile);
         addQualityIndicatorFlags(product, metopFile);
+        addScanlineQualityFlags(product, metopFile);
 
         return product;
     }
@@ -98,7 +99,7 @@ public class MetopReader extends AvhrrReader implements AvhrrConstants {
     }
 
     private void addQualityIndicatorFlags(Product product, MetopFile metopFile) {
-        final ScanlineValueIntReader bandReader = metopFile.createScanlineValueIntReader();
+        final ScanlineValueIntReader bandReader = metopFile.createQualityIndicatorReader();
 
         final Band band = product.addBand(bandReader.getBandName(), bandReader.getDataType());
         band.setScalingFactor(bandReader.getScalingFactor());
@@ -108,6 +109,23 @@ public class MetopReader extends AvhrrReader implements AvhrrConstants {
         band.setNoDataValueUsed(true);
 
         final FlagCoding flagCoding = createQualityIndicatorFlagCoding(bandReader.getBandName());
+        band.setSampleCoding(flagCoding);
+        product.getFlagCodingGroup().add(flagCoding);
+
+        bandReaders.put(band, bandReader);
+    }
+
+    private void addScanlineQualityFlags(Product product, MetopFile metopFile) {
+        final ScanlineValueIntReader bandReader = metopFile.createScanlineQualityReader();
+
+        final Band band = product.addBand(bandReader.getBandName(), bandReader.getDataType());
+        band.setScalingFactor(bandReader.getScalingFactor());
+        band.setUnit(bandReader.getBandUnit());
+        band.setDescription(bandReader.getBandDescription());
+        band.setNoDataValue(Integer.MIN_VALUE);
+        band.setNoDataValueUsed(true);
+
+        final FlagCoding flagCoding = createScanlineQualityFlagCoding(bandReader.getBandName());
         band.setSampleCoding(flagCoding);
         product.getFlagCodingGroup().add(flagCoding);
 
@@ -140,6 +158,22 @@ public class MetopReader extends AvhrrReader implements AvhrrConstants {
         addFlagAndBitmaskDef(fc, "REFL_SUN_5_II", "Reflected sunlight detected ch 5 (0 = no anomaly; 1 = anomaly; 3 = unsure) - part 2", 2);
         addFlagAndBitmaskDef(fc, "RESYNC", "Resync occurred on this frame- DEFAULT TO ZERO", 1);
         addFlagAndBitmaskDef(fc, "PSEUDO_NOISE", "Pseudo noise occurred on this frame", 0);
+
+        return fc;
+    }
+
+    private FlagCoding createScanlineQualityFlagCoding(String bandName) {
+        FlagCoding fc = new FlagCoding(bandName);
+        fc.setDescription("Flag coding for " + bandName);
+
+        // starts with 8 unused bit fields tb 2016-06-15
+        addFlagAndBitmaskDef(fc, "TIME_FIELD_INF", "Time field is bad but can probably be inferred from the previous good time", 23);
+        addFlagAndBitmaskDef(fc, "TIME_FIELD_NOT_INF", "Time field is bad and can’t be inferred from the previous good time", 22);
+        addFlagAndBitmaskDef(fc, "TIME_INCONSISTENT", "This record starts a sequence that is inconsistent with previous times (i.e., there is a time discontinuity). This may or may not beassociated with a spacecraft clock update (See bit 26 in QUALITY_INDICATOR Field)", 21);
+        addFlagAndBitmaskDef(fc, "SCAN_TIME_REPEAT", "Start of a sequence that apparently repeats scan times that have been previously accepted", 20);
+        // 4 unused bit fields tb 2016-06-15
+        addFlagAndBitmaskDef(fc, "SCAN_UNCALIB_TIME", "Scan line was not calibrated because of bad time", 15);
+        // @todo 1 tb/tb continue here 2016-06-15
 
         return fc;
     }
