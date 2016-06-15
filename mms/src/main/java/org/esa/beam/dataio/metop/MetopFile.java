@@ -43,13 +43,9 @@ import java.util.List;
 class MetopFile extends AvhrrFile {
 
     private static final int EXPECTED_PRODUCT_WIDTH = 2048;
-
     private static final int HIGH_PRECISION_SAMPLE_RATE = 20;
-
     private static final int LOW_PRECISION_SAMPLE_RATE = 40;
-
     private static final int LOW_PRECISION_TIE_POINT_WIDTH = 51;
-
     private static final int HIGH_PRECISION_TIE_POINT_WIDTH = 103;
 
     /**
@@ -57,12 +53,8 @@ class MetopFile extends AvhrrFile {
      * with a low or high precision sample rate.
      */
     private static final int TIE_POINT_DIFFERENCE = 832;
-
     private static final int TIE_POINT_OFFSET = 20556;
-
-
     private static final int FLAG_OFFSET = 22204;
-
     private static final int FRAME_INDICATOR_OFFSET = 26580;
 
     private final ImageInputStream inputStream;
@@ -430,4 +422,7 @@ class MetopFile extends AvhrrFile {
         return new InternalTargetTemperatureBandReader(this, inputStream, giadrRadiance);
     }
 
+    public ScanlineValueIntReader createScanlineValueIntReader() {
+        return new ScanlineValueIntReader(this, inputStream);
+    }
 }

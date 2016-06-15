@@ -78,7 +78,9 @@ public class MetopReader extends AvhrrReader implements AvhrrConstants {
         product.setFileLocation(dataFile);
         product.setPreferredTileSize(product.getSceneRasterWidth(), 512);
 
-        addInternalTargetTemperatureBand(product, (MetopFile) avhrrFile);
+        final MetopFile metopFile = (MetopFile) this.avhrrFile;
+        addInternalTargetTemperatureBand(product, metopFile);
+        addQualityIndicatorFlags(product, metopFile);
 
         return product;
     }
@@ -93,6 +95,53 @@ public class MetopReader extends AvhrrReader implements AvhrrConstants {
         band.setNoDataValue(Short.MIN_VALUE);
         band.setNoDataValueUsed(true);
         bandReaders.put(band, bandReader);
+    }
+
+    private void addQualityIndicatorFlags(Product product, MetopFile metopFile) {
+        final ScanlineValueIntReader bandReader = metopFile.createScanlineValueIntReader();
+
+        final Band band = product.addBand(bandReader.getBandName(), bandReader.getDataType());
+        band.setScalingFactor(bandReader.getScalingFactor());
+        band.setUnit(bandReader.getBandUnit());
+        band.setDescription(bandReader.getBandDescription());
+        band.setNoDataValue(Integer.MIN_VALUE);
+        band.setNoDataValueUsed(true);
+
+        final FlagCoding flagCoding = createQualityIndicatorFlagCoding(bandReader.getBandName());
+        band.setSampleCoding(flagCoding);
+        product.getFlagCodingGroup().add(flagCoding);
+
+        bandReaders.put(band, bandReader);
+    }
+
+    private FlagCoding createQualityIndicatorFlagCoding(String bandName) {
+        FlagCoding fc = new FlagCoding(bandName);
+        fc.setDescription("Flag coding for " + bandName);
+
+        addFlagAndBitmaskDef(fc, "DO_NOT_USE_SCAN", "Do not use scan for product generation", 31);
+        addFlagAndBitmaskDef(fc, "TIME_SEQ_ERR", "Time sequence error detected with this scan", 30);
+        addFlagAndBitmaskDef(fc, "DATA_GAP_PRE", "Data gap precedes this scan", 29);
+        addFlagAndBitmaskDef(fc, "INSUFF_DATA_CAL", "Insufficient data for calibration", 28);
+        addFlagAndBitmaskDef(fc, "LOC_DATA_MISS", "Earth location data not available", 27);
+        addFlagAndBitmaskDef(fc, "CLOCK_UPDATE", "First good time following a clock update (nominally 0)", 26);
+        addFlagAndBitmaskDef(fc, "STATUS_CHANGE", "Instrument status changed with this scan", 25);
+        addFlagAndBitmaskDef(fc, "SYNC_LOCK_DROP", "Sync lock dropped during this frame - DEFAULT TO ZERO", 24);
+        addFlagAndBitmaskDef(fc, "FRAME_SYNC_ERR", "Frame sync word error greater than zero- DEFAULT TO ZERO", 23);
+        addFlagAndBitmaskDef(fc, "FRAME_SYNC_DROP", "Frame sync previously dropped lock- DEFAULT TO ZERO", 22);
+        addFlagAndBitmaskDef(fc, "FLYWHEEL", "Flywheeling detected during this frame- DEFAULT TO ZERO", 21);
+        addFlagAndBitmaskDef(fc, "BIT_SLIP", "Bit slippage detected during this frame- DEFAULT TO ZERO", 20);
+        // eleven unused bits follow tb 2016-06-15
+        addFlagAndBitmaskDef(fc, "TIP_PARITY", "TIP parity error detected- DEFAULT TO ZERO", 8);
+        addFlagAndBitmaskDef(fc, "REFL_SUN_3b_I", "Reflected sunlight detected ch 3b (0 = no anomaly; 1 = anomaly; 3 = unsure) - part 1", 7);
+        addFlagAndBitmaskDef(fc, "REFL_SUN_3b_II", "Reflected sunlight detected ch 3b (0 = no anomaly; 1 = anomaly; 3 = unsure) - part 2", 6);
+        addFlagAndBitmaskDef(fc, "REFL_SUN_4_I", "Reflected sunlight detected ch 4 (0 = no anomaly; 1 = anomaly; 3 = unsure) - part 1", 5);
+        addFlagAndBitmaskDef(fc, "REFL_SUN_4_II", "Reflected sunlight detected ch 4 (0 = no anomaly; 1 = anomaly; 3 = unsure) - part 2", 4);
+        addFlagAndBitmaskDef(fc, "REFL_SUN_5_I", "Reflected sunlight detected ch 5 (0 = no anomaly; 1 = anomaly; 3 = unsure) - part 1", 3);
+        addFlagAndBitmaskDef(fc, "REFL_SUN_5_II", "Reflected sunlight detected ch 5 (0 = no anomaly; 1 = anomaly; 3 = unsure) - part 2", 2);
+        addFlagAndBitmaskDef(fc, "RESYNC", "Resync occurred on this frame- DEFAULT TO ZERO", 1);
+        addFlagAndBitmaskDef(fc, "PSEUDO_NOISE", "Pseudo noise occurred on this frame", 0);
+
+        return fc;
     }
 
     @Override
@@ -141,24 +190,18 @@ public class MetopReader extends AvhrrReader implements AvhrrConstants {
             FlagCoding fc = new FlagCoding(cloudReader.getBandName());
             fc.setDescription("Flag coding for CLOUD_INFORMATION");
 
-            addFlagAndBitmaskDef(fc, "uniformity_test2", "Uniformity test (0='test failed' or 'clear'; 1='cloudy')",
-                                 15);
-            addFlagAndBitmaskDef(fc, "uniformity_test1", "Uniformity test (0 ='test failed' or 'cloudy', 1='clear')",
-                                 14);
+            addFlagAndBitmaskDef(fc, "uniformity_test2", "Uniformity test (0='test failed' or 'clear'; 1='cloudy')", 15);
+            addFlagAndBitmaskDef(fc, "uniformity_test1", "Uniformity test (0 ='test failed' or 'cloudy', 1='clear')", 14);
             addFlagAndBitmaskDef(fc, "t3_t5_test2", "T3-T5 test (0='test failed' or 'clear'; 1='cloudy')", 13);
             addFlagAndBitmaskDef(fc, "t3_t5_test1", "T3-T5 test (0 ='test failed' or 'cloudy', 1='clear')", 12);
             addFlagAndBitmaskDef(fc, "t4_t3_test2", "T4-T3 test (0='test failed' or 'clear'; 1='cloudy')", 11);
             addFlagAndBitmaskDef(fc, "t4_t3_test1", "T4-T3 test (0 ='test failed' or 'cloudy', 1='clear')", 10);
             addFlagAndBitmaskDef(fc, "t4_t5_test2", "T4-T5 test (0='test failed' or 'clear'; 1='cloudy')", 9);
             addFlagAndBitmaskDef(fc, "t4_t5_test1", "T4-T5 test (0 ='test failed' or 'cloudy', 1='clear')", 8);
-            addFlagAndBitmaskDef(fc, "albedo_test2",
-                                 "Albedo test (0='test failed' or 'clear'; 1='cloudy' or 'snow/ice covered')", 7);
-            addFlagAndBitmaskDef(fc, "albedo_test1",
-                                 "Albedo test (0 ='test failed' or 'cloudy', 1='clear' or 'snow/ice covered')", 6);
-            addFlagAndBitmaskDef(fc, "t4_test2",
-                                 "T4 test (0='test failed' or 'clear'; 1='cloudy' or 'snow/ice covered')", 5);
-            addFlagAndBitmaskDef(fc, "t4_test1",
-                                 "T4 test (0 ='test failed' or 'cloudy', 1='clear' or 'snow/ice covered')", 4);
+            addFlagAndBitmaskDef(fc, "albedo_test2", "Albedo test (0='test failed' or 'clear'; 1='cloudy' or 'snow/ice covered')", 7);
+            addFlagAndBitmaskDef(fc, "albedo_test1", "Albedo test (0 ='test failed' or 'cloudy', 1='clear' or 'snow/ice covered')", 6);
+            addFlagAndBitmaskDef(fc, "t4_test2", "T4 test (0='test failed' or 'clear'; 1='cloudy' or 'snow/ice covered')", 5);
+            addFlagAndBitmaskDef(fc, "t4_test1", "T4 test (0 ='test failed' or 'cloudy', 1='clear' or 'snow/ice covered')", 4);
 
             cloudBand.setSampleCoding(fc);
             product.getFlagCodingGroup().add(fc);

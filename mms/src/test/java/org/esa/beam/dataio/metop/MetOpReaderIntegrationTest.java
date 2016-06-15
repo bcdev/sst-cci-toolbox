@@ -2,12 +2,13 @@ package org.esa.beam.dataio.metop;
 
 import org.esa.beam.framework.dataio.DecodeQualification;
 import org.esa.beam.framework.datamodel.Band;
+import org.esa.beam.framework.datamodel.FlagCoding;
+import org.esa.beam.framework.datamodel.MetadataAttribute;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.framework.datamodel.TiePointGrid;
 import org.esa.cci.sst.IoTestRunner;
 import org.esa.cci.sst.TestUtil;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -16,7 +17,6 @@ import java.io.IOException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 @RunWith(IoTestRunner.class)
 public class MetOpReaderIntegrationTest {
@@ -41,8 +41,8 @@ public class MetOpReaderIntegrationTest {
             assertNotNull(endTime);
             assertEquals(1202752683082L, endTime.getAsDate().getTime());
 
-            assertTiePointValue("longitude", 10, 10 , -123.30519104003906,  product);
-            assertTiePointValue("latitude", 20, 20 , 79.19400024414062,  product);
+            assertTiePointValue("longitude", 10, 10, -123.30519104003906, product);
+            assertTiePointValue("latitude", 20, 20, 79.19400024414062, product);
 
             assertPixelValue("reflec_1", 30, 30, 0.0019087587716057897, product);
             assertPixelValue("reflec_2", 40, 40, 0.0030889855697751045, product);
@@ -52,13 +52,41 @@ public class MetOpReaderIntegrationTest {
             assertPixelValue("temp_5", 80, 80, 250.7367706298828, product);
             assertPixelValue("internal_target_temperature", 82, 82, 286.13, product);
 
-            assertTiePointValue("sun_zenith", 90, 90 , 96.77499389648438,  product);
-            assertTiePointValue("view_zenith", 100, 100 , 59.54999923706055,  product);
-            assertTiePointValue("sun_azimuth", 110, 110 , 134.47000122070312,  product);
-            assertTiePointValue("view_azimuth", 120, 120 , 87.81999969482422,  product);
+            assertTiePointValue("sun_zenith", 90, 90, 96.77499389648438, product);
+            assertTiePointValue("view_zenith", 100, 100, 59.54999923706055, product);
+            assertTiePointValue("sun_azimuth", 110, 110, 134.47000122070312, product);
+            assertTiePointValue("view_azimuth", 120, 120, 87.81999969482422, product);
+
+            assertPixelValue("cloud_flags", 130, 130, 16678, product);
+            assertPixelValue("quality_indicator_flags", 140, 140, 0, product);
+
+            assertQualityIndicatorFlagCoding(product);
         } finally {
             product.dispose();
         }
+    }
+
+    private void assertQualityIndicatorFlagCoding(Product product) {
+        final FlagCoding qualityIndicatorFlags = product.getFlagCodingGroup().get("quality_indicator_flags");
+        assertNotNull(qualityIndicatorFlags);
+
+        MetadataAttribute flag = qualityIndicatorFlags.getFlag("DO_NOT_USE_SCAN");
+        assertNotNull(flag);
+        assertEquals(-2147483648L, flag.getData().getElemUInt());
+        assertEquals("DO_NOT_USE_SCAN", flag.getName());
+        assertEquals("Do not use scan for product generation", flag.getDescription());
+
+        flag = qualityIndicatorFlags.getFlag("FLYWHEEL");
+        assertNotNull(flag);
+        assertEquals(2097152L, flag.getData().getElemUInt());
+        assertEquals("FLYWHEEL", flag.getName());
+        assertEquals("Flywheeling detected during this frame- DEFAULT TO ZERO", flag.getDescription());
+
+        flag = qualityIndicatorFlags.getFlag("PSEUDO_NOISE");
+        assertNotNull(flag);
+        assertEquals(1L, flag.getData().getElemUInt());
+        assertEquals("PSEUDO_NOISE", flag.getName());
+        assertEquals("Pseudo noise occurred on this frame", flag.getDescription());
     }
 
     private void assertTiePointValue(String gridName, int x, int y, double expected, Product product) {
@@ -72,6 +100,6 @@ public class MetOpReaderIntegrationTest {
         final Band band = product.getBand(bandName);
         assertNotNull(band);
         band.readPixels(x, y, 1, 1, doubles);
-        assertEquals(expected, doubles[0] , 1e-8);
+        assertEquals(expected, doubles[0], 1e-8);
     }
 }
