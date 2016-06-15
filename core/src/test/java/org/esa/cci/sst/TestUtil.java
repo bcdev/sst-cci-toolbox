@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class TestUtil {
@@ -23,5 +24,14 @@ public class TestUtil {
             fail("Property 'dataDirectory' supplied does not exist: '" + dataDirectoryProperty + "'");
         }
         return dataDirectory;
+    }
+
+    public static File getFileInTestDataDirectory(String fileName) throws IOException {
+        final File testDataDirectory = getTestDataDirectory();
+
+        final File file = new File(testDataDirectory, fileName);
+        assertTrue(file.isFile());
+
+        return file;
     }
 }

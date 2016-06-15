@@ -46,17 +46,16 @@ public class AbstractCciFileTypeTest {
     @Test
     public void testParseDate() throws Exception {
         final File file = new File("20100701000000-ESACCI-L3U_GHRSST-SSTskin-AATSR-LT-v02.0-fv01.0.nc");
-        assertEquals(TimeUtil.parseShortUtcFormat("2010-07-01"),
-                fileType.parseDate(file.getName()));
+        assertEquals(TimeUtil.parseShortUtcFormat("2010-07-01"), fileType.parseDate(file.getName()));
+
         final File file1 = new File("20121201000000-ESACCI-L3U_GHRSST-SSTskin-AATSR-LT-v02.0-fv01.0.nc");
-        assertEquals(TimeUtil.parseShortUtcFormat("2012-12-01"),
-                fileType.parseDate(file1.getName()));
+        assertEquals(TimeUtil.parseShortUtcFormat("2012-12-01"), fileType.parseDate(file1.getName()));
+
         final File file2 = new File("19950731000000-ESACCI-L3U_GHRSST-SSTskin-AATSR-LT-v02.0-fv01.0.nc");
-        assertEquals(TimeUtil.parseShortUtcFormat("1995-07-31"),
-                fileType.parseDate(file2.getName()));
+        assertEquals(TimeUtil.parseShortUtcFormat("1995-07-31"), fileType.parseDate(file2.getName()));
+
         final File file3 = new File("19950731000000-ESACCI-L4_GHRSST-SSTskin-AATSR-LT-v02.0-fv01.0.nc");
-        assertEquals(TimeUtil.parseShortUtcFormat("1995-07-31"),
-                fileType.parseDate(file3.getName()));
+        assertEquals(TimeUtil.parseShortUtcFormat("1995-07-31"), fileType.parseDate(file3.getName()));
 
         try {
             final File file4 = new File("ATS_AVG_3PAARC_20020915_D_nD3b.nc.gz");

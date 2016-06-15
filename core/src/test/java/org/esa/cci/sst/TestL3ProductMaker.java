@@ -38,11 +38,9 @@ public class TestL3ProductMaker {
         return getNetcdfFile("20100701000000-ESACCI-L4_GHRSST-SSTdepth-OSTIA-LT-v02.0-fv01.1.nc");
     }
 
-    private static NetcdfFile getNetcdfFile(String l3) throws URISyntaxException, IOException {
-        final URL url = TestL3ProductMaker.class.getResource(l3);
-        final URI uri = url.toURI();
-        final File file = new File(uri);
+    private static NetcdfFile getNetcdfFile(String fileName) throws URISyntaxException, IOException {
+        final File testFile = TestUtil.getFileInTestDataDirectory(fileName);
 
-        return NetcdfFile.open(file.getPath());
+        return NetcdfFile.open(testFile.getPath());
     }
 }

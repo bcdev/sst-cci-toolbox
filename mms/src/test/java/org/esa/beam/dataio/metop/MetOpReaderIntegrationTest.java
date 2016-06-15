@@ -16,18 +16,18 @@ import java.io.IOException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(IoTestRunner.class)
 public class MetOpReaderIntegrationTest {
 
     @Test
     public void testReadProduct() throws IOException {
-        final File testDataDirectory = TestUtil.getTestDataDirectory();
-        final File file = new File(testDataDirectory, "AVHR_xxx_1B_M02_20080211161603Z_20080211175803Z_N_O_20080211175632Z.nat");
+        final File file = TestUtil.getFileInTestDataDirectory("AVHR_xxx_1B_M02_20080211161603Z_20080211175803Z_N_O_20080211175632Z.nat");
+
         final MetopReaderPlugIn metopReaderPlugIn = new MetopReaderPlugIn();
         final DecodeQualification decodeQualification = metopReaderPlugIn.getDecodeQualification(file);
         assertEquals(DecodeQualification.INTENDED, decodeQualification);
-
 
         final MetopReader metopReader = new MetopReader(metopReaderPlugIn);
         final Product product = metopReader.readProductNodes(file, null);
