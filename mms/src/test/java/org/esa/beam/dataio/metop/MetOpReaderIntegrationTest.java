@@ -65,6 +65,13 @@ public class MetOpReaderIntegrationTest {
             assertPixelValue("scan_line_quality_flags", 150, 150, 0, product);
             assertScanlineQualityFlagCoding(product);
 
+            assertPixelValue("calibration_quality_ch3b_flags", 160, 160, 0, product);
+            assertCalibrationQualityFlagCoding("calibration_quality_ch3b_flags", product);
+            assertPixelValue("calibration_quality_ch4_flags", 170, 170, 0, product);
+            assertCalibrationQualityFlagCoding("calibration_quality_ch4_flags", product);
+            assertPixelValue("calibration_quality_ch5_flags", 180, 180, 0, product);
+            assertCalibrationQualityFlagCoding("calibration_quality_ch5_flags", product);
+
         } finally {
             product.dispose();
         }
@@ -114,6 +121,28 @@ public class MetOpReaderIntegrationTest {
         assertEquals(8L, flag.getData().getElemUInt());
         assertEquals("BAD_EARTH_LOC_ANT", flag.getName());
         assertEquals("Earth location questionable because of antenna position check", flag.getDescription());
+    }
+
+    private void assertCalibrationQualityFlagCoding(String codingName, Product product) {
+        final FlagCoding qualityIndicatorFlags = product.getFlagCodingGroup().get(codingName);
+
+        MetadataAttribute flag = qualityIndicatorFlags.getFlag("NOT_CALIB");
+        assertNotNull(flag);
+        assertEquals(128L, flag.getData().getElemUInt());
+        assertEquals("NOT_CALIB", flag.getName());
+        assertEquals("This channel is not calibrated", flag.getDescription());
+
+        flag = qualityIndicatorFlags.getFlag("BAD_SPACE_VIEW");
+        assertNotNull(flag);
+        assertEquals(16L, flag.getData().getElemUInt());
+        assertEquals("BAD_SPACE_VIEW", flag.getName());
+        assertEquals("All bad space view counts for scan line", flag.getDescription());
+
+        flag = qualityIndicatorFlags.getFlag("MARG_SPACE_VIEW");
+        assertNotNull(flag);
+        assertEquals(2L, flag.getData().getElemUInt());
+        assertEquals("MARG_SPACE_VIEW", flag.getName());
+        assertEquals("Marginal space view counts for this line", flag.getDescription());
     }
 
     private void assertTiePointValue(String gridName, int x, int y, double expected, Product product) {

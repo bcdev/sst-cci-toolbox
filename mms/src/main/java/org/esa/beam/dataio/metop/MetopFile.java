@@ -16,11 +16,7 @@
 
 package org.esa.beam.dataio.metop;
 
-import org.esa.beam.dataio.avhrr.AvhrrConstants;
-import org.esa.beam.dataio.avhrr.AvhrrFile;
-import org.esa.beam.dataio.avhrr.BandReader;
-import org.esa.beam.dataio.avhrr.FlagReader;
-import org.esa.beam.dataio.avhrr.HeaderUtil;
+import org.esa.beam.dataio.avhrr.*;
 import org.esa.beam.dataio.avhrr.calibration.Radiance2ReflectanceFactorCalibrator;
 import org.esa.beam.dataio.avhrr.calibration.Radiance2TemperatureCalibrator;
 import org.esa.beam.dataio.avhrr.calibration.RadianceCalibrator;
@@ -86,13 +82,13 @@ class MetopFile extends AvhrrFile {
         boolean correct = mphrHeader.readGenericRecordHeader(inputStream);
 
         if (!correct
-            || mphrHeader.recordClass != GenericRecordHeader.RecordClass.MPHR
-            || mphrHeader.instrumentGroup != GenericRecordHeader.InstrumentGroup.GENERIC
-            || mphrHeader.recordSubclass != 0) {
+                || mphrHeader.recordClass != GenericRecordHeader.RecordClass.MPHR
+                || mphrHeader.instrumentGroup != GenericRecordHeader.InstrumentGroup.GENERIC
+                || mphrHeader.recordSubclass != 0) {
             throw new IOException("Unsupported product: bad MPHR. RecordClass="
-                                  + mphrHeader.recordClass + " InstrumentGroup="
-                                  + mphrHeader.instrumentGroup + " RecordSubclass="
-                                  + mphrHeader.recordSubclass);
+                    + mphrHeader.recordClass + " InstrumentGroup="
+                    + mphrHeader.instrumentGroup + " RecordSubclass="
+                    + mphrHeader.recordSubclass);
         }
         mainProductHeaderRecord = new MainProductHeaderRecord();
         mainProductHeaderRecord.readRecord(inputStream);
@@ -104,21 +100,21 @@ class MetopFile extends AvhrrFile {
         correct = sphrHeader.readGenericRecordHeader(inputStream);
 
         if (!correct
-            || sphrHeader.recordClass != GenericRecordHeader.RecordClass.SPHR
-            || sphrHeader.instrumentGroup != GenericRecordHeader.InstrumentGroup.AVHRR_3
-            || sphrHeader.recordSubclass != 0) {
+                || sphrHeader.recordClass != GenericRecordHeader.RecordClass.SPHR
+                || sphrHeader.instrumentGroup != GenericRecordHeader.InstrumentGroup.AVHRR_3
+                || sphrHeader.recordSubclass != 0) {
             throw new IOException("Unsupported product: bad SPHR. RecordClass="
-                                  + sphrHeader.recordClass + " InstrumentGroup="
-                                  + sphrHeader.instrumentGroup + " RecordSubclass="
-                                  + sphrHeader.recordSubclass);
+                    + sphrHeader.recordClass + " InstrumentGroup="
+                    + sphrHeader.instrumentGroup + " RecordSubclass="
+                    + sphrHeader.recordSubclass);
         }
         secondaryProductHeaderRecord = new SecondaryProductHeaderRecord();
         secondaryProductHeaderRecord.readRecord(inputStream);
 
         if (secondaryProductHeaderRecord.getIntValue("EARTH_VIEWS_PER_SCANLINE") != EXPECTED_PRODUCT_WIDTH) {
             throw new IOException("Unsupported product: bad SPHR. " +
-                                  "EARTH_VIEWS_PER_SCANLINE is not " + EXPECTED_PRODUCT_WIDTH + ". Actual value: " +
-                                  secondaryProductHeaderRecord.getIntValue("EARTH_VIEWS_PER_SCANLINE"));
+                    "EARTH_VIEWS_PER_SCANLINE is not " + EXPECTED_PRODUCT_WIDTH + ". Actual value: " +
+                    secondaryProductHeaderRecord.getIntValue("EARTH_VIEWS_PER_SCANLINE"));
         }
         final int navSampleRate = secondaryProductHeaderRecord.getIntValue("NAV_SAMPLE_RATE");
         if (navSampleRate == LOW_PRECISION_SAMPLE_RATE) {
@@ -129,7 +125,7 @@ class MetopFile extends AvhrrFile {
             productWidth = EXPECTED_PRODUCT_WIDTH;
         } else {
             throw new IOException("Unsupported product: bad SPHR. " +
-                                  "NAV_SAMPLE_RATE is: " + navSampleRate);
+                    "NAV_SAMPLE_RATE is: " + navSampleRate);
         }
 
         List<InternalPointerRecord> iprs = new ArrayList<>();
@@ -158,7 +154,7 @@ class MetopFile extends AvhrrFile {
                     geadrMetadata = new MetadataElement("GEADR");
                 }
                 geadrMetadata.addAttribute(HeaderUtil.createAttribute(Integer.toString(grh.recordSubclass),
-                                                                      new String(geadrText)));
+                        new String(geadrText)));
             } else if (ipr.targetRecordClass == GenericRecordHeader.RecordClass.MDR) {
                 firstMdrOffset = ipr.targetRecordOffset;
             }
@@ -236,11 +232,11 @@ class MetopFile extends AvhrrFile {
         return new CloudBandReader(this, inputStream);
     }
 
-    public int getNumNavPoints() {
+    int getNumNavPoints() {
         return numNavPoints;
     }
 
-    public int getNavSampleRate() {
+    int getNavSampleRate() {
         return secondaryProductHeaderRecord.getIntValue("NAV_SAMPLE_RATE");
     }
 
@@ -328,15 +324,15 @@ class MetopFile extends AvhrrFile {
         return flag;
     }
 
-    public static boolean canOpenFile(File file) throws IOException {
+    static boolean canOpenFile(File file) throws IOException {
         try (final ImageInputStream inputStream = new FileImageInputStream(file)) {
             GenericRecordHeader mphrHeader = new GenericRecordHeader();
             boolean correct = mphrHeader.readGenericRecordHeader(inputStream);
             // check for MPHR
             if (!correct
-                || mphrHeader.recordClass != GenericRecordHeader.RecordClass.MPHR
-                || mphrHeader.instrumentGroup != GenericRecordHeader.InstrumentGroup.GENERIC
-                || mphrHeader.recordSubclass != 0) {
+                    || mphrHeader.recordClass != GenericRecordHeader.RecordClass.MPHR
+                    || mphrHeader.instrumentGroup != GenericRecordHeader.InstrumentGroup.GENERIC
+                    || mphrHeader.recordSubclass != 0) {
                 return false;
             }
 
@@ -346,9 +342,9 @@ class MetopFile extends AvhrrFile {
 
             // check for SPHR and AVHRR/3
             if (correct
-                && sphrHeader.recordClass == GenericRecordHeader.RecordClass.SPHR
-                && sphrHeader.instrumentGroup == GenericRecordHeader.InstrumentGroup.AVHRR_3
-                && sphrHeader.recordSubclass == 0) {
+                    && sphrHeader.recordClass == GenericRecordHeader.RecordClass.SPHR
+                    && sphrHeader.instrumentGroup == GenericRecordHeader.InstrumentGroup.AVHRR_3
+                    && sphrHeader.recordSubclass == 0) {
                 return true;
             }
         }
@@ -419,11 +415,11 @@ class MetopFile extends AvhrrFile {
         }
     }
 
-    public InternalTargetTemperatureBandReader createInternalTargetTemperatureReader() {
+    InternalTargetTemperatureBandReader createInternalTargetTemperatureReader() {
         return new InternalTargetTemperatureBandReader(this, inputStream, giadrRadiance);
     }
 
-    public ScanlineValueIntReader createQualityIndicatorReader() {
+    ScanlineValueIntReader createQualityIndicatorReader() {
         final ScanlineBandDescription description = new ScanlineBandDescription("quality_indicator_flags",
                 "Quality indicator bit field",
                 ProductData.TYPE_INT32,
@@ -431,11 +427,19 @@ class MetopFile extends AvhrrFile {
         return new ScanlineValueIntReader(this, inputStream, description);
     }
 
-    public ScanlineValueIntReader createScanlineQualityReader() {
+    ScanlineValueIntReader createScanlineQualityReader() {
         final ScanlineBandDescription description = new ScanlineBandDescription("scan_line_quality_flags",
                 "Scan line quality",
                 ProductData.TYPE_INT32,
                 22208);
         return new ScanlineValueIntReader(this, inputStream, description);
+    }
+
+    ScanlineValueShortReader createCalibrationQualityReader(String channelName, int lineOffset) {
+        final ScanlineBandDescription description = new ScanlineBandDescription("calibration_quality_" + channelName + "_flags",
+                "Calibration quality flags for channel " +  channelName,
+                ProductData.TYPE_INT16,
+                lineOffset);
+        return new ScanlineValueShortReader(this, inputStream, description);
     }
 }

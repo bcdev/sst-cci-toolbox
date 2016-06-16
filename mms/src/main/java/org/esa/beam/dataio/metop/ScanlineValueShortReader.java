@@ -1,5 +1,6 @@
 package org.esa.beam.dataio.metop;
 
+
 import com.bc.ceres.core.ProgressMonitor;
 import org.esa.beam.dataio.avhrr.AvhrrFile;
 import org.esa.beam.dataio.avhrr.BandReader;
@@ -9,14 +10,14 @@ import javax.imageio.stream.ImageInputStream;
 import java.io.IOException;
 import java.text.MessageFormat;
 
-class ScanlineValueIntReader implements BandReader {
+class ScanlineValueShortReader implements BandReader {
 
     private final MetopFile metopFile;
     private final ImageInputStream inputStream;
     private final ScanlineBandDescription description;
     private final int lineOffset;
 
-    ScanlineValueIntReader(MetopFile metopFile, ImageInputStream inputStream, ScanlineBandDescription description) {
+    ScanlineValueShortReader(MetopFile metopFile, ImageInputStream inputStream, ScanlineBandDescription description) {
         this.metopFile = metopFile;
         this.inputStream = inputStream;
         this.description = description;
@@ -51,7 +52,7 @@ class ScanlineValueIntReader implements BandReader {
     @Override
     public void readBandRasterData(int sourceOffsetX, int sourceOffsetY, int sourceWidth, int sourceHeight, int sourceStepX, int sourceStepY, ProductData destBuffer, ProgressMonitor pm) throws IOException {
         final AvhrrFile.RawCoordinates rawCoord = metopFile.getRawCoordinates(sourceOffsetX, sourceOffsetY, sourceWidth, sourceHeight);
-        final int[] targetData = (int[]) destBuffer.getElems();
+        final short[] targetData = (short[]) destBuffer.getElems();
 
         pm.beginTask(MessageFormat.format("Reading AVHRR band ''{0}''...", getBandName()), rawCoord.maxY - rawCoord.minY);
 
@@ -63,12 +64,12 @@ class ScanlineValueIntReader implements BandReader {
 
             int flagOffset = metopFile.getScanLineOffset(sourceY) + lineOffset;
             inputStream.seek(flagOffset);
-            final long value = inputStream.readUnsignedInt();
+            final int value = inputStream.readUnsignedShort();
 
             //System.out.println("offset: " + flagOffset + "  value: " + value);
 
             for (int sourceX = rawCoord.minX; sourceX <= rawCoord.maxX; sourceX += sourceStepX) {
-                targetData[targetIdx] = (int) value;
+                targetData[targetIdx] = (short) value;
                 targetIdx += rawCoord.targetIncrement;
             }
             pm.worked(1);

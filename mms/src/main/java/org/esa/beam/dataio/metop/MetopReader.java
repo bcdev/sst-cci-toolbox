@@ -22,11 +22,7 @@ import org.esa.beam.dataio.avhrr.AvhrrConstants;
 import org.esa.beam.dataio.avhrr.AvhrrReader;
 import org.esa.beam.dataio.avhrr.BandReader;
 import org.esa.beam.framework.dataio.ProductReaderPlugIn;
-import org.esa.beam.framework.datamodel.Band;
-import org.esa.beam.framework.datamodel.FlagCoding;
-import org.esa.beam.framework.datamodel.GeoCoding;
-import org.esa.beam.framework.datamodel.Product;
-import org.esa.beam.framework.datamodel.TiePointGrid;
+import org.esa.beam.framework.datamodel.*;
 import org.esa.beam.util.PixelLocatorFactory;
 
 import javax.imageio.stream.FileImageInputStream;
@@ -82,6 +78,7 @@ class MetopReader extends AvhrrReader implements AvhrrConstants {
         addInternalTargetTemperatureBand(product, metopFile);
         addQualityIndicatorFlags(product, metopFile);
         addScanlineQualityFlags(product, metopFile);
+        addCalibrationQualityFlags(product, metopFile);
 
         return product;
     }
@@ -101,12 +98,8 @@ class MetopReader extends AvhrrReader implements AvhrrConstants {
     private void addQualityIndicatorFlags(Product product, MetopFile metopFile) {
         final ScanlineValueIntReader bandReader = metopFile.createQualityIndicatorReader();
 
-        final Band band = product.addBand(bandReader.getBandName(), bandReader.getDataType());
-        band.setScalingFactor(bandReader.getScalingFactor());
-        band.setUnit(bandReader.getBandUnit());
-        band.setDescription(bandReader.getBandDescription());
-        band.setNoDataValue(Integer.MIN_VALUE);
-        band.setNoDataValueUsed(true);
+        final int minValue = Integer.MIN_VALUE;
+        final Band band = addBandToProduct(product, bandReader, minValue);
 
         final FlagCoding flagCoding = createQualityIndicatorFlagCoding(bandReader.getBandName());
         band.setSampleCoding(flagCoding);
@@ -118,18 +111,46 @@ class MetopReader extends AvhrrReader implements AvhrrConstants {
     private void addScanlineQualityFlags(Product product, MetopFile metopFile) {
         final ScanlineValueIntReader bandReader = metopFile.createScanlineQualityReader();
 
-        final Band band = product.addBand(bandReader.getBandName(), bandReader.getDataType());
-        band.setScalingFactor(bandReader.getScalingFactor());
-        band.setUnit(bandReader.getBandUnit());
-        band.setDescription(bandReader.getBandDescription());
-        band.setNoDataValue(Integer.MIN_VALUE);
-        band.setNoDataValueUsed(true);
+        final Band band = addBandToProduct(product, bandReader, Integer.MIN_VALUE);
 
         final FlagCoding flagCoding = createScanlineQualityFlagCoding(bandReader.getBandName());
         band.setSampleCoding(flagCoding);
         product.getFlagCodingGroup().add(flagCoding);
 
         bandReaders.put(band, bandReader);
+    }
+
+    private void addCalibrationQualityFlags(Product product, MetopFile metopFile) {
+        ScanlineValueShortReader bandReader = metopFile.createCalibrationQualityReader("ch3b", 22212);
+        Band band = addBandToProduct(product, bandReader, Short.MIN_VALUE);
+        FlagCoding flagCoding = createCalibrationQualityFlagCoding(bandReader.getBandName());
+        band.setSampleCoding(flagCoding);
+        product.getFlagCodingGroup().add(flagCoding);
+        bandReaders.put(band, bandReader);
+
+        bandReader = metopFile.createCalibrationQualityReader("ch4", 22214);
+        band = addBandToProduct(product, bandReader, Short.MIN_VALUE);
+        flagCoding = createCalibrationQualityFlagCoding(bandReader.getBandName());
+        band.setSampleCoding(flagCoding);
+        product.getFlagCodingGroup().add(flagCoding);
+        bandReaders.put(band, bandReader);
+
+        bandReader = metopFile.createCalibrationQualityReader("ch5", 22216);
+        band = addBandToProduct(product, bandReader, Short.MIN_VALUE);
+        flagCoding = createCalibrationQualityFlagCoding(bandReader.getBandName());
+        band.setSampleCoding(flagCoding);
+        product.getFlagCodingGroup().add(flagCoding);
+        bandReaders.put(band, bandReader);
+    }
+
+    private Band addBandToProduct(Product product, BandReader bandReader, int minValue) {
+        final Band band = product.addBand(bandReader.getBandName(), bandReader.getDataType());
+        band.setScalingFactor(bandReader.getScalingFactor());
+        band.setUnit(bandReader.getBandUnit());
+        band.setDescription(bandReader.getBandDescription());
+        band.setNoDataValue(minValue);
+        band.setNoDataValueUsed(true);
+        return band;
     }
 
     private FlagCoding createQualityIndicatorFlagCoding(String bandName) {
@@ -190,6 +211,23 @@ class MetopReader extends AvhrrReader implements AvhrrConstants {
         return fc;
     }
 
+    private FlagCoding createCalibrationQualityFlagCoding(String bandName) {
+        final FlagCoding fc = new FlagCoding(bandName);
+        fc.setDescription("Flag coding for " + bandName);
+
+        // starts with 8 unused bit fields tb 2016-06-16
+        addFlagAndBitmaskDef(fc, "NOT_CALIB", "This channel is not calibrated", 7);
+        addFlagAndBitmaskDef(fc, "QUESTIONABLE", "This channel is calibrated but questionable", 6);
+        addFlagAndBitmaskDef(fc, "BAD_BLACKBODY", "All bad blackbody counts for scan line", 5);
+        addFlagAndBitmaskDef(fc, "BAD_SPACE_VIEW", "All bad space view counts for scan line", 4);
+        // 1 unused bit field tb 2016-06-16
+        addFlagAndBitmaskDef(fc, "MARG_BLACKBODY", "Marginal blackbody view counts for this line", 2);
+        addFlagAndBitmaskDef(fc, "MARG_SPACE_VIEW", "Marginal space view counts for this line", 1);
+        // 1 unused bit field tb 2016-06-16
+
+        return fc;
+    }
+
     @Override
     protected void addTiePointGrids() throws IOException {
         final MetopFile metopFile = (MetopFile) avhrrFile;
@@ -205,13 +243,13 @@ class MetopReader extends AvhrrReader implements AvhrrConstants {
 
         for (int i = 0; i < grid.length; i++) {
             grid[i] = createTiePointGrid(tiePointNames[i],
-                                         tiePointGridWidth,
-                                         tiePointGridHeight,
-                                         TP_OFFSET_X,
-                                         TP_OFFSET_Y,
-                                         tiePointSampleRate,
-                                         1,
-                                         tiePointData[i]);
+                    tiePointGridWidth,
+                    tiePointGridHeight,
+                    TP_OFFSET_X,
+                    TP_OFFSET_Y,
+                    tiePointSampleRate,
+                    1,
+                    tiePointData[i]);
             grid[i].setUnit(UNIT_DEG);
             product.addTiePointGrid(grid[i]);
         }
@@ -230,8 +268,8 @@ class MetopReader extends AvhrrReader implements AvhrrConstants {
         if (avhrrFile.hasCloudBand()) {
             BandReader cloudReader = avhrrFile.createCloudBandReader();
             Band cloudBand = new Band(cloudReader.getBandName(),
-                                      cloudReader.getDataType(), avhrrFile.getProductWidth(),
-                                      avhrrFile.getProductHeight());
+                    cloudReader.getDataType(), avhrrFile.getProductWidth(),
+                    avhrrFile.getProductHeight());
 
             FlagCoding fc = new FlagCoding(cloudReader.getBandName());
             fc.setDescription("Flag coding for CLOUD_INFORMATION");
@@ -267,8 +305,8 @@ class MetopReader extends AvhrrReader implements AvhrrConstants {
         }
 
         TiePointGrid grid = createTiePointGrid(DAA_DS_NAME, tiePointGridWidth,
-                                               tiePointGridHeight, TP_OFFSET_X, TP_OFFSET_Y, tiePointSampleRate,
-                                               tiePointSampleRate, deltaAzimuthData);
+                tiePointGridHeight, TP_OFFSET_X, TP_OFFSET_Y, tiePointSampleRate,
+                tiePointSampleRate, deltaAzimuthData);
         grid.setUnit(UNIT_DEG);
         product.addTiePointGrid(grid);
     }
@@ -278,7 +316,6 @@ class MetopReader extends AvhrrReader implements AvhrrConstants {
      *
      * @param vaa viewing azimuth angle [degree]
      * @param saa sun azimuth angle [degree]
-     *
      * @return the azimuth difference [degree]
      */
     static double computeAda(double vaa, double saa) {
