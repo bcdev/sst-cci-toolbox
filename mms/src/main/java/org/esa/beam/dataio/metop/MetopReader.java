@@ -281,7 +281,7 @@ class MetopReader extends AvhrrReader implements AvhrrConstants {
      *
      * @return the azimuth difference [degree]
      */
-    private static double computeAda(double vaa, double saa) {
+    static double computeAda(double vaa, double saa) {
         double ada = saa - vaa;
         if (ada <= -180.0) {
             ada += 360.0;
