@@ -40,9 +40,9 @@ import java.io.IOException;
  *
  * @author Marco Zühlke
  */
-public class MetopReader extends AvhrrReader implements AvhrrConstants {
+class MetopReader extends AvhrrReader implements AvhrrConstants {
 
-    public MetopReader(ProductReaderPlugIn metopReaderPlugIn) {
+    MetopReader(ProductReaderPlugIn metopReaderPlugIn) {
         super(metopReaderPlugIn);
     }
 
@@ -163,17 +163,29 @@ public class MetopReader extends AvhrrReader implements AvhrrConstants {
     }
 
     private FlagCoding createScanlineQualityFlagCoding(String bandName) {
-        FlagCoding fc = new FlagCoding(bandName);
+        final FlagCoding fc = new FlagCoding(bandName);
         fc.setDescription("Flag coding for " + bandName);
 
         // starts with 8 unused bit fields tb 2016-06-15
         addFlagAndBitmaskDef(fc, "TIME_FIELD_INF", "Time field is bad but can probably be inferred from the previous good time", 23);
         addFlagAndBitmaskDef(fc, "TIME_FIELD_NOT_INF", "Time field is bad and can’t be inferred from the previous good time", 22);
-        addFlagAndBitmaskDef(fc, "TIME_INCONSISTENT", "This record starts a sequence that is inconsistent with previous times (i.e., there is a time discontinuity). This may or may not beassociated with a spacecraft clock update (See bit 26 in QUALITY_INDICATOR Field)", 21);
+        addFlagAndBitmaskDef(fc, "TIME_INCONSISTENT", "This record starts a sequence that is inconsistent with previous times (i.e., there is a time discontinuity). This may or may not be associated with a spacecraft clock update (See bit 26 in QUALITY_INDICATOR Field)", 21);
         addFlagAndBitmaskDef(fc, "SCAN_TIME_REPEAT", "Start of a sequence that apparently repeats scan times that have been previously accepted", 20);
         // 4 unused bit fields tb 2016-06-15
         addFlagAndBitmaskDef(fc, "SCAN_UNCALIB_TIME", "Scan line was not calibrated because of bad time", 15);
-        // @todo 1 tb/tb continue here 2016-06-15
+        addFlagAndBitmaskDef(fc, "SCAN_CALIB_DATA_GAP", "Scan line was calibrated using fewer than the preferred number of scan lines because of proximity to start or end of data set or to a data gap", 14);
+        addFlagAndBitmaskDef(fc, "SCAN_UNCALIB_BAD_PRT", "Scan line was not calibrated because of bad or insufficient PRT data", 13);
+        addFlagAndBitmaskDef(fc, "SCAN_CALIB_MARG_PRT", "Scan line was calibrated but with marginal PRT data", 12);
+        addFlagAndBitmaskDef(fc, "SCAN_UNCALIB_CHAN", "Some uncalibrated channels on this scan. (See channel indicators.)", 11);
+        addFlagAndBitmaskDef(fc, "SCAN_UNCALIB_INSTR", "Uncalibrated due to instrument mode.", 10);
+        addFlagAndBitmaskDef(fc, "SCAN_CALIB_SPACE_VIEW", "Questionable calibration because of antenna position error of space view", 9);
+        addFlagAndBitmaskDef(fc, "SCAN_CALIB_BB_VIEW", "Questionable calibration because of antenna position error of black body", 8);
+        addFlagAndBitmaskDef(fc, "MISS_EARTH_VIEW_TIME", "Not earth located because of bad time; earth location fields zero filled", 7);
+        addFlagAndBitmaskDef(fc, "BAD_EARTH_LOC_TIME", "Earth location questionable because of questionable time code. (See time problem flags above.)", 6);
+        addFlagAndBitmaskDef(fc, "BAD_EARTH_LOC_MARG", "Earth location questionable - only marginal agreement with reasonableness check.", 5);
+        addFlagAndBitmaskDef(fc, "BAD_EARTH_LOC_REAS", "Earth location questionable - fails reasonableness check", 4);
+        addFlagAndBitmaskDef(fc, "BAD_EARTH_LOC_ANT", "Earth location questionable because of antenna position check", 3);
+        // 3 unused bit fields tb 2016-06-16
 
         return fc;
     }
@@ -279,7 +291,7 @@ public class MetopReader extends AvhrrReader implements AvhrrConstants {
         return ada;
     }
 
-    public static boolean canOpenFile(File file) {
+    static boolean canOpenFile(File file) {
         try {
             return MetopFile.canOpenFile(file);
         } catch (IOException e) {

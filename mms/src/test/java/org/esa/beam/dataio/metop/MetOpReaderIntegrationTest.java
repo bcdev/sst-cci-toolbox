@@ -96,6 +96,24 @@ public class MetOpReaderIntegrationTest {
     private void assertScanlineQualityFlagCoding(Product product) {
         final FlagCoding qualityIndicatorFlags = product.getFlagCodingGroup().get("scan_line_quality_flags");
         assertNotNull(qualityIndicatorFlags);
+
+        MetadataAttribute flag = qualityIndicatorFlags.getFlag("TIME_FIELD_INF");
+        assertNotNull(flag);
+        assertEquals(8388608L, flag.getData().getElemUInt());
+        assertEquals("TIME_FIELD_INF", flag.getName());
+        assertEquals("Time field is bad but can probably be inferred from the previous good time", flag.getDescription());
+
+        flag = qualityIndicatorFlags.getFlag("SCAN_UNCALIB_CHAN");
+        assertNotNull(flag);
+        assertEquals(2048L, flag.getData().getElemUInt());
+        assertEquals("SCAN_UNCALIB_CHAN", flag.getName());
+        assertEquals("Some uncalibrated channels on this scan. (See channel indicators.)", flag.getDescription());
+
+        flag = qualityIndicatorFlags.getFlag("BAD_EARTH_LOC_ANT");
+        assertNotNull(flag);
+        assertEquals(8L, flag.getData().getElemUInt());
+        assertEquals("BAD_EARTH_LOC_ANT", flag.getName());
+        assertEquals("Earth location questionable because of antenna position check", flag.getDescription());
     }
 
     private void assertTiePointValue(String gridName, int x, int y, double expected, Product product) {
