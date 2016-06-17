@@ -16,30 +16,29 @@
 
 package org.esa.cci.sst.product;
 
-import org.esa.cci.sst.IoTestRunner;
 import org.esa.cci.sst.ScalarGrid;
-import org.esa.cci.sst.TestL3ProductMaker;
 import org.esa.cci.sst.aggregate.Aggregation;
 import org.esa.cci.sst.aggregate.AggregationCell;
 import org.esa.cci.sst.aggregate.AggregationContext;
 import org.esa.cci.sst.aggregate.SpatialAggregationCell;
 import org.esa.cci.sst.cell.CellAggregationCell;
 import org.esa.cci.sst.cell.CellFactory;
-import org.esa.cci.sst.common.SstDepth;
 import org.esa.cci.sst.file.FileType;
-import org.esa.cci.sst.grid.Grid;
 import org.esa.cci.sst.grid.GridDef;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import ucar.nc2.NetcdfFile;
 
 import java.awt.*;
 
 import static java.lang.Math.sqrt;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
-
-@RunWith(IoTestRunner.class)
+/**
+ * {@author Bettina Scholze}
+ * Date: 04.09.12 14:32
+ */
 public class CciL3FileTypeTest {
 
     private static final FileType FILE_TYPE = CciL3FileType.INSTANCE;
