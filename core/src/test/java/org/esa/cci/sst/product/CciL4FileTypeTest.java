@@ -130,35 +130,6 @@ public class CciL4FileTypeTest {
         assertEquals(5.86301969977808E-4, results[Aggregation.RANDOM_UNCERTAINTY].doubleValue(), 1e-6);
     }
 
-
-    @Test
-    public void testReadSourceGrids() throws Exception {
-        NetcdfFile l4File = TestL3ProductMaker.readL4GridsSetup();
-        //execution
-        final AggregationContext context = FILE_TYPE.readSourceGrids(l4File, SstDepth.skin, new AggregationContext());
-
-        // analysed_sst
-        final Grid sstGrid = context.getSstGrid();
-        assertEquals(2000, sstGrid.getSampleInt(0, 3599));
-        assertEquals(293.14999344944954, sstGrid.getSampleDouble(0, 3599), 1e-8);
-        assertEquals(2000, sstGrid.getSampleInt(1, 3599));
-        assertEquals(293.14999344944954, sstGrid.getSampleDouble(1, 3599), 1e-8);
-
-        // analysis_error
-        final Grid randomUncertaintyGrid = context.getRandomUncertaintyGrid();
-        assertEquals(-32768, randomUncertaintyGrid.getSampleInt(0, 3599));
-        assertTrue(Double.isNaN(randomUncertaintyGrid.getSampleDouble(0, 3599)));
-        assertEquals(-32768, randomUncertaintyGrid.getSampleInt(1, 3599));
-        assertTrue(Double.isNaN(randomUncertaintyGrid.getSampleDouble(1, 3599)));
-
-        // sea_ice_fraction
-        final Grid seaIceFractionGrid = context.getSeaIceFractionGrid();
-        assertEquals(-128, seaIceFractionGrid.getSampleInt(0, 3599));
-        assertTrue(Double.isNaN(seaIceFractionGrid.getSampleDouble(0, 3599)));
-        assertEquals(-128, seaIceFractionGrid.getSampleInt(1, 0));
-        assertTrue(Double.isNaN(seaIceFractionGrid.getSampleDouble(1, 3599)));
-    }
-
     @Test
     public void testFileNameRegex() throws Exception {
         assertTrue("20000701120000-ESACCI-L4_GHRSST-SSTdepth-OSTIA-GLOB_LT-v02.0-fv01.0.nc".matches(FILE_TYPE.getFilenameRegex()));
