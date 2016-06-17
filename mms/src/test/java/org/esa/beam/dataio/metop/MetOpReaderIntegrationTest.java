@@ -22,7 +22,62 @@ import static org.junit.Assert.assertNotNull;
 public class MetOpReaderIntegrationTest {
 
     @Test
-    public void testReadProduct() throws IOException {
+    public void testReadProduct_m01() throws IOException {
+        final File file = TestUtil.getFileInTestDataDirectory("AVHR_xxx_1B_M01_20130223061903Z_20130223080103Z_N_C_20130223080033Z.nat");
+
+        final MetopReaderPlugIn metopReaderPlugIn = new MetopReaderPlugIn();
+        final DecodeQualification decodeQualification = metopReaderPlugIn.getDecodeQualification(file);
+        assertEquals(DecodeQualification.INTENDED, decodeQualification);
+
+        final MetopReader metopReader = new MetopReader(metopReaderPlugIn);
+        final Product product = metopReader.readProductNodes(file, null);
+        assertNotNull(product);
+        try {
+            final ProductData.UTC startTime = product.getStartTime();
+            assertNotNull(startTime);
+            assertEquals(1361600343131L, startTime.getAsDate().getTime());
+
+            final ProductData.UTC endTime = product.getEndTime();
+            assertNotNull(endTime);
+            assertEquals(1361606463131L, endTime.getAsDate().getTime());
+
+            assertTiePointValue("longitude", 100, 100, 43.30929946899414, product);
+            assertTiePointValue("latitude", 110, 110, 57.25484848022461, product);
+
+            assertPixelValue("reflec_1", 120, 120, 0.9253479838371277, product);
+            assertPixelValue("reflec_2", 130, 130, 2.5862362384796143, product);
+            assertPixelValue("reflec_3a", 140, 140, 0.22052302956581116, product);
+            assertPixelValue("temp_3b", 150, 150, 0.0, product);
+            assertPixelValue("temp_4", 160, 160, 259.947509765625, product);
+            assertPixelValue("temp_5", 170, 170, 259.3883361816406, product);
+
+            assertTiePointValue("sun_zenith", 180, 180, 74.80999755859375, product);
+            assertTiePointValue("view_zenith", 190, 190, 52.92499923706055, product);
+            assertTiePointValue("sun_azimuth", 200, 200, 137.1999969482422, product);
+            assertTiePointValue("view_azimuth", 210, 210, 96.30499267578125, product);
+
+            assertPixelValue("cloud_flags", 220, 220, 403, product);
+            // @todo 3 tb/tb check flags 2016-06-17
+
+            assertPixelValue("quality_indicator_flags", 230, 230, 0, product);
+            assertQualityIndicatorFlagCoding(product);
+
+            assertPixelValue("scan_line_quality_flags", 240, 240, 0, product);
+            assertScanlineQualityFlagCoding(product);
+
+            assertPixelValue("calibration_quality_ch3b_flags", 250, 250, 0, product);
+            assertCalibrationQualityFlagCoding("calibration_quality_ch3b_flags", product);
+            assertPixelValue("calibration_quality_ch4_flags", 260, 260, 0, product);
+            assertCalibrationQualityFlagCoding("calibration_quality_ch4_flags", product);
+            assertPixelValue("calibration_quality_ch5_flags", 270, 270, 0, product);
+            assertCalibrationQualityFlagCoding("calibration_quality_ch5_flags", product);
+        } finally {
+            product.dispose();
+        }
+    }
+
+    @Test
+    public void testReadProduct_m02() throws IOException {
         final File file = TestUtil.getFileInTestDataDirectory("AVHR_xxx_1B_M02_20080211161603Z_20080211175803Z_N_O_20080211175632Z.nat");
 
         final MetopReaderPlugIn metopReaderPlugIn = new MetopReaderPlugIn();
@@ -59,6 +114,7 @@ public class MetOpReaderIntegrationTest {
 
             assertPixelValue("cloud_flags", 130, 130, 16678, product);
             // @todo 3 tb/tb check flags 2016-06-15
+
             assertPixelValue("quality_indicator_flags", 140, 140, 0, product);
             assertQualityIndicatorFlagCoding(product);
 
