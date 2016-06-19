@@ -1,5 +1,5 @@
-package org.esa.cci.sst.tools;/*
- * Copyright (C) 2012 Brockmann Consult GmbH (info@brockmann-consult.de)
+/*
+ * Copyright (C) 2012-2016 Brockmann Consult GmbH (info@brockmann-consult.de)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,8 @@ package org.esa.cci.sst.tools;/*
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, see http://www.gnu.org/licenses/
  */
+
+package org.esa.cci.sst.tools;
 
 import org.esa.cci.sst.tool.ToolException;
 import org.junit.Test;
@@ -42,6 +44,12 @@ public class GbcsToolTest {
         assertEquals("MMD_NOAA08.inp", GbcsTool.getConfigurationFilename("avhrr.n08"));
         assertEquals("MMD_NOAA07.inp", GbcsTool.getConfigurationFilename("avhrr.n07"));
         assertEquals("MMD_NOAA06.inp", GbcsTool.getConfigurationFilename("avhrr.n06"));
+    }
+
+    @Test
+    public void testInputFilename_AVHRR_FRAC() throws Exception {
+        assertEquals("MMD_FRAC01.inp", GbcsTool.getConfigurationFilename("avhrr_f.m01"));
+        assertEquals("MMD_FRAC02.inp", GbcsTool.getConfigurationFilename("avhrr_f.m02"));
     }
 
     @Test

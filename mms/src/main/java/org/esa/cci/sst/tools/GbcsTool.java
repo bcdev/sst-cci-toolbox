@@ -156,6 +156,10 @@ public class GbcsTool extends BasicTool {
                 return "MMD_NOAA19.inp";
             case "avhrr.m02":
                 return "MMD_METOP02.inp";
+            case "avhrr_f.m01":
+                return "MMD_FRAC01.inp";
+            case "avhrr_f.m02":
+                return "MMD_FRAC02.inp";
             default:
                 throw new ToolException(
                         MessageFormat.format("Illegal value for key ''{0}'': ''{1}''.",
