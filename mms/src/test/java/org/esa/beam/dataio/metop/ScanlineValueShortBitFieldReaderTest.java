@@ -8,9 +8,9 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-public class ScanlineValueShortReaderTest {
+public class ScanlineValueShortBitFieldReaderTest {
 
-    private ScanlineValueShortReader reader;
+    private ScanlineValueShortBitFieldReader reader;
 
     @Before
     public void setUp(){
@@ -18,7 +18,7 @@ public class ScanlineValueShortReaderTest {
                 "Calibration Quality Flags for ch3",
                 ProductData.TYPE_INT16,
                 29);
-        reader =  new ScanlineValueShortReader(null, null, description);
+        reader =  new ScanlineValueShortBitFieldReader(null, null, description);
         // we do not access the MetopFile or the inputStream in this test - set to null tb 2016-06-15
     }
 

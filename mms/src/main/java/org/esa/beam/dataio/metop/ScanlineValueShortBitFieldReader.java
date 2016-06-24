@@ -10,14 +10,14 @@ import javax.imageio.stream.ImageInputStream;
 import java.io.IOException;
 import java.text.MessageFormat;
 
-class ScanlineValueShortReader implements BandReader {
+class ScanlineValueShortBitFieldReader implements BandReader {
 
     private final MetopFile metopFile;
     private final ImageInputStream inputStream;
     private final ScanlineBandDescription description;
     private final int lineOffset;
 
-    ScanlineValueShortReader(MetopFile metopFile, ImageInputStream inputStream, ScanlineBandDescription description) {
+    ScanlineValueShortBitFieldReader(MetopFile metopFile, ImageInputStream inputStream, ScanlineBandDescription description) {
         this.metopFile = metopFile;
         this.inputStream = inputStream;
         this.description = description;
@@ -55,6 +55,7 @@ class ScanlineValueShortReader implements BandReader {
         final short[] targetData = (short[]) destBuffer.getElems();
 
         pm.beginTask(MessageFormat.format("Reading AVHRR band ''{0}''...", getBandName()), rawCoord.maxY - rawCoord.minY);
+        final byte[] bytes = new byte[2];
 
         int targetIdx = rawCoord.targetStart;
         for (int sourceY = rawCoord.minY; sourceY <= rawCoord.maxY; sourceY += sourceStepY) {
@@ -64,12 +65,10 @@ class ScanlineValueShortReader implements BandReader {
 
             int flagOffset = metopFile.getScanLineOffset(sourceY) + lineOffset;
             inputStream.seek(flagOffset);
-            final int value = inputStream.readUnsignedShort();
-
-            //System.out.println("offset: " + flagOffset + "  value: " + value);
+            inputStream.read(bytes);
 
             for (int sourceX = rawCoord.minX; sourceX <= rawCoord.maxX; sourceX += sourceStepX) {
-                targetData[targetIdx] = (short) value;
+                targetData[targetIdx] = (short) bytes[0];   // we can do this because the upper 8 bits are unused tb 2016-06-24
                 targetIdx += rawCoord.targetIncrement;
             }
             pm.worked(1);

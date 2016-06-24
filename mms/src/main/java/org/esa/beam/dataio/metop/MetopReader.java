@@ -121,7 +121,7 @@ class MetopReader extends AvhrrReader implements AvhrrConstants {
     }
 
     private void addCalibrationQualityFlags(Product product, MetopFile metopFile) {
-        ScanlineValueShortReader bandReader = metopFile.createCalibrationQualityReader("ch3b", 22212);
+        ScanlineValueShortBitFieldReader bandReader = metopFile.createCalibrationQualityReader("ch3b", 22212);
         Band band = addBandToProduct(product, bandReader, Short.MIN_VALUE);
         FlagCoding flagCoding = createCalibrationQualityFlagCoding(bandReader.getBandName());
         band.setSampleCoding(flagCoding);

@@ -435,11 +435,11 @@ class MetopFile extends AvhrrFile {
         return new ScanlineValueIntReader(this, inputStream, description);
     }
 
-    ScanlineValueShortReader createCalibrationQualityReader(String channelName, int lineOffset) {
+    ScanlineValueShortBitFieldReader createCalibrationQualityReader(String channelName, int lineOffset) {
         final ScanlineBandDescription description = new ScanlineBandDescription("calibration_quality_" + channelName + "_flags",
                 "Calibration quality flags for channel " +  channelName,
                 ProductData.TYPE_INT16,
                 lineOffset);
-        return new ScanlineValueShortReader(this, inputStream, description);
+        return new ScanlineValueShortBitFieldReader(this, inputStream, description);
     }
 }
