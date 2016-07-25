@@ -8,6 +8,8 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
+import java.nio.file.Paths;
 import java.util.Properties;
 
 import static org.junit.Assert.assertFalse;
@@ -23,11 +25,12 @@ public class CarTemplateTest {
 
     @Before
     public void setUp() throws Exception {
-        document = new PoiWordDocument(CarTemplateTest.class.getResource("car-template.docx"));
+        final URL docxResource = CarTemplateTest.class.getResource("car-template.docx");
+        document = new PoiWordDocument(docxResource);
         properties = new Properties();
         properties.load(CarTemplateTest.class.getResourceAsStream("car-template.properties"));
 
-        dataDir = new File(System.getProperty("user.home"), "scratch/car/figures");
+        dataDir = Paths.get(docxResource.toURI()).getParent().toFile();
     }
 
     @After

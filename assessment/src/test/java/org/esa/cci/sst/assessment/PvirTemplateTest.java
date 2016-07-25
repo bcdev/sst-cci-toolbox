@@ -7,6 +7,8 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
+import java.nio.file.Paths;
 import java.util.Properties;
 
 import static org.junit.Assert.assertFalse;
@@ -21,11 +23,12 @@ public class PvirTemplateTest {
 
     @Before
     public void setUp() throws Exception {
-        document = new PoiWordDocument(PvirTemplateTest.class.getResource("PVIR_appendix_example_v6.docx"));
+        final URL docxResource = PvirTemplateTest.class.getResource("PVIR_appendix_example_v6.docx");
+        document = new PoiWordDocument(docxResource);
         properties = new Properties();
         properties.load(PvirTemplateTest.class.getResourceAsStream("pvir-template.properties"));
 
-        dataDir = new File(System.getProperty("user.home"), "scratch/pvir/figures");
+        dataDir = Paths.get(docxResource.toURI()).getParent().toFile();
     }
 
     @After
