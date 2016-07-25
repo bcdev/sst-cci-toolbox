@@ -13,7 +13,7 @@ import java.util.Locale;
 
 public class AmsreProductReaderPlugIn implements ProductReaderPlugIn {
 
-    private static final String AMSRE_FILE_NAME_PATTERN = "AMSR_E_L2A_BrightnessTemperatures_V[0-9]{2}_[0-9]{12}_[a-zA-Z].hdf";
+    private static final String AMSRE_FILE_NAME_PATTERN = "AMSR_E_L2A_BrightnessTemperatures_[P|B|T|V][0-9]{2}_[0-9]{12}_[A|D].hdf";
     private static final String FORMAT_NAME = "AMSRE_L2A";
 
     @Override
