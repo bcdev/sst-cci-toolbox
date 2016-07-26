@@ -13,6 +13,14 @@ public class AmsreProductReaderTest {
         assertEquals("AMSR_E_L2A_BrightnessTemperatures_V12_200502170446_A.hdf", productName);
     }
 
+    @Test
+    public void testAssembleUtcString() {
+        final String dateString = "2005-02-17";
+        final String timeString = "04:46:34.83Z";
+
+        assertEquals("2005-02-17T04:46:34", AmsreProductReader.assembleUTCString(dateString, timeString));
+    }
+
     private static final String CORE_META = "GROUP = INVENTORYMETADATA\n" +
             "   GROUPTYPE = MASTERGROUP\n" +
             "   GROUP = ECSDATAGRANULE\n" +

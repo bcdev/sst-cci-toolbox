@@ -2,6 +2,7 @@ package org.esa.beam.dataio.amsre;
 
 import org.esa.beam.framework.dataio.DecodeQualification;
 import org.esa.beam.framework.datamodel.Product;
+import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.cci.sst.IoTestRunner;
 import org.esa.cci.sst.TestUtil;
 import org.junit.Test;
@@ -33,6 +34,14 @@ public class AmsreProductReaderIntegrationTest {
             assertEquals("AMSRE_L2A", product.getProductType());
             assertEquals(243, product.getSceneRasterWidth());
             assertEquals(2002, product.getSceneRasterHeight());
+
+            final ProductData.UTC startTime = product.getStartTime();
+            assertNotNull(startTime);
+            assertEquals(1108615594000L, startTime.getAsDate().getTime());
+
+            final ProductData.UTC endTime = product.getEndTime();
+            assertEquals(1108618596000L, endTime.getAsDate().getTime());
+            assertNotNull(endTime);
         } finally {
             product.dispose();
         }
