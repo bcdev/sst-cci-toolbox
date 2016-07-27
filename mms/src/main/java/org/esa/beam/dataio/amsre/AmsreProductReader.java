@@ -7,7 +7,12 @@ import org.esa.beam.framework.datamodel.Band;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.util.io.FileUtils;
-import ucar.nc2.*;
+import ucar.ma2.DataType;
+import ucar.nc2.Attribute;
+import ucar.nc2.Dimension;
+import ucar.nc2.Group;
+import ucar.nc2.NetcdfFile;
+import ucar.nc2.Variable;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,10 +43,9 @@ public class AmsreProductReader extends AbstractProductReader {
         final Product product = createProduct();
 
         addSensingTimes(product);
+        addBands(product);
         return product;
     }
-
-
 
     @Override
     protected void readBandRasterDataImpl(int sourceOffsetX, int sourceOffsetY, int sourceWidth, int sourceHeight, int sourceStepX, int sourceStepY, Band destBand, int destOffsetX, int destOffsetY, int destWidth, int destHeight, ProductData destBuffer, ProgressMonitor pm) throws IOException {
@@ -108,6 +112,22 @@ public class AmsreProductReader extends AbstractProductReader {
             product.setEndTime(sensingStop);
         } catch (ParseException e) {
             throw new IOException(e.getMessage());
+        }
+    }
+
+    private void addBands(Product product) {
+        final Group loResGroup = netcdfFile.findGroup("Low_Res_Swath");
+        final Group geoLocationGroup = loResGroup.findGroup("Geolocation_Fields");
+        addBandsFromGroup(product, geoLocationGroup);
+
+        final Group dataGroup = loResGroup.findGroup("Data_Fields");
+        addBandsFromGroup(product, dataGroup);
+    }
+
+    private void addBandsFromGroup(Product product, Group geoLocationGroup) {
+        final List<Variable> variables = geoLocationGroup.getVariables();
+        for (final Variable variable : variables) {
+            product.addBand(variable.getShortName(), ProductData.TYPE_UINT32);
         }
     }
 
