@@ -1,6 +1,7 @@
 package org.esa.beam.dataio.amsre;
 
 import com.bc.ceres.core.ProgressMonitor;
+import org.esa.beam.dataio.netcdf.util.DataTypeUtils;
 import org.esa.beam.framework.dataio.AbstractProductReader;
 import org.esa.beam.framework.dataio.ProductReaderPlugIn;
 import org.esa.beam.framework.datamodel.Band;
@@ -127,7 +128,8 @@ public class AmsreProductReader extends AbstractProductReader {
     private void addBandsFromGroup(Product product, Group geoLocationGroup) {
         final List<Variable> variables = geoLocationGroup.getVariables();
         for (final Variable variable : variables) {
-            product.addBand(variable.getShortName(), ProductData.TYPE_UINT32);
+            final int dataType = DataTypeUtils.getRasterDataType(variable);
+            product.addBand(variable.getShortName(), dataType);
         }
     }
 

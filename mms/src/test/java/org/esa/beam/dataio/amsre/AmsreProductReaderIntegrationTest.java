@@ -52,77 +52,38 @@ public class AmsreProductReaderIntegrationTest {
             assertEquals(1108618596000L, endTime.getAsDate().getTime());
             assertNotNull(endTime);
 
-            final Band timeBand = product.getBand("Time");
-            assertNotNull(timeBand);
+            assertBandCorrect("Time", ProductData.TYPE_FLOAT64, product);
+            assertBandCorrect("Latitude", ProductData.TYPE_FLOAT32, product);
+            assertBandCorrect("Longitude", ProductData.TYPE_FLOAT32, product);
 
-            final Band latitudeBand = product.getBand("Latitude");
-            assertNotNull(latitudeBand);
+            assertBandCorrect("89.0V_Res.1_TB", ProductData.TYPE_INT16, product);
+            assertBandCorrect("89.0H_Res.1_TB", ProductData.TYPE_INT16, product);
+            assertBandCorrect("36.5V_Res.1_TB", ProductData.TYPE_INT16, product);
+            assertBandCorrect("36.5H_Res.1_TB", ProductData.TYPE_INT16, product);
+            assertBandCorrect("23.8V_Res.1_TB", ProductData.TYPE_INT16, product);
+            assertBandCorrect("23.8H_Res.1_TB", ProductData.TYPE_INT16, product);
+            assertBandCorrect("18.7V_Res.1_TB", ProductData.TYPE_INT16, product);
+            assertBandCorrect("18.7H_Res.1_TB", ProductData.TYPE_INT16, product);
+            assertBandCorrect("10.7V_Res.1_TB", ProductData.TYPE_INT16, product);
+            assertBandCorrect("10.7H_Res.1_TB", ProductData.TYPE_INT16, product);
+            assertBandCorrect("6.9V_Res.1_TB", ProductData.TYPE_INT16, product);
+            assertBandCorrect("6.9H_Res.1_TB", ProductData.TYPE_INT16, product);
 
-            final Band longitudeBand = product.getBand("Longitude");
-            assertNotNull(longitudeBand);
-
-            final Band band_89V_res1 = product.getBand("89.0V_Res.1_TB");
-            assertNotNull(band_89V_res1);
-
-            final Band band_89H_res1 = product.getBand("89.0H_Res.1_TB");
-            assertNotNull(band_89H_res1);
-
-            final Band band_36V_res1 = product.getBand("36.5V_Res.1_TB");
-            assertNotNull(band_36V_res1);
-
-            final Band band_36H_res1 = product.getBand("36.5H_Res.1_TB");
-            assertNotNull(band_36H_res1);
-
-            final Band band_23V_res1 = product.getBand("23.8V_Res.1_TB");
-            assertNotNull(band_23V_res1);
-
-            final Band band_23H_res1 = product.getBand("23.8H_Res.1_TB");
-            assertNotNull(band_23H_res1);
-
-            final Band band_18V_res1 = product.getBand("18.7V_Res.1_TB");
-            assertNotNull(band_18V_res1);
-
-            final Band band_18H_res1 = product.getBand("18.7H_Res.1_TB");
-            assertNotNull(band_18H_res1);
-
-            final Band band_10V_res1 = product.getBand("10.7V_Res.1_TB");
-            assertNotNull(band_10V_res1);
-
-            final Band band_10H_res1 = product.getBand("10.7H_Res.1_TB");
-            assertNotNull(band_10H_res1);
-
-            final Band band_6V_res1 = product.getBand("6.9V_Res.1_TB");
-            assertNotNull(band_6V_res1);
-
-            final Band band_6H_res1 = product.getBand("6.9H_Res.1_TB");
-            assertNotNull(band_6H_res1);
-
-            final Band sunElevationBand = product.getBand("Sun_Elevation");
-            assertNotNull(sunElevationBand);
-
-            final Band sunAzimuthBand = product.getBand("Sun_Azimuth");
-            assertNotNull(sunAzimuthBand);
-
-            final Band earthIncidenceBand = product.getBand("Earth_Incidence");
-            assertNotNull(earthIncidenceBand);
-
-            final Band earthAzimuthBand = product.getBand("Earth_Azimuth");
-            assertNotNull(earthAzimuthBand);
+            assertBandCorrect("Sun_Elevation", ProductData.TYPE_INT16, product);
+            assertBandCorrect("Sun_Azimuth", ProductData.TYPE_INT16, product);
+            assertBandCorrect("Earth_Incidence", ProductData.TYPE_INT16, product);
+            assertBandCorrect("Earth_Azimuth", ProductData.TYPE_INT16, product);
 
             // @todo 1 tb/tb verify with partners - seems to be a 2D dataset with flag and channel dimension 2016-07-27
-            final Band channelQualityBand = product.getBand("Channel_Quality_Flag_6_To_52");
-            assertNotNull(channelQualityBand);
+            assertBandCorrect("Channel_Quality_Flag_6_To_52", ProductData.TYPE_INT16, product);
 
             // @todo 1 tb/tb verify with partners - which dimensions? 2016-07-27
-            final Band resampledChannelQualityBand = product.getBand("Resampled_Channel_Quality_Flag");
-            assertNotNull(resampledChannelQualityBand);
+            assertBandCorrect("Resampled_Channel_Quality_Flag", ProductData.TYPE_INT16, product);
 
             // @todo 1 tb/tb verify with partners - seems to be a 3D dataset with flag and channel dimension 2016-07-27
-            final Band landOceanBand = product.getBand("Land_Ocean_Flag_for_6_10_18_23_36_50_89A");
-            assertNotNull(landOceanBand);
+            assertBandCorrect("Land_Ocean_Flag_for_6_10_18_23_36_50_89A", ProductData.TYPE_UINT8, product);
 
-            final Band res1SurfBand = product.getBand("Res1_Surf");
-            assertNotNull(res1SurfBand);
+            assertBandCorrect("Res1_Surf", ProductData.TYPE_UINT8, product);
 
             // @todo 1 tb/tb add tests for geocoding 2016-07-27
 //            final GeoCoding geoCoding = product.getGeoCoding();
@@ -130,5 +91,11 @@ public class AmsreProductReaderIntegrationTest {
         } finally {
             product.dispose();
         }
+    }
+
+    private void assertBandCorrect(String bandName, int dataType, Product product) {
+        final Band band = product.getBand(bandName);
+        assertNotNull(band);
+        assertEquals(dataType, band.getDataType());
     }
 }
