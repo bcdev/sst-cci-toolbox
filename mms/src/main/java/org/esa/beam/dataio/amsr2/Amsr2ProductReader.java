@@ -17,6 +17,7 @@
 package org.esa.beam.dataio.amsr2;
 
 import org.esa.beam.common.Default2DOpImage;
+import org.esa.beam.common.DefaultScanLineVariableOpImage;
 import org.esa.beam.common.ImageVariableOpImage;
 import org.esa.beam.common.NetcdfProductReaderTemplate;
 import org.esa.beam.common.PixelLocator;
@@ -214,12 +215,7 @@ public final class Amsr2ProductReader extends NetcdfProductReaderTemplate {
                 }
             }
         } else if (variable.getRank() == 1) {
-            return new ScanLineVariableOpImage(variable, bufferType, w, h, tileSize, ResolutionLevel.MAXRES) {
-                @Override
-                protected int getIndexY(int rank) {
-                    return rank - 1;
-                }
-            };
+            return new DefaultScanLineVariableOpImage(variable, bufferType, w, h, tileSize);
         } else {
             return new Default2DOpImage(variable, bufferType, w, h, tileSize);
         }

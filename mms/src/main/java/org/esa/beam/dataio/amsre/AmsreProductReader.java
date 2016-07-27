@@ -2,7 +2,7 @@ package org.esa.beam.dataio.amsre;
 
 import com.bc.ceres.core.ProgressMonitor;
 import org.esa.beam.common.Default2DOpImage;
-import org.esa.beam.common.ImageVariableOpImage;
+import org.esa.beam.common.DefaultScanLineVariableOpImage;
 import org.esa.beam.dataio.netcdf.util.DataTypeUtils;
 import org.esa.beam.framework.dataio.AbstractProductReader;
 import org.esa.beam.framework.dataio.ProductReaderPlugIn;
@@ -10,15 +10,16 @@ import org.esa.beam.framework.datamodel.Band;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.jai.ImageManager;
-import org.esa.beam.jai.ResolutionLevel;
 import org.esa.beam.util.io.FileUtils;
-import ucar.ma2.DataType;
 import ucar.nc2.Attribute;
 import ucar.nc2.Dimension;
 import ucar.nc2.Group;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
+import java.awt.*;
+import java.awt.image.Raster;
+import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
@@ -54,7 +55,9 @@ public class AmsreProductReader extends AbstractProductReader {
 
     @Override
     protected void readBandRasterDataImpl(int sourceOffsetX, int sourceOffsetY, int sourceWidth, int sourceHeight, int sourceStepX, int sourceStepY, Band destBand, int destOffsetX, int destOffsetY, int destWidth, int destHeight, ProductData destBuffer, ProgressMonitor pm) throws IOException {
-
+        final RenderedImage image = destBand.getSourceImage();
+        final Raster data = image.getData(new Rectangle(destOffsetX, destOffsetY, destWidth, destHeight));
+        data.getDataElements(destOffsetX, destOffsetY, destWidth, destHeight, destBuffer.getElems());
     }
 
     @Override
@@ -129,19 +132,34 @@ public class AmsreProductReader extends AbstractProductReader {
         addBandsFromGroup(product, dataGroup);
     }
 
-    private void addBandsFromGroup(Product product, Group geoLocationGroup) {
-        final List<Variable> variables = geoLocationGroup.getVariables();
+    private void addBandsFromGroup(Product product, Group group) {
+        final List<Variable> variables = group.getVariables();
         for (final Variable variable : variables) {
-            final int dataType = DataTypeUtils.getRasterDataType(variable);
-            final Band band = product.addBand(variable.getShortName(), dataType);
+            final Band band = addBand(product, variable);
 
-            final int bufferType = ImageManager.getDataBufferType(band.getDataType());
-            final java.awt.Dimension tileSize = band.getProduct().getPreferredTileSize();
-            final int width = band.getSceneRasterWidth();
-            final int height = band.getSceneRasterHeight();
+            addSourceImage(variable, band);
+        }
+    }
+
+    private void addSourceImage(Variable variable, Band band) {
+        final int bufferType = ImageManager.getDataBufferType(band.getDataType());
+        final java.awt.Dimension tileSize = band.getProduct().getPreferredTileSize();
+        final int width = band.getSceneRasterWidth();
+        final int height = band.getSceneRasterHeight();
+
+        final int rank = variable.getRank();
+        if (rank == 1) {
+            final DefaultScanLineVariableOpImage opImage = new DefaultScanLineVariableOpImage(variable, bufferType, width, height, tileSize);
+            band.setSourceImage(opImage);
+        } else {
             final Default2DOpImage defaultOpImage = new Default2DOpImage(variable, bufferType, width, height, tileSize);
             band.setSourceImage(defaultOpImage);
         }
+    }
+
+    private Band addBand(Product product, Variable variable) {
+        final int dataType = DataTypeUtils.getRasterDataType(variable);
+        return product.addBand(variable.getShortName(), dataType);
     }
 
     // Package access for testing only tb 2016-07-26

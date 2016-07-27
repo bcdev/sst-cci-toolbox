@@ -88,6 +88,30 @@ public class AmsreProductReaderIntegrationTest {
             assertCorrectBandData("Latitude", 5, 277, -65.76707458496094, product);
             assertCorrectBandData("Longitude", 6, 278, 168.5465087890625, product);
 
+            assertCorrectBandData("Time", 7, 279, 3.8276961829433537E8, product);
+
+            assertCorrectBandData("89.0V_Res.1_TB", 8, 280, -8465, product);
+            assertCorrectBandData("89.0H_Res.1_TB", 9, 281, -11009, product);
+            assertCorrectBandData("36.5V_Res.1_TB", 10, 282, -11018, product);
+            assertCorrectBandData("36.5H_Res.1_TB", 11, 283, -16584, product);
+            assertCorrectBandData("23.8V_Res.1_TB", 12, 284, -12024, product);
+            assertCorrectBandData("23.8H_Res.1_TB", 13, 285, -17721, product);
+            assertCorrectBandData("18.7V_Res.1_TB", 14, 286, -13989, product);
+            assertCorrectBandData("18.7H_Res.1_TB", 15, 287, -20998, product);
+            assertCorrectBandData("10.7V_Res.1_TB", 16, 288, -16153, product);
+            assertCorrectBandData("10.7H_Res.1_TB", 17, 289, -23928, product);
+            assertCorrectBandData("6.9V_Res.1_TB", 18, 290, -16992, product);
+            assertCorrectBandData("6.9H_Res.1_TB", 19, 291, -24796, product);
+            assertCorrectBandData("Sun_Elevation", 20, 292, 90, product);
+            assertCorrectBandData("Sun_Azimuth", 21, 293, 888, product);
+            assertCorrectBandData("Earth_Incidence", 22, 294, 11019, product);
+            assertCorrectBandData("Earth_Azimuth", 23, 295, 2629, product);
+            // @todo 1 tb/tb add tests when format has been agreed on 2016-07-27
+            //assertCorrectBandData("Channel_Quality_Flag_6_To_52", 23, 295, 2629, product);
+            //assertCorrectBandData("Resampled_Channel_Quality_Flag", 23, 295, 2629, product);
+            //assertCorrectBandData("Land_Ocean_Flag_for_6_10_18_23_36_50_89A", 23, 295, 2629, product);
+            assertCorrectBandData("Res1_Surf", 27, 299, 0, product);
+
             // @todo 1 tb/tb add tests for geocoding 2016-07-27
 //            final GeoCoding geoCoding = product.getGeoCoding();
 //            assertNotNull(geoCoding);
