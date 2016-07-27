@@ -52,38 +52,41 @@ public class AmsreProductReaderIntegrationTest {
             assertEquals(1108618596000L, endTime.getAsDate().getTime());
             assertNotNull(endTime);
 
-            assertBandCorrect("Time", ProductData.TYPE_FLOAT64, product);
-            assertBandCorrect("Latitude", ProductData.TYPE_FLOAT32, product);
-            assertBandCorrect("Longitude", ProductData.TYPE_FLOAT32, product);
+            assertBandCorrect("Time", ProductData.TYPE_FLOAT64, 243, 2002, product);
+            assertBandCorrect("Latitude", ProductData.TYPE_FLOAT32, 243, 2002, product);
+            assertBandCorrect("Longitude", ProductData.TYPE_FLOAT32, 243, 2002, product);
 
-            assertBandCorrect("89.0V_Res.1_TB", ProductData.TYPE_INT16, product);
-            assertBandCorrect("89.0H_Res.1_TB", ProductData.TYPE_INT16, product);
-            assertBandCorrect("36.5V_Res.1_TB", ProductData.TYPE_INT16, product);
-            assertBandCorrect("36.5H_Res.1_TB", ProductData.TYPE_INT16, product);
-            assertBandCorrect("23.8V_Res.1_TB", ProductData.TYPE_INT16, product);
-            assertBandCorrect("23.8H_Res.1_TB", ProductData.TYPE_INT16, product);
-            assertBandCorrect("18.7V_Res.1_TB", ProductData.TYPE_INT16, product);
-            assertBandCorrect("18.7H_Res.1_TB", ProductData.TYPE_INT16, product);
-            assertBandCorrect("10.7V_Res.1_TB", ProductData.TYPE_INT16, product);
-            assertBandCorrect("10.7H_Res.1_TB", ProductData.TYPE_INT16, product);
-            assertBandCorrect("6.9V_Res.1_TB", ProductData.TYPE_INT16, product);
-            assertBandCorrect("6.9H_Res.1_TB", ProductData.TYPE_INT16, product);
+            assertBandCorrect("89.0V_Res.1_TB", ProductData.TYPE_INT16, 243, 2002, product);
+            assertBandCorrect("89.0H_Res.1_TB", ProductData.TYPE_INT16, 243, 2002, product);
+            assertBandCorrect("36.5V_Res.1_TB", ProductData.TYPE_INT16, 243, 2002, product);
+            assertBandCorrect("36.5H_Res.1_TB", ProductData.TYPE_INT16, 243, 2002, product);
+            assertBandCorrect("23.8V_Res.1_TB", ProductData.TYPE_INT16, 243, 2002, product);
+            assertBandCorrect("23.8H_Res.1_TB", ProductData.TYPE_INT16, 243, 2002, product);
+            assertBandCorrect("18.7V_Res.1_TB", ProductData.TYPE_INT16, 243, 2002, product);
+            assertBandCorrect("18.7H_Res.1_TB", ProductData.TYPE_INT16, 243, 2002, product);
+            assertBandCorrect("10.7V_Res.1_TB", ProductData.TYPE_INT16, 243, 2002, product);
+            assertBandCorrect("10.7H_Res.1_TB", ProductData.TYPE_INT16, 243, 2002, product);
+            assertBandCorrect("6.9V_Res.1_TB", ProductData.TYPE_INT16, 243, 2002, product);
+            assertBandCorrect("6.9H_Res.1_TB", ProductData.TYPE_INT16, 243, 2002, product);
 
-            assertBandCorrect("Sun_Elevation", ProductData.TYPE_INT16, product);
-            assertBandCorrect("Sun_Azimuth", ProductData.TYPE_INT16, product);
-            assertBandCorrect("Earth_Incidence", ProductData.TYPE_INT16, product);
-            assertBandCorrect("Earth_Azimuth", ProductData.TYPE_INT16, product);
+            assertBandCorrect("Sun_Elevation", ProductData.TYPE_INT16, 243, 2002, product);
+            assertBandCorrect("Sun_Azimuth", ProductData.TYPE_INT16, 243, 2002, product);
+            assertBandCorrect("Earth_Incidence", ProductData.TYPE_INT16, 243, 2002, product);
+            assertBandCorrect("Earth_Azimuth", ProductData.TYPE_INT16, 243, 2002, product);
 
             // @todo 1 tb/tb verify with partners - seems to be a 2D dataset with flag and channel dimension 2016-07-27
-            assertBandCorrect("Channel_Quality_Flag_6_To_52", ProductData.TYPE_INT16, product);
+            assertBandCorrect("Channel_Quality_Flag_6_To_52", ProductData.TYPE_INT16, 243, 2002, product);
 
             // @todo 1 tb/tb verify with partners - which dimensions? 2016-07-27
-            assertBandCorrect("Resampled_Channel_Quality_Flag", ProductData.TYPE_INT16, product);
+            assertBandCorrect("Resampled_Channel_Quality_Flag", ProductData.TYPE_INT16, 243, 2002, product);
 
             // @todo 1 tb/tb verify with partners - seems to be a 3D dataset with flag and channel dimension 2016-07-27
-            assertBandCorrect("Land_Ocean_Flag_for_6_10_18_23_36_50_89A", ProductData.TYPE_UINT8, product);
+            assertBandCorrect("Land_Ocean_Flag_for_6_10_18_23_36_50_89A", ProductData.TYPE_UINT8, 243, 2002, product);
 
-            assertBandCorrect("Res1_Surf", ProductData.TYPE_UINT8, product);
+            assertBandCorrect("Res1_Surf", ProductData.TYPE_UINT8, 243, 2002, product);
+
+            assertCorrectBandData("Latitude", 5, 277, -65.76707458496094, product);
+            assertCorrectBandData("Longitude", 6, 278, 168.5465087890625, product);
 
             // @todo 1 tb/tb add tests for geocoding 2016-07-27
 //            final GeoCoding geoCoding = product.getGeoCoding();
@@ -93,9 +96,18 @@ public class AmsreProductReaderIntegrationTest {
         }
     }
 
-    private void assertBandCorrect(String bandName, int dataType, Product product) {
+    private void assertCorrectBandData(String bandName, int x, int y, double expected, Product product) throws IOException {
+        final Band band = product.getBand(bandName);
+        final double[] doubles = new double[1];
+        band.readPixels(x, y, 1, 1, doubles);
+        assertEquals(expected, doubles[0], 1e-8);
+    }
+
+    private void assertBandCorrect(String bandName, int dataType, int width, int height, Product product) {
         final Band band = product.getBand(bandName);
         assertNotNull(band);
         assertEquals(dataType, band.getDataType());
+        assertEquals(width, band.getRasterWidth());
+        assertEquals(height, band.getRasterHeight());
     }
 }

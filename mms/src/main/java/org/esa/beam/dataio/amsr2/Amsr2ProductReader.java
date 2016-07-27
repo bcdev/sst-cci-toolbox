@@ -16,6 +16,7 @@
 
 package org.esa.beam.dataio.amsr2;
 
+import org.esa.beam.common.Default2DOpImage;
 import org.esa.beam.common.ImageVariableOpImage;
 import org.esa.beam.common.NetcdfProductReaderTemplate;
 import org.esa.beam.common.PixelLocator;
@@ -200,7 +201,7 @@ public final class Amsr2ProductReader extends NetcdfProductReaderTemplate {
 
         if (variable.getRank() == 2) {
             if (Arrays.equals(shape, variable.getShape())) {
-                return new DefaultOpImage(variable, bufferType, w, h, tileSize);
+                return new Default2DOpImage(variable, bufferType, w, h, tileSize);
             } else {
                 if (PIXEL_DATA_QUALITY_6_TO_36_BAND_NAME.equals(band.getName())) {
                     return new UShortFromUByteOpImage(variable, w, h, tileSize);
@@ -220,7 +221,7 @@ public final class Amsr2ProductReader extends NetcdfProductReaderTemplate {
                 }
             };
         } else {
-            return new DefaultOpImage(variable, bufferType, w, h, tileSize);
+            return new Default2DOpImage(variable, bufferType, w, h, tileSize);
         }
     }
 
@@ -255,23 +256,6 @@ public final class Amsr2ProductReader extends NetcdfProductReaderTemplate {
     public void close() throws IOException {
         nameMapping.clear();
         super.close();
-    }
-
-    private static final class DefaultOpImage extends ImageVariableOpImage {
-
-        public DefaultOpImage(Variable variable, int bufferType, int w, int h, Dimension tileSize) {
-            super(variable, bufferType, w, h, tileSize, ResolutionLevel.MAXRES);
-        }
-
-        @Override
-        protected int getIndexX(int rank) {
-            return rank - 1;
-        }
-
-        @Override
-        protected int getIndexY(int rank) {
-            return rank - 2;
-        }
     }
 
     private static final class OddColumnsOpImage extends ImageVariableOpImage {

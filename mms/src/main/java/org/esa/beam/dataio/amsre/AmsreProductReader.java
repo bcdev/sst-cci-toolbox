@@ -1,12 +1,16 @@
 package org.esa.beam.dataio.amsre;
 
 import com.bc.ceres.core.ProgressMonitor;
+import org.esa.beam.common.Default2DOpImage;
+import org.esa.beam.common.ImageVariableOpImage;
 import org.esa.beam.dataio.netcdf.util.DataTypeUtils;
 import org.esa.beam.framework.dataio.AbstractProductReader;
 import org.esa.beam.framework.dataio.ProductReaderPlugIn;
 import org.esa.beam.framework.datamodel.Band;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
+import org.esa.beam.jai.ImageManager;
+import org.esa.beam.jai.ResolutionLevel;
 import org.esa.beam.util.io.FileUtils;
 import ucar.ma2.DataType;
 import ucar.nc2.Attribute;
@@ -129,7 +133,14 @@ public class AmsreProductReader extends AbstractProductReader {
         final List<Variable> variables = geoLocationGroup.getVariables();
         for (final Variable variable : variables) {
             final int dataType = DataTypeUtils.getRasterDataType(variable);
-            product.addBand(variable.getShortName(), dataType);
+            final Band band = product.addBand(variable.getShortName(), dataType);
+
+            final int bufferType = ImageManager.getDataBufferType(band.getDataType());
+            final java.awt.Dimension tileSize = band.getProduct().getPreferredTileSize();
+            final int width = band.getSceneRasterWidth();
+            final int height = band.getSceneRasterHeight();
+            final Default2DOpImage defaultOpImage = new Default2DOpImage(variable, bufferType, width, height, tileSize);
+            band.setSourceImage(defaultOpImage);
         }
     }
 
