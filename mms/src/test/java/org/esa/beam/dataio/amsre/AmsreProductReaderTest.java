@@ -21,6 +21,12 @@ public class AmsreProductReaderTest {
         assertEquals("2005-02-17T04:46:34", AmsreProductReader.assembleUTCString(dateString, timeString));
     }
 
+    @Test
+    public void testRemoveDots() {
+        assertEquals("BT_HV_23_8", AmsreProductReader.removeDots("BT.HV_23.8"));
+        assertEquals("blabla_DOT", AmsreProductReader.removeDots("blabla_DOT"));
+    }
+
     private static final String CORE_META = "GROUP = INVENTORYMETADATA\n" +
             "   GROUPTYPE = MASTERGROUP\n" +
             "   GROUP = ECSDATAGRANULE\n" +

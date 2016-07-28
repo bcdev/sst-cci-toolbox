@@ -167,7 +167,9 @@ public class AmsreProductReader extends AbstractProductReader {
 
     private Band addBand(Product product, Variable variable) {
         final int dataType = DataTypeUtils.getRasterDataType(variable);
-        return product.addBand(variable.getShortName(), dataType);
+        final String shortName = variable.getShortName();
+        final String bandName = removeDots(shortName);
+        return product.addBand(bandName, dataType);
     }
 
     private void addGeoCoding(Product product) throws IOException {
@@ -185,5 +187,9 @@ public class AmsreProductReader extends AbstractProductReader {
         final int lastDotIndex = startDateString.lastIndexOf('.');
         startDateString = startDateString.substring(0, lastDotIndex);
         return startDateString;
+    }
+
+    static String removeDots(String variableName) {
+        return variableName.replaceAll("\\.", "_");
     }
 }

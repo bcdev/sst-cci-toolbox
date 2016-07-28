@@ -54,18 +54,18 @@ public class AmsreProductReaderIntegrationTest {
             assertBandCorrect("Latitude", ProductData.TYPE_FLOAT32, 243, 2002, product);
             assertBandCorrect("Longitude", ProductData.TYPE_FLOAT32, 243, 2002, product);
 
-            assertBandCorrect("89.0V_Res.1_TB", ProductData.TYPE_INT16, 243, 2002, product);
-            assertBandCorrect("89.0H_Res.1_TB", ProductData.TYPE_INT16, 243, 2002, product);
-            assertBandCorrect("36.5V_Res.1_TB", ProductData.TYPE_INT16, 243, 2002, product);
-            assertBandCorrect("36.5H_Res.1_TB", ProductData.TYPE_INT16, 243, 2002, product);
-            assertBandCorrect("23.8V_Res.1_TB", ProductData.TYPE_INT16, 243, 2002, product);
-            assertBandCorrect("23.8H_Res.1_TB", ProductData.TYPE_INT16, 243, 2002, product);
-            assertBandCorrect("18.7V_Res.1_TB", ProductData.TYPE_INT16, 243, 2002, product);
-            assertBandCorrect("18.7H_Res.1_TB", ProductData.TYPE_INT16, 243, 2002, product);
-            assertBandCorrect("10.7V_Res.1_TB", ProductData.TYPE_INT16, 243, 2002, product);
-            assertBandCorrect("10.7H_Res.1_TB", ProductData.TYPE_INT16, 243, 2002, product);
-            assertBandCorrect("6.9V_Res.1_TB", ProductData.TYPE_INT16, 243, 2002, product);
-            assertBandCorrect("6.9H_Res.1_TB", ProductData.TYPE_INT16, 243, 2002, product);
+            assertBandCorrect("89_0V_Res_1_TB", ProductData.TYPE_INT16, 243, 2002, product);
+            assertBandCorrect("89_0H_Res_1_TB", ProductData.TYPE_INT16, 243, 2002, product);
+            assertBandCorrect("36_5V_Res_1_TB", ProductData.TYPE_INT16, 243, 2002, product);
+            assertBandCorrect("36_5H_Res_1_TB", ProductData.TYPE_INT16, 243, 2002, product);
+            assertBandCorrect("23_8V_Res_1_TB", ProductData.TYPE_INT16, 243, 2002, product);
+            assertBandCorrect("23_8H_Res_1_TB", ProductData.TYPE_INT16, 243, 2002, product);
+            assertBandCorrect("18_7V_Res_1_TB", ProductData.TYPE_INT16, 243, 2002, product);
+            assertBandCorrect("18_7H_Res_1_TB", ProductData.TYPE_INT16, 243, 2002, product);
+            assertBandCorrect("10_7V_Res_1_TB", ProductData.TYPE_INT16, 243, 2002, product);
+            assertBandCorrect("10_7H_Res_1_TB", ProductData.TYPE_INT16, 243, 2002, product);
+            assertBandCorrect("6_9V_Res_1_TB", ProductData.TYPE_INT16, 243, 2002, product);
+            assertBandCorrect("6_9H_Res_1_TB", ProductData.TYPE_INT16, 243, 2002, product);
 
             assertBandCorrect("Sun_Elevation", ProductData.TYPE_INT16, 243, 2002, product);
             assertBandCorrect("Sun_Azimuth", ProductData.TYPE_INT16, 243, 2002, product);
@@ -90,18 +90,18 @@ public class AmsreProductReaderIntegrationTest {
 
             assertCorrectBandData("Time", 7, 279, 3.8276961829433537E8, product);
 
-            assertCorrectBandData("89.0V_Res.1_TB", 8, 280, -8465, product);
-            assertCorrectBandData("89.0H_Res.1_TB", 9, 281, -11009, product);
-            assertCorrectBandData("36.5V_Res.1_TB", 10, 282, -11018, product);
-            assertCorrectBandData("36.5H_Res.1_TB", 11, 283, -16584, product);
-            assertCorrectBandData("23.8V_Res.1_TB", 12, 284, -12024, product);
-            assertCorrectBandData("23.8H_Res.1_TB", 13, 285, -17721, product);
-            assertCorrectBandData("18.7V_Res.1_TB", 14, 286, -13989, product);
-            assertCorrectBandData("18.7H_Res.1_TB", 15, 287, -20998, product);
-            assertCorrectBandData("10.7V_Res.1_TB", 16, 288, -16153, product);
-            assertCorrectBandData("10.7H_Res.1_TB", 17, 289, -23928, product);
-            assertCorrectBandData("6.9V_Res.1_TB", 18, 290, -16992, product);
-            assertCorrectBandData("6.9H_Res.1_TB", 19, 291, -24796, product);
+            assertCorrectBandData("89_0V_Res_1_TB", 8, 280, -8465, product);
+            assertCorrectBandData("89_0H_Res_1_TB", 9, 281, -11009, product);
+            assertCorrectBandData("36_5V_Res_1_TB", 10, 282, -11018, product);
+            assertCorrectBandData("36_5H_Res_1_TB", 11, 283, -16584, product);
+            assertCorrectBandData("23_8V_Res_1_TB", 12, 284, -12024, product);
+            assertCorrectBandData("23_8H_Res_1_TB", 13, 285, -17721, product);
+            assertCorrectBandData("18_7V_Res_1_TB", 14, 286, -13989, product);
+            assertCorrectBandData("18_7H_Res_1_TB", 15, 287, -20998, product);
+            assertCorrectBandData("10_7V_Res_1_TB", 16, 288, -16153, product);
+            assertCorrectBandData("10_7H_Res_1_TB", 17, 289, -23928, product);
+            assertCorrectBandData("6_9V_Res_1_TB", 18, 290, -16992, product);
+            assertCorrectBandData("6_9H_Res_1_TB", 19, 291, -24796, product);
             assertCorrectBandData("Sun_Elevation", 20, 292, 90, product);
             assertCorrectBandData("Sun_Azimuth", 21, 293, 888, product);
             assertCorrectBandData("Earth_Incidence", 22, 294, 11019, product);
