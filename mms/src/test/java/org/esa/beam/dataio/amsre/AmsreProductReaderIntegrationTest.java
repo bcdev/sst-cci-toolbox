@@ -1,9 +1,7 @@
 package org.esa.beam.dataio.amsre;
 
 import org.esa.beam.framework.dataio.DecodeQualification;
-import org.esa.beam.framework.datamodel.Band;
-import org.esa.beam.framework.datamodel.Product;
-import org.esa.beam.framework.datamodel.ProductData;
+import org.esa.beam.framework.datamodel.*;
 import org.esa.cci.sst.IoTestRunner;
 import org.esa.cci.sst.TestUtil;
 import org.junit.Test;
@@ -112,9 +110,17 @@ public class AmsreProductReaderIntegrationTest {
             //assertCorrectBandData("Land_Ocean_Flag_for_6_10_18_23_36_50_89A", 23, 295, 2629, product);
             assertCorrectBandData("Res1_Surf", 27, 299, 0, product);
 
-            // @todo 1 tb/tb add tests for geocoding 2016-07-27
-//            final GeoCoding geoCoding = product.getGeoCoding();
-//            assertNotNull(geoCoding);
+            final GeoCoding geoCoding = product.getGeoCoding();
+            assertNotNull(geoCoding);
+            final PixelPos pixelPos = new PixelPos(100, 100);
+            final GeoPos geoPos = new GeoPos();
+            geoCoding.getGeoPos(pixelPos, geoPos);
+            assertEquals(-178.0155487060547, geoPos.getLon(), 1e-8);
+            assertEquals(-77.40947723388672, geoPos.getLat(), 1e-8);
+            pixelPos.setLocation(200, 200);
+            geoCoding.getGeoPos(pixelPos, geoPos);
+            assertEquals(138.116943359375, geoPos.getLon(), 1e-8);
+            assertEquals(-75.54936981201172, geoPos.getLat(), 1e-8);
         } finally {
             product.dispose();
         }

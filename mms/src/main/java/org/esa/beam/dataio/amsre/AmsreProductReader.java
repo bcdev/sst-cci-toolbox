@@ -3,13 +3,17 @@ package org.esa.beam.dataio.amsre;
 import com.bc.ceres.core.ProgressMonitor;
 import org.esa.beam.common.Default2DOpImage;
 import org.esa.beam.common.DefaultScanLineVariableOpImage;
+import org.esa.beam.common.PixelLocator;
+import org.esa.beam.common.PixelLocatorAdapter;
 import org.esa.beam.dataio.netcdf.util.DataTypeUtils;
 import org.esa.beam.framework.dataio.AbstractProductReader;
 import org.esa.beam.framework.dataio.ProductReaderPlugIn;
 import org.esa.beam.framework.datamodel.Band;
+import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.jai.ImageManager;
+import org.esa.beam.util.PixelLocatorFactory;
 import org.esa.beam.util.io.FileUtils;
 import ucar.nc2.Attribute;
 import ucar.nc2.Dimension;
@@ -50,6 +54,8 @@ public class AmsreProductReader extends AbstractProductReader {
 
         addSensingTimes(product);
         addBands(product);
+        addGeoCoding(product);
+
         return product;
     }
 
@@ -160,6 +166,15 @@ public class AmsreProductReader extends AbstractProductReader {
     private Band addBand(Product product, Variable variable) {
         final int dataType = DataTypeUtils.getRasterDataType(variable);
         return product.addBand(variable.getShortName(), dataType);
+    }
+
+    private void addGeoCoding(Product product) throws IOException {
+        final Band latBand = product.getBand("Latitude");
+        final Band lonBand = product.getBand("Longitude");
+        final PixelLocator pixelLocator = PixelLocatorFactory.forSwath(lonBand, latBand, 1);
+        final GeoCoding geoCoding = new PixelLocatorAdapter(pixelLocator);
+
+        product.setGeoCoding(geoCoding);
     }
 
     // Package access for testing only tb 2016-07-26
