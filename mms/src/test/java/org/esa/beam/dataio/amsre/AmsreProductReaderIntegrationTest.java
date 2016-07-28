@@ -73,7 +73,9 @@ public class AmsreProductReaderIntegrationTest {
             assertBandCorrect("Earth_Azimuth", ProductData.TYPE_INT16, 243, 2002, product);
 
             // @todo 1 tb/tb verify with partners - seems to be a 2D dataset with flag and channel dimension 2016-07-27
-            assertBandCorrect("Channel_Quality_Flag_6_To_52", ProductData.TYPE_INT16, 243, 2002, product);
+//            assertBandCorrect("Channel_Quality_Flag_6", ProductData.TYPE_INT16, 243, 2002, product);
+//            assertBandCorrect("Channel_Quality_Flag_10", ProductData.TYPE_INT16, 243, 2002, product);
+//            assertBandCorrect("Channel_Quality_Flag_18", ProductData.TYPE_INT16, 243, 2002, product);
 
             // @todo 1 tb/tb verify with partners - which dimensions? 2016-07-27
             assertBandCorrect("Resampled_Channel_Quality_Flag", ProductData.TYPE_INT16, 243, 2002, product);

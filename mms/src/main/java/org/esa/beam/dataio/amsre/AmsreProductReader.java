@@ -15,11 +15,8 @@ import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.jai.ImageManager;
 import org.esa.beam.util.PixelLocatorFactory;
 import org.esa.beam.util.io.FileUtils;
-import ucar.nc2.Attribute;
+import ucar.nc2.*;
 import ucar.nc2.Dimension;
-import ucar.nc2.Group;
-import ucar.nc2.NetcdfFile;
-import ucar.nc2.Variable;
 
 import java.awt.*;
 import java.awt.image.Raster;
@@ -32,6 +29,7 @@ import java.util.List;
 public class AmsreProductReader extends AbstractProductReader {
 
     private static final String DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss";
+    private static final int[] CHANNEL_QUALITY_FLAG_WAVELENGTHS = new int[] {6, 10, 18, 23, 36};
 
     private NetcdfFile netcdfFile;
 
@@ -83,9 +81,11 @@ public class AmsreProductReader extends AbstractProductReader {
         return coreMeta.substring(copyStart, copyEnd);
     }
 
-    private String getProductName(Variable coreMetaVariable) throws IOException {
+    private String getProductName() throws IOException {
+        final Group rootGroup = netcdfFile.findGroup(null);
+        final Variable coreMetaVariable = netcdfFile.findVariable(rootGroup, "CoreMetadata.0");
         if (coreMetaVariable == null) {
-            return "unknown";
+            throw new IOException("Global attribute 'CoreMetadata.0' not found");
         }
         final String coreMeta = coreMetaVariable.readScalarString();
         final String productName = extractProductName(coreMeta);
@@ -93,9 +93,7 @@ public class AmsreProductReader extends AbstractProductReader {
     }
 
     private Product createProduct() throws IOException {
-        final Group rootGroup = netcdfFile.findGroup(null);
-        final Variable coreMetaVariable = netcdfFile.findVariable(rootGroup, "CoreMetadata.0");
-        final String productName = getProductName(coreMetaVariable);
+        final String productName = getProductName();
         final String productType = getReaderPlugIn().getFormatNames()[0];
 
         final Variable latitude = netcdfFile.findVariable("/Low_Res_Swath/Geolocation_Fields/Latitude");
@@ -141,9 +139,13 @@ public class AmsreProductReader extends AbstractProductReader {
     private void addBandsFromGroup(Product product, Group group) {
         final List<Variable> variables = group.getVariables();
         for (final Variable variable : variables) {
-            final Band band = addBand(product, variable);
+            final String variableName = variable.getShortName();
+            if (variableName.startsWith("Channel_Quality_Flag")) {
 
-            addSourceImage(variable, band);
+            } else {
+                final Band band = addBand(product, variable);
+                addSourceImage(variable, band);
+            }
         }
     }
 
