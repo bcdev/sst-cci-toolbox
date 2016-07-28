@@ -112,15 +112,15 @@ public class AmsreProductReaderIntegrationTest {
 
             final GeoCoding geoCoding = product.getGeoCoding();
             assertNotNull(geoCoding);
-            final PixelPos pixelPos = new PixelPos(100, 100);
+            final PixelPos pixelPos = new PixelPos(100.5f, 100.5f);
             final GeoPos geoPos = new GeoPos();
             geoCoding.getGeoPos(pixelPos, geoPos);
-            assertEquals(-178.0155487060547, geoPos.getLon(), 1e-8);
-            assertEquals(-77.40947723388672, geoPos.getLat(), 1e-8);
-            pixelPos.setLocation(200, 200);
+            assertEquals(-178.33155822753906, geoPos.getLon(), 1e-8);
+            assertEquals(-77.40758514404297, geoPos.getLat(), 1e-8);
+            pixelPos.setLocation(200.5f, 200.5f);
             geoCoding.getGeoPos(pixelPos, geoPos);
-            assertEquals(138.116943359375, geoPos.getLon(), 1e-8);
-            assertEquals(-75.54936981201172, geoPos.getLat(), 1e-8);
+            assertEquals(137.9962615966797, geoPos.getLon(), 1e-8);
+            assertEquals(-75.54114532470703, geoPos.getLat(), 1e-8);
         } finally {
             product.dispose();
         }
