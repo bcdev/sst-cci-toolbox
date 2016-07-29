@@ -87,28 +87,31 @@ public class AmsreProductReaderIntegrationTest {
             assertBandCorrect("Res1_Surf", ProductData.TYPE_UINT8, 243, 2002, product);
             //
             assertBandCorrect("Scan_Quality_Flag", ProductData.TYPE_INT32, 243, 2002, product);
+            //
+            assertBandCorrect("Solar_Zenith_Angle", ProductData.TYPE_FLOAT32, 243, 2002, product);
+            assertBandCorrect("Solar_Azimuth_Angle", ProductData.TYPE_FLOAT32, 243, 2002, product);
 
 
             assertCorrectBandData("Latitude", 5, 277, -65.76707458496094, product);
             assertCorrectBandData("Longitude", 6, 278, 168.5465087890625, product);
             assertCorrectBandData("Time", 7, 279, 3.8276961829433537E8, product);
-            //
-            assertCorrectBandData("89_0V_Res_1_TB", 8, 280, -8465, product);
-            assertCorrectBandData("89_0H_Res_1_TB", 9, 281, -11009, product);
-            assertCorrectBandData("36_5V_Res_1_TB", 10, 282, -11018, product);
-            assertCorrectBandData("36_5H_Res_1_TB", 11, 283, -16584, product);
-            assertCorrectBandData("23_8V_Res_1_TB", 12, 284, -12024, product);
-            assertCorrectBandData("23_8H_Res_1_TB", 13, 285, -17721, product);
-            assertCorrectBandData("18_7V_Res_1_TB", 14, 286, -13989, product);
-            assertCorrectBandData("18_7H_Res_1_TB", 15, 287, -20998, product);
-            assertCorrectBandData("10_7V_Res_1_TB", 16, 288, -16153, product);
-            assertCorrectBandData("10_7H_Res_1_TB", 17, 289, -23928, product);
-            assertCorrectBandData("6_9V_Res_1_TB", 18, 290, -16992, product);
-            assertCorrectBandData("6_9H_Res_1_TB", 19, 291, -24796, product);
-            assertCorrectBandData("Sun_Elevation", 20, 292, 90, product);
-            assertCorrectBandData("Sun_Azimuth", 21, 293, 888, product);
-            assertCorrectBandData("Earth_Incidence", 22, 294, 11019, product);
-            assertCorrectBandData("Earth_Azimuth", 23, 295, 2629, product);
+            //                                                                              raw counts
+            assertCorrectBandData("89_0V_Res_1_TB", 8, 280, 243.0299945678562, product);    // -8465
+            assertCorrectBandData("89_0H_Res_1_TB", 9, 281, 217.5899951364845, product);    // -11009
+            assertCorrectBandData("36_5V_Res_1_TB", 10, 282, 217.49999513849616, product);  // -11018
+            assertCorrectBandData("36_5H_Res_1_TB", 11, 283, 161.8399963825941, product);   // -16584
+            assertCorrectBandData("23_8V_Res_1_TB", 12, 284, 207.43999536335468, product);  // -12024
+            assertCorrectBandData("23_8H_Res_1_TB", 13, 285, 150.4699966367334, product);   // -17721
+            assertCorrectBandData("18_7V_Res_1_TB", 14, 286, 187.7899958025664, product);   // -13989
+            assertCorrectBandData("18_7H_Res_1_TB", 15, 287, 117.69999736919999, product);  // -20998
+            assertCorrectBandData("10_7V_Res_1_TB", 16, 288, 166.1499962862581, product);   // -16153
+            assertCorrectBandData("10_7H_Res_1_TB", 17, 289, 88.39999802410603, product);   // -23928
+            assertCorrectBandData("6_9V_Res_1_TB", 18, 290, 157.75999647378922, product);   // -16992
+            assertCorrectBandData("6_9H_Res_1_TB", 19, 291, 79.71999821811914, product);    // -24796
+            assertCorrectBandData("Sun_Elevation", 20, 292, 9.00000013411045, product);     // 90
+            assertCorrectBandData("Sun_Azimuth", 21, 293, 88.80000132322311, product);      // 888
+            assertCorrectBandData("Earth_Incidence", 22, 294, 55.094998768530786, product); // 11019
+            assertCorrectBandData("Earth_Azimuth", 23, 295, 26.28999941237271, product);    // 2629
             assertCorrectBandData("Channel_Quality_Flag_6V", 0, 0, 7, product);
             assertCorrectBandData("Channel_Quality_Flag_6H", 1, 1, 0, product);
             assertCorrectBandData("Channel_Quality_Flag_10V", 2, 2, 0, product);
@@ -129,6 +132,9 @@ public class AmsreProductReaderIntegrationTest {
             assertCorrectBandData("Scan_Quality_Flag", 26, 298, 0, product);
             //
             assertCorrectBandData("Res1_Surf", 27, 299, 0, product);
+            //
+            assertCorrectBandData("Solar_Zenith_Angle", 28, 300, 62.79499816894531, product);
+            assertCorrectBandData("Solar_Azimuth_Angle", 29, 301, 120.02999877929688, product);
 
             final GeoCoding geoCoding = product.getGeoCoding();
             assertNotNull(geoCoding);

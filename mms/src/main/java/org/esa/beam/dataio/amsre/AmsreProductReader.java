@@ -140,6 +140,13 @@ public class AmsreProductReader extends AbstractProductReader {
 
         final Group dataGroup = loResGroup.findGroup("Data_Fields");
         addBandsFromGroup(product, dataGroup);
+
+        addVirtualBands(product);
+    }
+
+    private void addVirtualBands(Product product) {
+        product.addBand("Solar_Zenith_Angle", "Sun_Elevation + Earth_Incidence");
+        product.addBand("Solar_Azimuth_Angle", "(Earth_Azimuth - Sun_Azimuth + 180.0) % 360.0");
     }
 
     private void addBandsFromGroup(Product product, Group group) {
@@ -149,7 +156,7 @@ public class AmsreProductReader extends AbstractProductReader {
             if (variableName.startsWith("Channel_Quality_Flag")) {
                 addChannelQualityBands(product, variable);
             } else if (variableName.startsWith("Land_Ocean_Flag")) {
-               addLandOceanFlagBands(product, variable);
+                addLandOceanFlagBands(product, variable);
             } else {
                 final Band band = addBand(product, variable);
                 addSourceImage(variable, band);
@@ -221,7 +228,24 @@ public class AmsreProductReader extends AbstractProductReader {
     private Band addBand(Product product, Variable variable, String name) {
         final int dataType = DataTypeUtils.getRasterDataType(variable);
         final String bandName = removeDots(name);
-        return product.addBand(bandName, dataType);
+        final Band band = product.addBand(bandName, dataType);
+
+        final Attribute scaleFactor = variable.findAttribute("scale_factor");
+        if (scaleFactor != null) {
+            final double value = scaleFactor.getNumericValue().doubleValue();
+            if (value != 1.0) {
+                band.setScalingFactor(value);
+            }
+        }
+
+        final Attribute offset = variable.findAttribute("add_offset");
+        if (offset != null) {
+            final double value = offset.getNumericValue().doubleValue();
+            if (value != 0.0) {
+                band.setScalingOffset(value);
+            }
+        }
+        return band;
     }
 
     private void addGeoCoding(Product product) throws IOException {
