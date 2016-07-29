@@ -83,11 +83,8 @@ public class AmsreProductReaderIntegrationTest {
             assertBandCorrect("Channel_Quality_Flag_18H", ProductData.TYPE_INT16, 243, 2002, product);
             assertBandCorrect("Channel_Quality_Flag_23V", ProductData.TYPE_INT16, 243, 2002, product);
 
-            // @todo 1 tb/tb verify with partners - which dimensions? 2016-07-27
-            assertBandCorrect("Resampled_Channel_Quality_Flag", ProductData.TYPE_INT16, 243, 2002, product);
-
-            // @todo 1 tb/tb verify with partners - seems to be a 3D dataset with flag and channel dimension 2016-07-27
-            assertBandCorrect("Land_Ocean_Flag_for_6_10_18_23_36_50_89A", ProductData.TYPE_UINT8, 243, 2002, product);
+            // only checking the one band used for the MMD tb 2016-07-29
+            assertBandCorrect("Land_Ocean_Flag_6", ProductData.TYPE_UINT8, 243, 2002, product);
 
             assertBandCorrect("Res1_Surf", ProductData.TYPE_UINT8, 243, 2002, product);
 
@@ -124,6 +121,10 @@ public class AmsreProductReaderIntegrationTest {
             assertCorrectBandData("Channel_Quality_Flag_36H", 9, 9, 0, product);
             assertCorrectBandData("Channel_Quality_Flag_89V", 10, 10, 11, product);
             assertCorrectBandData("Channel_Quality_Flag_89H", 11, 11, 11, product);
+
+            assertCorrectBandData("Land_Ocean_Flag_6", 8, 12, 69, product);
+            assertCorrectBandData("Land_Ocean_Flag_6", 10, 12, 99, product);
+            assertCorrectBandData("Land_Ocean_Flag_6", 12, 12, 100, product);
 
             assertCorrectBandData("Res1_Surf", 27, 299, 0, product);
 

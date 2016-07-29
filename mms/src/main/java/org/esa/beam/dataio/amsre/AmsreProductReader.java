@@ -3,6 +3,7 @@ package org.esa.beam.dataio.amsre;
 import com.bc.ceres.core.ProgressMonitor;
 import org.esa.beam.common.Default2DOpImage;
 import org.esa.beam.common.DefaultScanLineVariableOpImage;
+import org.esa.beam.common.Layered3DOpImage;
 import org.esa.beam.common.LayeredScanLineOpImage;
 import org.esa.beam.common.PixelLocator;
 import org.esa.beam.common.PixelLocatorAdapter;
@@ -16,8 +17,11 @@ import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.jai.ImageManager;
 import org.esa.beam.util.PixelLocatorFactory;
 import org.esa.beam.util.io.FileUtils;
-import ucar.nc2.*;
+import ucar.nc2.Attribute;
 import ucar.nc2.Dimension;
+import ucar.nc2.Group;
+import ucar.nc2.NetcdfFile;
+import ucar.nc2.Variable;
 
 import java.awt.*;
 import java.awt.image.Raster;
@@ -30,7 +34,8 @@ import java.util.List;
 public class AmsreProductReader extends AbstractProductReader {
 
     private static final String DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss";
-    private static final String[] CHANNEL_QUALITY_FLAG_EXTENSIONS = new String[] {"6V", "6H", "10V", "10H", "18V", "18H", "23V", "23H", "36V", "36H", "89V", "89H"};
+    private static final String[] CHANNEL_QUALITY_FLAG_EXTENSIONS = new String[]{"6V", "6H", "10V", "10H", "18V", "18H", "23V", "23H", "36V", "36H", "89V", "89H"};
+    private static final String[] LAND_OCEAN_FLAG_EXTENSIONS = new String[]{"6", "10", "18", "23", "36", "50", "89A"};
 
     private NetcdfFile netcdfFile;
 
@@ -142,16 +147,33 @@ public class AmsreProductReader extends AbstractProductReader {
         for (final Variable variable : variables) {
             String variableName = variable.getShortName();
             if (variableName.startsWith("Channel_Quality_Flag")) {
-                variableName = "Channel_Quality_Flag_";
-                for (int i = 0; i < CHANNEL_QUALITY_FLAG_EXTENSIONS.length; i++) {
-                    final String bandName = variableName.concat(CHANNEL_QUALITY_FLAG_EXTENSIONS[i]);
-                    final Band band = addBand(product, variable, bandName);
-                    addLayered3DSourceImage(variable, band, i);
-                }
+                addChannelQualityBands(product, variable);
+            } else if (variableName.startsWith("Land_Ocean_Flag")) {
+               addLandOceanFlagBands(product, variable);
             } else {
                 final Band band = addBand(product, variable);
                 addSourceImage(variable, band);
             }
+        }
+    }
+
+    private void addLandOceanFlagBands(Product product, Variable variable) {
+        String variableName;
+        variableName = "Land_Ocean_Flag_";
+        for (int i = 0; i < LAND_OCEAN_FLAG_EXTENSIONS.length; i++) {
+            final String bandName = variableName.concat(LAND_OCEAN_FLAG_EXTENSIONS[i]);
+            final Band band = addBand(product, variable, bandName);
+            addLayered3DOpImage(variable, band, i);
+        }
+    }
+
+    private void addChannelQualityBands(Product product, Variable variable) {
+        String variableName;
+        variableName = "Channel_Quality_Flag_";
+        for (int i = 0; i < CHANNEL_QUALITY_FLAG_EXTENSIONS.length; i++) {
+            final String bandName = variableName.concat(CHANNEL_QUALITY_FLAG_EXTENSIONS[i]);
+            final Band band = addBand(product, variable, bandName);
+            addLayeredScanLineOpImage(variable, band, i);
         }
     }
 
@@ -171,13 +193,23 @@ public class AmsreProductReader extends AbstractProductReader {
         }
     }
 
-    private void addLayered3DSourceImage(Variable variable, Band band, int zLayer) {
+    private void addLayeredScanLineOpImage(Variable variable, Band band, int zLayer) {
         final int bufferType = ImageManager.getDataBufferType(band.getDataType());
         final java.awt.Dimension tileSize = band.getProduct().getPreferredTileSize();
         final int width = band.getSceneRasterWidth();
         final int height = band.getSceneRasterHeight();
 
         final LayeredScanLineOpImage opImage = new LayeredScanLineOpImage(variable, bufferType, width, height, zLayer, tileSize);
+        band.setSourceImage(opImage);
+    }
+
+    private void addLayered3DOpImage(Variable variable, Band band, int zLayer) {
+        final int bufferType = ImageManager.getDataBufferType(band.getDataType());
+        final java.awt.Dimension tileSize = band.getProduct().getPreferredTileSize();
+        final int width = band.getSceneRasterWidth();
+        final int height = band.getSceneRasterHeight();
+
+        final Layered3DOpImage opImage = new Layered3DOpImage(variable, bufferType, width, height, zLayer, tileSize);
         band.setSourceImage(opImage);
     }
 
