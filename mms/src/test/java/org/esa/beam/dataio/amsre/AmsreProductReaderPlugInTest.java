@@ -25,22 +25,6 @@ public class AmsreProductReaderPlugInTest {
     }
 
     @Test
-    public void testGetDecodeQualification() throws IOException {
-        final File testDataDirectory = TestUtil.getTestDataDirectory();
-
-        assertEquals(DecodeQualification.UNABLE, plugIn.getDecodeQualification(12.6));
-
-        final File incorrectFile = new File(testDataDirectory, "AVHR_xxx_1B_M02_20080211161603Z_20080211175803Z_N_O_20080211175632Z.nat");
-        assertEquals(DecodeQualification.UNABLE, plugIn.getDecodeQualification(incorrectFile));
-
-        final String incorrectPath = incorrectFile.getAbsolutePath();
-        assertEquals(DecodeQualification.UNABLE, plugIn.getDecodeQualification(incorrectPath));
-
-        final File correctFile = new File(testDataDirectory, "AMSR_E_L2A_BrightnessTemperatures_V12_200502170446_A.hdf");
-        assertEquals(DecodeQualification.INTENDED, plugIn.getDecodeQualification(correctFile));
-    }
-
-    @Test
     public void testgetInputTypes() {
         final Class[] inputTypes = plugIn.getInputTypes();
         assertEquals(2, inputTypes.length);
