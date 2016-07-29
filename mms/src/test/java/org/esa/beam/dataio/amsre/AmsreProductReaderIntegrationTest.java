@@ -58,7 +58,7 @@ public class AmsreProductReaderIntegrationTest {
             assertBandCorrect("Time", ProductData.TYPE_FLOAT64, 243, 2002, product);
             assertBandCorrect("Latitude", ProductData.TYPE_FLOAT32, 243, 2002, product);
             assertBandCorrect("Longitude", ProductData.TYPE_FLOAT32, 243, 2002, product);
-
+            //
             assertBandCorrect("89_0V_Res_1_TB", ProductData.TYPE_INT16, 243, 2002, product);
             assertBandCorrect("89_0H_Res_1_TB", ProductData.TYPE_INT16, 243, 2002, product);
             assertBandCorrect("36_5V_Res_1_TB", ProductData.TYPE_INT16, 243, 2002, product);
@@ -71,28 +71,28 @@ public class AmsreProductReaderIntegrationTest {
             assertBandCorrect("10_7H_Res_1_TB", ProductData.TYPE_INT16, 243, 2002, product);
             assertBandCorrect("6_9V_Res_1_TB", ProductData.TYPE_INT16, 243, 2002, product);
             assertBandCorrect("6_9H_Res_1_TB", ProductData.TYPE_INT16, 243, 2002, product);
-
+            //
             assertBandCorrect("Sun_Elevation", ProductData.TYPE_INT16, 243, 2002, product);
             assertBandCorrect("Sun_Azimuth", ProductData.TYPE_INT16, 243, 2002, product);
             assertBandCorrect("Earth_Incidence", ProductData.TYPE_INT16, 243, 2002, product);
             assertBandCorrect("Earth_Azimuth", ProductData.TYPE_INT16, 243, 2002, product);
-
             // not checking all flag bands here tb 2016-07-29
             assertBandCorrect("Channel_Quality_Flag_6V", ProductData.TYPE_INT16, 243, 2002, product);
             assertBandCorrect("Channel_Quality_Flag_6H", ProductData.TYPE_INT16, 243, 2002, product);
             assertBandCorrect("Channel_Quality_Flag_18H", ProductData.TYPE_INT16, 243, 2002, product);
             assertBandCorrect("Channel_Quality_Flag_23V", ProductData.TYPE_INT16, 243, 2002, product);
-
             // only checking the one band used for the MMD tb 2016-07-29
             assertBandCorrect("Land_Ocean_Flag_6", ProductData.TYPE_UINT8, 243, 2002, product);
-
+            //
             assertBandCorrect("Res1_Surf", ProductData.TYPE_UINT8, 243, 2002, product);
+            //
+            assertBandCorrect("Scan_Quality_Flag", ProductData.TYPE_INT32, 243, 2002, product);
+
 
             assertCorrectBandData("Latitude", 5, 277, -65.76707458496094, product);
             assertCorrectBandData("Longitude", 6, 278, 168.5465087890625, product);
-
             assertCorrectBandData("Time", 7, 279, 3.8276961829433537E8, product);
-
+            //
             assertCorrectBandData("89_0V_Res_1_TB", 8, 280, -8465, product);
             assertCorrectBandData("89_0H_Res_1_TB", 9, 281, -11009, product);
             assertCorrectBandData("36_5V_Res_1_TB", 10, 282, -11018, product);
@@ -121,11 +121,13 @@ public class AmsreProductReaderIntegrationTest {
             assertCorrectBandData("Channel_Quality_Flag_36H", 9, 9, 0, product);
             assertCorrectBandData("Channel_Quality_Flag_89V", 10, 10, 11, product);
             assertCorrectBandData("Channel_Quality_Flag_89H", 11, 11, 11, product);
-
+            //
             assertCorrectBandData("Land_Ocean_Flag_6", 8, 12, 69, product);
             assertCorrectBandData("Land_Ocean_Flag_6", 10, 12, 99, product);
             assertCorrectBandData("Land_Ocean_Flag_6", 12, 12, 100, product);
-
+            //
+            assertCorrectBandData("Scan_Quality_Flag", 26, 298, 0, product);
+            //
             assertCorrectBandData("Res1_Surf", 27, 299, 0, product);
 
             final GeoCoding geoCoding = product.getGeoCoding();
