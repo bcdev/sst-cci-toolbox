@@ -1,7 +1,12 @@
 package org.esa.beam.dataio.amsre;
 
 import org.esa.beam.framework.dataio.DecodeQualification;
-import org.esa.beam.framework.datamodel.*;
+import org.esa.beam.framework.datamodel.Band;
+import org.esa.beam.framework.datamodel.GeoCoding;
+import org.esa.beam.framework.datamodel.GeoPos;
+import org.esa.beam.framework.datamodel.PixelPos;
+import org.esa.beam.framework.datamodel.Product;
+import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.cci.sst.IoTestRunner;
 import org.esa.cci.sst.TestUtil;
 import org.junit.Test;
@@ -72,10 +77,11 @@ public class AmsreProductReaderIntegrationTest {
             assertBandCorrect("Earth_Incidence", ProductData.TYPE_INT16, 243, 2002, product);
             assertBandCorrect("Earth_Azimuth", ProductData.TYPE_INT16, 243, 2002, product);
 
-            // @todo 1 tb/tb verify with partners - seems to be a 2D dataset with flag and channel dimension 2016-07-27
-//            assertBandCorrect("Channel_Quality_Flag_6", ProductData.TYPE_INT16, 243, 2002, product);
-//            assertBandCorrect("Channel_Quality_Flag_10", ProductData.TYPE_INT16, 243, 2002, product);
-//            assertBandCorrect("Channel_Quality_Flag_18", ProductData.TYPE_INT16, 243, 2002, product);
+            // not checking all flag bands here tb 2016-07-29
+            assertBandCorrect("Channel_Quality_Flag_6V", ProductData.TYPE_INT16, 243, 2002, product);
+            assertBandCorrect("Channel_Quality_Flag_6H", ProductData.TYPE_INT16, 243, 2002, product);
+            assertBandCorrect("Channel_Quality_Flag_18H", ProductData.TYPE_INT16, 243, 2002, product);
+            assertBandCorrect("Channel_Quality_Flag_23V", ProductData.TYPE_INT16, 243, 2002, product);
 
             // @todo 1 tb/tb verify with partners - which dimensions? 2016-07-27
             assertBandCorrect("Resampled_Channel_Quality_Flag", ProductData.TYPE_INT16, 243, 2002, product);
@@ -106,10 +112,19 @@ public class AmsreProductReaderIntegrationTest {
             assertCorrectBandData("Sun_Azimuth", 21, 293, 888, product);
             assertCorrectBandData("Earth_Incidence", 22, 294, 11019, product);
             assertCorrectBandData("Earth_Azimuth", 23, 295, 2629, product);
-            // @todo 1 tb/tb add tests when format has been agreed on 2016-07-27
-            //assertCorrectBandData("Channel_Quality_Flag_6_To_52", 23, 295, 2629, product);
-            //assertCorrectBandData("Resampled_Channel_Quality_Flag", 23, 295, 2629, product);
-            //assertCorrectBandData("Land_Ocean_Flag_for_6_10_18_23_36_50_89A", 23, 295, 2629, product);
+            assertCorrectBandData("Channel_Quality_Flag_6V", 0, 0, 7, product);
+            assertCorrectBandData("Channel_Quality_Flag_6H", 1, 1, 0, product);
+            assertCorrectBandData("Channel_Quality_Flag_10V", 2, 2, 0, product);
+            assertCorrectBandData("Channel_Quality_Flag_10H", 3, 3, 0, product);
+            assertCorrectBandData("Channel_Quality_Flag_18V", 4, 4, 0, product);
+            assertCorrectBandData("Channel_Quality_Flag_18H", 5, 5, 0, product);
+            assertCorrectBandData("Channel_Quality_Flag_23V", 6, 6, 0, product);
+            assertCorrectBandData("Channel_Quality_Flag_23H", 7, 7, 0, product);
+            assertCorrectBandData("Channel_Quality_Flag_36V", 8, 8, 0, product);
+            assertCorrectBandData("Channel_Quality_Flag_36H", 9, 9, 0, product);
+            assertCorrectBandData("Channel_Quality_Flag_89V", 10, 10, 11, product);
+            assertCorrectBandData("Channel_Quality_Flag_89H", 11, 11, 11, product);
+
             assertCorrectBandData("Res1_Surf", 27, 299, 0, product);
 
             final GeoCoding geoCoding = product.getGeoCoding();

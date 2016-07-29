@@ -3,6 +3,7 @@ package org.esa.beam.dataio.amsre;
 import com.bc.ceres.core.ProgressMonitor;
 import org.esa.beam.common.Default2DOpImage;
 import org.esa.beam.common.DefaultScanLineVariableOpImage;
+import org.esa.beam.common.LayeredScanLineOpImage;
 import org.esa.beam.common.PixelLocator;
 import org.esa.beam.common.PixelLocatorAdapter;
 import org.esa.beam.dataio.netcdf.util.DataTypeUtils;
@@ -29,7 +30,7 @@ import java.util.List;
 public class AmsreProductReader extends AbstractProductReader {
 
     private static final String DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss";
-    private static final int[] CHANNEL_QUALITY_FLAG_WAVELENGTHS = new int[] {6, 10, 18, 23, 36};
+    private static final String[] CHANNEL_QUALITY_FLAG_EXTENSIONS = new String[] {"6V", "6H", "10V", "10H", "18V", "18H", "23V", "23H", "36V", "36H", "89V", "89H"};
 
     private NetcdfFile netcdfFile;
 
@@ -139,9 +140,14 @@ public class AmsreProductReader extends AbstractProductReader {
     private void addBandsFromGroup(Product product, Group group) {
         final List<Variable> variables = group.getVariables();
         for (final Variable variable : variables) {
-            final String variableName = variable.getShortName();
+            String variableName = variable.getShortName();
             if (variableName.startsWith("Channel_Quality_Flag")) {
-
+                variableName = "Channel_Quality_Flag_";
+                for (int i = 0; i < CHANNEL_QUALITY_FLAG_EXTENSIONS.length; i++) {
+                    final String bandName = variableName.concat(CHANNEL_QUALITY_FLAG_EXTENSIONS[i]);
+                    final Band band = addBand(product, variable, bandName);
+                    addLayered3DSourceImage(variable, band, i);
+                }
             } else {
                 final Band band = addBand(product, variable);
                 addSourceImage(variable, band);
@@ -165,10 +171,24 @@ public class AmsreProductReader extends AbstractProductReader {
         }
     }
 
+    private void addLayered3DSourceImage(Variable variable, Band band, int zLayer) {
+        final int bufferType = ImageManager.getDataBufferType(band.getDataType());
+        final java.awt.Dimension tileSize = band.getProduct().getPreferredTileSize();
+        final int width = band.getSceneRasterWidth();
+        final int height = band.getSceneRasterHeight();
+
+        final LayeredScanLineOpImage opImage = new LayeredScanLineOpImage(variable, bufferType, width, height, zLayer, tileSize);
+        band.setSourceImage(opImage);
+    }
+
     private Band addBand(Product product, Variable variable) {
-        final int dataType = DataTypeUtils.getRasterDataType(variable);
         final String shortName = variable.getShortName();
-        final String bandName = removeDots(shortName);
+        return addBand(product, variable, shortName);
+    }
+
+    private Band addBand(Product product, Variable variable, String name) {
+        final int dataType = DataTypeUtils.getRasterDataType(variable);
+        final String bandName = removeDots(name);
         return product.addBand(bandName, dataType);
     }
 

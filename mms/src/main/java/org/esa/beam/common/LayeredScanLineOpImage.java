@@ -1,32 +1,28 @@
 package org.esa.beam.common;
 
 import org.esa.beam.jai.ResolutionLevel;
-import org.esa.beam.jai.SingleBandedOpImage;
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;
 import ucar.ma2.Section;
-import ucar.nc2.VariableIF;
+import ucar.nc2.Variable;
 
 import javax.media.jai.PlanarImage;
-import java.awt.Dimension;
-import java.awt.Rectangle;
+import java.awt.*;
 import java.awt.image.WritableRaster;
 import java.io.IOException;
 
-/**
- * Used for creating rendered images from a scan-line variable in
- * netCDF files.
- *
- * @author Ralf Quast
- */
-public abstract class ScanLineVariableOpImage extends SingleBandedOpImage {
+public class LayeredScanLineOpImage extends ScanLineVariableOpImage {
 
-    protected final VariableIF variable;
+    private final int zLayer;
 
-    public ScanLineVariableOpImage(VariableIF variable, int dataBufferType, int sourceWidth, int sourceHeight,
-                                   Dimension tileSize, ResolutionLevel level) {
-        super(dataBufferType, sourceWidth, sourceHeight, tileSize, null, level);
-        this.variable = variable;
+    public LayeredScanLineOpImage(Variable variable, int bufferType, int width, int height, int zLayer, Dimension tileSize) {
+        super(variable, bufferType, width, height, tileSize, ResolutionLevel.MAXRES);
+        this.zLayer = zLayer;
+    }
+
+    @Override
+    protected int getIndexY(int rank) {
+        return 0;
     }
 
     @Override
@@ -45,6 +41,7 @@ public abstract class ScanLineVariableOpImage extends SingleBandedOpImage {
         final double scale = getScale();
 
         shape[indexY] = getSourceHeight(rectangle.height);
+        origin[1] = zLayer;
         origin[indexY] = getSourceY(rectangle.y) + getSourceOriginY();
         stride[indexY] = (int) scale;
 
@@ -58,18 +55,9 @@ public abstract class ScanLineVariableOpImage extends SingleBandedOpImage {
             }
         }
         for (int j = 0; j < rectangle.width; j++) {
-           tile.setDataElements(rectangle.x + j, rectangle.y, 1, rectangle.height, transformStorage(array));
+            tile.setDataElements(rectangle.x + j, rectangle.y, 1, rectangle.height, transformStorage(array));
         }
     }
 
-    protected abstract int getIndexY(int rank);
-
-    protected int getSourceOriginY() {
-        return 0;
-    }
-
-    protected Object transformStorage(Array array) {
-        return array.getStorage();
-    }
 
 }

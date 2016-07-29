@@ -37,7 +37,7 @@ import java.io.IOException;
  */
 public abstract class ImageVariableOpImage extends SingleBandedOpImage {
 
-    private final VariableIF variable;
+    protected final VariableIF variable;
 
     protected ImageVariableOpImage(VariableIF variable, int dataBufferType, int sourceWidth, int sourceHeight,
                                    Dimension tileSize, ResolutionLevel level) {
@@ -46,7 +46,7 @@ public abstract class ImageVariableOpImage extends SingleBandedOpImage {
     }
 
     @Override
-    protected final void computeRect(PlanarImage[] sourceImages, WritableRaster tile, Rectangle rectangle) {
+    protected void computeRect(PlanarImage[] sourceImages, WritableRaster tile, Rectangle rectangle) {
         final int rank = variable.getRank();
         final int[] origin = new int[rank];
         final int[] shape = new int[rank];
