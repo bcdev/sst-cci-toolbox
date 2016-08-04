@@ -38,8 +38,20 @@ _CAR_Tool = function() {
         var selected_template = _session['template'];
         $('#template_drop_down').val(selected_template);
 
-        var default_table = _session['default_table'];
-        $('#default_table_drop_down').val(default_table);
+        var $defaultTableDropDown = $('#default_table_drop_down');
+        var old_default_table_path = $defaultTableDropDown.val();
+        var new_default_table_path = _session['new_default_table_path'];
+        if (new_default_table_path != old_default_table_path) {
+            $defaultTableDropDown.val(new_default_table_path);
+            if (new_default_table_path.trim().length > 0) {
+                $C.ajax_get_document_keys(new_default_table_path, function(keys) {
+                    setKeys(keys);
+
+                });
+            } else {
+
+            }
+        }
 
         var $figures_keys = $('#figures_keys');
         var $firstOption = $figures_keys.find('option').first();
@@ -50,6 +62,29 @@ _CAR_Tool = function() {
             $figures_keys.append($('<option value="'+key+'">' + key + '</option>'));
         }
     }
+
+
+
+
+    function on_session_loaded() {
+        //    Buttons updaten
+        //    Session name display updaten
+        //    Template drop down updaten
+        //    Default Table drop down updaten
+        //    Keys updaten
+        //        Key HTML Elemente ... aktuell dann keinen Key auswählen
+        //              Nice to have:
+        //              - Key list, damit man per cursor tasten einfach durchsteppen kann
+        //              - Autoscroll zu selektierter Checkbox
+        //              - show only selected Images Mode
+        //        Keys an Session validieren ... ungültige entfernen
+        //    Images Dir setzen
+
+    }
+
+
+
+
 
     this.set_session_property = function(name, value) {
         _session[name] = value;
@@ -218,11 +253,16 @@ _CAR_Tool = function() {
     this.on_default_table_selected = function(component) {
         var default_table_path = component.value;
         this.set_session_property('default_table', default_table_path);
-        this.ajax_get_document_keys(default_table_path);
+        this.ajax_get_document_keys(default_table_path, function(keys) {
+            $C.remove_old_keys_from_session();
+            setKeys(keys);
+            $C.set_default_keys_to_session();
+            $C.uncheck_all_image_checkboxes();
+        });
         this.validate_ui();
     };
 
-    this.ajax_get_document_keys = function(default_table_path) {
+    this.ajax_get_document_keys = function(default_table_path, call_back) {
         var formData = new FormData($('#general_form')[0]);
         formData.append('default_table_path', default_table_path);
         $.ajax({
@@ -236,10 +276,7 @@ _CAR_Tool = function() {
             complete:    function(data) {
                 var json_keys = data.responseText;
                 var keys = JSON.parse(json_keys);
-                $C.remove_old_keys_from_session();
-                setKeys(keys);
-                $C.set_default_keys_to_session();
-                $C.uncheck_all_image_checkboxes();
+                call_back(keys);
             }
         });
     };
@@ -302,6 +339,7 @@ _CAR_Tool = function() {
         }
         return ret;
     };
+
 };
 
 $C = new _CAR_Tool();
