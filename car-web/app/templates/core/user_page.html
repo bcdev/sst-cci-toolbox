@@ -1,8 +1,18 @@
 {% extends "common/page_base.html" %}  {# common/page_base.html extends layout.html #}
 
 {% block content %}
-<h1>User page</h1>
 
-<p>This page is accessible to authenticated user (users that have signed in).</p>
-
+<form id="general_form" method="post" action="/" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+</form>
+{% include 'tile/message_box.html' %}
+<div class="p">
+    {% include 'tile/session_line.html' %}
+</div>
+<div class="p">
+    {% include 'tile/template_file_elements.html' %}
+    &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+    {% include 'tile/default_table_elements.html' %}
+</div>
+{% include 'tile/tab_area.html' %}
 {% endblock %}

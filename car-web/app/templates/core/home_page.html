@@ -1,22 +1,7 @@
 {% extends "common/page_base.html" %}  {# common/page_base.html extends layout.html #}
 
 {% block content %}
-<h1>Home page</h1>
+        {#        <h1>CAR Tool home page</h1>#}
 
-<p>This page is accessible to any user (signed in or not)</p>
-
-{% if not current_user.is_authenticated() %}
-<p>
-To view the User page, you must
-<a href="{{ url_for('user.login') }}">Sign in</a> or
-<a href="{{ url_for('user.register') }}">Register</a>.
-</p>
-{% endif %}
-
-<p>
-    Test users:<br/>
-    - user@example.com / Password1<br/>
-    - admin@example.com / Password1
-</p>
-
+        <h4>Please <a href="{{ url_for('user.login') }}">sign in</a></h4>
 {% endblock %}

@@ -1,0 +1,26 @@
+<div class="tab-row">
+    <ul>
+        <li id="tab_figures" class="tab selected" onclick="$C.on_figures_tab_click();">Figures</li>
+        <li id="tab_text" class="tab" onclick="$C.on_text_tab_click();">Text</li>
+        <script>
+            $C.on_figures_tab_click = function() {
+                $('#tab_panel_figures').removeClass('hidden');
+                $('#tab_panel_text').addClass('hidden');
+                $('#tab_figures').addClass('selected');
+                $('#tab_text').removeClass('selected');
+            };
+            $C.on_text_tab_click = function() {
+                $('#tab_panel_figures').addClass('hidden');
+                $('#tab_panel_text').removeClass('hidden');
+                $('#tab_figures').removeClass('selected');
+                $('#tab_text').addClass('selected');
+            };
+        </script>
+    </ul>
+</div>
+<div id="tab_panel_figures" class="tab-panel">
+    {% include 'tile/tab_panel_figures_content.html' %}
+</div>
+<div id="tab_panel_text" class="tab-panel hidden">
+    {% include 'tile/tab_panel_text_content.html' %}
+</div>

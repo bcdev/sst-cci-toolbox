@@ -1,0 +1,16 @@
+{% include 'tile/load_session_elements.html' %}
+
+&nbsp;
+<button id="save_session_button"
+        onclick="$C.save_session()"
+        disabled="disabled">
+    Save Session
+</button>
+
+&nbsp;
+
+{% include 'tile/save_session_as_elements.html' %}
+
+&nbsp; &nbsp; &nbsp;
+Session: <span id="session_name_display">&gt;&gt;&gt;no session&lt;&lt;&lt;</span> &nbsp; &nbsp; &nbsp;
+<a>create and download document</a>

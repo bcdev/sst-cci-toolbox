@@ -3,6 +3,7 @@
 {% block content %}
 <h1>User Profile</h1>
 
+<p><a href="{{ url_for('core.user_page') }}">Back to Home Page</a></p>
 <p><a href="{{ url_for('user.change_password') }}">Change password</a></p>
 
 {% from "common/form_macros.html" import render_field, render_submit_field %}

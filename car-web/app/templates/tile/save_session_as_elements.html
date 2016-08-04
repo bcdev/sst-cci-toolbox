@@ -1,0 +1,46 @@
+<button id="save_session_as_button"
+        onclick="show_save_session_as_form()"
+        disabled="disabled">
+    Save Session As ...
+</button>
+
+<div id="save_session_as_div" class="box">
+    <table>
+        <tr>
+            <td>
+                <form id="save_session_as_form" method="post" action="/" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <label for="session_name_input">Filename:</label><br>
+                    <input id="session_name_input" type="text" name="filename"><br><br>
+                    <button type="button" onclick="save_session_as_click()">Save Session</button>
+                </form>
+            </td>
+            <td> &nbsp;
+                <button onclick="$C.close_dialog($('#save_session_as_div'))">X</button>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<script>
+    function show_save_session_as_form() {
+        $C.show_overlay();
+        $C.show_elem_placed(
+                $('#save_session_as_button'),
+                $('#save_session_as_div')
+        );
+    }
+
+    function hide_save_session_as_form() {
+        $C.hide_elem($('#save_session_as_div'));
+    }
+
+    function save_session_as_click() {
+        var ajax_callback = function() {
+            hide_save_session_as_form();
+            $C.hide_overlay();
+        };
+        var filename = $('#session_name_input').val();
+        $C.save_session_as(filename, ajax_callback);
+    }
+</script>

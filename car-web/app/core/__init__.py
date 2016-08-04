@@ -4,3 +4,4 @@
 from . import manager
 from . import models
 from . import views
+from . import ayax_routes

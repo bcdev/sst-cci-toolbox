@@ -15,6 +15,8 @@ core_blueprint = Blueprint('core', __name__, url_prefix='/')
 # The Home page is accessible to anyone
 @core_blueprint.route('')
 def home_page():
+    if current_user.is_authenticated:
+        return redirect(url_for('core.user_page'))
     return render_template('core/home_page.html')
 
 
@@ -29,6 +31,8 @@ def user_page():
 @core_blueprint.route('admin')
 @roles_accepted('admin')  # Limits access to users with the 'admin' role
 def admin_page():
+    if current_user.is_authenticated:
+        return redirect(url_for('core.user_page'))
     return render_template('core/admin_page.html')
 
 

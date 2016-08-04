@@ -1,32 +1,37 @@
 <!doctype html>
 <html class="no-js" lang="">
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="x-ua-compatible" content="ie=edge">
-        <title>MyApp</title>
-        <meta name="description" content="">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>ESACCI-SST CAR Tool</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <!-- Optional apple-touch-icon
-        <link rel="apple-touch-icon" href="apple-touch-icon.png"> -->
-        <!-- Place favicon.ico in the root directory -->
+    <!-- Optional apple-touch-icon
+	<link rel="apple-touch-icon" href="apple-touch-icon.png"> -->
+    <!-- Place favicon.ico in the root directory -->
 
-        <!-- HTML5 boilerplate CSS -->
-        <link rel="stylesheet" href="/static/html5boilerplate/css/normalize.css">
-        <link rel="stylesheet" href="/static/html5boilerplate/css/main.css">
-        <script src="/static/html5boilerplate/js/modernizr-2.8.3.min.js"></script>
+    <!-- HTML5 boilerplate CSS -->
+    <link rel="stylesheet" href="/static/html5boilerplate/css/normalize.css">
+    <link rel="stylesheet" href="/static/html5boilerplate/css/main.css">
+    <script src="/static/html5boilerplate/js/modernizr-2.8.3.min.js"></script>
+    <script src="/static/jQuery/jquery-3.1.0.js"></script>
+    {#        <script src="/static/jQuery/jquery-3.1.0.min.js"></script>#}
+    {#        <script src="/static/jQuery/jquery-ui-1.12.0.custom/jquery-ui.js"></script>#}
+    <script src="/static/car.js"></script>
 
-        <!-- Application specific CSS-->
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
-        <link rel="stylesheet" href="/static/app/app.css">
-    </head>
-    <body>
-        {% block body %}
+    <!-- Application specific CSS-->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/app/app.css">
+</head>
+<body>
+<div id="entire_window">
+    {% block body %}
         <!-- Application specific HTML -->
         <div id="header-div" class="clearfix with-margins">
-            <div class="pull-left"><a href="{{ url_for('core.home_page') }}"><span class="header-title">MyApp</span></a></div>
+            <div class="pull-left"><a href="{{ url_for('core.home_page') }}"><span class="header-title">ESACCI-SST CAR Tool</span></a></div>
             <div class="pull-right">
-                {% if current_user.is_authenticated() %}
+                {% if current_user.is_authenticated %}
                     <a href="{{ url_for('core.user_profile_page') }}">{{ current_user.first_name or current_user.user_auth.username }}</a>
                     &nbsp; | &nbsp;
                     <a href="{{ url_for('user.logout') }}">Sign out</a>
@@ -35,44 +40,44 @@
                 {% endif %}
             </div>
         </div>
-        <div class="with-margins">
-            <a href="{{ url_for('core.home_page') }}">Home</a>
-            &nbsp; | &nbsp; <a href="{{ url_for('core.user_page') }}">User</a>
-            &nbsp; | &nbsp; <a href="{{ url_for('core.admin_page') }}">Admin</a>
-        </div>
+        {#        <div class="with-margins">#}
+        {#            <a href="{{ url_for('core.home_page') }}">Home</a>#}
+        {#            &nbsp; | &nbsp; <a href="{{ url_for('core.user_page') }}">User</a>#}
+        {#            &nbsp; | &nbsp; <a href="{{ url_for('core.admin_page') }}">Admin</a>#}
+        {#        </div>#}
         <hr class="no-margins"/>
 
         <div id="main-div" class="with-margins">
-        {% block pre_content %}{% endblock %}
+            {% block pre_content %}{% endblock %}
 
-        {# One-time system messages called Flash messages #}
-        {% block flash_messages %}
-            {%- with messages = get_flashed_messages(with_categories=true) -%}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        {% if category=='error' %}
-                            {% set category='danger' %}
-                        {% endif %}
-                        <div class="alert alert-{{category}}">{{ message|safe }}</div>
-                    {% endfor %}
-                {% endif %}
-            {%- endwith %}
-        {% endblock %}
+            {# One-time system messages called Flash messages #}
+            {% block flash_messages %}
+                {#            {%- with messages = get_flashed_messages(with_categories=true) -%}#}
+                {#                {% if messages %}#}
+                {#                    {% for category, message in messages %}#}
+                {#                        {% if category=='error' %}#}
+                {#                            {% set category='danger' %}#}
+                {#                        {% endif %}#}
+                {#                        <div class="alert alert-{{category}}">{{ message|safe }}</div>#}
+                {#                    {% endfor %}#}
+                {#                {% endif %}#}
+                {#            {%- endwith %}#}
+            {% endblock %}
 
-        {% block content %}{% endblock %}
+            {% block content %}{% endblock %}
 
-        {% block post_content %}{% endblock %}
+            {% block post_content %}{% endblock %}
         </div>
 
-        <br/>
+
         <hr class="no-margins"/>
         <div id="footer-div" class="clearfix with-margins">
-            <div class="pull-left">MyApp v1.0</div>
-            <div class="pull-right">&copy; 2014 MyCorp</div>
+            <div class="pull-left">ESACCI-SST CAR Tool v1.0</div>
+            <div class="pull-right">&copy; 2016 Brockmann-Consult.de</div>
         </div>
 
         <!-- Application specific JS -->
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+        {#        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>#}
         <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 
         <!-- HTML5 boilerplate JS -->
@@ -88,6 +93,7 @@
             ga('create','UA-XXXXX-X','auto');ga('send','pageview');
         </script>
         -->
-        {% endblock %}
-    </body>
+    {% endblock %}
+</div>
+</body>
 </html>

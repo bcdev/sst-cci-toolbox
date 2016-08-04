@@ -1,0 +1,66 @@
+<div style="display: block; padding-bottom: 6px;">
+    <label for="figures_dir_drop_down">Figures Directory:</label><br>
+    <select id="figures_dir_drop_down" onchange="figures_dir_change(this.value);"></select>
+</div>
+<div style="display: table-row">
+    <div style="display: table-cell; padding-bottom: 6px;">
+        <label for="figures_wildcard_input">Filter figures with wildcard:</label><br>
+        <input id="figures_wildcard_input" type="text">
+    </div>
+    <div style="display: table-cell; padding-left: 20px; padding-bottom: 6px;">
+        <label for="figures_keys">Figure Key:</label><br>
+        <select id="figures_keys" onchange="">
+            <option value="">select key ...</option>
+        </select>
+    </div>
+</div>
+<div style="display: table-row">
+    <div style="display: table-cell">
+        <div id="images"></div>
+    </div>
+</div>
+
+<div id="img_thumb_jquery_model" class="img_thumb">
+    <img src=""/><br>
+    <label style="white-space: nowrap;"><input type="checkbox" value=""></input></label>
+</div>
+<script>
+    function compute_div_id_images_height() {
+        var $images_div = $('#images');
+        var images_top = $images_div.position().top;
+        var footer_height = $('#footer-div').outerHeight(true);
+        var height = $(window).height() - images_top - footer_height - 22;
+        $images_div.css('height', height + 'px');
+    }
+
+    $(document).ready(function() {
+        $C.ajax_component_update($('#figures_dir_drop_down'));
+        compute_div_id_images_height();
+        $(window).resize(compute_div_id_images_height);
+    });
+
+    function figures_dir_change(dir) {
+        $C.remove_image_dir_dependent_keys_from_session();
+        $C.set_session_property('figures.directory', dir);
+        function create_images(images) {
+            var $images = $('#images');
+            $images.empty();
+            for (var idx in images) {
+                var info = images[idx];
+                var url = info['url'];
+                var name = info['name'];
+                var $clone = $('#img_thumb_jquery_model').clone();
+                $clone.removeAttr('id');
+                $clone.find('img').attr('src', url);
+                var $input = $clone.find('input');
+                $input.val(name);
+                $clone.find('label').append(name);
+                $clone.appendTo($images);
+                info.thumb = $clone;
+            }
+            $C.images = images;
+        }
+
+        $C.ajax_get_images(dir, create_images);
+    }
+</script>
