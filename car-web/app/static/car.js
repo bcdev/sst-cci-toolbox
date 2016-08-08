@@ -40,16 +40,13 @@ _CAR_Tool = function() {
 
         var $defaultTableDropDown = $('#default_table_drop_down');
         var old_default_table_path = $defaultTableDropDown.val();
-        var new_default_table_path = _session['new_default_table_path'];
+        var new_default_table_path = _session['default_table_path'];
         if (new_default_table_path != old_default_table_path) {
             $defaultTableDropDown.val(new_default_table_path);
             if (new_default_table_path.trim().length > 0) {
                 $C.ajax_get_document_keys(new_default_table_path, function(keys) {
                     setKeys(keys);
-
                 });
-            } else {
-
             }
         }
 
@@ -59,18 +56,16 @@ _CAR_Tool = function() {
         $figures_keys.append($firstOption);
         var figure_keys = get_figure_keys();
         for (var key in figure_keys) {
-            $figures_keys.append($('<option value="'+key+'">' + key + '</option>'));
+            $figures_keys.append($('<option value="' + key + '">' + key + '</option>'));
         }
     }
 
-
-
-
     function on_session_loaded() {
-        //    Buttons updaten
-        //    Session name display updaten
-        //    Template drop down updaten
-        //    Default Table drop down updaten
+        // session Object setzen
+        // Buttons updaten
+        // Session name display updaten
+        // Template drop down updaten
+        // Default Table drop down updaten
         //    Keys updaten
         //        Key HTML Elemente ... aktuell dann keinen Key auswählen
         //              Nice to have:
@@ -78,17 +73,12 @@ _CAR_Tool = function() {
         //              - Autoscroll zu selektierter Checkbox
         //              - show only selected Images Mode
         //        Keys an Session validieren ... ungültige entfernen
-        //    Images Dir setzen
-
+        // Images Dir setzen
     }
-
-
-
-
 
     this.set_session_property = function(name, value) {
         _session[name] = value;
-        this.validate_ui();
+        $C.validate_ui();
     };
 
     this.remove_old_keys_from_session = function() {
@@ -102,7 +92,7 @@ _CAR_Tool = function() {
         var default_keys = get_default_keys();
         for (var key in default_keys) {
             var val = default_keys[key];
-            this.set_session_property(key, val);
+            $C.set_session_property(key, val);
         }
     };
 
@@ -138,7 +128,7 @@ _CAR_Tool = function() {
     this.save_session_as = function(filename, ajax_callback) {
         var key = 'filename';
         $C.set_session_property(key, filename);
-        this.save_session(ajax_callback);
+        $C.save_session(ajax_callback);
     };
 
     this.load_session = function(filename, ajax_callback) {
@@ -178,7 +168,7 @@ _CAR_Tool = function() {
         var left = pos.left - 5;
         var top = pos.top - 5;
         elem.css({'left': left, 'top': top});
-        this.show_elem(elem);
+        $C.show_elem(elem);
     };
 
     this.show_elem = function(elem) {
@@ -192,28 +182,28 @@ _CAR_Tool = function() {
     };
 
     this.show_overlay = function() {
-        this.show_elem($('#overlay'));
+        $C.show_elem($('#overlay'));
     };
 
     this.hide_overlay = function() {
-        this.hide_elem($('#overlay'));
+        $C.hide_elem($('#overlay'));
     };
 
     this.show_message = function(msg) {
-        this.show_overlay();
+        $C.show_overlay();
         var box = $('#message_box');
-        this.show_elem(box);
+        $C.show_elem(box);
         $('#msg_box_msg').text(msg);
-        this.center($(window), box);
+        $C.center($(window), box);
     };
 
     this.hide_message = function() {
-        this.close_dialog($('#message_box'));
+        $C.close_dialog($('#message_box'));
     };
 
     this.close_dialog = function($component) {
-        this.hide_overlay();
-        this.hide_elem($component);
+        $C.hide_overlay();
+        $C.hide_elem($component);
     };
 
     this.center = function(viewport, elem) {
@@ -246,20 +236,20 @@ _CAR_Tool = function() {
     };
 
     this.on_template_selected = function(component) {
-        this.set_session_property('template', component.value);
-        this.validate_ui();
+        $C.set_session_property('template_path', component.value);
+        $C.validate_ui();
     };
 
     this.on_default_table_selected = function(component) {
         var default_table_path = component.value;
-        this.set_session_property('default_table', default_table_path);
-        this.ajax_get_document_keys(default_table_path, function(keys) {
+        $C.set_session_property('default_table_path', default_table_path);
+        $C.ajax_get_document_keys(default_table_path, function(keys) {
             $C.remove_old_keys_from_session();
             setKeys(keys);
             $C.set_default_keys_to_session();
             $C.uncheck_all_image_checkboxes();
         });
-        this.validate_ui();
+        $C.validate_ui();
     };
 
     this.ajax_get_document_keys = function(default_table_path, call_back) {
@@ -275,8 +265,13 @@ _CAR_Tool = function() {
             async:       true,
             complete:    function(data) {
                 var json_keys = data.responseText;
-                var keys = JSON.parse(json_keys);
-                call_back(keys);
+                json_keys = json_keys.trim();
+                if (json_keys.indexOf('{') == 0) {
+                    var keys = JSON.parse(json_keys);
+                    call_back(keys);
+                } else {
+                    $C.show_message("Error while requesting key's.");
+                }
             }
         });
     };
@@ -301,7 +296,7 @@ _CAR_Tool = function() {
     };
 
     this.ajax_component_update = function($element, ajax_callback) {
-        var events = this.get_attributes($element, ['onchange']);
+        var events = $C.getAttributesFromHtmlElement($element, ['onchange']);
         var component_id = $element[0].id;
         var formData = new FormData($('#general_form')[0]);
         formData.append('component_id', component_id);
@@ -328,7 +323,7 @@ _CAR_Tool = function() {
         });
     };
 
-    this.get_attributes = function(element, names) {
+    this.getAttributesFromHtmlElement = function(element, names) {
         var ret = {};
         for (var i in names) {
             var name = names[i];
@@ -340,6 +335,17 @@ _CAR_Tool = function() {
         return ret;
     };
 
+    this.getSelctedFigureKey = function() {
+        return $('#figures_keys').val().trim();
+    };
+
+    this.isFigureKeySelected = function(key_name) {
+        if (key_name) {
+            return $C.getSelctedFigureKey() == key_name
+        } else {
+            return $C.getSelctedFigureKey().length != 0;
+        }
+    };
 };
 
 $C = new _CAR_Tool();

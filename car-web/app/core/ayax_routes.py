@@ -1,5 +1,5 @@
 from app import app
-from flask import request
+from flask import request, send_from_directory
 from werkzeug.utils import secure_filename
 from flask_login import current_user  # , LoginManager, login_required, login_user, logout_user, UserMixin
 from jproperties import Properties
@@ -36,7 +36,8 @@ def get_images():
         # check if the post request has 'images_dir' in data
         if 'images_dir' in request.form:
             dir_ = request.form['images_dir']
-            images_dir = os.path.join(car_figures_dir, dir_)
+            images_dir = _create_figures_dir_path(dir_)
+            _log_info("Get images list from " + images_dir)
             images = os.listdir(images_dir)
             images = filter(lambda f: f.endswith('.png'), images)
             ret = []
@@ -52,17 +53,44 @@ def get_images():
             return json.dumps(ret)
 
 
+def _log_info(message):
+    app.logger.info(_add_username(message))
+
+
+def _log_warning(message):
+    app.logger.warning(_add_username(message))
+
+
+def _log_error(message):
+    app.logger.error(_add_username(message))
+
+
+def _add_username(message):
+    email = current_user.email
+    message = '[' + email + '] ' + message
+    return message
+
+
 @app.route('/get_document_keys', methods=['POST'])
 def get_document_keys():
     if request.method == 'POST':
         if 'default_table_path' in request.form:
-            default_table_path_ = request.form['default_table_path']
             keys = {}
+            default_table_path_ = request.form['default_table_path']
+            if len(default_table_path_.strip(' /\\')) == 0:
+                _log_info("No default table selected: Return empty key set.")
+                return json.dumps(keys)
+
+            _log_info("Get document keys from " + default_table_path_)
             keys['figure_keys'] = {}
             keys['default_keys'] = {}
             p = Properties()
-            with open(os.path.join(car_default_tables_dir, default_table_path_), 'r') as f:
-                p.load(f, "utf-8")
+            abs_default_table_path = os.path.join(car_default_tables_dir, default_table_path_)
+            if os.path.isfile(abs_default_table_path):
+                with open(abs_default_table_path, 'r') as f:
+                    p.load(f, "utf-8")
+            else:
+                _log_warning('The default table file ' + abs_default_table_path + ' does not exist.')
             props = p.properties
             for key in props:
                 if key.startswith('figure'):
@@ -79,6 +107,7 @@ def component_update():
         # check if the post request has 'component_id' in data
         if 'component_id' in request.form:
             id_ = request.form['component_id']
+            _log_info("Update component_id: " + id_)
             if id_ == u'template_drop_down':
                 return _create_template_drop_down(id_)
             elif id_ == u'default_table_drop_down':
@@ -96,7 +125,9 @@ def load_session():
         if 'session_name' in request.form:
             session_name = request.form['session_name']
             p = Properties()
-            with open(os.path.join(car_sessions_dir, session_name), 'r') as f:
+            session_path = os.path.join(car_sessions_dir, session_name)
+            _log_info("load session: " + session_path)
+            with open(session_path, 'r') as f:
                 p.load(f, "utf-8")
             session = json.dumps(p.properties)
             return session
@@ -110,8 +141,11 @@ def safe_session():
             session_ = request.form['session']
             session_ = json.loads(session_)
             filename_ = session_['filename']
+            _log_info("Try safe session: filename=" + filename_)
             if not filename_:
-                return 'Missing a filename. Please use "Save Session As" button to set a filename'
+                msg = 'Missing a filename. Please use "Save Session As" button to set a filename'
+                _log_info(msg)
+                return msg
             filename_ = secure_filename(filename_)
             filename_ = filename_.strip()
             filename_lowered = filename_.lower()
@@ -121,10 +155,14 @@ def safe_session():
                 filename_ = filename_[:-len(file_extension)].strip()
 
             if len(filename_) == 0:
-                return 'Empty filename is not allowed. Please use "Save Session As" button to set a valid filename.'
+                msg = 'Empty filename is not allowed. Please use "Save Session As" button to set a valid filename.'
+                _log_info(msg)
+                return msg
 
             if not os.path.exists(car_sessions_dir):
-                return 'Sessions directory does not exist.'
+                msg = 'Sessions directory does not exist.'
+                _log_error(msg)
+                return msg
 
             first_name = current_user.first_name
             user_sessions_path = os.path.join(car_sessions_dir, first_name)
@@ -133,10 +171,14 @@ def safe_session():
                 os.mkdir(user_sessions_path)
 
             if os.path.isfile(user_sessions_path):
-                return 'Illegal file system situation. Please inform the administrator of the web application.'
+                msg = 'Illegal file system situation. Please inform the administrator of the web application.'
+                _log_error(msg)
+                return msg
 
             if not os.path.exists(user_sessions_path):
-                return 'Unable to crate a user directory for containing sessions.'
+                msg = 'Unable to crate a user directory for containing sessions.'
+                _log_error(msg)
+                return msg
 
             p = Properties()
             for key in session_:
@@ -146,7 +188,18 @@ def safe_session():
             with open(session_file_path, "w") as f:
                 p.store(f, encoding="utf-8")
 
-            return 'Session successfully stored as "' + filename_ + '"'
+            msg = 'Session successfully stored as "' + filename_ + '"'
+            _log_info(msg)
+            return msg
+
+
+@app.route('/get_image')
+def get_image():
+    filename = request.args.get('name')
+    directory = request.args.get('dir')
+    dir_path = _create_figures_dir_path(directory)
+    _log_info('Send image: ' + dir_path + '/' + filename)
+    return send_from_directory(dir_path, filename, mimetype='image/png')
 
 
 def _upload(request, extension, targetDir, allowed):
@@ -156,6 +209,7 @@ def _upload(request, extension, targetDir, allowed):
             file = request.files['file']
             # if user does not select file, browser also
             # submit a empty part without filename
+            _log_info("Try uploading file '" + file + "' to " + targetDir)
             filename = file.filename
             if filename.endswith(extension):
                 filename = secure_filename(file.filename)
@@ -167,15 +221,23 @@ def _upload(request, extension, targetDir, allowed):
                     os.mkdir(user_target_path)
 
                 if os.path.isfile(user_target_path):
-                    return 'Illegal file system situation. Please inform the administrator of the web application.'
+                    message = 'Illegal file system situation. Please inform the administrator of the web application.'
+                    _log_error(message)
+                    return message
 
                 if not os.path.exists(user_target_path):
-                    return 'Unable to crate a user directory for containing sessions.'
+                    message = 'Unable to crate a user directory for containing sessions.'
+                    _log_error(message)
+                    return message
 
                 file.save(os.path.join(user_target_path, filename))
-                return "The file '%s' is successfully uploaded!" % filename
+                message = "The file '%s' is successfully uploaded!" % filename
+                _log_info(message)
+                return message
             else:
-                return "Only %s files are allowed for upload." % allowed
+                message = "Only %s files are allowed for upload." % allowed
+                _log_info(message)
+                return message
 
 
 def _create_template_drop_down(component_id):
@@ -203,6 +265,7 @@ def _create_car_sessions_drop_down(component_id):
 
 
 def _create_files_drop_down_for_context(context_name, root_dir, component_id, first_option_text, allowed_ending):
+    _log_info("Create drop down for context '" + context_name + "'")
     user_name = current_user.first_name
     ret = '<select id="%s">' % component_id
     ret += '<option value="">%s</option>' % first_option_text
@@ -238,6 +301,7 @@ def _create_files_drop_down_for_context(context_name, root_dir, component_id, fi
 
 
 def _create_figures_dir_drop_down(id_):
+    _log_info("Create figures drop down.")
     ret = '<select id="%s">' % id_
     ret += '<option values="">select figures dir ...</option>'
     for dir, dirs, files in os.walk(car_figures_dir):
@@ -252,3 +316,7 @@ def _create_figures_dir_drop_down(id_):
             ret += '</option>'
     ret += '</select>'
     return ret
+
+
+def _create_figures_dir_path(selected_dir):
+    return os.path.join(car_figures_dir, selected_dir)

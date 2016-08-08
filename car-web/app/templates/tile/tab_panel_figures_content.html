@@ -15,14 +15,21 @@
     </div>
 </div>
 <div style="display: table-row">
-    <div style="display: table-cell">
+    <div style="display: table-cell; vertical-align: top">
         <div id="images"></div>
+    </div>
+    <div style="display: table-cell; padding-left: 20px; padding-bottom: 0; vertical-align: top">
+        <div id="figure_preview">
+            <img style="vertical-align: top;max-height: 100%; max-width: 100%"/>
+        </div>
     </div>
 </div>
 
 <div id="img_thumb_jquery_model" class="img_thumb">
-    <img src=""/><br>
-    <label style="white-space: nowrap;"><input type="checkbox" value=""></input></label>
+    <img src="" style="vertical-align: top"/><br>
+    <label style="white-space: nowrap;">
+        <input type="checkbox" value="" onchange="figure_check_change(this)"/>
+    </label>
 </div>
 <script>
     function compute_div_id_images_height() {
@@ -31,10 +38,20 @@
         var footer_height = $('#footer-div').outerHeight(true);
         var height = $(window).height() - images_top - footer_height - 22;
         $images_div.css('height', height + 'px');
+        $('#figure_preview').css('height', height + 'px');
+    }
+
+    function getFiguresDirDropDown() {
+        return $('#figures_dir_drop_down');
+    }
+
+    function getSelectedDirectory() {
+        var $figuresDirDropDown = getFiguresDirDropDown();
+        return $figuresDirDropDown.val();
     }
 
     $(document).ready(function() {
-        $C.ajax_component_update($('#figures_dir_drop_down'));
+        $C.ajax_component_update(getFiguresDirDropDown());
         compute_div_id_images_height();
         $(window).resize(compute_div_id_images_height);
     });
@@ -56,11 +73,24 @@
                 $input.val(name);
                 $clone.find('label').append(name);
                 $clone.appendTo($images);
-                info.thumb = $clone;
+                info.thumb_div = $clone;
             }
             $C.images = images;
         }
 
         $C.ajax_get_images(dir, create_images);
     }
+
+    function figure_check_change(elem) {
+        var $checkbox = $(elem);
+        var $figurePreviewImg = $('#figure_preview > img');
+        if ($checkbox.is(':checked')) {
+            var selectedDirectory = getSelectedDirectory();
+            $figurePreviewImg.attr('src', '../get_image?dir=' + selectedDirectory + '&name=' + $checkbox.val());
+        } else {
+            $figurePreviewImg.removeAttr('src');
+        }
+
+    }
+
 </script>

@@ -33,7 +33,6 @@ def create_app(extra_config_settings={}):
     if app.testing:
         app.config['WTF_CSRF_ENABLED'] = False  # Disable CSRF checks while testing
 
-
     # Setup Flask-Migrate
     migrate = Migrate(app, db)
     manager.add_command('db', MigrateCommand)
@@ -54,6 +53,8 @@ def create_app(extra_config_settings={}):
 
     # Setup an error-logger to send emails to app.config.ADMINS
     init_email_error_handler(app)
+    init_daily_rotationg_file_logging_handler(app)
+    set_log_level_to_info()
 
     # Setup Flask-User to handle user account related forms
     from app.core.models import User, MyRegisterForm
@@ -63,12 +64,29 @@ def create_app(extra_config_settings={}):
     user_manager = UserManager(db_adapter, app,  # Init Flask-User and bind to app
                                register_form=MyRegisterForm,  # using a custom register form with UserProfile fields
                                user_profile_view_function=user_profile_page,
-    )
+                               )
 
     # Load all blueprints with their manager commands, models and views
     from app import core
 
     return app
+
+
+def set_log_level_to_info():
+    from logging.__init__ import INFO
+    root_logger = app.logger.root
+    if root_logger.level > INFO:
+        root_logger.setLevel(INFO)
+
+
+def init_daily_rotationg_file_logging_handler(app):
+    from logging.handlers import TimedRotatingFileHandler
+    from logging import Formatter
+    rotating_file_handler = TimedRotatingFileHandler('cartool.log', 'D')
+    PROD_LOG_FORMAT = '[%(asctime)s] %(levelname)s in %(module)s: %(message)s'
+    formatter = Formatter(PROD_LOG_FORMAT)
+    rotating_file_handler.setFormatter(formatter)
+    app.logger.addHandler(rotating_file_handler)
 
 
 def init_email_error_handler(app):
@@ -106,7 +124,3 @@ def init_email_error_handler(app):
     app.logger.addHandler(mail_handler)
 
     # Log errors using: app.logger.error('Some error message')
-
-
-
-
