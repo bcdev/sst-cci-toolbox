@@ -58,35 +58,15 @@
 
     function figures_dir_change(dir) {
         $C.remove_image_dir_dependent_keys_from_session();
-        $C.set_session_property('figures.directory', dir);
-        function create_images(images) {
-            var $images = $('#images');
-            $images.empty();
-            for (var idx in images) {
-                var info = images[idx];
-                var url = info['url'];
-                var name = info['name'];
-                var $clone = $('#img_thumb_jquery_model').clone();
-                $clone.removeAttr('id');
-                $clone.find('img').attr('src', url);
-                var $input = $clone.find('input');
-                $input.val(name);
-                $clone.find('label').append(name);
-                $clone.appendTo($images);
-                info.thumb_div = $clone;
-            }
-            $C.images = images;
-        }
-
-        $C.ajax_get_images(dir, create_images);
+        $C.getSession().setFiguresDirectory(dir);
+        $C.ajax_get_images(dir, $C.create_images);
     }
 
     function figure_check_change(elem) {
         var $checkbox = $(elem);
         var $figurePreviewImg = $('#figure_preview > img');
         if ($checkbox.is(':checked')) {
-            var selectedDirectory = getSelectedDirectory();
-            $figurePreviewImg.attr('src', '../get_image?dir=' + selectedDirectory + '&name=' + $checkbox.val());
+            $figurePreviewImg.attr('src', $checkbox.val());
         } else {
             $figurePreviewImg.removeAttr('src');
         }

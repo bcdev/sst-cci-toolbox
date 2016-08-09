@@ -16,7 +16,7 @@
                 </form>
             </td>
             <td> &nbsp;
-                <button onclick="$C.close_dialog($('#save_session_as_div'))">X</button>
+                <button onclick="$C.getUI().close_dialog($('#save_session_as_div'))">X</button>
             </td>
         </tr>
     </table>
@@ -24,21 +24,21 @@
 
 <script>
     function show_save_session_as_form() {
-        $C.show_overlay();
-        $C.show_elem_placed(
+        $C.getUI().show_overlay();
+        $C.getUI().show_elem_placed(
                 $('#save_session_as_button'),
                 $('#save_session_as_div')
         );
     }
 
     function hide_save_session_as_form() {
-        $C.hide_elem($('#save_session_as_div'));
+        $C.getUI().hide_elem($('#save_session_as_div'));
     }
 
     function save_session_as_click() {
         var ajax_callback = function() {
             hide_save_session_as_form();
-            $C.hide_overlay();
+            $C.getUI().hide_overlay();
         };
         var filename = $('#session_name_input').val();
         $C.save_session_as(filename, ajax_callback);

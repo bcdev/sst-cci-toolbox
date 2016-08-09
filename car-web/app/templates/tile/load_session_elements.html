@@ -15,7 +15,7 @@
                 </form>
             </td>
             <td> &nbsp;
-                <button onclick="$C.close_dialog($('#load_session_div'))">X</button>
+                <button onclick="$C.getUI().close_dialog($('#load_session_div'))">X</button>
             </td>
         </tr>
     </table>
@@ -23,9 +23,9 @@
 
 <script>
     function show_load_session_form() {
-        $C.show_overlay();
+        $C.getUI().show_overlay();
         ajax_callback = function() {
-            $C.show_elem_placed(
+            $C.getUI().show_elem_placed(
                     $('#load_session_button'),
                     $('#load_session_div')
             );
@@ -34,9 +34,9 @@
     }
 
     function load_session_click() {
-        $C.hide_elem($('#load_session_div'));
+        $C.getUI().hide_elem($('#load_session_div'));
         var ajax_callback = function() {
-            $C.hide_overlay();
+            $C.getUI().hide_overlay();
         };
         var session_file = $('#car_session_drop_down').val();
         $C.load_session(session_file, ajax_callback);

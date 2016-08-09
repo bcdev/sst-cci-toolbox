@@ -30,6 +30,15 @@ def upload_default_table():
     return _upload(request, '.properties', car_default_tables_dir, "*.properties")
 
 
+@app.route('/get_image')
+def get_image():
+    filename = request.args.get('name')
+    directory = request.args.get('dir')
+    dir_path = _create_figures_dir_path(directory)
+    _log_info('Send image: ' + dir_path + '/' + filename)
+    return send_from_directory(dir_path, filename, mimetype='image/png')
+
+
 @app.route('/get_images', methods=['POST'])
 def get_images():
     if request.method == 'POST':
@@ -46,8 +55,8 @@ def get_images():
                 img_dict = {
                     'name': img,
                     'path': img_path,
-                    'url': resized_img_src(img_path, width=thumb_widht, height=thumb_height, mode='fit', background=thumb_back)
-                    # 'url': resized_img_src(img_path, width=thumb_widht, height=thumb_height, mode='pad', background=thumb_back)
+                    'thumb_url': resized_img_src(img_path, width=thumb_widht, height=thumb_height, mode='fit', background=thumb_back),
+                    'url': request.host_url + 'get_image?dir=' + dir_ + '&name=' + img
                 }
                 ret.append(img_dict)
             return json.dumps(ret)
@@ -92,13 +101,7 @@ def get_document_keys():
             else:
                 _log_warning('The default table file ' + abs_default_table_path + ' does not exist.')
             props = p.properties
-            for key in props:
-                if key.startswith('figure'):
-                    if key.endswith('default'):
-                        keys['default_keys'][key] = props[key]
-                    else:
-                        keys['figure_keys'][key] = props[key]
-            return json.dumps(keys)
+            return json.dumps(props)
 
 
 @app.route('/component_update', methods=['POST'])
@@ -193,14 +196,6 @@ def safe_session():
             return msg
 
 
-@app.route('/get_image')
-def get_image():
-    filename = request.args.get('name')
-    directory = request.args.get('dir')
-    dir_path = _create_figures_dir_path(directory)
-    _log_info('Send image: ' + dir_path + '/' + filename)
-    return send_from_directory(dir_path, filename, mimetype='image/png')
-
 
 def _upload(request, extension, targetDir, allowed):
     if request.method == 'POST':
@@ -209,8 +204,8 @@ def _upload(request, extension, targetDir, allowed):
             file = request.files['file']
             # if user does not select file, browser also
             # submit a empty part without filename
-            _log_info("Try uploading file '" + file + "' to " + targetDir)
             filename = file.filename
+            _log_info("Try uploading file '" + filename + "' to " + targetDir)
             if filename.endswith(extension):
                 filename = secure_filename(file.filename)
 
