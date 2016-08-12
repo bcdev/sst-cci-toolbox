@@ -17,7 +17,7 @@
                 </form>
             </td>
             <td> &nbsp;
-                <button onclick="$C.close_dialog($('#upload_default_table_div'));">X</button>
+                <button onclick="$C.getUI().close_dialog($('#upload_default_table_div'));">X</button>
             </td>
         </tr>
     </table>
@@ -25,8 +25,8 @@
 
 <script>
     function show_default_table_upload_form() {
-        $C.show_overlay()
-        $C.show_elem_placed(
+        $C.getUI().show_overlay();
+        $C.getUI().show_elem_placed(
                 $('#default_table_drop_down'),
                 $('#upload_default_table_div')
         );
@@ -34,7 +34,7 @@
 
     function default_table_upload_click() {
         var todo_after_upload = function() {
-            $C.close_dialog($('#upload_default_table_div'));
+            $C.getUI().close_dialog($('#upload_default_table_div'));
             $C.ajax_component_update($('#default_table_drop_down'));
         };
         $C.ajax_file_upload(
