@@ -104,21 +104,21 @@ def get_document_keys():
             return json.dumps(props)
 
 
-@app.route('/component_update', methods=['POST'])
-def component_update():
+@app.route('/update_component_options', methods=['POST'])
+def update_component_options():
     if request.method == 'POST':
         # check if the post request has 'component_id' in data
         if 'component_id' in request.form:
             id_ = request.form['component_id']
-            _log_info("Update component_id: " + id_)
-            if id_ == u'template_drop_down':
-                return _create_template_drop_down(id_)
+            _log_info("Create options for: " + id_)
+            if id_ == u'template_file_drop_down':
+                return _create_template_file_drop_down_options()
             elif id_ == u'default_table_drop_down':
-                return _create_datault_table_drop_down(id_)
-            elif id_ == u'car_session_drop_down':
-                return _create_car_sessions_drop_down(id_)
+                return _create_datault_table_drop_down_options()
+            elif id_ == u'load_session_form_drop_down':
+                return _create_load_session_form_drop_down_options()
             elif id_ == u'figures_dir_drop_down':
-                return _create_figures_dir_drop_down(id_)
+                return _create_figures_dir_drop_down_options()
 
 
 @app.route('/load_session', methods=['POST'])
@@ -235,35 +235,28 @@ def _upload(request, extension, targetDir, allowed):
                 return message
 
 
-def _create_template_drop_down(component_id):
+def _create_template_file_drop_down_options():
     return _create_files_drop_down_for_context('Templates',
                                                car_templates_dir,
-                                               component_id,
-                                               'select template ...',
                                                '.docx')
 
 
-def _create_datault_table_drop_down(component_id):
+def _create_datault_table_drop_down_options():
     return _create_files_drop_down_for_context('Default tables',
                                                car_default_tables_dir,
-                                               component_id,
-                                               'select default table ...',
                                                '.properties')
 
 
-def _create_car_sessions_drop_down(component_id):
+def _create_load_session_form_drop_down_options():
     return _create_files_drop_down_for_context('Sessions',
                                                car_sessions_dir,
-                                               component_id,
-                                               'select session ...',
                                                '.properties')
 
 
-def _create_files_drop_down_for_context(context_name, root_dir, component_id, first_option_text, allowed_ending):
-    _log_info("Create drop down for context '" + context_name + "'")
+def _create_files_drop_down_for_context(context_name, root_dir, allowed_ending):
+    _log_info("Create drop down options for context '" + context_name + "'")
     user_name = current_user.first_name
-    ret = '<select id="%s">' % component_id
-    ret += '<option value="">%s</option>' % first_option_text
+    ret = ''
     user_path = os.path.join(root_dir, user_name)
     if os.path.isdir(user_path):
         user_files = os.listdir(user_path)
@@ -291,14 +284,12 @@ def _create_files_drop_down_for_context(context_name, root_dir, component_id, fi
                     relpath = os.path.relpath(file_path, root_dir)
                     ret += '<option value="' + relpath + '" >' + file[:-len(allowed_ending)] + '</option>'
                 ret += '</optgroup>'
-    ret += '</select>'
     return ret
 
 
-def _create_figures_dir_drop_down(id_):
-    _log_info("Create figures drop down.")
-    ret = '<select id="%s">' % id_
-    ret += '<option values="">select figures dir ...</option>'
+def _create_figures_dir_drop_down_options():
+    _log_info("Create figures drop down options.")
+    ret = ''
     for dir, dirs, files in os.walk(car_figures_dir):
         is_figures_root_dir = dir == car_figures_dir
         relpath = os.path.relpath(dir, car_figures_dir)
@@ -309,7 +300,6 @@ def _create_figures_dir_drop_down(id_):
             else:
                 ret += relpath
             ret += '</option>'
-    ret += '</select>'
     return ret
 
 

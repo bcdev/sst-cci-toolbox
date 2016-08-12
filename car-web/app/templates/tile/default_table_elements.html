@@ -1,46 +1,21 @@
-<select id="default_table_drop_down" onchange="$C.on_default_table_selected(this)">
+<select id="default_table_drop_down">
     <option>select default table ...</option>
 </select>
-<script>
-    $(document).ready($C.ajax_component_update($('#default_table_drop_down')));
-</script>
-<a id="upload_default_table_link" onclick="show_default_table_upload_form()">upload default table</a>
+<a id="default_table_upload_link">upload default table</a>
 
-<div id="upload_default_table_div" class="box">
+<div id="default_table_upload_div" class="box">
     <table>
         <tr>
             <td>
-                <form id="upload_default_table_form" method="post" action="/" enctype="multipart/form-data">
+                <form id="default_table_upload_form" method="post" action="/" enctype="multipart/form-data">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <input type="file" name="file"><br><br>
-                    <button type="button" onclick="default_table_upload_click()">Upload</button>
+                    <button id="default_table_upload_form_button" type="button">Upload</button>
                 </form>
             </td>
             <td> &nbsp;
-                <button onclick="$C.getUI().close_dialog($('#upload_default_table_div'));">X</button>
+                <button id="default_table_upload_form_close_button">X</button>
             </td>
         </tr>
     </table>
 </div>
-
-<script>
-    function show_default_table_upload_form() {
-        $C.getUI().show_overlay();
-        $C.getUI().show_elem_placed(
-                $('#default_table_drop_down'),
-                $('#upload_default_table_div')
-        );
-    }
-
-    function default_table_upload_click() {
-        var todo_after_upload = function() {
-            $C.getUI().close_dialog($('#upload_default_table_div'));
-            $C.ajax_component_update($('#default_table_drop_down'));
-        };
-        $C.ajax_file_upload(
-                'default_table',
-                $('#upload_default_table_form'),
-                todo_after_upload
-        );
-    }
-</script>

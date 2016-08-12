@@ -1,46 +1,22 @@
-<select id="template_drop_down" onchange="$C.on_template_selected(this)">
+<select id="template_file_drop_down">
     <option>select template ...</option>
 </select>
-<script>
-    $(document).ready($C.ajax_component_update($('#template_drop_down')));
-</script>
-<a id="upload_template_link" onclick="show_template_upload_form()">upload template</a>
-<div id="upload_template_div" class="box">
+
+<a id="template_file_upload_link">upload template</a>
+<div id="template_file_upload_div" class="box">
     <table>
         <tr>
             <td>
-                <form id="upload_template_form" method="post" action="/" enctype="multipart/form-data">
+                <form id="template_file_upload_form" method="post" action="/" enctype="multipart/form-data">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <input type="file" name="file"><br><br>
-                    <button type="button" onclick="template_upload_click()">Upload</button>
+                    <button id="template_file_upload_form_button" type="button">Upload</button>
                 </form>
             </td>
             <td>
                 &nbsp;
-                <button onclick="$C.getUI().close_dialog($('#upload_template_div'));">X</button>
+                <button id="template_file_upload_form_close_button">X</button>
             </td>
         </tr>
     </table>
 </div>
-
-<script>
-    function show_template_upload_form() {
-        $C.getUI().show_overlay();
-        $C.getUI().show_elem_placed(
-                $('#template_drop_down'),
-                $('#upload_template_div')
-        );
-    }
-
-    function template_upload_click() {
-		var todo_after_upload = function() {
-            $C.getUI().close_dialog($('#upload_template_div'));
-            $C.ajax_component_update($('#template_drop_down'));
-        };
-        $C.ajax_file_upload(
-                'template',
-                $('#upload_template_form'),
-                todo_after_upload
-        );
-    }
-</script>

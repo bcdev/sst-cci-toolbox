@@ -1,6 +1,8 @@
 <div style="display: block; padding-bottom: 6px;">
     <label for="figures_dir_drop_down">Figures Directory:</label><br>
-    <select id="figures_dir_drop_down" onchange="figures_dir_change(this.value);"></select>
+    <select id="figures_dir_drop_down">
+        <option value="">select image directory ...</option>
+    </select>
 </div>
 <div style="display: table-row">
     <div style="display: table-cell; padding-bottom: 6px;">
@@ -9,68 +11,29 @@
     </div>
     <div style="display: table-cell; padding-left: 20px; padding-bottom: 6px;">
         <label for="figures_keys">Figure Key:</label><br>
-        <select id="figures_keys" onchange="">
+        <select id="figures_keys">
             <option value="">select key ...</option>
         </select>
     </div>
 </div>
 <div style="display: table-row">
     <div style="display: table-cell; vertical-align: top">
-        <div id="images"></div>
+        <div id="figures_thumbs_div"></div>
     </div>
     <div style="display: table-cell; padding-left: 20px; padding-bottom: 0; vertical-align: top">
-        <div id="figure_preview">
-            <img style="vertical-align: top;max-height: 100%; max-width: 100%"/>
+        <div id="figures_preview_div">
+            <img id="figures_preview_img" style="vertical-align: top;max-height: 100%; max-width: 100%"/>
+        </div>
+        <div id="figures_comment_div">
+            Comment:<br>
+            <textarea id="figures_comment_t_area" style="width: 99%; height: 100px;"></textarea>
         </div>
     </div>
 </div>
 
-<div id="img_thumb_jquery_model" class="img_thumb">
-    <img src="" style="vertical-align: top"/><br>
+<div id="figures_thumb_jquery_model" class="img_thumb">
+    <img src="" style="vertical-align: top" /><br>
     <label style="white-space: nowrap;">
-        <input type="checkbox" value="" onchange="figure_check_change(this)"/>
+        <input type="checkbox" value=""/>
     </label>
 </div>
-<script>
-    function compute_div_id_images_height() {
-        var $images_div = $('#images');
-        var images_top = $images_div.position().top;
-        var footer_height = $('#footer-div').outerHeight(true);
-        var height = $(window).height() - images_top - footer_height - 22;
-        $images_div.css('height', height + 'px');
-        $('#figure_preview').css('height', height + 'px');
-    }
-
-    function getFiguresDirDropDown() {
-        return $('#figures_dir_drop_down');
-    }
-
-    function getSelectedDirectory() {
-        var $figuresDirDropDown = getFiguresDirDropDown();
-        return $figuresDirDropDown.val();
-    }
-
-    $(document).ready(function() {
-        $C.ajax_component_update(getFiguresDirDropDown());
-        compute_div_id_images_height();
-        $(window).resize(compute_div_id_images_height);
-    });
-
-    function figures_dir_change(dir) {
-        $C.remove_image_dir_dependent_keys_from_session();
-        $C.getSession().setFiguresDirectory(dir);
-        $C.ajax_get_images(dir, $C.create_images);
-    }
-
-    function figure_check_change(elem) {
-        var $checkbox = $(elem);
-        var $figurePreviewImg = $('#figure_preview > img');
-        if ($checkbox.is(':checked')) {
-            $figurePreviewImg.attr('src', $checkbox.val());
-        } else {
-            $figurePreviewImg.removeAttr('src');
-        }
-
-    }
-
-</script>

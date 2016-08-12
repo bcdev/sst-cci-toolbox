@@ -1,44 +1,22 @@
-<button id="load_session_button"
-        onclick="show_load_session_form()">
+<button id="load_session_button">
     Load Session
 </button>
 
-<div id="load_session_div" class="box">
+<div id="load_session_form_div" class="box">
     <table>
         <tr>
             <td>
                 <form id="load_session_form" method="post" action="/" enctype="multipart/form-data">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                    <label for="car_session_drop_down">Available Sessions:</label><br>
-                    <select id="car_session_drop_down"></select><br><br>
-                    <button type="button" onclick="load_session_click()">Load Session</button>
+                    <label for="load_session_form_drop_down">Available Sessions:</label><br>
+                    <select id="load_session_form_drop_down"></select><br><br>
+                    <button id="load_session_form_button" type="button">Load Session</button>
                 </form>
             </td>
             <td> &nbsp;
-                <button onclick="$C.getUI().close_dialog($('#load_session_div'))">X</button>
+                <button id="load_session_form_close_button">X</button>
             </td>
         </tr>
     </table>
 </div>
 
-<script>
-    function show_load_session_form() {
-        $C.getUI().show_overlay();
-        ajax_callback = function() {
-            $C.getUI().show_elem_placed(
-                    $('#load_session_button'),
-                    $('#load_session_div')
-            );
-        };
-        $C.ajax_component_update($('#car_session_drop_down'), ajax_callback);
-    }
-
-    function load_session_click() {
-        $C.getUI().hide_elem($('#load_session_div'));
-        var ajax_callback = function() {
-            $C.getUI().hide_overlay();
-        };
-        var session_file = $('#car_session_drop_down').val();
-        $C.load_session(session_file, ajax_callback);
-    }
-</script>

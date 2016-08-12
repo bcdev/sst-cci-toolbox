@@ -170,14 +170,14 @@ button[disabled] {
     font-size: large;
 }
 
-#images {
+#figures_thumbs_div {
     width: 300px;
     border: 1px solid black;
     overflow-wrap: break-word;
     overflow: auto;
 }
 
-#images img {
+#figures_thumbs_div img {
     border: 2px #999999 solid;
 }
 
@@ -188,7 +188,7 @@ button[disabled] {
     padding: 6px;
 }
 
-#img_thumb_jquery_model {
+#figures_thumb_jquery_model {
     display: none;
 }
 

@@ -3,50 +3,57 @@
  */
 
 CAR_COMMON_UI = function() {
-    this.show_elem_placed = function(parent, elem) {
+    var _ = this;
+
+    var _$overlay_div = $('#overlay');
+    var _$messageBox_div = $('#message_box');
+    var _$msgBoxMsg_pre = $('#msg_box_msg');
+    var _$images_div = $('#figures_thumbs_div');
+    var _$figurePreview_img = $('#figures_preview_img');
+
+    _.show_elem_placed = function(parent, elem) {
         var pos = parent.position();
         var left = pos.left - 5;
         var top = pos.top - 5;
         elem.css({'left': left, 'top': top});
-        this.show_elem(elem);
+        _.show_elem(elem);
     };
 
-    this.show_elem = function(elem) {
+    _.show_elem = function(elem) {
         elem.css({'visibility': 'visible'});
         // elem.show(300);
     };
 
-    this.hide_elem = function(elem) {
+    _.hide_elem = function(elem) {
         elem.css({'visibility': 'hidden'});
         // elem.hide('fast');
     };
 
-    this.show_overlay = function() {
-        this.show_elem($('#overlay'));
+    _.show_overlay = function() {
+        _.show_elem(_$overlay_div);
     };
 
-    this.hide_overlay = function() {
-        this.hide_elem($('#overlay'));
+    _.hide_overlay = function() {
+        _.hide_elem(_$overlay_div);
     };
 
-    this.show_message = function(msg) {
-        this.show_overlay();
-        var box = $('#message_box');
-        this.show_elem(box);
-        $('#msg_box_msg').text(msg);
-        this.centerAtWindow(box);
+    _.show_message = function(msg) {
+        _.show_overlay();
+        _.show_elem(_$messageBox_div);
+        _$msgBoxMsg_pre.text(msg);
+        _.centerAtWindow(_$messageBox_div);
     };
 
-    this.hide_message = function() {
-        this.close_dialog($('#message_box'));
+    _.hide_message = function() {
+        _.close_dialog(_$messageBox_div);
     };
 
-    this.close_dialog = function($component) {
-        this.hide_overlay();
-        this.hide_elem($component);
+    _.close_dialog = function($component) {
+        _.hide_overlay();
+        _.hide_elem($component);
     };
 
-    this.centerAtWindow = function(elem) {
+    _.centerAtWindow = function(elem) {
         viewport = $(window);
         var vh = viewport.height();
         var vw = viewport.width();
@@ -57,7 +64,7 @@ CAR_COMMON_UI = function() {
         elem.css({'left': left, 'top': top});
     };
 
-    this.getAttributesFromHtmlElement = function(element, names) {
+    _.getAttributesFromHtmlElement = function(element, names) {
         var ret = {};
         for (var i in names) {
             var name = names[i];
@@ -69,7 +76,18 @@ CAR_COMMON_UI = function() {
         return ret;
     };
 
-    this.uncheck_all_image_checkboxes = function() {
-        $('#images').find('input').prop('checked', false);
+    _.uncheck_all_image_checkboxes = function() {
+        _$images_div.find('input').prop('checked', false);
     };
+
+    _.removePreviewImage = function() {
+        _$figurePreview_img.removeAttr('src');
+    };
+
+    function bindEvents() {
+        _$messageBox_div.find('button').click(function() {
+            _.hide_message();
+        });
+    }
+    bindEvents();
 };

@@ -2,156 +2,157 @@
  * Created by sabine.embacher@brockmann-consult.de on 21.07.2016.
  */
 
-CAR_Tool = function() {
-    var _session = new CAR_Session();
+var CAR_Tool = function() {
 
-    this.getSession = function() {
-        return _session;
-    };
+    var _ = this;
 
-    this.setSession = function(car_session) {
-        _session = car_session;
-    };
+    var _images = {};
+    var _ui_common = {};
+    _ui_common = new CAR_COMMON_UI();
 
-    this.resetSession = function() {
-        var old = _session;
-        _session = new CAR_Session();
-        _session.setFiguresDirectory(old.getFiguresDirectory());
-        _session.setDefaultTablePath(old.getDefaultTablePath());
-        _session.setTemplateDocPath(old.getTemplateDocPath());
-        _session.setFilename(old.getFilename());
-        this.set_figure_defaults_to_session()
-    };
+    // ############################
+    // ##  General HTML Elements ##
+    // ############################
+
+    var _$footer_div = $('#footer-div');
+    var _$generalForm = $('#general_form');
+
+    // #############################
+    // ##  Session HTML Elements  ##
+    // #############################
+
+    var _$loadSession_Button = $('#load_session_button');
+    var _$loadSession_Dialog = $('#load_session_form_div');
+    var _$loadSession_Form = $('#load_session_form');
+    var _$loadSession_FormDropDown = $('#load_session_form_drop_down');
+    var _$loadSession_FormButton = $('#load_session_form_button');
+    var _$loadSession_FormCloseButton = $('#load_session_form_close_button');
+
+    var _$saveSession_Button = $('#save_session_button');
+
+    var _$saveSessionAs_Button = $('#save_session_as_button');
+    var _$saveSessionAs_Dialog = $('#save_session_as_div');
+    var _$saveSessionAs_Form = $('#save_session_as_form');
+    var _$saveSessionAs_FormNameInput = $('#save_session_as_form_name_input');
+    var _$saveSessionAs_FormButton = $('#save_session_as_form_button');
+    var _$saveSessionAs_FormCloseButton = $('#save_session_as_form_close_button');
+
+    var _$sessionNameDisplay_span = $('#session_name_display');
+
+    // ###################################
+    // ##  Default Table HTML Elements  ##
+    // ###################################
+
+    var _$defaultTable_DropDown = $('#default_table_drop_down');
+    var _$defaultTable_UploadLink = $('#default_table_upload_link');
+    var _$defaultTable_UploadDialog = $('#default_table_upload_div');
+    var _$defaultTable_UploadForm = $('#default_table_upload_form');
+    var _$defaultTable_UploadFormButton = $('#default_table_upload_form_button');
+    var _$defaultTable_UploadFormCloseButton = $('#default_table_upload_form_close_button');
+
+    // ###################################
+    // ##  Template File HTML Elements  ##
+    // ###################################
+
+    var _$templateFile_DropDown = $('#template_file_drop_down');
+    var _$templateFile_UploadLink = $('#template_file_upload_link');
+    var _$templateFile_UploadDialog = $('#template_file_upload_div');
+    var _$templateFile_UploadForm = $('#template_file_upload_form');
+    var _$templateFile_UploadFormButton = $('#template_file_upload_form_button');
+    var _$templateFile_UploadFormCloseButton = $('#template_file_upload_form_close_button');
+
+    // ###########################
+    // ##  Tabs And Tab-Panels  ##
+    // ###########################
+    var _$tabPanel_Figures = $('#tab_panel_figures');
+    var _$tabPanel_Text = $('#tab_panel_text');
+    var _$tab_Figures = $('#tab_figures');
+    var _$tab_Text = $('#tab_text');
+
+    _$tab_Figures.click(function() {
+        _$tabPanel_Figures.removeClass('hidden');
+        _$tabPanel_Text.addClass('hidden');
+        _$tab_Figures.addClass('selected');
+        _$tab_Text.removeClass('selected');
+    });
+
+    _$tab_Text.click(function() {
+        _$tabPanel_Figures.addClass('hidden');
+        _$tabPanel_Text.removeClass('hidden');
+        _$tab_Figures.removeClass('selected');
+        _$tab_Text.addClass('selected');
+    });
+
+    // ############################
+    // ##  Figure HTML Elements  ##
+    // ############################
+
+    var _$figures_DirDropDown = $('#figures_dir_drop_down');
+    var _$figures_WildcardInput = $('#figures_wildcard_input');
+    var _$figures_KeysDropDown = $('#figures_keys');
+    var _$figures_ThumbsDiv = $('#figures_thumbs_div');
+    var _$figures_ThumbJQModel = $('#figures_thumb_jquery_model');
+    var _$figures_PreviewDiv = $('#figures_preview_div');
+    var _$figures_PreviewImg = $('#figures_preview_img');
+    var _$figures_CommentDiv = $('#figures_comment_div');
+    var _$figures_CommentTextarea = $('#figures_comment_textarea');
 
     // ############################################################
-    // ############################################################
-    // ############################################################
-
-    var _keys = new CAR_Keys();
-
-    this.getKeys = function() {
-        return _keys;
-    };
-
-    this.setKeys = function(keys) {
-        _keys = keys;
-    };
-
-    // ############################################################
-    // ############################################################
+    // #######         D O C U M E N T   K E Y S            #######
     // ############################################################
 
-    //@todo needed? should it be moved to session?
-    function remove_keys_from_session(key_array) {
-        var i;
-        for (i in key_array) {
-            var key = key_array[i];
-            delete _session[key];
+    _car_keys = {};
+
+    function setKeys(car_keys) {
+        _car_keys = car_keys;
+        var $firstOption = _$figures_KeysDropDown.find('option').first();
+        _$figures_KeysDropDown.empty();
+        _$figures_KeysDropDown.append($firstOption);
+        var figure_keys = _car_keys.get_figure_keys();
+        for (var idx in figure_keys) {
+            var key = figure_keys[idx];
+            _$figures_KeysDropDown.append($('<option value="' + key + '">' + key + '</option>'));
         }
     }
 
     // ############################################################
-    // ############################################################
+    // #######                S E S S I O N                 #######
     // ############################################################
 
-    var ui = new CAR_COMMON_UI();
+    var _car_session = {};
+    _car_session = new CAR_Session();
 
-    this.getUI = function() {
-        return ui;
+    _.getSession = function() {
+        return _car_session;
     };
 
-    // ############################################################
-    // ############################################################
-    // ############################################################
-
-    this.update_ui = function() {
-        var session = this.getSession();
-        var selected_template = session.getTemplateDocPath();
-        $('#template_drop_down').val(selected_template);
-
-        var $defaultTableDropDown = $('#default_table_drop_down');
-        var old_default_table_path = $defaultTableDropDown.val();
-        var new_default_table_path = session.getDefaultTablePath();
-        if (new_default_table_path != old_default_table_path) {
-            $defaultTableDropDown.val(new_default_table_path);
-            if (new_default_table_path.trim().length > 0) {
-                $C.ajax_get_document_keys(new_default_table_path, function(keys) {
-                    $C.setKeys(new CAR_Keys(keys));
-                    $C.update_ui();
-                });
-            }
-        }
-
-        var $figures_keys = $('#figures_keys');
-        var $firstOption = $figures_keys.find('option').first();
-        $figures_keys.empty();
-        $figures_keys.append($firstOption);
-        var figure_keys = this.getKeys().get_figure_keys();
-        for (var key in figure_keys) {
-            key = figure_keys[key];
-            $figures_keys.append($('<option value="' + key + '">' + key + '</option>'));
-        }
-    };
-
-    function on_session_loaded() {
-        // session Object setzen
-        // Buttons updaten
-        // Session name display updaten
-        // Template drop down updaten
-        // Default Table drop down updaten
-        //    Keys updaten
-        //        Key HTML Elemente ... aktuell dann keinen Key auswählen
-        //              Nice to have:
-        //              - Key list, damit man per cursor tasten einfach durchsteppen kann
-        //              - Autoscroll zu selektierter Checkbox
-        //              - show only selected Images Mode
-        //        Keys an Session validieren ... ungültige entfernen
-        // Images Dir setzen
+    function setSession(car_session) {
+        _car_session = car_session;
+        _ui_common.removePreviewImage();
+        update_ui();
+        checkState();
     }
 
-    this.set_figure_defaults_to_session = function() {
-        var default_keys = this.getKeys().get_figure_defaults();
+    function set_figure_defaults_to_session() {
+        var default_keys = _car_keys.get_figure_defaults();
         for (var key in default_keys) {
             var val = default_keys[key];
-            this.getSession().setProperty(key, val);
+            _car_session.setProperty(key, val);
         }
-    };
+    }
 
-    this.remove_image_dir_dependent_keys_from_session = function() {
-        // @todo
-        // remove_keys_from_session(get_figure_keys());
-    };
+    function resetSession() {
+        var old = _car_session;
+        _car_session = new CAR_Session();
+        _car_session.setFiguresDirectory(old.getFiguresDirectory());
+        _car_session.setDefaultTablePath(old.getDefaultTablePath());
+        _car_session.setTemplateDocPath(old.getTemplateDocPath());
+        _car_session.setFilename(old.getFilename());
+        set_figure_defaults_to_session()
+    }
 
-    this.save_session = function(ajax_callback) {
-        var formData = new FormData($('#general_form')[0]);
-        formData.append('session', JSON.stringify(this.getSession().getProperties()));
-        $.ajax({
-            type:        'POST',
-            url:         '/save_session',
-            contentType: false,
-            data:        formData,
-            cache:       false,
-            processData: false,
-            async:       true,
-            complete:    function(data) {
-                if (ajax_callback) {
-                    ajax_callback();
-                }
-                var responseText = data.responseText;
-                $C.getUI().show_message(responseText);
-                $C.update_ui();
-                $C.validate_ui();
-            }
-        });
-    };
-
-    this.save_session_as = function(filename, ajax_callback) {
-        this.getSession().setFilename(filename);
-        this.save_session(ajax_callback);
-    };
-
-    this.load_session = function(filename, ajax_callback) {
-        var formData = new FormData($('#general_form')[0]);
+    function ajax_load_session(filename, ajax_callback) {
+        var formData = new FormData(_$generalForm[0]);
         formData.append('session_name', filename);
         $.ajax({
             type:        'POST',
@@ -167,24 +168,40 @@ CAR_Tool = function() {
                 }
                 var json_session = data.responseText;
                 var session_properties = JSON.parse(json_session);
-                $C.setSession(new CAR_Session(session_properties));
-                $C.update_ui();
-                $C.validate_ui();
+                setSession(new CAR_Session(session_properties));
             }
         });
-    };
+    }
 
-    this.validate_ui = function() {
-        var defaultTableSelected = $('#default_table_drop_down').prop('selectedIndex') > 0;
+    function ajax_save_session(ajax_callback) {
+        var formData = new FormData($('#general_form')[0]);
+        formData.append('session', JSON.stringify(_car_session.getProperties()));
+        $.ajax({
+            type:        'POST',
+            url:         '/save_session',
+            contentType: false,
+            data:        formData,
+            cache:       false,
+            processData: false,
+            async:       true,
+            complete:    function(data) {
+                if (ajax_callback) {
+                    ajax_callback();
+                }
+                var responseText = data.responseText;
+                _ui_common.show_message(responseText);
+                update_ui();
+                checkState();
+            }
+        });
+    }
 
-        var session = this.getSession();
-        var session_name = session.getFilename();
-        $('#save_session_button').prop('disabled', !defaultTableSelected || !session.hasFileName());
-        $('#save_session_as_button').prop('disabled', !defaultTableSelected);
-        $('#session_name_display').text(session_name);
-    };
+    function ajax_save_session_as(filename, ajax_callback) {
+        _car_session.setFilename(filename);
+        ajax_save_session(ajax_callback);
+    }
 
-    this.ajax_file_upload = function(upload_path, form, hide_function) {
+    function ajax_file_upload(upload_path, form, ajax_callback) {
         var form_data = new FormData(form[0]);
         $.ajax({
             type:        'POST',
@@ -195,36 +212,78 @@ CAR_Tool = function() {
             processData: false,
             async:       true,
             complete:    function(data) {
-                // success:     function(data) {
-                hide_function();
-                // alert('<span style="font-size: 22px;">' + data + '</span>');
-                $C.getUI().show_message(data.responseText);
+                if (ajax_callback) {
+                    ajax_callback();
+                }
+                _ui_common.show_message(data.responseText);
             }
         });
+    }
+
+    function getSelectedFigureKey() {
+        return _$figures_KeysDropDown.val();
+    }
+
+    function isFigureKeySelected(key_name) {
+        if (key_name) {
+            return getSelectedFigureKey() == key_name
+        } else {
+            return getSelectedFigureKey().length != 0;
+        }
+    }
+
+    // ############################################################
+    // #######                 I M A G E S                  #######
+    // ############################################################
+
+    _.getImages = function() {
+        return _images;
     };
 
-    this.on_template_selected = function(component) {
-        this.getSession().setTemplateDocPath(component.value);
-        this.validate_ui();
-    };
+    function setImages(images) {
+        _images = images;
+        create_thumbnail_elements();
+    }
 
-    this.on_default_table_selected = function(component) {
-        var default_table_path = component.value;
-        this.ajax_get_document_keys(default_table_path, function(keys) {
-            //@todo create new Session and transform valid properties from the old one?
-            $C.setKeys(new CAR_Keys(keys));
-            $C.resetSession();
-            $C.getSession().setDefaultTablePath(default_table_path);
-            $C.set_figure_defaults_to_session();
-            $C.getUI().uncheck_all_image_checkboxes();
-            $C.update_ui();
-            $C.validate_ui();
-        });
-        this.validate_ui();
-    };
+    function create_thumbnail_elements() {
+        _$figures_ThumbsDiv.empty();
+        for (var idx in _images) {
+            //noinspection JSUnfilteredForInLoop
+            var info = _images[idx];
+            var thumb_url = info['thumb_url'];
+            var url = info['url'];
+            var name = info['name'];
+            var $clone = _$figures_ThumbJQModel.clone();
+            $clone.removeAttr('id');
+            $clone.find('img').attr('src', thumb_url);
+            var $input = $clone.find('input');
+            $input.val(url);
+            $input.change(function() {
+                var $box = $(this);
+                var url = $box.val();
+                var text = $box.parent().text().trim();
+                var key = getSelectedFigureKey();
+                if ($box.is(':checked')) {
+                    _$figures_PreviewImg.attr('src', url);
+                    if (_car_session.getProperty(key)) {
+                        _ui_common.uncheck_all_image_checkboxes();
+                        $box.prop('checked', true);
+                    }
+                    _car_session.setProperty(key, text);
+                } else {
+                    _ui_common.removePreviewImage();
+                    _car_session.removeProperty(key, text);
+                }
+            });
+            $clone.find('label').append(name);
+            $clone.appendTo(_$figures_ThumbsDiv);
+            info.$thumb_div = $clone;
+        }
+        checkState();
+    }
 
-    this.ajax_get_document_keys = function(default_table_path, call_back) {
-        var formData = new FormData($('#general_form')[0]);
+    function ajax_get_document_keys(default_table_path, call_back) {
+        var formData = new FormData(_$generalForm[0]);
         formData.append('default_table_path', default_table_path);
         $.ajax({
             type:        'POST',
@@ -241,14 +300,50 @@ CAR_Tool = function() {
                     var keys = JSON.parse(json_keys);
                     call_back(keys);
                 } else {
-                    $C.getUI().show_message("Error while requesting key's.");
+                    _ui_common.show_message("Error while requesting key's.");
                 }
             }
         });
-    };
+    }
 
-    this.ajax_get_images = function(dir, ajax_callback) {
-        var formData = new FormData($('#general_form')[0]);
+    function checkState() {
+        var defaultTableSelected = _$defaultTable_DropDown.prop('selectedIndex') > 0;
+        _$saveSession_Button.prop('disabled', !defaultTableSelected || !_car_session.hasFileName());
+        _$saveSessionAs_Button.prop('disabled', !defaultTableSelected);
+
+        var figure_key = _$figures_KeysDropDown.val();
+        var figureKeyIsSelected = isString_and_NotEmpty(figure_key);
+        _$figures_ThumbsDiv.find('input').prop('disabled', !figureKeyIsSelected);
+    }
+
+    function remove_image_dir_dependent_keys_from_session() {
+        // @todo
+        // NOT REMOVE key defaults!
+        // remove_keys_from_session(get_figure_keys());
+    }
+
+    //@todo needed? should it be moved to session?
+    function remove_keys_from_session(key_array) {
+        var i;
+        for (i in key_array) {
+            var key = key_array[i];
+            delete _session[key];
+        }
+    }
+
+    function figures_dir_change(dir) {
+        _ui_common.removePreviewImage();
+        remove_image_dir_dependent_keys_from_session();
+        _car_session.setFiguresDirectory(dir);
+        ajax_get_images(dir);
+    }
+
+    // ############################################################
+    // ############################################################
+    // ############################################################
+
+    function ajax_get_images(dir) {
+        var formData = new FormData(_$generalForm[0]);
         formData.append('images_dir', dir);
         $.ajax({
             type:        'POST',
@@ -261,19 +356,18 @@ CAR_Tool = function() {
             complete:    function(data) {
                 var json_images = data.responseText;
                 var images = JSON.parse(json_images);
-                ajax_callback(images);
+                setImages(images);
             }
         });
-    };
+    }
 
-    this.ajax_component_update = function($element, ajax_callback) {
-        var events = $C.getUI().getAttributesFromHtmlElement($element, ['onchange']);
+    function ajax_update_component_options($element, ajax_callback) {
         var component_id = $element[0].id;
-        var formData = new FormData($('#general_form')[0]);
+        var formData = new FormData(_$generalForm[0]);
         formData.append('component_id', component_id);
         $.ajax({
             type:        'POST',
-            url:         '/component_update',
+            url:         '/update_component_options',
             contentType: false,
             data:        formData,
             cache:       false,
@@ -281,52 +375,246 @@ CAR_Tool = function() {
             async:       true,
             complete:    function(data) {
                 var responseText = data.responseText;
-                var $new_elem = $(responseText.trim());
-                for (var event_name in events) {
-                    var event_content = events[event_name];
-                    $new_elem.attr(event_name, event_content);
-                }
-                $('#' + component_id).replaceWith($new_elem);
+                var $new_options = $(responseText.trim());
+                var $firstOption = $element.find('option').first();
+                $element.empty();
+                $element.append($firstOption);
+                $new_options.appendTo($element);
                 if (ajax_callback) {
                     ajax_callback();
                 }
             }
         });
-    };
+    }
 
-    this.create_images = function(images) {
-        var $images = $('#images');
-        $images.empty();
-        for (var idx in images) {
-            var info = images[idx];
-            var thumb_url = info['thumb_url'];
-            var url = info['url'];
-            var name = info['name'];
-            var $clone = $('#img_thumb_jquery_model').clone();
-            $clone.removeAttr('id');
-            $clone.find('img').attr('src', thumb_url);
-            var $input = $clone.find('input');
-            $input.val(url);
-            $clone.find('label').append(name);
-            $clone.appendTo($images);
-            info.thumb_div = $clone;
+    function compute_div_id_images_height() {
+        var images_top = _$figures_ThumbsDiv.position().top;
+        var footer_height = _$footer_div.outerHeight(true);
+        var height = $(window).height() - images_top - footer_height - 22;
+        _$figures_ThumbsDiv.css('height', height + 'px');
+        var commentHeight = _$figures_CommentDiv.outerHeight(true);
+        var previewHeight = height - commentHeight;
+        _$figures_PreviewDiv.css('height', previewHeight + 'px');
+    }
+
+    // ############################################################
+    // ############################################################
+    // ############################################################
+
+    function setSelectedFiguresDirectoryToDropDown(dir) {
+        if (!isString_and_NotEmpty(dir)) {
+            return;
         }
-        $C.images = images;
-    };
+        if (dir == _$figures_DirDropDown.val()) {
+            return;
+        }
+        _$figures_DirDropDown.val(dir);
+        ajax_get_images(dir);
+    }
 
-    this.getSelctedFigureKey = function() {
-        return $('#figures_keys').val().trim();
-    };
+    function isString_and_NotEmpty(value) {
+        return value != null && (typeof value == 'string') && value.trim().length > 0;
+    }
 
-    this.isFigureKeySelected = function(key_name) {
-        if (key_name) {
-            return $C.getSelctedFigureKey() == key_name
+    function isNull_or_NotStr_or_Empty(value) {
+        return !isString_and_NotEmpty(value);
+    }
+
+    function updateKeys(currentDefaultTablePath, ajax_callback) {
+        if (currentDefaultTablePath.trim().length > 0) {
+            ajax_get_document_keys(currentDefaultTablePath, function(keys) {
+                setKeys(new CAR_Keys(keys));
+                if (ajax_callback) {
+                    ajax_callback();
+                }
+            });
         } else {
-            return $C.getSelctedFigureKey().length != 0;
+            setKeys(new CAR_Keys());
+        }
+    }
+
+    function update_ui() {
+        var sessionName = _car_session.getFilename();
+        var currentTemplateDocPath = _car_session.getTemplateDocPath();
+        var currentDefaultTablePath = _car_session.getDefaultTablePath();
+        var currentFiguresDirectory = _car_session.getFiguresDirectory();
+
+        if (isString_and_NotEmpty(sessionName)) {
+            _$sessionNameDisplay_span.text(sessionName);
+        }
+
+        _$templateFile_DropDown.val(currentTemplateDocPath);
+
+        var old_default_table_path = _$defaultTable_DropDown.val();
+        if (currentDefaultTablePath != old_default_table_path) {
+            _$defaultTable_DropDown.val(currentDefaultTablePath);
+            updateKeys(currentDefaultTablePath);
+        }
+
+        setSelectedFiguresDirectoryToDropDown(currentFiguresDirectory);
+    }
+
+    function initUI() {
+        ajax_update_component_options(_$templateFile_DropDown);
+        ajax_update_component_options(_$defaultTable_DropDown);
+        ajax_update_component_options(_$figures_DirDropDown);
+        compute_div_id_images_height();
+        $(window).resize(compute_div_id_images_height);
+    }
+
+    var _sessionEvents = {
+        bind: function() {
+
+            var showLoadSessionDialog = function() {
+                _ui_common.show_elem_placed(
+                        _$loadSession_Button,
+                        _$loadSession_Dialog
+                );
+            };
+
+            _$loadSession_Button.click(function() {
+                _ui_common.show_overlay();
+                ajax_update_component_options(_$loadSession_FormDropDown, showLoadSessionDialog);
+            });
+
+            _$loadSession_FormCloseButton.click(function() {
+                _ui_common.close_dialog(_$loadSession_Dialog);
+            });
+
+            _$loadSession_FormButton.click(function() {
+                _ui_common.hide_elem(_$loadSession_Dialog);
+                var session_file = _$loadSession_FormDropDown.val();
+                ajax_load_session(session_file, _ui_common.hide_overlay);
+            });
+
+            _$saveSession_Button.click(function() {
+                ajax_save_session();
+            });
+
+            _$saveSessionAs_Button.click(function() {
+                _ui_common.show_overlay();
+                _ui_common.show_elem_placed(
+                        _$saveSessionAs_Button,
+                        _$saveSessionAs_Dialog
+                );
+            });
+
+            var closeSaveSessionAsDialog = function() {
+                _ui_common.close_dialog(_$saveSessionAs_Dialog);
+            };
+
+            _$saveSessionAs_FormButton.click(function() {
+                var filename = _$saveSessionAs_FormNameInput.val();
+                ajax_save_session_as(filename, closeSaveSessionAsDialog);
+
+            });
+
+            _$saveSessionAs_FormCloseButton.click(function() {
+                closeSaveSessionAsDialog();
+            });
         }
     };
+
+    var _defaultTableEvents = {
+        bind: function() {
+
+            _$defaultTable_DropDown.change(function() {
+                var val = _$defaultTable_DropDown.val();
+                _car_session.setDefaultTablePath(val);
+                function afterKeysAreUpdated() {
+                    resetSession();
+                    _ui_common.uncheck_all_image_checkboxes();
+                    update_ui();
+                    checkState();
+                }
+                updateKeys(val, afterKeysAreUpdated);
+            });
+
+            _$defaultTable_UploadLink.click(function() {
+                _ui_common.show_overlay();
+                _ui_common.show_elem_placed(
+                        _$defaultTable_DropDown,
+                        _$defaultTable_UploadDialog
+                );
+            });
+
+            _$defaultTable_UploadFormButton.click(function() {
+                var todo_after_upload = function() {
+                    _ui_common.close_dialog(_$defaultTable_UploadDialog);
+                    ajax_update_component_options(_$defaultTable_DropDown);
+                };
+                ajax_file_upload(
+                        'default_table',
+                        _$defaultTable_UploadForm,
+                        todo_after_upload
+                );
+            });
+
+            _$defaultTable_UploadFormCloseButton.click(function() {
+                _ui_common.close_dialog(_$defaultTable_UploadDialog);
+            });
+        }
+    };
+
+    var _templateFileEvents = {
+        bind: function() {
+
+            _$templateFile_DropDown.change(function() {
+                var path = _$templateFile_DropDown.val();
+                _car_session.setTemplateDocPath(path);
+                checkState();
+            });
+
+            _$templateFile_UploadLink.click(function() {
+                _ui_common.show_overlay();
+                _ui_common.show_elem_placed(
+                        _$templateFile_DropDown,
+                        _$templateFile_UploadDialog
+                );
+            });
+
+            _$templateFile_UploadFormButton.click(function() {
+                var todo_after_upload = function() {
+                    _ui_common.close_dialog(_$templateFile_UploadDialog);
+                    ajax_update_component_options(_$templateFile_DropDown);
+                };
+                ajax_file_upload(
+                        'template',
+                        _$templateFile_UploadForm,
+                        todo_after_upload
+                );
+            });
+
+            _$templateFile_UploadFormCloseButton.click(function() {
+                _ui_common.close_dialog(_$templateFile_UploadDialog);
+            });
+        }
+    };
+
+    function bindEvents() {
+        _sessionEvents.bind();
+        _defaultTableEvents.bind();
+        _templateFileEvents.bind();
+
+        _$figures_DirDropDown.change(function() {
+            var dir = _$figures_DirDropDown.val();
+            figures_dir_change(dir);
+        });
+
+        _$figures_KeysDropDown.change(function() {
+            checkState();
+        });
+    }
+
+    initUI();
+    checkState();
+    bindEvents();
 };
 
-$C = new CAR_Tool();
+var $C;
+
+$(document).ready(function() {
+    $C = new CAR_Tool();
+});
 
 

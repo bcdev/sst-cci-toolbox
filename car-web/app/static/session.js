@@ -3,57 +3,63 @@
  */
 
 CAR_Session = function(session_properties) {
+    var _ = this;
+
     var _properties = session_properties;
     if (_properties == null) {
         _properties = {};
     }
 
-    this.getProperties = function() {
+    _.getProperties = function() {
         return _properties;
     };
 
-    this.setProperty = function(key, value) {
+    _.setProperty = function(key, value) {
         _properties[key] = value;
     };
 
-    this.getProperty = function(key) {
+    _.removeProperty = function(key) {
+        delete _properties[key];
+    };
+
+    _.getProperty = function(key) {
         return _properties[key];
     };
 
-    this.setFilename = function(name) {
-        this.setProperty('filename', name);
+    _.setFilename = function(name) {
+        _.setProperty('filename', name);
     };
 
-    this.getFilename = function() {
-        return this.getProperty('filename');
+    _.getFilename = function() {
+        return _.getProperty('filename');
     };
 
-    this.setTemplateDocPath = function(document) {
-        this.setProperty('template_path', document);
+    _.setTemplateDocPath = function(document) {
+        _.setProperty('template_path', document);
     };
 
-    this.getTemplateDocPath = function() {
-        return getAtLeastEmptyString(this.getProperty('template_path'));
+    _.getTemplateDocPath = function() {
+        return getAtLeastEmptyString(_.getProperty('template_path'));
     };
 
-    this.setDefaultTablePath = function(document) {
-        this.setProperty('default_table_path', document);
+    _.setDefaultTablePath = function(document) {
+        _.setProperty('default_table_path', document);
     };
 
-    this.getDefaultTablePath = function() {
-        return getAtLeastEmptyString(this.getProperty('default_table_path'));
+    _.getDefaultTablePath = function() {
+        return getAtLeastEmptyString(_.getProperty('default_table_path'));
     };
 
-    this.setFiguresDirectory = function(dir) {
-        this.setProperty('figures.directory', dir);
+    _.setFiguresDirectory = function(dir) {
+        _.setProperty('figures.directory', dir);
     };
 
-    this.getFiguresDirectory = function() {
-        return getAtLeastEmptyString(this.getProperty('figures.directory'));
+    _.getFiguresDirectory = function() {
+        return getAtLeastEmptyString(_.getProperty('figures.directory'));
     };
 
-    this.hasFileName = function() {
-        var filename = this.getFilename();
+    _.hasFileName = function() {
+        var filename = _.getFilename();
         return filename != null && filename.trim().length > 0;
     };
 
