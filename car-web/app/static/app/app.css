@@ -207,3 +207,9 @@ button[disabled] {
     height: calc(100%);
     max-height: calc(100%);
 }
+
+#figures_comment_t_area {
+    width: 100%;
+    height: 100px;
+    min-width: 600px;
+}
