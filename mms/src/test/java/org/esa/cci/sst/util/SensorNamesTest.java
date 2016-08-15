@@ -49,6 +49,7 @@ public class SensorNamesTest {
         assertFalse(SensorNames.isOrbitName("orb_avhrr.m02f"));
 
         assertTrue(SensorNames.isOrbitName("orb_amsr2"));
+        assertTrue(SensorNames.isOrbitName("orb_amsre"));
 
         assertFalse(SensorNames.isOrbitName("orb_aai"));
         assertFalse(SensorNames.isOrbitName("orb_seaice"));
@@ -79,6 +80,7 @@ public class SensorNamesTest {
         assertFalse(SensorNames.isStandardName("avhrr.m02f"));
 
         assertTrue(SensorNames.isStandardName("amsr2"));
+        assertTrue(SensorNames.isStandardName("amsre"));
 
         assertFalse(SensorNames.isStandardName("orb_atsr.1"));
         assertFalse(SensorNames.isStandardName("orb_atsr.2"));

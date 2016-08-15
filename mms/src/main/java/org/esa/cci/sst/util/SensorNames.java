@@ -63,10 +63,10 @@ public class SensorNames {
     }
 
     public static boolean isOrbitName(String sensorName) {
-        return sensorName.matches("(orb_atsr\\.[1-3])|(orb_avhrr(_f)?\\.[mn]([0-9]){2})|(orb_amsr2)");
+        return sensorName.matches("(orb_atsr\\.[1-3])|(orb_avhrr(_f)?\\.[mn]([0-9]){2})|(orb_amsr(2|e))");
     }
 
     public static boolean isStandardName(String sensorName) {
-        return sensorName.matches("(atsr\\.[1-3])|(avhrr(_f)?\\.[mn]([0-9]){2})|(amsr2)");
+        return sensorName.matches("(atsr\\.[1-3])|(avhrr(_f)?\\.[mn]([0-9]){2})|(amsr(2|e))");
     }
 }
