@@ -10,7 +10,7 @@ w = Workflow(usecase)
 
 # the following lines define the test MMD tb 2016-08-01
 w.add_primary_sensor('atsr.3', '2008-05-01', '2008-06-01')
-w.add_primary_sensor('amsre', '2008-05-01', '2008-06-01')
+w.add_secondary_sensor('amsre', '2008-05-01', '2008-06-01')
 
 w.set_samples_per_month(100000)
 w.run(mmdtype, hosts=[('localhost', 8)])

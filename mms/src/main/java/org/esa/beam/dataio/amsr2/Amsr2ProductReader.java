@@ -22,7 +22,6 @@ import org.esa.beam.common.ImageVariableOpImage;
 import org.esa.beam.common.NetcdfProductReaderTemplate;
 import org.esa.beam.common.PixelLocator;
 import org.esa.beam.common.PixelLocatorAdapter;
-import org.esa.beam.common.ScanLineVariableOpImage;
 import org.esa.beam.dataio.cci.sst.NcOsiProductReaderPlugIn;
 import org.esa.beam.dataio.netcdf.util.DataTypeUtils;
 import org.esa.beam.dataio.netcdf.util.MetadataUtils;
@@ -45,14 +44,11 @@ import javax.media.jai.BorderExtender;
 import javax.media.jai.ImageLayout;
 import javax.media.jai.JAI;
 import javax.media.jai.operator.BorderDescriptor;
-import java.awt.Dimension;
-import java.awt.RenderingHints;
+import java.awt.*;
 import java.awt.image.DataBuffer;
 import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
 import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Date;
@@ -208,7 +204,7 @@ public final class Amsr2ProductReader extends NetcdfProductReaderTemplate {
                     return new UShortFromUByteOpImage(variable, w, h, tileSize);
                 } else if (SCAN_DATA_QUALITY_BAND_NAME.equals(band.getName())) {
                     final RenderedImage image = new UIntFromUByteOpImage(variable, 128, h,
-                                                                         new Dimension(128, tileSize.height));
+                            new Dimension(128, tileSize.height));
                     return extend(w, h, tileSize, image);
                 } else {
                     return new OddColumnsOpImage(variable, bufferType, w, h, tileSize);
