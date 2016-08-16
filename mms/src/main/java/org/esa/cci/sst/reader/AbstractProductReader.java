@@ -74,7 +74,7 @@ abstract class AbstractProductReader implements Reader {
         System.setProperty("beam.pixelGeoCoding.fractionAccuracy", "true");
     }
 
-    protected AbstractProductReader(String sensorName, String... formatNames) {
+    AbstractProductReader(String sensorName, String... formatNames) {
         this.sensorName = sensorName;
         this.formatNames = formatNames;
     }
@@ -236,10 +236,10 @@ abstract class AbstractProductReader implements Reader {
                 }
             }
         }
-        throw new IOException(MessageFormat.format("Cannot read product file ''{0}''.", path));
+        throw new IOException(MessageFormat.format("No product reader found for file ''{0}''.", path));
     }
 
-    protected final Date getCenterTimeAsDate() throws IOException {
+    final Date getCenterTimeAsDate() throws IOException {
         final ProductData.UTC startUtc = product.getStartTime();
         if (startUtc == null) {
             throw new IOException("Unable to get center time for product '" + product.getName() + "'.");
