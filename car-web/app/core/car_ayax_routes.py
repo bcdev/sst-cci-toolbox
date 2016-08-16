@@ -1,9 +1,12 @@
+from flask.helpers import url_for
 from app import app
-from flask import request, send_from_directory
+from flask import request, send_from_directory, send_file
 from werkzeug.utils import secure_filename
 from flask_login import current_user  # , LoginManager, login_required, login_user, logout_user, UserMixin
 from jproperties import Properties
 from flask_images import Images, resized_img_src
+from py4j.java_gateway import JavaGateway
+from PIL import Image
 import json
 import os
 
@@ -11,6 +14,8 @@ car_sessions_dir = app.config['SESSIONS_DIR']
 car_templates_dir = app.config['TEMPLATES_DIR']
 car_default_tables_dir = app.config['DEFAULT_TABLES_DIR']
 car_figures_dir = app.config['IMAGES_DIR']
+car_rendered_documents_dir = app.config['RENDERED_DOCUMENTS']
+
 thumb_widht = app.config['THUMBNAIL_IMG_MAX_WIDHT']
 thumb_height = app.config['THUMBNAIL_IMG_MAX_HEIGHT']
 thumb_back = app.config['THUMBNAIL_BACKGROUND']
@@ -52,7 +57,12 @@ def get_images():
             ret = []
             for img in images:
                 img_path = os.path.join(dir_, img)
+                img_full_path = os.path.join(car_figures_dir, img_path)
+                im = Image.open(img_full_path)
+                width, height = im.size
                 img_dict = {
+                    'width': width,
+                    'height': height,
                     'name': img,
                     'path': img_path,
                     'thumb_url': resized_img_src(img_path, width=thumb_widht, height=thumb_height, mode='fit', background=thumb_back),
@@ -60,24 +70,6 @@ def get_images():
                 }
                 ret.append(img_dict)
             return json.dumps(ret)
-
-
-def _log_info(message):
-    app.logger.info(_add_username(message))
-
-
-def _log_warning(message):
-    app.logger.warning(_add_username(message))
-
-
-def _log_error(message):
-    app.logger.error(_add_username(message))
-
-
-def _add_username(message):
-    email = current_user.email
-    message = '[' + email + '] ' + message
-    return message
 
 
 @app.route('/get_document_keys', methods=['POST'])
@@ -132,12 +124,18 @@ def load_session():
             _log_info("load session: " + session_path)
             with open(session_path, 'r') as f:
                 p.load(f, "utf-8")
-            session = json.dumps(p.properties)
+            session = p.properties
+
+            fig_dir_ = session['figures.directory']
+            if fig_dir_:
+                session['figures.directory'] = os.path.split(fig_dir_)[1]
+
+            session = json.dumps(session)
             return session
 
 
 @app.route('/save_session', methods=['POST'])
-def safe_session():
+def save_session():
     if request.method == 'POST':
         # check if the post request has component_id in data
         if 'session' in request.form:
@@ -183,18 +181,87 @@ def safe_session():
                 _log_error(msg)
                 return msg
 
-            p = Properties()
-            for key in session_:
-                p[key] = session_[key]
+            return _save_session_to(user_sessions_path, session_, filename_, file_extension)
 
-            session_file_path = os.path.join(user_sessions_path, filename_ + file_extension)
-            with open(session_file_path, "w") as f:
-                p.store(f, encoding="utf-8")
 
-            msg = 'Session successfully stored as "' + filename_ + '"'
-            _log_info(msg)
-            return msg
+@app.route('/render_document', methods=['POST'])
+def render_document():
+    if request.method == 'POST':
+        # check if the post request has component_id in data
+        if 'session' in request.form:
+            session_ = request.form['session']
+            session_ = json.loads(session_)
+            if session_:
+                session_file_name_ = os.path.split(os.tmpnam())[1]
+                document_file_name_ = os.path.split(os.tmpnam())[1]
+                extension = '.properties'
+                _save_session_to(car_rendered_documents_dir, session_, session_file_name_, extension)
 
+                template_file_path = os.path.join(car_templates_dir, session_['template_path'])
+                properties_file_path = os.path.join(car_rendered_documents_dir, session_file_name_ + extension)
+                document_file_path = os.path.join(car_rendered_documents_dir, document_file_name_)
+
+                g = JavaGateway()
+                args = _create_args(document_file_path, properties_file_path, template_file_path, g)
+
+                fassade = g.entry_point.getFassade()
+                fassade.renderDocument(args)
+
+                download_url = url_for('download_document', filename=document_file_name_)
+                return '<a href="' + download_url + '">download</a>'
+            else:
+                return 'Session Invalid!'
+
+
+@app.route('/dd/<filename>', methods=['GET'])
+def download_document(filename):
+    if request.method == 'GET':
+        return send_from_directory(car_rendered_documents_dir, filename, as_attachment=True ,attachment_filename='rendered_report.docx')
+
+
+def _create_args(out_file_path, car_properties_file, car_template_file, javaGateway):
+    args = ['-o', out_file_path, '-p', car_properties_file, '-t', car_template_file]
+    string_class = javaGateway.jvm.String
+    string_array = javaGateway.new_array(string_class, len(args))
+    idx = 0
+    for arg in args:
+        string_array[idx] = arg
+        idx += 1
+    return string_array
+
+
+def _log_info(message):
+    app.logger.info(_add_username(message))
+
+
+def _log_warning(message):
+    app.logger.warning(_add_username(message))
+
+
+def _log_error(message):
+    app.logger.error(_add_username(message))
+
+
+def _add_username(message):
+    email = current_user.email
+    message = '[' + email + '] ' + message
+    return message
+
+
+def _save_session_to(dir_path, session, filename, file_extension):
+    fig_dir_ = session['figures.directory']
+    if fig_dir_:
+        session['figures.directory'] = os.path.join(car_figures_dir, fig_dir_)
+
+    p = Properties()
+    for key in session:
+        p[key] = session[key]
+    session_file_path = os.path.join(dir_path, filename + file_extension)
+    with open(session_file_path, "w") as f:
+        p.store(f, encoding="utf-8")
+    msg = 'Session successfully stored as "' + filename + '"'
+    _log_info(msg)
+    return msg
 
 
 def _upload(request, extension, targetDir, allowed):

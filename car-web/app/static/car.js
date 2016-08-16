@@ -39,6 +39,8 @@ var CAR_Tool = function() {
 
     var _$sessionNameDisplay_span = $('#session_name_display');
 
+    var _$createDokument_Link = $('#create_dokument_link');
+
     // ###################################
     // ##  Default Table HTML Elements  ##
     // ###################################
@@ -173,7 +175,7 @@ var CAR_Tool = function() {
         });
     }
 
-    function ajax_save_session(ajax_callback) {
+    function ajax_save_session(callback) {
         var formData = new FormData($('#general_form')[0]);
         formData.append('session', JSON.stringify(_car_session.getProperties()));
         $.ajax({
@@ -185,20 +187,18 @@ var CAR_Tool = function() {
             processData: false,
             async:       true,
             complete:    function(data) {
-                if (ajax_callback) {
-                    ajax_callback();
-                }
                 var responseText = data.responseText;
-                _ui_common.show_message(responseText);
+                _ui_common.show_message(responseText, null, callback);
+                _car_session.setSessionIsSaved();
                 update_ui();
                 checkState();
             }
         });
     }
 
-    function ajax_save_session_as(filename, ajax_callback) {
+    function ajax_save_session_as(filename, callback) {
         _car_session.setFilename(filename);
-        ajax_save_session(ajax_callback);
+        ajax_save_session(callback);
     }
 
     function ajax_file_upload(upload_path, form, ajax_callback) {
@@ -212,12 +212,48 @@ var CAR_Tool = function() {
             processData: false,
             async:       true,
             complete:    function(data) {
-                if (ajax_callback) {
-                    ajax_callback();
-                }
-                _ui_common.show_message(data.responseText);
+                var msg = data.responseText;
+                _ui_common.show_message(msg, null, ajax_callback);
             }
         });
+    }
+
+    function ajax_download_document() {
+        function todo_after_dialog() {
+            var formData = new FormData(_$generalForm[0]);
+            formData.append('session', JSON.stringify(_car_session.getProperties()));
+            $.ajax({
+                type:        'POST',
+                url:         '/render_document',
+                data:        formData,
+                contentType: false,
+                cache:       false,
+                processData: false,
+                async:       true,
+                complete:    function(data) {
+                    var responseText = data.responseText;
+                    responseText = responseText.trim();
+                    if (responseText.indexOf('<a href') == 0) {
+                        var msg = 'Document successfully rendered!\n';
+                        _ui_common.show_message(msg, responseText);
+                    } else {
+                        _ui_common.show_message(responseText);
+                    }
+                }
+            })
+        }
+
+        if (_car_session.isSessinChanged()) {
+            var msg = 'The session was changed. Do you want to save the session?';
+            _ui_common.show_yes_no_dialog(msg, {
+                yesAction: function() {
+                    ajax_save_session(todo_after_dialog);
+                },
+                noAction:  todo_after_dialog
+            });
+        } else {
+            todo_after_dialog();
+        }
     }
 
     function getSelectedFigureKey() {
@@ -253,21 +289,22 @@ var CAR_Tool = function() {
             var thumb_url = info['thumb_url'];
             var url = info['url'];
             var name = info['name'];
+            var width = info['width'];
+            var height = info['height'];
             var $clone = _$figures_ThumbJQModel.clone();
             $clone.removeAttr('id');
             $clone.find('img').attr('src', thumb_url);
             var $input = $clone.find('input');
             $input.val(url);
             $input.change(function() {
-                var $box = $(this);
-                var url = $box.val();
-                var text = $box.parent().text().trim();
+                var $checkbox = $(this);
+                var text = $checkbox.parent().text().trim();
                 var key = getSelectedFigureKey();
-                if ($box.is(':checked')) {
-                    _$figures_PreviewImg.attr('src', url);
+                if ($checkbox.is(':checked')) {
+                    _ui_common.set_preview_image_for_name(text);
                     if (_car_session.getProperty(key)) {
                         _ui_common.uncheck_all_image_checkboxes();
-                        $box.prop('checked', true);
+                        $checkbox.prop('checked', true);
                     }
                     _car_session.setProperty(key, text);
                 } else {
@@ -277,6 +314,7 @@ var CAR_Tool = function() {
             });
             $clone.find('label').append(name);
             $clone.appendTo(_$figures_ThumbsDiv);
+            $clone.append('#' + idx + ' &nbsp; width: ' + width + ' &nbsp; height: ' + height);
             info.$thumb_div = $clone;
         }
         checkState();
@@ -506,7 +544,6 @@ var CAR_Tool = function() {
             _$saveSessionAs_FormButton.click(function() {
                 var filename = _$saveSessionAs_FormNameInput.val();
                 ajax_save_session_as(filename, closeSaveSessionAsDialog);
-
             });
 
             _$saveSessionAs_FormCloseButton.click(function() {
@@ -527,6 +564,7 @@ var CAR_Tool = function() {
                     update_ui();
                     checkState();
                 }
+
                 updateKeys(val, afterKeysAreUpdated);
             });
 
@@ -591,10 +629,19 @@ var CAR_Tool = function() {
         }
     };
 
+    var _document_render_events = {
+        bind: function() {
+            _$createDokument_Link.click(function() {
+                ajax_download_document();
+            });
+        }
+    };
+
     function bindEvents() {
         _sessionEvents.bind();
         _defaultTableEvents.bind();
         _templateFileEvents.bind();
+        _document_render_events.bind();
 
         _$figures_DirDropDown.change(function() {
             var dir = _$figures_DirDropDown.val();
@@ -603,6 +650,11 @@ var CAR_Tool = function() {
 
         _$figures_KeysDropDown.change(function() {
             checkState();
+            _ui_common.uncheck_all_image_checkboxes();
+            var key = _$figures_KeysDropDown.val();
+            var value = _car_session.getProperty(key);
+            _ui_common.select_figure_checkbox_with_value(value);
+            _ui_common.set_preview_image_for_name(value);
         });
     }
 

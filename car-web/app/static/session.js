@@ -10,16 +10,28 @@ CAR_Session = function(session_properties) {
         _properties = {};
     }
 
+    var _changed = false;
+
+    _.isSessinChanged = function(){
+        return _changed;
+    };
+
+    _.setSessionIsSaved = function() {
+        _changed = false;
+    };
+
     _.getProperties = function() {
         return _properties;
     };
 
     _.setProperty = function(key, value) {
         _properties[key] = value;
+        _changed = true;
     };
 
     _.removeProperty = function(key) {
         delete _properties[key];
+        _changed = true;
     };
 
     _.getProperty = function(key) {

@@ -5,7 +5,7 @@
 <form id="general_form" method="post" action="/" enctype="multipart/form-data">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 </form>
-{% include 'tile/message_box.html' %}
+{% include 'tile/dialogs.html' %}
 <div class="p">
     {% include 'tile/session_line.html' %}
 </div>
