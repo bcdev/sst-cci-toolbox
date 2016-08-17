@@ -218,7 +218,7 @@ var CAR_Tool = function() {
         });
     }
 
-    function ajax_download_document() {
+    function ajax_render_document() {
         function todo_after_dialog() {
             var formData = new FormData(_$generalForm[0]);
             formData.append('session', JSON.stringify(_car_session.getProperties()));
@@ -632,7 +632,7 @@ var CAR_Tool = function() {
     var _document_render_events = {
         bind: function() {
             _$createDokument_Link.click(function() {
-                ajax_download_document();
+                ajax_render_document();
             });
         }
     };
