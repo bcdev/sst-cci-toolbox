@@ -205,10 +205,13 @@ def render_document():
                 args = _create_args(document_file_path, properties_file_path, template_file_path, g)
 
                 fassade = g.entry_point.getFassade()
-                fassade.renderDocument(args)
+                message = fassade.renderDocument(args)
 
-                download_url = url_for('download_document', filename=document_file_name_)
-                return '<a href="' + download_url + '">download</a>'
+                if os.path.isfile(document_file_path):
+                    download_url = url_for('download_document', filename=document_file_name_)
+                    return '<a href="' + download_url + '">download</a>'
+                else:
+                    return message
             else:
                 return 'Session Invalid!'
 
