@@ -37,6 +37,7 @@ public class AmsreProductReaderPlugInTest {
     public void testIsCorrectFileName() {
          assertTrue(AmsreProductReaderPlugIn.isCorrectFilename("AMSR_E_L2A_BrightnessTemperatures_V12_200502170446_A.hdf"));
          assertTrue(AmsreProductReaderPlugIn.isCorrectFilename("AMSR_E_L2A_BrightnessTemperatures_V12_200502172026_D.hdf"));
+         assertTrue(AmsreProductReaderPlugIn.isCorrectFilename("AMSR_E_L2A_BrightnessTemperatures_V12_200805312303_D.hdf"));
 
         assertFalse(AmsreProductReaderPlugIn.isCorrectFilename("AMSR_E_L2A_BrightnessTemperatures_V12_200502170307_A.hdf.xml"));
         assertFalse(AmsreProductReaderPlugIn.isCorrectFilename("AMSR_E_L2A_BrightnessTemperatures_V12_200502170307_A.ph"));

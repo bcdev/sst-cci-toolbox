@@ -18,6 +18,7 @@ package org.esa.cci.sst.reader;
 
 import com.bc.jexp.ParseException;
 import org.esa.beam.dataio.amsr2.Amsr2ProductReaderPlugIn;
+import org.esa.beam.dataio.amsre.AmsreProductReaderPlugIn;
 import org.esa.beam.dataio.cci.sst.NcAvhrrGacProductReaderPlugIn;
 import org.esa.beam.dataio.cci.sst.NcOsiProductReaderPlugIn;
 import org.esa.beam.dataio.cci.sst.PmwProductReaderPlugIn;
@@ -63,6 +64,7 @@ class ProductReader extends AbstractProductReader {
                 NcAvhrrGacProductReaderPlugIn.FORMAT_NAME,
                 MetopReaderPlugIn.FORMAT_NAME,
                 Amsr2ProductReaderPlugIn.FORMAT_NAME,
+                AmsreProductReaderPlugIn.FORMAT_NAME,
                 NcOsiProductReaderPlugIn.FORMAT_NAME,
                 PmwProductReaderPlugIn.FORMAT_NAME);
         this.dirtyMaskExpression = dirtyMaskExpression;
@@ -97,7 +99,7 @@ class ProductReader extends AbstractProductReader {
         final int productYear = product.getStartTime().getAsCalendar().get(Calendar.YEAR);
         final AtsrForwardViewOffsetFactory offsetFactory = new AtsrForwardViewOffsetFactory();
         final AtsrForwardViewOffsetFactory.Offset offset = offsetFactory.createOffset(productName, productYear);
-        final Map<String, Object> params = new HashMap<String, Object>();
+        final Map<String, Object> params = new HashMap<>();
         params.put("shiftX", -offset.getAcrossTrackOffset());
         params.put("shiftY", -offset.getAlongTrackOffset());
         params.put("bandNamesPattern", ".*_fward_.*");
