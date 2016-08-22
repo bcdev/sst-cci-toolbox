@@ -8,3 +8,4 @@ target/
 /*.docx
 /*.png
 /*.nc
+/car-web/nohup.out
