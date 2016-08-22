@@ -7,4 +7,4 @@ export PYTHONUNBUFFERED=1
 # ================================
 # to add users edit create_users.py before starting the script
 # ------------------------------------------------------------
-# python manage.py init_db
+python manage.py init_db
