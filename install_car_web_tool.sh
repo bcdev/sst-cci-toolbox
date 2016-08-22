@@ -1,4 +1,5 @@
-git pull github master
+git pull -f
+git checkout -f
 
 rm -rf /home/cartool/car-web-tool/*
 cp -r car_web/* /home/cartool/car-web-tool
