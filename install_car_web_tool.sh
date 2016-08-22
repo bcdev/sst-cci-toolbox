@@ -1,4 +1,4 @@
-git pull -f
+git pull --all
 git checkout -f
 
 rm -rf /home/cartool/car-web-tool/*
