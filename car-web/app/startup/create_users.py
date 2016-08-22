@@ -14,11 +14,9 @@ def create_users():
     admin_role = find_or_create_role('admin', u'Admin')
 
     # Add users
-    user = find_or_create_user(u'aaa', u'aaaa', u'aaaa@gmx.net', 'aaa')
+    user = find_or_create_user(u'Sabine', u'Embacher', u'sabine.embacher@bc.de', 'sabine')
     # optional with "admin_role"
-    # user = find_or_create_user(u'aaa', u'aaaa', u'aaaa@gmx.net', 'aaa', admin_role)
-    user = find_or_create_user(u'bbb', u'bbbb', u'bbbb@gmx.net', 'bbb')
-    user = find_or_create_user(u'ccc', u'cccc', u'cccc@gmx.net', 'ccc')
+    # user = find_or_create_user(u'Sabine', u'Embacher', u'sabine.embacher@bc.de', 'sabine', admin_role)
 
     # Save to DB
     db.session.commit()
