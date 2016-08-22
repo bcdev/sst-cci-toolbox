@@ -23,6 +23,6 @@ export LIBDIR="$ASSESSMENT_TOOL_DIR"/lib
 export OLD_CLASSPATH="$CLASSPATH"
 CLASSPATH="$LIBDIR/*:$LIBDIR"
 
-"$JAVA_EXE" "$JAVA_OPTS" -classpath "$CLASSPATH" org.esa.cci.sst.assessment.CarWebToolApp
+"$JAVA_EXE" "$JAVA_OPTS" -classpath "$CLASSPATH" org.esa.cci.sst.assessment.CarWebToolApp "$@"
 
 export CLASSPATH="$OLD_CLASSPATH"
