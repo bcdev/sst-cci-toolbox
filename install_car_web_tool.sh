@@ -1,0 +1,5 @@
+git pull github master
+
+rm -rf /home/cartool/car-web-tool/*
+cp -r car_web/* /home/cartool/car-web-tool
+chmod +x /home/cartool/car-web-tool/run_server_port5000.sh
