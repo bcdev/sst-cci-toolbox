@@ -15,6 +15,7 @@ car_templates_dir = app.config['TEMPLATES_DIR']
 car_default_tables_dir = app.config['DEFAULT_TABLES_DIR']
 car_figures_dir = app.config['IMAGES_DIR']
 car_rendered_documents_dir = app.config['RENDERED_DOCUMENTS']
+car_images_cache = app.config['IMAGES_CACHE']
 
 thumb_widht = app.config['THUMBNAIL_IMG_MAX_WIDHT']
 thumb_height = app.config['THUMBNAIL_IMG_MAX_HEIGHT']
@@ -22,7 +23,6 @@ thumb_back = app.config['THUMBNAIL_BACKGROUND']
 
 images = Images(app)
 app.config['IMAGES_PATH'].append(car_figures_dir)
-app.config['IMAGES_CACHE'] = 'F:/Development Temp Dirs/SST-CCI_CAR-Tool/Img_cache'
 
 
 @app.route('/upload/template', methods=['POST'])
@@ -197,7 +197,9 @@ def render_document():
                 extension = '.properties'
                 _save_session_to(car_rendered_documents_dir, session_, session_file_name_, extension)
 
-                template_file_path = os.path.join(car_templates_dir, session_['template_path'])
+                template_path_ = session_['template_path']
+
+                template_file_path = os.path.join(car_templates_dir, template_path_)
                 properties_file_path = os.path.join(car_rendered_documents_dir, session_file_name_ + extension)
                 document_file_path = os.path.join(car_rendered_documents_dir, document_file_name_)
 

@@ -52,7 +52,7 @@ def create_app(extra_config_settings={}):
     app.jinja_env.globals['bootstrap_is_hidden_field'] = is_hidden_field_filter
 
     # Setup an error-logger to send emails to app.config.ADMINS
-    init_email_error_handler(app)
+    # init_email_error_handler(app)
     init_daily_rotationg_file_logging_handler(app)
     set_log_level_to_info()
 
