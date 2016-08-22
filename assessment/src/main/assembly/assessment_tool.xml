@@ -25,6 +25,14 @@
         </file>
 
         <file>
+            <source>${project.basedir}/src/main/bin/assessment-tool-for-car-web.sh</source>
+            <outputDirectory>/</outputDirectory>
+            <lineEnding>unix</lineEnding>
+            <fileMode>0755</fileMode>
+            <filtered>false</filtered>
+        </file>
+
+        <file>
             <source>${project.basedir}/src/main/doc/assessment-tool-manual.txt</source>
             <outputDirectory>/doc</outputDirectory>
             <lineEnding>unix</lineEnding>
