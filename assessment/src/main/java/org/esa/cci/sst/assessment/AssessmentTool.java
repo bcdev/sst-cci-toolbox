@@ -137,7 +137,7 @@ class AssessmentTool {
             return;
         }
 
-        final Map<String, String> figureVariables = templateVariables.getFigureVariables();
+        final Map<String, String> figureVariables = templateVariables.getFiguresVariables();
         final Set<Map.Entry<String, String>> entries = figureVariables.entrySet();
         for (Map.Entry<String, String> entry : entries) {
             final String figurePathsWildcards = entry.getValue();
