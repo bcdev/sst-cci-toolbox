@@ -94,8 +94,9 @@ var CAR_Tool = function() {
     var _$figures_KeysDropDown = $('#figures_keys');
     var _$figures_ThumbsDiv = $('#figures_thumbs_div');
     var _$figures_ThumbJQModel = $('#figures_thumb_jquery_model');
+    var _$figure_PreviewDiv = $('#figure_preview_div');
+    var _$figure_PreviewImg = $('#figure_preview_img');
     var _$figures_PreviewDiv = $('#figures_preview_div');
-    var _$figures_PreviewImg = $('#figures_preview_img');
     var _$figures_CommentDiv = $('#figures_comment_div');
     var _$figures_CommentTextarea = $('#figures_comment_textarea');
 
@@ -243,7 +244,7 @@ var CAR_Tool = function() {
             })
         }
 
-        if (_car_session.isSessinChanged()) {
+        if (_car_session.isSessionChanged()) {
             var msg = 'The session was changed. Do you want to save the session?';
             _ui_common.show_yes_no_dialog(msg, {
                 yesAction: function() {
@@ -260,12 +261,12 @@ var CAR_Tool = function() {
         return _$figures_KeysDropDown.val();
     }
 
-    function isFigureKeySelected(key_name) {
-        if (key_name) {
-            return getSelectedFigureKey() == key_name
-        } else {
-            return getSelectedFigureKey().length != 0;
-        }
+    function isSingleFigureKey(key) {
+        return isString_and_NotEmpty(key) && key.indexOf('figure.') == 0;
+    }
+
+    function isMultiFigureKey(key) {
+        return isString_and_NotEmpty(key) && key.indexOf('figures.') == 0;
     }
 
     // ############################################################
@@ -281,16 +282,36 @@ var CAR_Tool = function() {
         create_thumbnail_elements();
     }
 
+    function selectCheckboxes(imageInfos) {
+        for (var i in imageInfos) {
+            var info = imageInfos[i];
+            info.$thumb_div.find('input').prop('checked', true);
+        }
+    }
+
+    function removeFromMultiFigure(key, imgName) {
+        _car_session.removeFromMultiFigure(key, imgName);
+        updateMultiFigureUi(key);
+    }
+
+    function updateMultiFigureUi(key) {
+        _ui_common.uncheck_all_image_checkboxes();
+        var names = _car_session.getMultiFigureNames(key);
+        var imageInfos = getImageInfos(names);
+        selectCheckboxes(imageInfos);
+        _ui_common.set_multi_figure_view(imageInfos, removeFromMultiFigure);
+    }
+
     function create_thumbnail_elements() {
         _$figures_ThumbsDiv.empty();
         for (var idx in _images) {
             //noinspection JSUnfilteredForInLoop
-            var info = _images[idx];
-            var thumb_url = info['thumb_url'];
-            var url = info['url'];
-            var name = info['name'];
-            var width = info['width'];
-            var height = info['height'];
+            var image_info = _images[idx];
+            var thumb_url = image_info['thumb_url'];
+            var url = image_info['url'];
+            var name = image_info['name'];
+            var width = image_info['width'];
+            var height = image_info['height'];
             var $clone = _$figures_ThumbJQModel.clone();
             $clone.removeAttr('id');
             $clone.find('img').attr('src', thumb_url);
@@ -300,24 +321,47 @@ var CAR_Tool = function() {
                 var $checkbox = $(this);
                 var text = $checkbox.parent().text().trim();
                 var key = getSelectedFigureKey();
-                if ($checkbox.is(':checked')) {
-                    _ui_common.set_preview_image_for_name(text);
-                    if (_car_session.getProperty(key)) {
-                        _ui_common.uncheck_all_image_checkboxes();
-                        $checkbox.prop('checked', true);
+                if (isSingleFigureKey(key)) {
+                    if ($checkbox.is(':checked')) {
+                        _ui_common.set_preview_image_for_name(text);
+                        if (_car_session.getProperty(key)) {
+                            _ui_common.uncheck_all_image_checkboxes();
+                            $checkbox.prop('checked', true);
+                        }
+                        _car_session.setProperty(key, text);
+                    } else {
+                        _ui_common.removePreviewImage();
+                        _car_session.removeProperty(key, text);
                     }
-                    _car_session.setProperty(key, text);
                 } else {
-                    _ui_common.removePreviewImage();
-                    _car_session.removeProperty(key, text);
+                    if ($checkbox.is(':checked')) {
+                        _car_session.addToMultiFigure(key, text);
+                    } else {
+                        _car_session.removeFromMultiFigure(key, text);
+                    }
+                    var imageNames = _car_session.getMultiFigureNames(key);
+                    var imageInfos = getImageInfos(imageNames);
+                    _ui_common.set_multi_figure_view(imageInfos, removeFromMultiFigure);
                 }
             });
             $clone.find('label').append(name);
             $clone.appendTo(_$figures_ThumbsDiv);
             $clone.append('#' + idx + ' &nbsp; width: ' + width + ' &nbsp; height: ' + height);
-            info.$thumb_div = $clone;
+            image_info.$thumb_div = $clone;
         }
         checkState();
+    }
+
+    function getImageInfos(names) {
+        var array = [];
+        for (var i in _images) {
+            var info = _images[i];
+            var infoName = info['name'];
+            if (names.indexOf(infoName) >= 0) {
+                array.push(info);
+            }
+        }
+        return array;
     }
 
     function ajax_get_document_keys(default_table_path, call_back) {
@@ -433,6 +477,7 @@ var CAR_Tool = function() {
         var commentHeight = _$figures_CommentDiv.outerHeight(true);
         var previewHeight = height - commentHeight;
         _$figures_PreviewDiv.css('height', previewHeight + 'px');
+        _$figure_PreviewDiv.css('height', previewHeight + 'px');
     }
 
     // ############################################################
@@ -650,11 +695,15 @@ var CAR_Tool = function() {
 
         _$figures_KeysDropDown.change(function() {
             checkState();
-            _ui_common.uncheck_all_image_checkboxes();
-            var key = _$figures_KeysDropDown.val();
-            var value = _car_session.getProperty(key);
-            _ui_common.select_figure_checkbox_with_value(value);
-            _ui_common.set_preview_image_for_name(value);
+            var key = getSelectedFigureKey();
+            if (isMultiFigureKey(key)) {
+                updateMultiFigureUi(key);
+            } else {
+                _ui_common.uncheck_all_image_checkboxes();
+                var value = _car_session.getProperty(key);
+                _ui_common.select_figure_checkbox_with_name(value);
+                _ui_common.set_preview_image_for_name(value);
+            }
         });
     }
 
