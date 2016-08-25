@@ -1,14 +1,15 @@
-/**
+ /**
  * Created by sabine.embacher@brockmann-consult.de on 09.08.2016.
  */
 
 CAR_Keys = function(key_properties) {
+    var _ = this;
     var _properties = key_properties;
     if (_properties == null) {
         _properties = {};
     }
 
-    this.get_figure_keys = function() {
+    _.get_figure_keys = function() {
         var fig_keys = [];
         for (var key in _properties) {
             if (key.match('^figure') && !key.match('.default$') && !key.match('.scale$')) {
@@ -18,14 +19,23 @@ CAR_Keys = function(key_properties) {
         return fig_keys;
     };
 
-    this.get_figure_defaults = function() {
+    _.get_figure_defaults = function() {
         var figure_defaults = {};
         for (var key in _properties) {
             if (key.match('^figure') && key.match('.default$')) {
-                var value = _properties[key];
-                figure_defaults[key] = value;
+                figure_defaults[key] = _properties[key];
             }
         }
         return figure_defaults;
     };
+
+    _.get_figure_scalings= function() {
+        var scaling = {};
+        for (var key in _properties) {
+            if (key.match('^figure') && key.match('.scale$')) {
+                scaling[key] = _properties[key];
+            }
+        }
+        return scaling;
+    }
 };

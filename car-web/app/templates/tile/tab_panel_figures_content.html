@@ -6,14 +6,22 @@
 </div>
 <div style="display: table-row">
     <div style="display: table-cell; padding-bottom: 6px;">
-        <label for="figures_wildcard_input">Filter figures with wildcard:</label><br>
-        <input id="figures_wildcard_input" type="text">
+        <div style="display: inline-block">
+            <label for="figures_wildcard_input">Filter figures with wildcard:</label><br>
+            <input id="figures_wildcard_input" type="text">
+        </div>
     </div>
     <div style="display: table-cell; padding-left: 20px; padding-bottom: 6px;">
-        <label for="figures_keys">Figure Key:</label><br>
-        <select id="figures_keys">
-            <option value="">select key ...</option>
-        </select>
+        <div style="display: inline-block">
+            <label for="figures_keys">Figure Key:</label><br>
+            <select id="figures_keys">
+                <option value="">select key ...</option>
+            </select>
+        </div>
+        <div style="display: inline-block; margin-left: 10px;">
+            <label for="figure_scaling">Scaling Factor:</label><br>
+            <input type="text" id="figure_scaling">
+        </div>
     </div>
 </div>
 <div style="display: table-row">
@@ -24,7 +32,7 @@
         <div id="figure_preview_div">
             <img id="figure_preview_img" style="vertical-align: top;max-height: 100%; max-width: 100%"/>
         </div>
-        <div id="figures_preview_div">
+        <div id="figures_preview_div" style="display: none;">
 
         </div>
         <div id="figures_comment_div">
@@ -35,7 +43,7 @@
 </div>
 
 <div id="figures_thumb_jquery_model" class="img_thumb">
-    <img src="" style="vertical-align: top; max-width: 100%;" /><br>
+    <img src="" style="vertical-align: top; max-width: 100%;"/><br>
     <label style="white-space: nowrap;">
         <input type="checkbox" value=""/>
     </label><br>

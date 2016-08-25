@@ -1,7 +1,7 @@
 {% extends "common/page_base.html" %}  {# common/page_base.html extends layout.html #}
 
 {% block content %}
-
+<div id="car">
 <form id="general_form" method="post" action="/" enctype="multipart/form-data">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 </form>
@@ -15,4 +15,5 @@
     {% include 'tile/default_table_elements.html' %}
 </div>
 {% include 'tile/tab_area.html' %}
+</div>
 {% endblock %}

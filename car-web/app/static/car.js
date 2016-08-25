@@ -92,6 +92,7 @@ var CAR_Tool = function() {
     var _$figures_DirDropDown = $('#figures_dir_drop_down');
     var _$figures_WildcardInput = $('#figures_wildcard_input');
     var _$figures_KeysDropDown = $('#figures_keys');
+    var _$figure_Scaling = $('#figure_scaling');
     var _$figures_ThumbsDiv = $('#figures_thumbs_div');
     var _$figures_ThumbJQModel = $('#figures_thumb_jquery_model');
     var _$figure_PreviewDiv = $('#figure_preview_div');
@@ -136,10 +137,17 @@ var CAR_Tool = function() {
         checkState();
     }
 
-    function set_figure_defaults_to_session() {
+    function set_values_from_default_table() {
         var default_keys = _car_keys.get_figure_defaults();
         for (var key in default_keys) {
             var val = default_keys[key];
+            _car_session.setProperty(key, val);
+            key = key.replace('.default', '');
+            _car_session.setProperty(key, val);
+        }
+        var scalings = _car_keys.get_figure_scalings();
+        for (var key in scalings) {
+            var val = scalings[key];
             _car_session.setProperty(key, val);
         }
     }
@@ -151,7 +159,7 @@ var CAR_Tool = function() {
         _car_session.setDefaultTablePath(old.getDefaultTablePath());
         _car_session.setTemplateDocPath(old.getTemplateDocPath());
         _car_session.setFilename(old.getFilename());
-        set_figure_defaults_to_session()
+        set_values_from_default_table()
     }
 
     function ajax_load_session(filename, ajax_callback) {
@@ -704,6 +712,24 @@ var CAR_Tool = function() {
                 _ui_common.select_figure_checkbox_with_name(value);
                 _ui_common.set_preview_image_for_name(value);
             }
+            var scale = _car_session.getScale(key);
+            _$figure_Scaling.val(scale);
+        });
+
+        _$figure_Scaling.blur(function(event) {
+            var key = getSelectedFigureKey();
+            if (isNull_or_NotStr_or_Empty(key)) {
+                return;
+            }
+            var str = _$figure_Scaling.val().trim();
+            str = str.replace(',', '.');
+            var val = parseFloat(str);
+            if (str != ''+val) {
+                _ui_common.show_message('Input corrected to "'+val+'"');
+            }
+            _$figure_Scaling.val(val);
+            str = _$figure_Scaling.val().trim();
+            _car_session.setScale(key, str);
         });
     }
 

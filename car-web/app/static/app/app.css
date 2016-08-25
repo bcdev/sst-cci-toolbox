@@ -13,6 +13,12 @@ td {
     padding-bottom: 4px;
 }
 
+#car select,
+#car input[type="text"],
+#car input[type="number"] {
+    height: 22px;
+}
+
 button[disabled] {
     color: #999999;
     text-decoration: line-through;

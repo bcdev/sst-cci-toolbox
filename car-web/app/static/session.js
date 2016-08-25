@@ -38,6 +38,16 @@ CAR_Session = function(session_properties) {
         return _properties[key];
     };
 
+    _.setScale = function(key, scale) {
+        key = key + '.scale';
+        _.setProperty(key, scale);
+    };
+
+    _.getScale = function(key) {
+        key = key + '.scale';
+        return _properties[key];
+    };
+
     _.setFilename = function(name) {
         _.setProperty('filename', name);
     };

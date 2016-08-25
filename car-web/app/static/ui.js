@@ -91,6 +91,7 @@ CAR_COMMON_UI = function() {
         button.click(function() {
             _.hide_message();
         });
+        button.focus();
         if (callback) {
             button.click(function() {
                 callback();
@@ -123,6 +124,7 @@ CAR_COMMON_UI = function() {
         _$yesNoBox_div.find('pre').text(msg);
         _.show_elem(_$yesNoBox_div);
         _.centerAtWindow(_$yesNoBox_div);
+        _noButton.focus();
     };
 
     _.hide_message = function() {
