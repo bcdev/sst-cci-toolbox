@@ -27,6 +27,11 @@ def user_page():
     return render_template('core/user_page.html')
 
 
+@core_blueprint.route('help')
+def help_page():
+    return render_template('core/help_page.html')
+
+
 # The Admin page is accessible to users with the 'admin' role
 @core_blueprint.route('admin')
 @roles_accepted('admin')  # Limits access to users with the 'admin' role

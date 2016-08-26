@@ -1,7 +1,16 @@
 {% extends "common/page_base.html" %}  {# common/page_base.html extends layout.html #}
 
 {% block content %}
-        {#        <h1>CAR Tool home page</h1>#}
+{#        <h1>CAR Tool home page</h1>#}
 
-        <h4>Please <a href="{{ url_for('user.login') }}">sign in</a></h4>
+<br>
+<span style="font-size: 16px;">
+    Your fist visit? <span style="font-family: monospace">--&gt;</span> read <a href="{{ url_for('core.help_page') }}">Help</a>
+<br>
+<br>
+    Please <a href="{{ url_for('user.login') }}">sign in</a>
+    <span style="color: #B0B0B0; font-size: 14px; font-style: italic"> . . . . . Don't forget to change your password after your first login!</span>
+</span>
+<br>
+<br>
 {% endblock %}

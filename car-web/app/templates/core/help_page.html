@@ -1,0 +1,95 @@
+{% extends "common/page_base.html" %}  {# common/page_base.html extends layout.html #}
+
+{% block content %}
+<style>
+    h4, p {
+        margin-left: 20px;
+    }
+</style>
+<p id="help">
+
+<h2>Help <span style="color: #ff0000"> !under construction!</span></h2>
+<br>
+
+<h4>Table of Contents</h4>
+<ol>
+    <li><a name="overview">Overview</a></li>
+    <li><a name="session">Session</a>
+        <ol>
+            <li><a name="session_content">Content of a Session</a></li>
+            <li><a name="session_load">Load Session</a></li>
+            <li><a name="session_save_as">Save Session As ...</a></li>
+            <li><a name="session_save">Save Session</a></li>
+        </ol>
+    </li>
+    <li><a name="default_table">Default Table</a>
+        <ol>
+            <li><a name="default_table_upload">Upload</a></li>
+        </ol>
+    </li>
+    <li><a name="template_document">Template Document</a>
+        <ol>
+            <li><a name="default_table_upload">Upload</a></li>
+        </ol>
+    </li>
+    <li><a name="figures_tab">Figures Tab</a>
+        <ol>
+            <li><a name="figures_directory">Figures Directory</a></li>
+            <li><a name="thumbnail_preview">Thumbnail Preview</a></li>
+            <li><a name="wildcard">Wildcard</a></li>
+            <li><a name="figure_key">Figure Key</a></li>
+            <li><a name="scaling">Scaling</a></li>
+            <li><a name="si_fi_pre">Single Figure Preview</a></li>
+            <li><a name="mu_fi_pre">Multi Figure Preview</a></li>
+            <li><a name="figure_comment">Figure Comment</a></li>
+        </ol>
+    </li>
+    <li><a name="text_tab">Text Tab</a>
+        <ol>
+            <!--<li><a name="figures_directory">Figures Directory</a></li>-->
+            <!--<li><a name="thumbnail_preview">Thumbnail Preview</a></li>-->
+            <!--<li><a name="wildcard">Wildcard</a></li>-->
+            <li><a name="text_key">Text Key</a></li>
+            <!--<li><a name="scaling">Scaling</a></li>-->
+            <!--<li><a name="si_fi_pre">Single Figure Preview</a></li>-->
+            <!--<li><a name="mu_fi_pre">Multi Figure Preview</a></li>-->
+            <!--<li><a name="figure_comment">Figure Comment</a></li>-->
+        </ol>
+    </li>
+</ol>
+<br>
+
+
+
+
+
+<a href="#overview"></a>
+<h3>Overview</h3>
+<p>Welcome to the ESACCI-SST CAR Tool</p>
+
+<a href="#session"></a>
+<h3>Session</h3>
+<h4>General</h4>
+<p>A session at the end is a property container which will be send to the server if the user want a word document should be created.
+    <a href="#session_content"></a>
+<h4>Session Content</h4>
+<ul>
+    <li>the figures directory name</li>
+    <li>the name of the default table</li>
+    <li>the name of the template document</li>
+    <li>the selected figures</li>
+    <li>the selected multi figure groups</li>
+    <li>the scaling for single figures and grouped figures</li>
+    <li>the comment text (if predefined by default table for a figure or multi figure)</li>
+    <li>text replacement</li>
+</ul>
+<a href="#session_load"></a>
+<h4>Load Session</h4>
+<a href="#session_save_as"></a>
+<h4>Save Session As ...</h4>
+<a href="#session_save"></a>
+<h4>Save Session</h4>
+
+
+</div>
+{% endblock %}

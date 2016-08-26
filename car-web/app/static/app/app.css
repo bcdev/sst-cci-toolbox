@@ -223,3 +223,7 @@ button[disabled] {
 #figures_preview_div {
     overflow: auto;
 }
+
+.class_hidden {
+    display: none;
+}

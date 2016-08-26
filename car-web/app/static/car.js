@@ -6,6 +6,7 @@ var CAR_Tool = function() {
 
     var _ = this;
 
+    var _class_hidden = 'class_hidden';
     var _images = {};
     var _ui_common = {};
     _ui_common = new CAR_COMMON_UI();
@@ -91,12 +92,12 @@ var CAR_Tool = function() {
 
     var _$figures_DirDropDown = $('#figures_dir_drop_down');
     var _$figures_WildcardInput = $('#figures_wildcard_input');
+    var _$figures_WildcardError = $('#wildcard_error');
     var _$figures_KeysDropDown = $('#figures_keys');
     var _$figure_Scaling = $('#figure_scaling');
     var _$figures_ThumbsDiv = $('#figures_thumbs_div');
     var _$figures_ThumbJQModel = $('#figures_thumb_jquery_model');
     var _$figure_PreviewDiv = $('#figure_preview_div');
-    var _$figure_PreviewImg = $('#figure_preview_img');
     var _$figures_PreviewDiv = $('#figures_preview_div');
     var _$figures_CommentDiv = $('#figures_comment_div');
     var _$figures_CommentTextarea = $('#figures_comment_textarea');
@@ -421,18 +422,18 @@ var CAR_Tool = function() {
         }
     }
 
-    function figures_dir_change(dir) {
+    function figures_dir_change(dir, callback) {
         _ui_common.removePreviewImage();
         remove_image_dir_dependent_keys_from_session();
         _car_session.setFiguresDirectory(dir);
-        ajax_get_images(dir);
+        ajax_get_images(dir, callback);
     }
 
     // ############################################################
     // ############################################################
     // ############################################################
 
-    function ajax_get_images(dir) {
+    function ajax_get_images(dir, callback) {
         var formData = new FormData(_$generalForm[0]);
         formData.append('images_dir', dir);
         $.ajax({
@@ -447,6 +448,9 @@ var CAR_Tool = function() {
                 var json_images = data.responseText;
                 var images = JSON.parse(json_images);
                 setImages(images);
+                if (callback) {
+                    callback();
+                }
             }
         });
     }
@@ -690,47 +694,91 @@ var CAR_Tool = function() {
         }
     };
 
+    function show_all_thumbnails() {
+        for (var i in _images) {
+            var image_info = _images[i];
+            var $div = image_info['$thumb_div'];
+            $div.removeClass(_class_hidden);
+        }
+    }
+
+    function check_wildcard() {
+        var i;
+        var $div;
+        var image_info;
+        _$figures_WildcardError.addClass(_class_hidden);
+        var val = _$figures_WildcardInput.val();
+        if (isString_and_NotEmpty(val)) {
+            try {
+                var regExp = new RegExp(val, 'i');
+                for (i in _images) {
+                    image_info = _images[i];
+                    var image_name = image_info['name'];
+                    $div = image_info['$thumb_div'];
+                    if (regExp.test(image_name)) {
+                        $div.removeClass(_class_hidden);
+                    } else {
+                        $div.addClass(_class_hidden);
+                    }
+                }
+            }
+            catch (err) {
+                _$figures_WildcardError.removeClass(_class_hidden);
+                show_all_thumbnails();
+            }
+        } else {
+            show_all_thumbnails();
+        }
+    }
+
+    var _figure_events = {
+        bind: function() {
+            _$figures_DirDropDown.change(function() {
+                var dir = _$figures_DirDropDown.val();
+                figures_dir_change(dir, check_wildcard);
+            });
+
+            _$figures_KeysDropDown.change(function() {
+                checkState();
+                var key = getSelectedFigureKey();
+                if (isMultiFigureKey(key)) {
+                    updateMultiFigureUi(key);
+                } else {
+                    _ui_common.uncheck_all_image_checkboxes();
+                    var value = _car_session.getProperty(key);
+                    _ui_common.select_figure_checkbox_with_name(value);
+                    _ui_common.set_preview_image_for_name(value);
+                }
+                var scale = _car_session.getScale(key);
+                _$figure_Scaling.val(scale);
+            });
+
+            _$figure_Scaling.blur(function(event) {
+                var key = getSelectedFigureKey();
+                if (isNull_or_NotStr_or_Empty(key)) {
+                    return;
+                }
+                var str = _$figure_Scaling.val().trim();
+                str = str.replace(',', '.');
+                var val = parseFloat(str);
+                if (str != '' + val) {
+                    _ui_common.show_message('Input corrected to "' + val + '"');
+                }
+                _$figure_Scaling.val(val);
+                str = _$figure_Scaling.val().trim();
+                _car_session.setScale(key, str);
+            });
+
+            _$figures_WildcardInput.keyup(check_wildcard);
+        }
+    };
+
     function bindEvents() {
         _sessionEvents.bind();
         _defaultTableEvents.bind();
         _templateFileEvents.bind();
         _document_render_events.bind();
-
-        _$figures_DirDropDown.change(function() {
-            var dir = _$figures_DirDropDown.val();
-            figures_dir_change(dir);
-        });
-
-        _$figures_KeysDropDown.change(function() {
-            checkState();
-            var key = getSelectedFigureKey();
-            if (isMultiFigureKey(key)) {
-                updateMultiFigureUi(key);
-            } else {
-                _ui_common.uncheck_all_image_checkboxes();
-                var value = _car_session.getProperty(key);
-                _ui_common.select_figure_checkbox_with_name(value);
-                _ui_common.set_preview_image_for_name(value);
-            }
-            var scale = _car_session.getScale(key);
-            _$figure_Scaling.val(scale);
-        });
-
-        _$figure_Scaling.blur(function(event) {
-            var key = getSelectedFigureKey();
-            if (isNull_or_NotStr_or_Empty(key)) {
-                return;
-            }
-            var str = _$figure_Scaling.val().trim();
-            str = str.replace(',', '.');
-            var val = parseFloat(str);
-            if (str != ''+val) {
-                _ui_common.show_message('Input corrected to "'+val+'"');
-            }
-            _$figure_Scaling.val(val);
-            str = _$figure_Scaling.val().trim();
-            _car_session.setScale(key, str);
-        });
+        _figure_events.bind();
     }
 
     initUI();
