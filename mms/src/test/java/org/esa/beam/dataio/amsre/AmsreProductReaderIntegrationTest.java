@@ -91,8 +91,10 @@ public class AmsreProductReaderIntegrationTest {
             assertBandCorrect("Solar_Zenith_Angle", ProductData.TYPE_FLOAT32, 243, 2002, product);
             assertBandCorrect("Solar_Azimuth_Angle", ProductData.TYPE_FLOAT32, 243, 2002, product);
 
-
-            assertCorrectBandData("Latitude", 5, 277, -65.76707458496094, product);
+            assertCorrectBandData("Latitude", 2, 2, -73.20999145507812, product);
+            assertCorrectBandData("Latitude", 240, 2, -83.60804748535156, product);
+            assertCorrectBandData("Latitude", 2, 1999, 85.28460693359375, product);
+            assertCorrectBandData("Latitude", 240, 1999, 73.81525421142578, product);
             assertCorrectBandData("Longitude", 6, 278, 168.5465087890625, product);
             assertCorrectBandData("Time", 7, 279, 3.8276961829433537E8, product);
             //                                                                              raw counts
