@@ -72,19 +72,20 @@ var CAR_Tool = function() {
     var _$tab_Figures = $('#tab_figures');
     var _$tab_Text = $('#tab_text');
 
-    _$tab_Figures.click(function() {
+    var tab_figures_clicked = function() {
         _$tabPanel_Figures.removeClass('hidden');
         _$tabPanel_Text.addClass('hidden');
         _$tab_Figures.addClass('selected');
         _$tab_Text.removeClass('selected');
-    });
-
-    _$tab_Text.click(function() {
+    };
+    var tab_text_cklicked = function() {
         _$tabPanel_Figures.addClass('hidden');
         _$tabPanel_Text.removeClass('hidden');
         _$tab_Figures.removeClass('selected');
         _$tab_Text.addClass('selected');
-    });
+    };
+    _$tab_Figures.click(tab_figures_clicked);
+    _$tab_Text.click(tab_text_cklicked);
 
     // ############################
     // ##  Figure HTML Elements  ##
@@ -481,7 +482,13 @@ var CAR_Tool = function() {
         });
     }
 
-    function compute_div_id_images_height() {
+    function compute_height_of_different_ui_elements() {
+        var figures_selected = _$tab_Figures.hasClass('selected');
+
+        if (!figures_selected) {
+            tab_figures_clicked();
+        }
+
         var images_top = _$figures_ThumbsDiv.position().top;
         var footer_height = _$footer_div.outerHeight(true);
         var height = $(window).height() - images_top - footer_height - 22;
@@ -493,6 +500,21 @@ var CAR_Tool = function() {
 
         var tab_height = _$tabPanel_Figures.outerHeight();
         _$tabPanel_Text.css('height', tab_height + 'px');
+
+        tab_text_cklicked();
+
+        var $text_area_label = $('label[for="comment_text_area"]');
+        var text_label_top = $text_area_label.position().top;
+        var text_label_height = $text_area_label.outerHeight();
+        var text_tab_top = _$tabPanel_Text.position().top;
+        var text_tab_inner_height = _$tabPanel_Text.innerHeight();
+
+        var inner_offset = text_label_top - text_tab_top + text_label_height;
+        $('#comment_text_area').css('height', text_tab_inner_height -  inner_offset - 12);
+
+        if (figures_selected) {
+            tab_figures_clicked();
+        }
     }
 
     // ############################################################
@@ -556,8 +578,8 @@ var CAR_Tool = function() {
         ajax_update_component_options(_$templateFile_DropDown);
         ajax_update_component_options(_$defaultTable_DropDown);
         ajax_update_component_options(_$figures_DirDropDown);
-        compute_div_id_images_height();
-        $(window).resize(compute_div_id_images_height);
+        compute_height_of_different_ui_elements();
+        $(window).resize(compute_height_of_different_ui_elements);
     }
 
     var _sessionEvents = {
