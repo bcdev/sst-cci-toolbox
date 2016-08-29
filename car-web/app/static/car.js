@@ -490,6 +490,9 @@ var CAR_Tool = function() {
         var previewHeight = height - commentHeight;
         _$figures_PreviewDiv.css('height', previewHeight + 'px');
         _$figure_PreviewDiv.css('height', previewHeight + 'px');
+
+        var tab_height = _$tabPanel_Figures.outerHeight();
+        _$tabPanel_Text.css('height', tab_height + 'px');
     }
 
     // ############################################################
