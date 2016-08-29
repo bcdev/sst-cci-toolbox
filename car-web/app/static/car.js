@@ -67,10 +67,27 @@ var CAR_Tool = function() {
     // ###########################
     // ##  Tabs And Tab-Panels  ##
     // ###########################
-    var _$tabPanel_Figures = $('#tab_panel_figures');
-    var _$tabPanel_Text = $('#tab_panel_text');
+
     var _$tab_Figures = $('#tab_figures');
     var _$tab_Text = $('#tab_text');
+
+    var _$tabPanel_Figures = $('#tab_panel_figures');
+    var _$figures_DirDropDown = $('#figures_dir_drop_down');
+    var _$figures_WildcardInput = $('#figures_wildcard_input');
+    var _$figures_WildcardError = $('#wildcard_error');
+    var _$figures_KeysDropDown = $('#figures_keys');
+    var _$figure_Scaling = $('#figure_scaling');
+    var _$figures_ThumbsDiv = $('#figures_thumbs_div');
+    var _$figures_ThumbJQModel = $('#figures_thumb_jquery_model');
+    var _$figure_PreviewDiv = $('#figure_preview_div');
+    var _$figures_PreviewDiv = $('#figures_preview_div');
+    var _$figures_CommentDiv = $('#figures_comment_div');
+    var _$figures_Textarea = $('#figures_comment_t_area');
+    _$figures_Textarea.prop('disabled', true);
+
+    var _$tabPanel_Text = $('#tab_panel_text');
+    var _$text_Textarea = $('#comment_text_area');
+    _$text_Textarea.prop('disabled', true);
 
     var tab_figures_clicked = function() {
         _$tabPanel_Figures.removeClass('hidden');
@@ -87,21 +104,6 @@ var CAR_Tool = function() {
     _$tab_Figures.click(tab_figures_clicked);
     _$tab_Text.click(tab_text_cklicked);
 
-    // ############################
-    // ##  Figure HTML Elements  ##
-    // ############################
-
-    var _$figures_DirDropDown = $('#figures_dir_drop_down');
-    var _$figures_WildcardInput = $('#figures_wildcard_input');
-    var _$figures_WildcardError = $('#wildcard_error');
-    var _$figures_KeysDropDown = $('#figures_keys');
-    var _$figure_Scaling = $('#figure_scaling');
-    var _$figures_ThumbsDiv = $('#figures_thumbs_div');
-    var _$figures_ThumbJQModel = $('#figures_thumb_jquery_model');
-    var _$figure_PreviewDiv = $('#figure_preview_div');
-    var _$figures_PreviewDiv = $('#figures_preview_div');
-    var _$figures_CommentDiv = $('#figures_comment_div');
-    var _$figures_CommentTextarea = $('#figures_comment_textarea');
 
     // ############################################################
     // #######         D O C U M E N T   K E Y S            #######
@@ -510,7 +512,7 @@ var CAR_Tool = function() {
         var text_tab_inner_height = _$tabPanel_Text.innerHeight();
 
         var inner_offset = text_label_top - text_tab_top + text_label_height;
-        $('#comment_text_area').css('height', text_tab_inner_height -  inner_offset - 12);
+        _$text_Textarea.css('height', text_tab_inner_height - inner_offset - 12);
 
         if (figures_selected) {
             tab_figures_clicked();
