@@ -1,8 +1,8 @@
- /**
+/**
  * Created by sabine.embacher@brockmann-consult.de on 09.08.2016.
  */
 
-CAR_Keys = function(key_properties) {
+var CAR_Keys = function(key_properties) {
     var _ = this;
     var _properties = key_properties;
     if (_properties == null) {
@@ -19,6 +19,26 @@ CAR_Keys = function(key_properties) {
         return fig_keys;
     };
 
+    _.get_comment_keys = function() {
+        var comment_keys = [];
+        for (var key in _properties) {
+            if (key.match('^comment.')) {
+                comment_keys.push(key);
+            }
+        }
+        return comment_keys;
+    };
+
+    _.get_text_keys = function() {
+        var text_keys = _.get_comment_keys();
+        for (var key in _properties) {
+            if (key.match('^paragraph.')) {
+                text_keys.push(key);
+            }
+        }
+        return text_keys;
+    };
+    
     _.get_figure_defaults = function() {
         var figure_defaults = {};
         for (var key in _properties) {
@@ -29,7 +49,7 @@ CAR_Keys = function(key_properties) {
         return figure_defaults;
     };
 
-    _.get_figure_scalings= function() {
+    _.get_figure_scalings = function() {
         var scaling = {};
         for (var key in _properties) {
             if (key.match('^figure') && key.match('.scale$')) {
@@ -37,5 +57,17 @@ CAR_Keys = function(key_properties) {
             }
         }
         return scaling;
-    }
+    };
+
+    _.getCommentKeyFor = function(name_part){
+        var commentKeys = _.get_comment_keys();
+        var expr = name_part + '$';
+        for (var i in commentKeys) {
+            var key = commentKeys[i];
+            if (key.match(expr)) {
+                return key;
+            }
+        }
+        return '';
+    };
 };

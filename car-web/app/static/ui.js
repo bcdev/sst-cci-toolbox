@@ -2,7 +2,7 @@
  * Created by sabine.embacher@brockmann-consult.de on 09.08.2016.
  */
 
-CAR_COMMON_UI = function() {
+var CAR_COMMON_UI = function() {
     var _ = this;
 
     var _$overlay_div = $('#overlay');
@@ -234,5 +234,9 @@ CAR_COMMON_UI = function() {
             $clone.append('width: ' + width + ' &nbsp; height: ' + height);
             // $clone.append('#' + idx + ' &nbsp; width: ' + width + ' &nbsp; height: ' + height);
         }
+    };
+
+    _.disable_elem = function($elem, bool) {
+        $elem.prop('disabled', bool);
     };
 };

@@ -83,27 +83,53 @@ var CAR_Tool = function() {
     var _$figures_PreviewDiv = $('#figures_preview_div');
     var _$figures_CommentDiv = $('#figures_comment_div');
     var _$figures_Textarea = $('#figures_comment_t_area');
-    _$figures_Textarea.prop('disabled', true);
+    _ui_common.disable_elem(_$figures_Textarea, true);
 
     var _$tabPanel_Text = $('#tab_panel_text');
+    var _$text_KeyDropDown = $('#text_key_drop_down');
     var _$text_Textarea = $('#comment_text_area');
-    _$text_Textarea.prop('disabled', true);
+    _ui_common.disable_elem(_$text_Textarea, true);
 
     var tab_figures_clicked = function() {
         _$tabPanel_Figures.removeClass('hidden');
         _$tabPanel_Text.addClass('hidden');
         _$tab_Figures.addClass('selected');
         _$tab_Text.removeClass('selected');
+
+        var selectedFigureKey = getSelectedFigureKey();
+        var name_part = selectedFigureKey.substring(selectedFigureKey.indexOf('.'));
+        var comment_key;
+        if (_car_keys.getCommentKeyFor) {
+            comment_key = _car_keys.getCommentKeyFor(name_part);
+        } else {
+            comment_key = '';
+        }
+        var isCommentKey = isString_and_NotEmpty(comment_key);
+        _ui_common.disable_elem(_$figures_Textarea, !isCommentKey);
+        _$figures_Textarea.val('');
+        if (isCommentKey) {
+            var text = _car_session.getProperty(comment_key);
+            _$figures_Textarea.val(text);
+        }
     };
-    var tab_text_cklicked = function() {
+
+    var tab_text_clicked = function() {
         _$tabPanel_Figures.addClass('hidden');
         _$tabPanel_Text.removeClass('hidden');
         _$tab_Figures.removeClass('selected');
         _$tab_Text.addClass('selected');
+
+        var text_key = getSelectedTextKey();
+        var isTextKey = isString_and_NotEmpty(text_key);
+        _ui_common.disable_elem(_$text_Textarea, !isTextKey);
+        _$text_Textarea.val('');
+        if (isTextKey) {
+            var text = _car_session.getProperty(text_key);
+            _$text_Textarea.val(text);
+        }
     };
     _$tab_Figures.click(tab_figures_clicked);
-    _$tab_Text.click(tab_text_cklicked);
-
+    _$tab_Text.click(tab_text_clicked);
 
     // ############################################################
     // #######         D O C U M E N T   K E Y S            #######
@@ -113,13 +139,22 @@ var CAR_Tool = function() {
 
     function setKeys(car_keys) {
         _car_keys = car_keys;
-        var $firstOption = _$figures_KeysDropDown.find('option').first();
+        var $firstFigureOption = _$figures_KeysDropDown.find('option').first();
         _$figures_KeysDropDown.empty();
-        _$figures_KeysDropDown.append($firstOption);
+        _$figures_KeysDropDown.append($firstFigureOption);
         var figure_keys = _car_keys.get_figure_keys();
         for (var idx in figure_keys) {
             var key = figure_keys[idx];
             _$figures_KeysDropDown.append($('<option value="' + key + '">' + key + '</option>'));
+        }
+
+        var $firstTextOption = _$text_KeyDropDown.find('option').first();
+        _$text_KeyDropDown.empty();
+        _$text_KeyDropDown.append($firstTextOption);
+        var text_keys = _car_keys.get_text_keys();
+        for (var idx in text_keys) {
+            var key = text_keys[idx];
+            _$text_KeyDropDown.append($('<option value="' + key + '">' + key + '</option>'));
         }
     }
 
@@ -130,24 +165,25 @@ var CAR_Tool = function() {
     var _car_session = {};
     _car_session = new CAR_Session();
 
-    _.getSession = function() {
+    function getSession() {
         return _car_session;
-    };
+    }
 
     function setSession(car_session) {
         _car_session = car_session;
         _ui_common.removePreviewImage();
         update_ui();
         checkState();
+        empty_and_disable_text_areas();
     }
 
     function set_values_from_default_table() {
         var default_keys = _car_keys.get_figure_defaults();
         for (var key in default_keys) {
-            var val = default_keys[key];
-            _car_session.setProperty(key, val);
+            var fig_name = default_keys[key];
+            _car_session.setProperty(key, fig_name);
             key = key.replace('.default', '');
-            _car_session.setProperty(key, val);
+            _car_session.setProperty(key, fig_name);
         }
         var scalings = _car_keys.get_figure_scalings();
         for (var key in scalings) {
@@ -269,8 +305,19 @@ var CAR_Tool = function() {
         }
     }
 
+    function empty_and_disable_text_areas() {
+        _$text_Textarea.val('');
+        _ui_common.disable_elem(_$text_Textarea, true);
+        _$figures_Textarea.val('');
+        _ui_common.disable_elem(_$figures_Textarea, true);
+    }
+
     function getSelectedFigureKey() {
         return _$figures_KeysDropDown.val();
+    }
+
+    function getSelectedTextKey() {
+        return _$text_KeyDropDown.val();
     }
 
     function isSingleFigureKey(key) {
@@ -285,9 +332,9 @@ var CAR_Tool = function() {
     // #######                 I M A G E S                  #######
     // ############################################################
 
-    _.getImages = function() {
+    function getImages() {
         return _images;
-    };
+    }
 
     function setImages(images) {
         _images = images;
@@ -402,12 +449,12 @@ var CAR_Tool = function() {
 
     function checkState() {
         var defaultTableSelected = _$defaultTable_DropDown.prop('selectedIndex') > 0;
-        _$saveSession_Button.prop('disabled', !defaultTableSelected || !_car_session.hasFileName());
-        _$saveSessionAs_Button.prop('disabled', !defaultTableSelected);
+        _ui_common.disable_elem(_$saveSession_Button, !defaultTableSelected || !_car_session.hasFileName());
+        _ui_common.disable_elem(_$saveSessionAs_Button, !defaultTableSelected);
 
         var figure_key = _$figures_KeysDropDown.val();
         var figureKeyIsSelected = isString_and_NotEmpty(figure_key);
-        _$figures_ThumbsDiv.find('input').prop('disabled', !figureKeyIsSelected);
+        _ui_common.disable_elem(_$figures_ThumbsDiv.find('input'), !figureKeyIsSelected);
     }
 
     function remove_image_dir_dependent_keys_from_session() {
@@ -503,7 +550,7 @@ var CAR_Tool = function() {
         var tab_height = _$tabPanel_Figures.outerHeight();
         _$tabPanel_Text.css('height', tab_height + 'px');
 
-        tab_text_cklicked();
+        tab_text_clicked();
 
         var $text_area_label = $('label[for="comment_text_area"]');
         var text_label_top = $text_area_label.position().top;
@@ -758,16 +805,38 @@ var CAR_Tool = function() {
         }
     }
 
-    var _figure_events = {
+    var _figure_tab_events = {
         bind: function() {
             _$figures_DirDropDown.change(function() {
                 var dir = _$figures_DirDropDown.val();
                 figures_dir_change(dir, check_wildcard);
             });
 
+            _$figures_Textarea.blur(function() {
+                var key = getSelectedFigureKey();
+                var name_part = key.substring(key.indexOf('.'));
+                var comment_key = _car_keys.getCommentKeyFor(name_part);
+                var isCommentKey = isString_and_NotEmpty(comment_key);
+                if (isCommentKey) {
+                    var value = _$figures_Textarea.val();
+                    _car_session.setProperty(comment_key, value);
+                }
+            });
+
             _$figures_KeysDropDown.change(function() {
                 checkState();
                 var key = getSelectedFigureKey();
+                var name_part = key.substring(key.indexOf('.'));
+
+                var comment_key = _car_keys.getCommentKeyFor(name_part);
+                var isCommentKey = isString_and_NotEmpty(comment_key);
+                _ui_common.disable_elem(_$figures_Textarea, !isCommentKey);
+                _$figures_Textarea.val('');
+                if (isCommentKey) {
+                    var text = _car_session.getProperty(comment_key);
+                    _$figures_Textarea.val(text);
+                }
+
                 if (isMultiFigureKey(key)) {
                     updateMultiFigureUi(key);
                 } else {
@@ -780,7 +849,7 @@ var CAR_Tool = function() {
                 _$figure_Scaling.val(scale);
             });
 
-            _$figure_Scaling.blur(function(event) {
+            _$figure_Scaling.blur(function() {
                 var key = getSelectedFigureKey();
                 if (isNull_or_NotStr_or_Empty(key)) {
                     return;
@@ -800,12 +869,39 @@ var CAR_Tool = function() {
         }
     };
 
+    var _text_tab_events = {
+        bind: function() {
+
+            _$text_Textarea.blur(function() {
+                var text_key = getSelectedTextKey();
+                var isTextKey = isString_and_NotEmpty(text_key);
+                if (isTextKey) {
+                    var value = _$text_Textarea.val();
+                    _car_session.setProperty(text_key, value);
+                }
+            });
+
+            _$text_KeyDropDown.change(function() {
+                checkState();
+                var text_key = getSelectedTextKey();
+                var isTextKey = isString_and_NotEmpty(text_key);
+                _ui_common.disable_elem(_$text_Textarea, !isTextKey);
+                _$text_Textarea.val('');
+                if (isTextKey) {
+                    var text = _car_session.getProperty(text_key);
+                    _$text_Textarea.val(text);
+                }
+            });
+        }
+    };
+
     function bindEvents() {
         _sessionEvents.bind();
         _defaultTableEvents.bind();
         _templateFileEvents.bind();
         _document_render_events.bind();
-        _figure_events.bind();
+        _figure_tab_events.bind();
+        _text_tab_events.bind();
     }
 
     initUI();
