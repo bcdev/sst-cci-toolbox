@@ -24,6 +24,7 @@ thumb_back = app.config['THUMBNAIL_BACKGROUND']
 images = Images(app)
 app.config['IMAGES_PATH'].append(car_figures_dir)
 
+_allowed_image_extenstions = ['.jpg', '.png']
 
 @app.route('/upload/template', methods=['POST'])
 def upload_template():
@@ -41,7 +42,7 @@ def get_image():
     directory = request.args.get('dir')
     dir_path = _create_figures_dir_path(directory)
     _log_info('Send image: ' + dir_path + '/' + filename)
-    return send_from_directory(dir_path, filename, mimetype='image/png')
+    return send_from_directory(dir_path, filename)
 
 
 @app.route('/get_images', methods=['POST'])
@@ -53,7 +54,7 @@ def get_images():
             images_dir = _create_figures_dir_path(dir_)
             _log_info("Get images list from " + images_dir)
             images = os.listdir(images_dir)
-            images = filter(lambda f: f.endswith('.png'), images)
+            images = [fn for fn in images if any(fn.endswith(ext) for ext in _allowed_image_extenstions)]
             ret = []
             for img in images:
                 img_path = os.path.join(dir_, img)
@@ -365,6 +366,7 @@ def _create_figures_dir_drop_down_options():
     for dir, dirs, files in os.walk(car_figures_dir):
         is_figures_root_dir = dir == car_figures_dir
         relpath = os.path.relpath(dir, car_figures_dir)
+        files = [fn for fn in files if any(fn.endswith(ext) for ext in _allowed_image_extenstions)]
         if len(files) > 0:
             ret += '<option value="' + relpath + '" >'
             if is_figures_root_dir:
