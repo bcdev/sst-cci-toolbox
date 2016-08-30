@@ -12,6 +12,7 @@ var CAR_COMMON_UI = function() {
     var _$figures_KeysDropDown = $('#figures_keys');
     var _$figures_thumbs_div = $('#figures_thumbs_div');
     var _$figure_PreviewDiv = $('#figure_preview_div');
+    var _$figure_PreviewLink = $('#figure_preview_link');
     var _$figure_PreviewImg = $('#figure_preview_img');
     var _$figures_PreviewDiv = $('#figures_preview_div');
     var _$figures_ThumbJQModel = $('#figures_thumb_jquery_model');
@@ -192,6 +193,7 @@ var CAR_COMMON_UI = function() {
 
     _.removePreviewImage = function() {
         _$figure_PreviewImg.removeAttr('src');
+        _$figure_PreviewLink.removeAttr('href');
     };
 
     _.set_preview_image_for_name = function(image_name) {
@@ -205,6 +207,7 @@ var CAR_COMMON_UI = function() {
             // _$figure_PreviewImg.attr('src', './static/img/Chasing arrows.gif');
             // _$figure_PreviewImg.attr('src', './static/img/Snake.gif');
             _$figure_PreviewImg.attr('src', './static/img/Funnel.gif');
+            _$figure_PreviewLink.attr('href', url);
             // _$figure_PreviewImg.attr('src', './static/img/Radar.gif');
             var image = new Image;
             image.src = url;
@@ -226,6 +229,7 @@ var CAR_COMMON_UI = function() {
             var $clone = _$figures_ThumbJQModel.clone();
             $clone.removeAttr('id');
             var $img = $clone.find('img');
+            $img.wrap('<a href="' + url + '" target="_blank">');
             $img.attr('src', url);
             $img.on('mouseover', null, name, function(event) {
                 _.select_figure_checkbox_with_name(event.data);
