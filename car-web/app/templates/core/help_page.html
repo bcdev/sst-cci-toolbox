@@ -10,11 +10,14 @@
         color: #8b0000;
     }
 
+    .ui_link {
+        color: #337ab7;
+    }
+
     #footer-div {
         padding-bottom: 1500px;
     }
 </style>
-<p id="help">
 
 <h2>Help <span style="color: #ff0000"> !under construction!</span></h2>
 <br>
@@ -63,40 +66,73 @@
 
 <h3><a name="overview"></a><a href="#toc">Overview</a></h3>
 <div class="i">
-    Welcome to the ESACCI-SST CAR Tool
+    <p>Welcome to the ESACCI-SST CAR Tool
+    <p>The <u>C</u>limate <u>A</u>ssessment <u>R</u>eport Tool processes uploaded template files (Microsoft Word *.docx format) and replaces
+        variables, named by an uploaded default table (key-value pairs *.properties format), with parameter values supplied by the registered user of the CAR-WEB-Tool.
 </div>
 
 <h3><a name="session"></a><a href="#toc">Session</a></h3>
 <div class="i">
     <h4>General</h4>
     <div class="i">
-        A session in the end is a property container which will be send to the server if the user want a word document should be created.
+        A session in the end is a property container which will be send to the server when the user has clicked "<span class="ui_link">create and download document</span>".
+        The server then writes all the key-value pairs and starts the document rendering.
     </div>
 
     <h4><a name="session_content"></a><a href="#toc">Session Content</a></h4>
     <div class="i">
         <ul>
-            <li>the figures directory name</li>
-            <li>the name of the default table</li>
             <li>the name of the template document</li>
+            <li>the name of the default table</li>
+            <li>the figures directory name</li>
             <li>the selected figures</li>
             <li>the selected multi figure groups</li>
             <li>the scaling for single figures and grouped figures</li>
-            <li>the comment text (if predefined by default table for a figure or multi figure)</li>
-            <li>text replacement</li>
+            <li>text replacement for each key defined in the default table</li>
         </ul>
     </div>
     <h4><a name="session_load"></a><a href="#toc">Load Session</a></h4>
+    <div class="i">
+        Users are able to open their own sessions or load (not open) sessions from other users. If a session from an other user is loaded, a new session with the same
+        name an all the properties are created. The session can be saved with the same (unmodified) name or with an new (user defined) name.
+        Independent if the session is saved with the same or a changed name, the new session allwas is saved in the own user directory.
+        <br>
+        <br>
+        <u>Usecase:</u><br>
+        - User_B can load a session created by User_A and continue working on this session.<br>
+        - User_B appends several images and text to the session.<br>
+        - User_B saves the changed session.<br>
+        - Now User_A can load the session modified by User_B and continue working on this session.<br>
+        - Now User_A appends several images and text to the session.<br>
+        - User_A saves the changed session.<br>
+        - . . . and so on . . . <br>
+        - When the session is ready to render the Report Document, any registered User can open this session and can download the rendered document.
+    </div>
 
     <h4><a name="session_save_as"></a><a href="#toc">Save Session As ...</a></h4>
+    <div class="i">
+        If you have created a new session, you can give the session a name and save it to your own server side user directory.<br>
+        If you have loaded an existing session, you can <b>rename</b> the session and save it to your own server side user directory.
+    </div>
 
     <h4><a name="session_save"></a><a href="#toc">Save Session</a></h4>
+    <div class="i">
+        Save the session with the given name in your own server side user directory.<br>
+        The button is disabled as long as the session has not a valid name.
+    </div>
 </div>
 
 
 <h3><a name="default_table"></a><a href="#toc">Default Table</a></h3>
 <div class="i">
+    A default table is a *.properties file which contains key-value pairs.
+    The same keys should exist in the template document too.<br>
+    <br>
+
     <h4><a name="default_table_upload"></a><a href="#toc">Upload</a></h4>
+    <div class="i">
+
+    </div>
 </div>
 
 
@@ -175,6 +211,5 @@
 
     <h4><a name="figure_comment"></a><a href="#toc">Figure Comment</a></h4>
 </div>
-
 
 {% endblock %}
