@@ -21,7 +21,7 @@ var CAR_COMMON_UI = function() {
         if (isSingleFigureKey()) {
             _.show_elem(_$figure_PreviewDiv);
             _.hide_elem(_$figures_PreviewDiv);
-        } else if (isMultiFigureKey() ){
+        } else if (isMultiFigureKey()) {
             _.hide_elem(_$figure_PreviewDiv);
             _.show_elem(_$figures_PreviewDiv);
         } else {
@@ -200,7 +200,17 @@ var CAR_COMMON_UI = function() {
             _.removePreviewImage();
         } else {
             var url = $label.find('input').val();
-            _$figure_PreviewImg.attr('src', url);
+            url += '&t=' + new Date().getTime();
+            // _$figure_PreviewImg.attr('src', url);
+            _$figure_PreviewImg.attr('src', './static/img/Chasing arrows.gif');
+            // _$figure_PreviewImg.attr('src', './static/img/Snake.gif');
+            // _$figure_PreviewImg.attr('src', './static/img/Funnel.gif');
+            // _$figure_PreviewImg.attr('src', './static/img/Radar.gif');
+            var image = new Image;
+            image.src = url;
+            image.onload = function() {
+                _$figure_PreviewImg.attr('src', url);
+            }
         }
     };
 
@@ -218,7 +228,7 @@ var CAR_COMMON_UI = function() {
             var $img = $clone.find('img');
             $img.attr('src', url);
             $img.on('mouseover', null, name, function(event) {
-               _.select_figure_checkbox_with_name(event.data);
+                _.select_figure_checkbox_with_name(event.data);
             });
             var $input = $clone.find('input');
             $input.val(name);
