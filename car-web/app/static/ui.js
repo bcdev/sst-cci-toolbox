@@ -200,7 +200,7 @@ var CAR_COMMON_UI = function() {
             _.removePreviewImage();
         } else {
             var url = $label.find('input').val();
-            url += '&t=' + new Date().getTime();
+            // url += '&t=' + new Date().getTime();
             // _$figure_PreviewImg.attr('src', url);
             _$figure_PreviewImg.attr('src', './static/img/Chasing arrows.gif');
             // _$figure_PreviewImg.attr('src', './static/img/Snake.gif');
