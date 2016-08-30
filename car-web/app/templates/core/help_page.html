@@ -125,20 +125,102 @@
 
 <h3><a name="default_table"></a><a href="#toc">Default Table</a></h3>
 <div class="i">
-    A default table is a *.properties file which contains key-value pairs.
-    The same keys should exist in the template document too.<br>
-    <br>
+    A default table is a *.properties file which contains key-value pairs. The Properties file format is described in
+    detail at <a href="https://en.wikipedia.org/wiki/.properties" target="_blank">https://en.wikipedia.org/wiki/.properties</a><br>
+    The key/value pairs are defined in a single line, key and value are separated by '='.<br>
+    The same keys also has to be defined in the template document.<br>
 
+    All entries in the properties file are variable definitions that are explained in the <a href="#template_document">Template Document</a> section.
     <h4><a name="default_table_upload"></a><a href="#toc">Upload</a></h4>
     <div class="i">
-
+        Each user can upload default tables.<br>
+        Each uploaded file is saved in the server side user directory.<br>
+        Each uploaded default table is available for each user.
     </div>
 </div>
 
 
 <h3><a name="template_document"></a><a href="#toc">Template Document</a></h3>
 <div class="i">
-    <h4><a name="template_document_upload"></a><a href="#toc">Upload</a></h4>
+    <p>A template document is a Microsoft Office Open XML document (*.docx file). The Office Open XML document is described in
+        detail at <a target="_blank" href="https://en.wikipedia.org/wiki/Office_Open_XML_file_formats">https://en.wikipedia.org/wiki/Office_Open_XML_file_formats</a>
+    <p>Such a template document contains variables.
+    <p> Variables in the word-document template are placeholders for content supplied by the assessment-tool. Variables in
+        the word document follow the convention
+
+        <div class="i">
+    <p>${variable_name}
+</div>
+
+<p> Variables can be replaced by text or figures. When replacing variables, the formatting of the word-document is
+    not touched.
+
+<p> Variables in the properties file are stored as mere names, without the surrounding '${' and '}'.
+
+<p> The variable name has to follow a specific pattern that also defines the replacing functionality. A variable name
+    consists of a functional description, the name and an optional suffix, separated by a dot '.'.
+
+<p> Example:<br>
+    description.name.suffix
+
+<p><u>The functional descriptions are:</u>
+
+<p> - comment<br>
+<div class="i">
+    Replaces the variable occurrence with the variable value, creating a complete paragraph.<br><br>
+    Example:<br>
+    comment.Figure_2<br><br>
+</div>
+<p> - paragraph<br>
+<div class="i">
+    Replaces the variable occurrence with the variable value, creating a complete paragraph.<br><br>
+    Example:<br>
+    paragraph.summary_text<br><br>
+</div>
+
+
+<p> - figure<br>
+<div class="i">
+    Replaces the variable occurrence with a figure. The variable value must be an existing<br>
+    image file in PNG format, stored in the directory defined by 'figures.directory'<br><br>
+    Example:<br>
+    figure.dependence = atsr3-skin-raw-drifter-dependence-av1.png<br><br>
+</div>
+
+
+<p> - figures
+<div class="i">
+    Replaces the variable occurrence with multiple figures. The variable value must be a ';' separated<br>
+    number of images, stored in the directory defined by 'figures.directory'<br><br>
+    Example:<br>
+    figures.plot_lag_corr = lag_corr_*.png<br><br>
+</div>
+
+
+<p><u>Suffixes</u>
+
+<p> - scale
+<div class="i">
+    Allows to supply an optional scaling factor for the 'figure' and 'figures' descriptors. The default value is 0.2.<br><br>
+    Example:<br>
+    figure.dependence.scale = 0.45<br><br>
+</div>
+
+
+<p> - default
+<div class="i">
+    Allows to supply a default value for any variable whis is used incase the variable is not set. This is an optional suffix.<br><br>
+    Example:<br>
+    paragraph.summary_text.default = TODO: we need to write something here<br><br>
+</div>
+
+
+<h4><a name="template_document_upload"></a><a href="#toc">Upload</a></h4>
+<div class="i">
+    Each user can upload template documents.<br>
+    Each uploaded file is saved in the server side user directory.<br>
+    Each uploaded default table is available for each user.
+</div>
 </div>
 
 <h3><a name="figures_tab"></a><a href="#toc">Figures Tab</a></h3>
