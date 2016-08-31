@@ -31,6 +31,7 @@
             <li><a href="#session_load">Load Session</a></li>
             <li><a href="#session_save_as">Save Session As ...</a></li>
             <li><a href="#session_save">Save Session</a></li>
+            <li><a href="#collaborative_work">Session based Collaboration</a></li>
         </ol>
     </li>
     <li><a href="#default_table">Default Table</a>
@@ -67,35 +68,66 @@
 <h3><a name="overview"></a><a href="#toc">Overview</a></h3>
 <div class="i">
     <p>Welcome to the ESACCI-SST CAR Tool
-    <p>The <u>C</u>limate <u>A</u>ssessment <u>R</u>eport Tool processes uploaded template files (Microsoft Word *.docx format) and replaces
-        variables, named by an uploaded default table (key-value pairs *.properties format), with parameter values supplied by the registered user of the CAR-WEB-Tool.
+    <p>The <u>C</u>limate <u>A</u>ssessment <u>R</u>eport Tool shall simplify the generation of climate report documents
+        by offering a comfortable image browse and assign mechanism.
+        The tool allows to processes uploaded template files (Microsoft Word *.docx format) and replaces variables that
+        can be assigned to images or texts. The associated set of variables
+        is defined in a default table (key-value pairs *.properties format).
 </div>
 
 <h3><a name="session"></a><a href="#toc">Session</a></h3>
 <div class="i">
     <h4>General</h4>
     <div class="i">
-        A session in the end is a property container which will be send to the server when the user has clicked "<span class="ui_link">create and download document</span>".
-        The server then writes all the key-value pairs and starts the document rendering.
+        A session is the working context of the web-tool. It consists of all settings the user has made in the current
+        session and represents the "state" of the tool.
+        Sessions can be loaded and saved and shared between users; sessions of other users are read-only. When logging
+        in to the web-tool an unnamed default session is created.
+        Technically, a session is a property container that will be send to the server when the user has clicked "<span
+            class="ui_link">create and download document</span>".
+        The server-engine uses the information stored in the session to render the final word document.
     </div>
 
     <h4><a name="session_content"></a><a href="#toc">Session Content</a></h4>
     <div class="i">
+        As stated above, a session contains all settings a user has made. Technically, the content consists of:
         <ul>
             <li>the name of the template document</li>
             <li>the name of the default table</li>
             <li>the figures directory name</li>
             <li>the selected figures</li>
-            <li>the selected multi figure groups</li>
-            <li>the scaling for single figures and grouped figures</li>
-            <li>text replacement for each key defined in the default table</li>
+            <li>the selected multi-figure groups</li>
+            <li>the scaling factors for single figures and grouped figures</li>
+            <li>text replacement for each text-key</li>
         </ul>
     </div>
+
     <h4><a name="session_load"></a><a href="#toc">Load Session</a></h4>
     <div class="i">
-        Users are able to open their own sessions or load (not open) sessions from other users. If a session from an other user is loaded, a new session with the same
-        name an all the properties are created. The session can be saved with the same (unmodified) name or with an new (user defined) name.
-        Independent if the session is saved with the same or a changed name, the new session allwas is saved in the own user directory.
+        Users are able to open (read/write access) their own sessions or load (read-only) sessions from other users.
+        When a session of another user is loaded, a new session
+        for the current user is created that has the same name and the same properties of the original. The session can
+        be saved with the same (unmodified) name or with an
+        new (user defined) name. All sessions saved belong to the user currently logged in, also the ones copied from
+        other users.
+    </div>
+
+    <h4><a name="session_save_as"></a><a href="#toc">Save Session As ...</a></h4>
+    <div class="i">
+        Any active session can be saved to the user session directory using a different name using the "Save Session As
+        ..." functionality.
+    </div>
+
+    <h4><a name="session_save"></a><a href="#toc">Save Session</a></h4>
+    <div class="i">
+        Saves the current session to the user session directory.<br>
+        The button is disabled as long as the session has not a valid name; use "Save Session As ..." to supply an
+        initial session name.
+    </div>
+
+    <h4><a name="collaborative_work"></a><a href="#toc">Session based Collaboration</a></h4>
+    <div class="i">
+        The mechanism of session sharing allows a comfortable way to implement collyborative working:
         <br>
         <br>
         <u>Usecase:</u><br>
@@ -106,53 +138,48 @@
         - Now User_A appends several images and text to the session.<br>
         - User_A saves the changed session.<br>
         - . . . and so on . . . <br>
-        - When the session is ready to render the Report Document, any registered User can open this session and can download the rendered document.
-    </div>
-
-    <h4><a name="session_save_as"></a><a href="#toc">Save Session As ...</a></h4>
-    <div class="i">
-        If you have created a new session, you can give the session a name and save it to your own server side user directory.<br>
-        If you have loaded an existing session, you can <b>rename</b> the session and save it to your own server side user directory.
-    </div>
-
-    <h4><a name="session_save"></a><a href="#toc">Save Session</a></h4>
-    <div class="i">
-        Save the session with the given name in your own server side user directory.<br>
-        The button is disabled as long as the session has not a valid name.
+        - When the session is ready to render the final document, any registered user can open this session and initiate
+        the document rendering.
     </div>
 </div>
 
 
 <h3><a name="default_table"></a><a href="#toc">Default Table</a></h3>
 <div class="i">
-    A default table is a *.properties file which contains key-value pairs. The Properties file format is described in
-    detail at <a href="https://en.wikipedia.org/wiki/.properties" target="_blank">https://en.wikipedia.org/wiki/.properties</a><br>
+    A Default Table is a set of key/values pairs that define the properties of the replacement process taking part when
+    the document is rendered.
+    Technically, a Default Table is stored in a Java properties object that can be saved and loaded to/from a
+    *.properties file which contains the key-value pairs.
+    The Properties file format is described in detail at <a href="https://en.wikipedia.org/wiki/.properties"
+                                                            target="_blank">https://en.wikipedia.org/wiki/.properties</a><br>
     The key/value pairs are defined in a single line, key and value are separated by '='.<br>
-    The same keys also has to be defined in the template document.<br>
 
-    All entries in the properties file are variable definitions that are explained in the <a href="#template_document">Template Document</a> section.
+    All entries in the properties file are variable definitions that are explained in the <a href="#template_document">Template
+    Document</a> section.
+
     <h4><a name="default_table_upload"></a><a href="#toc">Upload</a></h4>
     <div class="i">
-        Each user can upload default tables.<br>
-        Each uploaded file is saved in the server side user directory.<br>
-        Each uploaded default table is available for each user.
+        Each user can upload any number of Default Tables.<br>
+        Each uploaded Default Table file is saved in the server sided user directory.<br>
+        Each uploaded Default Table is available as selection to any user of the CAR tool.
     </div>
 </div>
 
 
 <h3><a name="template_document"></a><a href="#toc">Template Document</a></h3>
 <div class="i">
-    <p>A template document is a Microsoft Office Open XML document (*.docx file). The Office Open XML document is described in
+    <p>A template document is a Microsoft Office Open XML document (*.docx file) containing a number of variables that
+        shall be replaced
+        with image or text content using the CAR Tool. The Office Open XML document is described in
         detail at <a target="_blank" href="https://en.wikipedia.org/wiki/Office_Open_XML_file_formats">https://en.wikipedia.org/wiki/Office_Open_XML_file_formats</a>
-    <p>Such a template document contains variables.
-    <p> Variables in the word-document template are placeholders for content supplied by the assessment-tool. Variables in
-        the word document follow the convention
-
-        <div class="i">
-    <p>${variable_name}
+    <p>
+        Variables in the word document follow the convention
+    <p>
+    <pre>${variable_name}</pre>
 </div>
 
-<p> Variables can be replaced by text or figures. When replacing variables, the formatting of the word-document is
+
+<p> Variables can be replaced by text or figures. During the variable replacement operation, the formatting, font type and size and other attributes of the word-document are
     not touched.
 
 <p> Variables in the properties file are stored as mere names, without the surrounding '${' and '}'.
@@ -161,19 +188,19 @@
     consists of a functional description, the name and an optional suffix, separated by a dot '.'.
 
 <p> Example:<br>
-    description.name.suffix
+    <pre>description.name.suffix</pre>
 
 <p><u>The functional descriptions are:</u>
 
 <p> - comment<br>
 <div class="i">
-    Replaces the variable occurrence with the variable value, creating a complete paragraph.<br><br>
+    Replaces the variable occurrence with the variable text value, creating a complete paragraph.<br><br>
     Example:<br>
     comment.Figure_2<br><br>
 </div>
 <p> - paragraph<br>
 <div class="i">
-    Replaces the variable occurrence with the variable value, creating a complete paragraph.<br><br>
+    Replaces the variable occurrence with the variable text value, creating a complete paragraph.<br><br>
     Example:<br>
     paragraph.summary_text<br><br>
 </div>
@@ -201,7 +228,8 @@
 
 <p> - scale
 <div class="i">
-    Allows to supply an optional scaling factor for the 'figure' and 'figures' descriptors. The default value is 0.2.<br><br>
+    Allows to supply an optional scaling factor for the 'figure' and 'figures' descriptors. The default value is
+    0.2.<br><br>
     Example:<br>
     figure.dependence.scale = 0.45<br><br>
 </div>
@@ -209,7 +237,8 @@
 
 <p> - default
 <div class="i">
-    Allows to supply a default value for any variable whis is used incase the variable is not set. This is an optional suffix.<br><br>
+    Allows to supply a default value for any variable whichs is used in case the variable is not set. This is an optional
+    suffix.<br><br>
     Example:<br>
     paragraph.summary_text.default = TODO: we need to write something here<br><br>
 </div>
@@ -217,23 +246,32 @@
 
 <h4><a name="template_document_upload"></a><a href="#toc">Upload</a></h4>
 <div class="i">
-    Each user can upload template documents.<br>
-    Each uploaded file is saved in the server side user directory.<br>
-    Each uploaded default table is available for each user.
-</div>
+    Each user can upload any number of template documents.<br>
+    Each uploaded file is saved in the server sided user directory.<br>
+    Each uploaded default table is available for all users of the CAR tool.
 </div>
 
 <h3><a name="figures_tab"></a><a href="#toc">Figures Tab</a></h3>
 <div class="i">
     <h4><a name="figures_directory"></a><a href="#toc">Figures Directory</a></h4>
+    <div class="i">
+    This drop-down selection element lists all figures directory that are available. Select one of the directories to access the figures.
+    </div>
 
     <h4><a name="thumbnail_preview"></a><a href="#toc">Thumbnail Preview</a></h4>
+
+    <div class="i">
+        The Tumbnail Preview section of the screen is a scrollable image pane that allows to quickly browse through the available images.
+        Click on the checkbox left to the file name to select and assign a figure to a variable.
+    </div>
 
     <h4><a name="wildcard"></a><a href="#toc">Wildcard</a></h4>
     <div class="i">
         Use the text field to filter thumbnails.<br>
         Filter rules has to be defined according to regular expressions.<br>
-        To get familiar with regular expressions you can visit tutorials. For example the <a target="_blank" href="https://regexone.com/">regexone.com</a> tutorial.<br>
+        To get familiar with regular expressions you can visit tutorials. For example the <a target="_blank"
+                                                                                             href="https://regexone.com/">regexone.com</a>
+        tutorial.<br>
         <span class="important">Attention! Filtering in this cci tool is always case insensitive.</span>
         <br>
         <h5>Examples:</h5>
@@ -273,8 +311,10 @@
             <li>
                 If you want to find all images which does not contain a 'k'.<br>
                 Enter: <code>"^[^k]+$"</code><br>
-                The caret in the character class (<code>[^</code>) means match anything but, so this means, beginning (<code>^</code>) of string,
-                then one or more (<code>+</code>) times of any character except 'k' (<code>[^k]</code>), then the end (<code>$</code>) of the string.<br>
+                The caret in the character class (<code>[^</code>) means match anything but, so this means, beginning
+                (<code>^</code>) of string,
+                then one or more (<code>+</code>) times of any character except 'k' (<code>[^k]</code>), then the end
+                (<code>$</code>) of the string.<br>
                 Result:
                 &lt;abc_plot_lsf.png&gt;
                 <span style="text-decoration: line-through;">&lt;plot_klm.jpg&gt;</span>
@@ -285,20 +325,58 @@
 
     <h4><a name="figure_key"></a><a href="#toc">Figure Key</a></h4>
 
+    <div class="i">
+        This dropdown menu contains all variable names available in the Default Table that can be asociated to images.
+        First select a figure key, then select an image from the Thumbnail Preview pane to associate both, associations
+        are stored automatically when a selection has been made.
+    </div>
+
     <h4><a name="scaling"></a><a href="#toc">Scaling</a></h4>
+
+    <div class="i">
+        The optional text field for the scaling allows to enter a scalng factor that will be associated to the image. The scaling factor is applied
+        during the rendering operation to adapt the image size in the final document. The default value applied (i.e. when no value is entered) is 0.2.
+    </div>
 
     <h4><a name="si_fi_pre"></a><a href="#toc">Single Figure Preview</a></h4>
 
+    <div class="i">
+        This central image panel displays a full size image view of the selected image.
+    </div>
+
     <h4><a name="mu_fi_pre"></a><a href="#toc">Multi Figure Preview</a></h4>
 
+    <div class="i">
+        When a multi-figure figure key is selecetd, the figure preview panel is switched to multi-figure mode. You can
+        add any number of figures by clicking the checkbox in the Thumbnail Preview panel. You can remove figures by de-selecting the
+        checkboxes in the Multi Figure Preview panel. Scaling is applied to all images uniformly.
+    </div>
+
     <h4><a name="figure_comment"></a><a href="#toc">Figure Comment</a></h4>
+
+    <div class="i">
+        When the CAR web-tool detects an associated comment key to the selected figure (that is displayed in the Figure Preview), the
+        Comment text field ca be used to add a comment. If no associated key exists, all edits in the comments box are discarded when switching to
+        the next figure key.
+    </div>
+
 </div>
 
 <h3><a name="text_tab"></a><a href="#toc">Text Tab</a></h3>
+
 <div class="i">
-    <h4><a name="text_key"></a><a href="#toc">Text Key</a></h4>
+    The text tab of the CAR web-tool allows editing all template keys that are associated to text input. The text area should be large enough to also edit lengthy
+    comments that do not completely fit into the comments area on the image tab.
 </div>
 
+<div class="i">
+    <h4><a name="text_key"></a><a href="#toc">Text Key</a></h4>
+
+    <div class="i">
+        This dropdown menu contains all variable names available in the Default Table that can be associated textual input.
+        First select a text key, then select enter the desired text into the text area. Changes are saved automatically.
+    </div>
+</div>
 
 
 {% endblock %}
