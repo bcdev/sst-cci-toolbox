@@ -32,6 +32,7 @@
     {% block body %}
         <!-- Application specific HTML -->
         <div id="header-div" class="clearfix with-margins">
+            <a name="top"></a>
             <div class="pull-left"><a href="{{ url_for('core.home_page') }}"><span class="header-title">ESACCI-SST CAR Tool</span></a></div>
             <div class="pull-right">
                 {% if current_user.is_authenticated %}
