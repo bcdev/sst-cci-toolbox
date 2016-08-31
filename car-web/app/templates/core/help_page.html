@@ -175,74 +175,75 @@
     <p>
         Variables in the word document follow the convention
     <p>
-    <pre>${variable_name}</pre>
+        <code>${variable_name}</code>
+
+
+    <p> Variables can be replaced by text or figures. During the variable replacement operation, the formatting, font type and size and other attributes of the word-document are
+        not touched.
+
+    <p> Variables in the properties file are stored as mere names, without the surrounding '${' and '}'.
+
+    <p> The variable name has to follow a specific pattern that also defines the replacing functionality. A variable name
+        consists of a functional description, the name and an optional suffix, separated by a dot '.'.
+
+    <p> Example:<br>
+    <code>description.name.suffix</code>
+
+    <p><u>The functional descriptions are:</u>
+
+    <p> - comment<br>
+    <div class="i">
+        Replaces the variable occurrence with the variable text value, creating a complete paragraph.<br><br>
+        Example:<br>
+        <code>comment.Figure_2</code><br><br>
+    </div>
+
+    <p> - paragraph<br>
+    <div class="i">
+        Replaces the variable occurrence with the variable text value, creating a complete paragraph.<br><br>
+        Example:<br>
+        <code>paragraph.summary_text</code><br><br>
+    </div>
+
+
+    <p> - figure<br>
+    <div class="i">
+        Replaces the variable occurrence with a figure. The variable value must be an existing<br>
+        image file in PNG format, stored in the directory defined by 'figures.directory'<br><br>
+        Example:<br>
+        <code>figure.dependence = &lt;name&gt;.png</code><br><br>
+    </div>
+
+
+    <p> - figures
+    <div class="i">
+        Replaces the variable occurrence with multiple figures. The variable value must be a '<code>;</code>' separated<br>
+        number of images, stored in the directory defined by 'figures.directory'<br><br>
+        Example:<br>
+        <code>figures.plot_lag_corr = &lt;name_1&gt;.png;&lt;name_2&gt;.png;&lt;name_3&gt;.png;&lt;name_4&gt;.png;&lt;name_5&gt;.png</code><br><br>
+    </div>
+
+
+    <p><u>Suffixes</u>
+
+    <p> - scale
+    <div class="i">
+        Allows to supply an optional scaling factor for the 'figure' and 'figures' descriptors. The default value is
+        0.2.<br><br>
+        Example:<br>
+        <code>figure.dependence.scale = 0.45</code><br><br>
+    </div>
+
+
+    <p> - default
+    <div class="i">
+        Allows to supply a default value for any variable whichs is used in case the variable is not set. This is an optional
+        suffix.<br><br>
+        Example:<br>
+        <code>figure.dependence.default = &lt;default_filename&gt;.png</code><br><br>
+    </div>
+
 </div>
-
-
-<p> Variables can be replaced by text or figures. During the variable replacement operation, the formatting, font type and size and other attributes of the word-document are
-    not touched.
-
-<p> Variables in the properties file are stored as mere names, without the surrounding '${' and '}'.
-
-<p> The variable name has to follow a specific pattern that also defines the replacing functionality. A variable name
-    consists of a functional description, the name and an optional suffix, separated by a dot '.'.
-
-<p> Example:<br>
-    <pre>description.name.suffix</pre>
-
-<p><u>The functional descriptions are:</u>
-
-<p> - comment<br>
-<div class="i">
-    Replaces the variable occurrence with the variable text value, creating a complete paragraph.<br><br>
-    Example:<br>
-    comment.Figure_2<br><br>
-</div>
-<p> - paragraph<br>
-<div class="i">
-    Replaces the variable occurrence with the variable text value, creating a complete paragraph.<br><br>
-    Example:<br>
-    paragraph.summary_text<br><br>
-</div>
-
-
-<p> - figure<br>
-<div class="i">
-    Replaces the variable occurrence with a figure. The variable value must be an existing<br>
-    image file in PNG format, stored in the directory defined by 'figures.directory'<br><br>
-    Example:<br>
-    figure.dependence = atsr3-skin-raw-drifter-dependence-av1.png<br><br>
-</div>
-
-
-<p> - figures
-<div class="i">
-    Replaces the variable occurrence with multiple figures. The variable value must be a ';' separated<br>
-    number of images, stored in the directory defined by 'figures.directory'<br><br>
-    Example:<br>
-    figures.plot_lag_corr = lag_corr_*.png<br><br>
-</div>
-
-
-<p><u>Suffixes</u>
-
-<p> - scale
-<div class="i">
-    Allows to supply an optional scaling factor for the 'figure' and 'figures' descriptors. The default value is
-    0.2.<br><br>
-    Example:<br>
-    figure.dependence.scale = 0.45<br><br>
-</div>
-
-
-<p> - default
-<div class="i">
-    Allows to supply a default value for any variable whichs is used in case the variable is not set. This is an optional
-    suffix.<br><br>
-    Example:<br>
-    paragraph.summary_text.default = TODO: we need to write something here<br><br>
-</div>
-
 
 <h4><a name="template_document_upload"></a><a href="#toc">Upload</a></h4>
 <div class="i">
@@ -255,7 +256,7 @@
 <div class="i">
     <h4><a name="figures_directory"></a><a href="#toc">Figures Directory</a></h4>
     <div class="i">
-    This drop-down selection element lists all figures directory that are available. Select one of the directories to access the figures.
+        This drop-down selection element lists all figures directory that are available. Select one of the directories to access the figures.
     </div>
 
     <h4><a name="thumbnail_preview"></a><a href="#toc">Thumbnail Preview</a></h4>
@@ -328,7 +329,8 @@
     <div class="i">
         This dropdown menu contains all variable names available in the Default Table that can be asociated to images.
         First select a figure key, then select an image from the Thumbnail Preview pane to associate both, associations
-        are stored automatically when a selection has been made.
+        are stored automatically locally in the browsers environment when a selection has been made. Don't forget to
+        press the "save session" button, to store the settings on server side.
     </div>
 
     <h4><a name="scaling"></a><a href="#toc">Scaling</a></h4>
@@ -341,23 +343,22 @@
     <h4><a name="si_fi_pre"></a><a href="#toc">Single Figure Preview</a></h4>
 
     <div class="i">
-        This central image panel displays a full size image view of the selected image.
+        This central image panel displays a full size image view of the selected image. By clicking to the image, the image is opened in an extra view.
     </div>
 
     <h4><a name="mu_fi_pre"></a><a href="#toc">Multi Figure Preview</a></h4>
 
     <div class="i">
-        When a multi-figure figure key is selecetd, the figure preview panel is switched to multi-figure mode. You can
+        When a multi-figure figure key is selected, the figure preview panel is switched to multi-figure mode. You can
         add any number of figures by clicking the checkbox in the Thumbnail Preview panel. You can remove figures by de-selecting the
-        checkboxes in the Multi Figure Preview panel. Scaling is applied to all images uniformly.
+        checkboxes in the Multi Figure Preview panel. Scaling is applied to all images uniformly. By clicking to an image, the image is opened in an extra view.
     </div>
 
     <h4><a name="figure_comment"></a><a href="#toc">Figure Comment</a></h4>
 
     <div class="i">
         When the CAR web-tool detects an associated comment key to the selected figure (that is displayed in the Figure Preview), the
-        Comment text field ca be used to add a comment. If no associated key exists, all edits in the comments box are discarded when switching to
-        the next figure key.
+        Comment text field can be used to add a comment. If no associated key exists, the comment text field is disabled.
     </div>
 
 </div>
@@ -373,8 +374,9 @@
     <h4><a name="text_key"></a><a href="#toc">Text Key</a></h4>
 
     <div class="i">
-        This dropdown menu contains all variable names available in the Default Table that can be associated textual input.
-        First select a text key, then select enter the desired text into the text area. Changes are saved automatically.
+        This drop down menu contains all variable names available in the Default Table that can be associated textual input.
+        First select a text key, then enter the desired text into the text area. Changes are saved automatically locally in the browser environment.
+        Don't forget to press the "save session" button, to store the settings on server side.
     </div>
 </div>
 
