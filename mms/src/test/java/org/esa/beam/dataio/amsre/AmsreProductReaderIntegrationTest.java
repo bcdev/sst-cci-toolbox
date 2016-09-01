@@ -7,6 +7,7 @@ import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
+import org.esa.beam.util.ProductUtils;
 import org.esa.cci.sst.IoTestRunner;
 import org.esa.cci.sst.TestUtil;
 import org.junit.Test;
@@ -153,6 +154,29 @@ public class AmsreProductReaderIntegrationTest {
             product.dispose();
         }
     }
+
+    @Test
+    public void testGetTime() throws IOException {
+        final File file = TestUtil.getFileInTestDataDirectory("AMSR_E_L2A_BrightnessTemperatures_V12_200502170446_A.hdf");
+
+        final AmsreProductReader productReader = new AmsreProductReader(new AmsreProductReaderPlugIn());
+        final Product product = productReader.readProductNodes(file, null);
+        assertNotNull(product);
+
+        try {
+            ProductData.UTC scanLineTime = ProductUtils.getScanLineTime(product, 0);
+            assertEquals(1108615594000L, scanLineTime.getAsDate().getTime());
+
+            scanLineTime = ProductUtils.getScanLineTime(product, 1000);
+            assertEquals(1108617094250L, scanLineTime.getAsDate().getTime());
+
+            scanLineTime = ProductUtils.getScanLineTime(product, 2001);
+            assertEquals(1108618596000L, scanLineTime.getAsDate().getTime());
+        } finally {
+            product.dispose();
+        }
+    }
+
 
     private void assertCorrectBandData(String bandName, int x, int y, double expected, Product product) throws IOException {
         final Band band = product.getBand(bandName);

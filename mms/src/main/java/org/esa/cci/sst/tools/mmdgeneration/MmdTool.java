@@ -298,12 +298,10 @@ public class MmdTool extends BasicTool {
                 mmdWriter.write(variable, targetStart, targetArray);
             }
         } catch (IOException e) {
-            final String message = MessageFormat.format("matchup {0}: {1}", context.getMatchup().getId(),
-                    e.getMessage());
+            final String message = MessageFormat.format("matchup {0}: {1}", context.getMatchup().getId(), e.getMessage());
             throw new ToolException(message, e, ToolException.TOOL_IO_ERROR);
         } catch (RuleException | InvalidRangeException e) {
-            final String message = MessageFormat.format("matchup {0}: {1}", context.getMatchup().getId(),
-                    e.getMessage());
+            final String message = MessageFormat.format("matchup {0}: {1}", context.getMatchup().getId(), e.getMessage());
             throw new ToolException(message, e, ToolException.TOOL_ERROR);
         }
     }
