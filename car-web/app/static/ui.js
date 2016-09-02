@@ -212,7 +212,11 @@ var CAR_COMMON_UI = function() {
             var image = new Image;
             image.src = url;
             image.onload = function() {
-                _$figure_PreviewImg.attr('src', url);
+                if (_$figure_PreviewLink.attr('href') == url) {
+                    _$figure_PreviewImg.attr('src', url);
+                } else {
+                    console.log('Image to late');
+                }
             }
         }
     };
