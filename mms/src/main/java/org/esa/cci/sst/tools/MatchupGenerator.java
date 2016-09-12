@@ -102,6 +102,12 @@ public class MatchupGenerator extends BasicTool {
             dimensionNames.add(SensorNames.getDimensionNameX(sensorName2));
             dimensionNames.add(SensorNames.getDimensionNameY(sensorName2));
         }
+        //-------------------------------------------------------------
+        for (String dimName : dimensionNames) {
+            System.out.println("dimName = " + dimName);
+        }
+        //-------------------------------------------------------------
+
         final Map<String, Integer> map = DimensionConfigurationInitializer.initialize(dimensionNames, getConfig());
         subSceneWidth1 = map.get(SensorNames.getDimensionNameX(sensorName1));
         subSceneHeight1 = map.get(SensorNames.getDimensionNameY(sensorName1));
