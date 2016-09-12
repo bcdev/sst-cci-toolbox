@@ -40,6 +40,15 @@ public class DimensionConfigurationInitializer {
 
     // package access for testing only tb 2014-03-10
     static Map<String, Integer> parseDimensionConfiguration(Collection<String> dimensionNames, Properties properties) {
+        //-------------------------------------------------------------
+        for (String dimName : dimensionNames) {
+            System.out.println("dimName = " + dimName);
+        }
+
+        properties.list(System.out);
+        //-------------------------------------------------------------
+
+
         final Map<String, Integer> dimensionConfiguration = new HashMap<>(50);
         for (final String dimensionName : dimensionNames) {
             if (Constants.DIMENSION_NAME_MATCHUP.equals(dimensionName)) {
