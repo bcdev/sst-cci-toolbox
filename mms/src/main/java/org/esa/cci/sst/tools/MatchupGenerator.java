@@ -84,8 +84,9 @@ public class MatchupGenerator extends BasicTool {
         final Configuration config = getConfig();
 
         final String[] sensorNames = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR).split(",", 2);
+        System.out.println("DEBUG: sensor names");
         for (String sensorName : sensorNames) {
-            System.out.println("sensorNames = " + sensorName);
+            System.out.println("sensorName = " + sensorName);
         }
         sensorName1 = sensorNames[0];
         if (sensorNames.length > 1) {
