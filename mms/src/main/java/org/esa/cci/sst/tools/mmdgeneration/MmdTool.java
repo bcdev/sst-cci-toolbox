@@ -353,6 +353,7 @@ public class MmdTool extends BasicTool {
 
             final Item column = columnRegistry.getColumn(name);
             final String dimensions = column.getDimensions();
+            System.out.println("dimensions: " + dimensions);
             if (dimensions.isEmpty()) {
                 final String message = MessageFormat.format("Expected at least one dimension for target column ''{0}''.", name);
                 throw new ToolException(message, ToolException.TOOL_CONFIGURATION_ERROR);
