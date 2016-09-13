@@ -251,8 +251,7 @@ public class MmdTool extends BasicTool {
     }
 
     private void initializeTargetColumns(Configuration config, ColumnStorage columnStorage) {
-        final ColumnRegistryInitializer columnRegistryInitializer = new ColumnRegistryInitializer(columnRegistry,
-                columnStorage);
+        final ColumnRegistryInitializer columnRegistryInitializer = new ColumnRegistryInitializer(columnRegistry, columnStorage);
         columnRegistryInitializer.initialize();
         registerTargetColumns(config);
     }
@@ -350,6 +349,8 @@ public class MmdTool extends BasicTool {
     static TreeSet<String> getDimensionNames(List<String> targetColumnNames, ColumnRegistry columnRegistry) {
         final TreeSet<String> dimensionNames = new TreeSet<>();
         for (final String name : targetColumnNames) {
+            System.out.println("targetColumnNames: " + name);
+
             final Item column = columnRegistry.getColumn(name);
             final String dimensions = column.getDimensions();
             if (dimensions.isEmpty()) {
