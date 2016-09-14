@@ -42,10 +42,10 @@ class PlainBandReader implements BandReader {
 
     protected final ImageInputStream inputStream;
 
-    PlainBandReader(int channel, MetopFile metopFile,
+    PlainBandReader(int channel, AvhrrFile metopFile,
                     ImageInputStream inputStream) {
         this.channel = channel;
-        this.metopFile = metopFile;
+        this.metopFile = (MetopFile) metopFile;
         this.inputStream = inputStream;
     }
 

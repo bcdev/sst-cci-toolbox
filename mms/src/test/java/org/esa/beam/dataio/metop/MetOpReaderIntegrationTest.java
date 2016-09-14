@@ -48,6 +48,8 @@ public class MetOpReaderIntegrationTest {
             assertPixelValue("reflec_2", 130, 130, 2.5862362384796143, product);
             assertPixelValue("reflec_3a", 140, 140, 0.22052302956581116, product);
             assertPixelValue("temp_3b", 150, 150, 0.0, product);
+            assertPixelValue("radiance_3a", 141, 141, 0.2069, product);
+            assertPixelValue("radiance_3b", 142, 142, 0.0, product);
             assertPixelValue("temp_4", 160, 160, 259.947509765625, product);
             assertPixelValue("temp_5", 170, 170, 259.3883361816406, product);
 
@@ -103,6 +105,8 @@ public class MetOpReaderIntegrationTest {
             assertPixelValue("reflec_2", 40, 40, 0.0030889855697751045, product);
             assertPixelValue("reflec_3a", 50, 50, 0.0, product);
             assertPixelValue("temp_3b", 60, 60, 242.97332763671875, product);
+            assertPixelValue("radiance_3a", 61, 61, 0.0, product);
+            assertPixelValue("radiance_3b", 62, 62, 0.0306, product);
             assertPixelValue("temp_4", 70, 70, 249.91310119628906, product);
             assertPixelValue("temp_5", 80, 80, 250.7367706298828, product);
             assertPixelValue("internal_target_temperature", 82, 82, 286.13, product);

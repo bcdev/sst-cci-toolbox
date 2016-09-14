@@ -38,6 +38,8 @@ import java.io.IOException;
  */
 class MetopReader extends AvhrrReader implements AvhrrConstants {
 
+    private ImageInputStream inputStream;
+
     MetopReader(ProductReaderPlugIn metopReaderPlugIn) {
         super(metopReaderPlugIn);
     }
@@ -58,8 +60,8 @@ class MetopReader extends AvhrrReader implements AvhrrConstants {
         final File dataFile = MetopReaderPlugIn.getInputFile(getInput());
 
         try {
-            ImageInputStream imageInputStream = new FileImageInputStream(dataFile);
-            avhrrFile = new MetopFile(imageInputStream);
+            inputStream = new FileImageInputStream(dataFile);
+            avhrrFile = new MetopFile(inputStream);
             avhrrFile.readHeader();
             createProduct();
         } catch (IOException e) {
@@ -83,6 +85,55 @@ class MetopReader extends AvhrrReader implements AvhrrConstants {
         return product;
     }
 
+    protected void createProduct() throws IOException {
+        product = new Product(avhrrFile.getProductName(), PRODUCT_TYPE,
+                avhrrFile.getProductWidth(), avhrrFile.getProductHeight(), this);
+
+        product.setDescription(PRODUCT_DESCRIPTION);
+        final int channel3ab = avhrrFile.getChannel3abState();
+
+        // ////////////////////////////////////////////////////////////////
+        // Create the visual radiance and IR radiance bands
+
+        product.addBand(createVisibleRadianceBand(CH_1));
+        product.addBand(createVisibleRadianceBand(CH_2));
+        product.addBand(createChannel3ABBand(CH_3A));
+        product.addBand(createChannel3ABBand(CH_3B));
+        product.addBand(createIrRadianceBand(CH_4));
+        product.addBand(createIrRadianceBand(CH_5));
+
+        // ////////////////////////////////////////////////////////////////
+        // Create the visual reflectance and IR temperature bands
+
+        product.addBand(createReflectanceFactorBand(CH_1));
+        product.addBand(createReflectanceFactorBand(CH_2));
+        if (channel3ab == CH_3A) {
+            product.addBand(createReflectanceFactorBand(CH_3A));
+            product.addBand(createZeroFilledBand(CH_3B,
+                    TEMPERATURE_BAND_NAME_PREFIX));
+        } else if (channel3ab == CH_3B) {
+            product.addBand(createZeroFilledBand(CH_3A,
+                    REFLECTANCE_BAND_NAME_PREFIX));
+            product.addBand(createIrTemperatureBand(CH_3B));
+        } else {
+            product.addBand(createReflectanceFactorBand(CH_3A));
+            product.addBand(createIrTemperatureBand(CH_3B));
+        }
+        product.addBand(createIrTemperatureBand(CH_4));
+        product.addBand(createIrTemperatureBand(CH_5));
+
+        // ////////////////////////////////////////////////////////////////
+        // Create the inverted IR temperature bands
+
+        addFlagCodingAndBitmaskDef();
+        addCloudBand();
+        product.setStartTime(avhrrFile.getStartDate());
+        product.setEndTime(avhrrFile.getEndDate());
+        avhrrFile.addMetaData(product.getMetadataRoot());
+
+        addTiePointGrids();
+    }
+
     private void addInternalTargetTemperatureBand(Product product, MetopFile metopFile) {
         final InternalTargetTemperatureBandReader bandReader = metopFile.createInternalTargetTemperatureReader();
         final Band band = product.addBand(bandReader.getBandName(), bandReader.getDataType());
@@ -93,6 +144,11 @@ class MetopReader extends AvhrrReader implements AvhrrConstants {
         band.setNoDataValue(Short.MIN_VALUE);
         band.setNoDataValueUsed(true);
         bandReaders.put(band, bandReader);
+    }
+
+    protected Band createChannel3ABBand(int channel) throws IOException {
+        BandReader bandReader = new Ch3BandReader(channel, avhrrFile, inputStream);
+        return createBand(bandReader, channel);
     }
 
     private void addQualityIndicatorFlags(Product product, MetopFile metopFile) {
@@ -283,7 +339,7 @@ class MetopReader extends AvhrrReader implements AvhrrConstants {
             addFlagAndBitmaskDef(fc, "t4_t5_test2", "T4-T5 test (0='test failed' or 'clear'; 1='cloudy')", 9);
             addFlagAndBitmaskDef(fc, "t4_t5_test1", "T4-T5 test (0 ='test failed' or 'cloudy', 1='clear')", 8);
             addFlagAndBitmaskDef(fc, "albedo_test2", "Albedo test (0='test failed' or 'clear'; 1='cloudy' or 'snow/ice covered')", 7);
-            addFlagAndBitmaskDef(fc, "albedo_test1", "Albedo test (0 ='test failed' or 'cloudy', 1='clear' or 'snow/ice covered')", 6);
+            addFlagAndBitmaskDef(fc, "albedo_te-east1", "Albedo test (0 ='test failed' or 'cloudy', 1='clear' or 'snow/ice covered')", 6);
             addFlagAndBitmaskDef(fc, "t4_test2", "T4 test (0='test failed' or 'clear'; 1='cloudy' or 'snow/ice covered')", 5);
             addFlagAndBitmaskDef(fc, "t4_test1", "T4 test (0 ='test failed' or 'cloudy', 1='clear' or 'snow/ice covered')", 4);
 
@@ -335,5 +391,4 @@ class MetopReader extends AvhrrReader implements AvhrrConstants {
             return false;
         }
     }
-
 }

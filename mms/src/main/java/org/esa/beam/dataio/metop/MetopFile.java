@@ -16,7 +16,11 @@
 
 package org.esa.beam.dataio.metop;
 
-import org.esa.beam.dataio.avhrr.*;
+import org.esa.beam.dataio.avhrr.AvhrrConstants;
+import org.esa.beam.dataio.avhrr.AvhrrFile;
+import org.esa.beam.dataio.avhrr.BandReader;
+import org.esa.beam.dataio.avhrr.FlagReader;
+import org.esa.beam.dataio.avhrr.HeaderUtil;
 import org.esa.beam.dataio.avhrr.calibration.Radiance2ReflectanceFactorCalibrator;
 import org.esa.beam.dataio.avhrr.calibration.Radiance2TemperatureCalibrator;
 import org.esa.beam.dataio.avhrr.calibration.RadianceCalibrator;
@@ -437,7 +441,7 @@ class MetopFile extends AvhrrFile {
 
     ScanlineValueShortBitFieldReader createCalibrationQualityReader(String channelName, int lineOffset) {
         final ScanlineBandDescription description = new ScanlineBandDescription("calibration_quality_" + channelName + "_flags",
-                "Calibration quality flags for channel " +  channelName,
+                "Calibration quality flags for channel " + channelName,
                 ProductData.TYPE_INT16,
                 lineOffset);
         return new ScanlineValueShortBitFieldReader(this, inputStream, description);
