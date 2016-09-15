@@ -16,12 +16,7 @@
 
 package org.esa.beam.dataio.metop;
 
-import org.esa.beam.dataio.avhrr.AvhrrConstants;
-import org.esa.beam.dataio.avhrr.AvhrrFile;
-import org.esa.beam.dataio.avhrr.BandReader;
-import org.esa.beam.dataio.avhrr.FlagReader;
-import org.esa.beam.dataio.avhrr.HeaderUtil;
-import org.esa.beam.dataio.avhrr.calibration.Radiance2ReflectanceFactorCalibrator;
+import org.esa.beam.dataio.avhrr.*;
 import org.esa.beam.dataio.avhrr.calibration.Radiance2TemperatureCalibrator;
 import org.esa.beam.dataio.avhrr.calibration.RadianceCalibrator;
 import org.esa.beam.framework.datamodel.MetadataElement;
@@ -205,11 +200,11 @@ class MetopFile extends AvhrrFile {
 
     @Override
     public BandReader createReflectanceFactorBandReader(int channel) {
-        RadianceCalibrator radianceCalibrator = new Radiance2ReflectanceFactorCalibrator(
-                giadrRadiance.getEquivalentWidth(channel), giadrRadiance
-                .getSolarIrradiance(channel), 1);
+        final RadToReflCalibrator calibrator = new RadToReflCalibrator(giadrRadiance.getEquivalentWidth(channel),
+                giadrRadiance.getSolarIrradiance(channel), 1);
+
         //TODO this 1 should be the earth-sun-distance-ratio, but this ratio is always 0.
-        return new CalibratedBandReader(channel, this, inputStream, radianceCalibrator);
+        return new CalibratedBandReader(channel, this, inputStream, calibrator);
     }
 
     @Override
