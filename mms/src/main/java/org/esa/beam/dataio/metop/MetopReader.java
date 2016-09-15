@@ -107,18 +107,8 @@ class MetopReader extends AvhrrReader implements AvhrrConstants {
 
         product.addBand(createReflectanceFactorBand(CH_1));
         product.addBand(createReflectanceFactorBand(CH_2));
-        if (channel3ab == CH_3A) {
-            product.addBand(createReflectanceFactorBand(CH_3A));
-            product.addBand(createZeroFilledBand(CH_3B,
-                    TEMPERATURE_BAND_NAME_PREFIX));
-        } else if (channel3ab == CH_3B) {
-            product.addBand(createZeroFilledBand(CH_3A,
-                    REFLECTANCE_BAND_NAME_PREFIX));
-            product.addBand(createIrTemperatureBand(CH_3B));
-        } else {
-            product.addBand(createReflectanceFactorBand(CH_3A));
-            product.addBand(createIrTemperatureBand(CH_3B));
-        }
+        product.addBand(createChannel3ABReflectanceBand(CH_3A));
+        product.addBand(createChannel3ABIRTemperatureBand(CH_3B));
         product.addBand(createIrTemperatureBand(CH_4));
         product.addBand(createIrTemperatureBand(CH_5));
 
@@ -146,8 +136,20 @@ class MetopReader extends AvhrrReader implements AvhrrConstants {
         bandReaders.put(band, bandReader);
     }
 
-    protected Band createChannel3ABBand(int channel) throws IOException {
-        BandReader bandReader = new Ch3BandReader(channel, avhrrFile, inputStream);
+    private Band createChannel3ABBand(int channel) throws IOException {
+        final BandReader bandReader = new Ch3BandReader(channel, avhrrFile, inputStream);
+        return createBand(bandReader, channel);
+    }
+
+    private Band createChannel3ABReflectanceBand(int channel) throws IOException {
+        final MetopFile metopFile = (MetopFile) avhrrFile;
+        final BandReader bandReader = metopFile.createChannel3ABReflectanceBandReader(channel);
+        return createBand(bandReader, channel);
+    }
+
+    private Band createChannel3ABIRTemperatureBand(int channel) throws IOException {
+        final MetopFile metopFile = (MetopFile) avhrrFile;
+        final BandReader bandReader = metopFile.createChannel3ABIrTemperatureBandReader(channel);
         return createBand(bandReader, channel);
     }
 
@@ -382,6 +384,11 @@ class MetopReader extends AvhrrReader implements AvhrrConstants {
             ada -= 360.0;
         }
         return ada;
+    }
+
+    // package access for testing only tb 2016-09-14
+    static boolean isChannel3a(int frameIndicator) {
+        return (frameIndicator & 1) == 1;
     }
 
     static boolean canOpenFile(File file) {

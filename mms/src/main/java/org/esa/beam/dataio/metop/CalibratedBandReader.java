@@ -34,10 +34,9 @@ import java.text.MessageFormat;
  */
 class CalibratedBandReader extends PlainBandReader {
 
-    private final RadianceCalibrator calibrator;
+    final RadianceCalibrator calibrator;
 
-    CalibratedBandReader(int channel, MetopFile metopFile,
-                                ImageInputStream inputStream, RadianceCalibrator radianceCalibrator) {
+    CalibratedBandReader(int channel, MetopFile metopFile, ImageInputStream inputStream, RadianceCalibrator radianceCalibrator) {
         super(channel, metopFile, inputStream);
         calibrator = radianceCalibrator;
     }
@@ -45,11 +44,9 @@ class CalibratedBandReader extends PlainBandReader {
     @Override
     public String getBandName() {
         if (isVisibleBand()) {
-            return AvhrrConstants.REFLECTANCE_BAND_NAME_PREFIX
-                    + AvhrrConstants.CH_STRINGS[channel];
+            return AvhrrConstants.REFLECTANCE_BAND_NAME_PREFIX + AvhrrConstants.CH_STRINGS[channel];
         } else {
-            return AvhrrConstants.TEMPERATURE_BAND_NAME_PREFIX
-                    + AvhrrConstants.CH_STRINGS[channel];
+            return AvhrrConstants.TEMPERATURE_BAND_NAME_PREFIX + AvhrrConstants.CH_STRINGS[channel];
         }
     }
 
@@ -131,5 +128,4 @@ class CalibratedBandReader extends PlainBandReader {
     private static String format(String pattern, String arg) {
         return new MessageFormat(pattern).format(new Object[]{arg});
     }
-
 }

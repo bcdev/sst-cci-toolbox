@@ -207,6 +207,19 @@ class MetopFile extends AvhrrFile {
         return new CalibratedBandReader(channel, this, inputStream, calibrator);
     }
 
+    BandReader createChannel3ABReflectanceBandReader(int channel) throws IOException {
+        final RadToReflCalibrator calibrator = new RadToReflCalibrator(giadrRadiance.getEquivalentWidth(channel),
+                giadrRadiance.getSolarIrradiance(channel), 1);
+        return new ScaledCh3BandReader(channel, this, inputStream, calibrator);
+    }
+
+    BandReader createChannel3ABIrTemperatureBandReader(int channel) throws IOException {
+        RadianceCalibrator radianceCalibrator = new Radiance2TemperatureCalibrator(
+                giadrRadiance.getConstant1(channel), giadrRadiance.getConstant2(channel),
+                giadrRadiance.getCentralWavenumber(channel));
+        return new ScaledCh3BandReader(channel, this, inputStream, radianceCalibrator);
+    }
+
     @Override
     public BandReader createIrTemperatureBandReader(int channel) {
         RadianceCalibrator radianceCalibrator = new Radiance2TemperatureCalibrator(

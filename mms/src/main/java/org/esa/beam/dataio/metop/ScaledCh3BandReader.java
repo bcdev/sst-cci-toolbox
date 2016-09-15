@@ -1,25 +1,35 @@
 package org.esa.beam.dataio.metop;
 
+
 import com.bc.ceres.core.ProgressMonitor;
 import org.esa.beam.dataio.avhrr.AvhrrConstants;
 import org.esa.beam.dataio.avhrr.AvhrrFile;
+import org.esa.beam.dataio.avhrr.calibration.RadianceCalibrator;
 import org.esa.beam.framework.datamodel.ProductData;
 
 import javax.imageio.stream.ImageInputStream;
 import java.io.IOException;
 import java.text.MessageFormat;
 
-class Ch3BandReader extends PlainBandReader {
+class ScaledCh3BandReader extends CalibratedBandReader {
 
-
-    Ch3BandReader(int channel, AvhrrFile metopFile, ImageInputStream inputStream) {
-        super(channel, metopFile, inputStream);
+    ScaledCh3BandReader(int channel, MetopFile metopFile, ImageInputStream inputStream, RadianceCalibrator radianceCalibrator) {
+        super(channel, metopFile, inputStream, radianceCalibrator);
     }
 
     @Override
-    public void readBandRasterData(int sourceOffsetX, int sourceOffsetY, int sourceWidth, int sourceHeight, int sourceStepX, int sourceStepY, ProductData destBuffer, ProgressMonitor pm) throws IOException {
+    public void readBandRasterData(int sourceOffsetX,
+                                   int sourceOffsetY,
+                                   int sourceWidth,
+                                   int sourceHeight,
+                                   int sourceStepX,
+                                   int sourceStepY,
+                                   final ProductData destBuffer,
+                                   final ProgressMonitor pm) throws IOException {
+
         final AvhrrFile.RawCoordinates rawCoord = metopFile.getRawCoordinates(sourceOffsetX, sourceOffsetY, sourceWidth, sourceHeight);
-        final short[] targetData = (short[]) destBuffer.getElems();
+        final float[] targetData = (float[]) destBuffer.getElems();
+        final float scalingFactor = (float) 1e-4;
 
         pm.beginTask(MessageFormat.format("Reading AVHRR band ''{0}''...", getBandName()), rawCoord.maxY - rawCoord.minY);
 
@@ -38,10 +48,15 @@ class Ch3BandReader extends PlainBandReader {
             } else {
                 final int dataOffset = getDataOffset(sourceOffsetX, sourceY);
                 synchronized (inputStream) {
+                    final short[] radianceScanLine = new short[metopFile.getProductWidth()];
                     inputStream.seek(dataOffset);
-                    inputStream.readFully(targetData, targetIdx, sourceWidth);
+                    inputStream.readFully(radianceScanLine, 0, sourceWidth);
+
+                    for (int sourceX = 0; sourceX <= sourceWidth - 1; sourceX++) {
+                        targetData[targetIdx] = calibrator.calibrate(radianceScanLine[sourceX] * scalingFactor);
+                        targetIdx += rawCoord.targetIncrement;
+                    }
                 }
-                targetIdx += sourceWidth;
             }
 
             pm.worked(1);

@@ -1,5 +1,6 @@
 package org.esa.beam.dataio.metop;
 
+
 import org.esa.beam.dataio.avhrr.AvhrrConstants;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.junit.Before;
@@ -9,45 +10,45 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-public class Ch3BandReaderTest {
+public class ScaledCh3BandReaderTest {
 
-    private Ch3BandReader readerCh_3A;
-    private Ch3BandReader readerCh_3B;
+    private ScaledCh3BandReader readerCh_3A;
+    private ScaledCh3BandReader readerCh_3B;
 
     @Before
     public void setUp() {
-        readerCh_3A = new Ch3BandReader(AvhrrConstants.CH_3A, null, null);
-        readerCh_3B = new Ch3BandReader(AvhrrConstants.CH_3B, null, null);
+        readerCh_3A = new ScaledCh3BandReader(AvhrrConstants.CH_3A, null, null, null);
+        readerCh_3B = new ScaledCh3BandReader(AvhrrConstants.CH_3B, null, null, null);
     }
 
     @Test
     public void testGetBandName() {
-        assertEquals("radiance_3a", readerCh_3A.getBandName());
-        assertEquals("radiance_3b", readerCh_3B.getBandName());
+        assertEquals("reflec_3a", readerCh_3A.getBandName());
+        assertEquals("temp_3b", readerCh_3B.getBandName());
     }
 
     @Test
     public void testGetBandUnit() {
-        assertEquals("W / (m^2 sr)", readerCh_3A.getBandUnit());
-        assertEquals("mW / (m^2 sr cm)", readerCh_3B.getBandUnit());
+        assertEquals("%", readerCh_3A.getBandUnit());
+        assertEquals("K", readerCh_3B.getBandUnit());
     }
 
     @Test
     public void testGetBandDescription() {
-        assertEquals("Spectral radiance for channel 3a", readerCh_3A.getBandDescription());
-        assertEquals("Earth scene radiance for channel 3b", readerCh_3B.getBandDescription());
+        assertEquals("Reflectance factor for channel 3a", readerCh_3A.getBandDescription());
+        assertEquals("Blackbody temperature for channel 3b", readerCh_3B.getBandDescription());
     }
 
     @Test
     public void testGetScalingFactor() {
-        assertEquals(1.0E-4, readerCh_3A.getScalingFactor(), 1e-8);
-        assertEquals(1.0E-4, readerCh_3B.getScalingFactor(), 1e-8);
+        assertEquals(1.0, readerCh_3A.getScalingFactor(), 1e-8);
+        assertEquals(1.0, readerCh_3B.getScalingFactor(), 1e-8);
     }
 
     @Test
     public void testGetDataType() {
-        assertEquals(ProductData.TYPE_INT16, readerCh_3A.getDataType());
-        assertEquals(ProductData.TYPE_INT16, readerCh_3B.getDataType());
+        assertEquals(ProductData.TYPE_FLOAT32, readerCh_3A.getDataType());
+        assertEquals(ProductData.TYPE_FLOAT32, readerCh_3B.getDataType());
     }
 
     @Test
