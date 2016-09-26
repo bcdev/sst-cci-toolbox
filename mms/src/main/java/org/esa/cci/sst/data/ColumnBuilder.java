@@ -153,9 +153,6 @@ public final class ColumnBuilder {
     }
 
     public ColumnBuilder flagMeanings(String flagMeanings) {
-        Assert.argument(flagMasks == null ||
-                        flagMeanings.matches(DIMENSIONS_PATTERN),
-                        "Illegal flag meanings '" + flagMeanings + "'.");
         this.flagMeanings = flagMeanings;
         return this;
     }
