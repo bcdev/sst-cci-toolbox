@@ -200,16 +200,13 @@ class MetopFile extends AvhrrFile {
 
     @Override
     public BandReader createReflectanceFactorBandReader(int channel) {
-        final RadToReflCalibrator calibrator = new RadToReflCalibrator(giadrRadiance.getEquivalentWidth(channel),
-                giadrRadiance.getSolarIrradiance(channel), 1);
+        final RadToReflCalibrator calibrator = new RadToReflCalibrator(giadrRadiance.getSolarIrradiance(channel));
 
-        //TODO this 1 should be the earth-sun-distance-ratio, but this ratio is always 0.
         return new CalibratedBandReader(channel, this, inputStream, calibrator);
     }
 
     BandReader createChannel3ABReflectanceBandReader(int channel) throws IOException {
-        final RadToReflCalibrator calibrator = new RadToReflCalibrator(giadrRadiance.getEquivalentWidth(channel),
-                giadrRadiance.getSolarIrradiance(channel), 1);
+        final RadToReflCalibrator calibrator = new RadToReflCalibrator(giadrRadiance.getSolarIrradiance(channel));
         return new ScaledCh3BandReader(channel, this, inputStream, calibrator);
     }
 

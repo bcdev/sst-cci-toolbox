@@ -5,18 +5,18 @@ import org.esa.beam.dataio.avhrr.calibration.RadianceCalibrator;
 
 class RadToReflCalibrator implements RadianceCalibrator  {
 
-    private final double inverseConversionFactor;
+    private final double conversionFactor;
 
-    RadToReflCalibrator(double equivalentWidth, double solarIrradiance, double earthSunDistance) {
-        this.inverseConversionFactor = (100.0 * equivalentWidth * earthSunDistance * earthSunDistance) / solarIrradiance;
+    RadToReflCalibrator(double solarIrradiance) {
+        this.conversionFactor = Math.PI / solarIrradiance;
     }
 
     @Override
     public float calibrate(float radiances) {
-        return (float) (radiances * inverseConversionFactor);
+        return (float) (radiances * conversionFactor);
     }
 
     double getConversionFactor() {
-        return 1.0 / inverseConversionFactor;
+        return conversionFactor;
     }
 }

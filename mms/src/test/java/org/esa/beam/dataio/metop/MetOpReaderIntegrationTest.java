@@ -44,9 +44,9 @@ public class MetOpReaderIntegrationTest {
             assertTiePointValue("longitude", 100, 100, 43.30929946899414, product);
             assertTiePointValue("latitude", 110, 110, 57.25484848022461, product);
 
-            assertPixelValue("reflec_1", 120, 120, 0.2945474088191986, product);
-            assertPixelValue("reflec_2", 130, 130, 0.8232245445251465, product);
-            assertPixelValue("reflec_3a", 140, 140, 0.07019466161727905, product);
+            assertPixelValue("reflec_1", 120, 120, 0.10636182874441147, product);
+            assertPixelValue("reflec_2", 130, 130, 0.10642946511507034, product);
+            assertPixelValue("reflec_3a", 140, 140, 0.041608113795518875, product);
             assertPixelValue("temp_3b", 150, 150, 0.0, product);
             assertPixelValue("radiance_3a", 141, 141, 0.2069, product);
             assertPixelValue("radiance_3b", 142, 142, 0.0, product);
@@ -101,8 +101,8 @@ public class MetOpReaderIntegrationTest {
             assertTiePointValue("longitude", 10, 10, -123.30519104003906, product);
             assertTiePointValue("latitude", 20, 20, 79.19400024414062, product);
 
-            assertPixelValue("reflec_1", 30, 30, 6.07576803304255E-4, product);
-            assertPixelValue("reflec_2", 40, 40, 9.832546347752213E-4, product);
+            assertPixelValue("reflec_1", 30, 30, 2.2455985890701413E-4, product);
+            assertPixelValue("reflec_2", 40, 40, 1.348901860183105E-4, product);
             assertPixelValue("reflec_3a", 50, 50, 0.0, product);
             assertPixelValue("temp_3b", 60, 60, 242.97332763671875, product);
             assertPixelValue("radiance_3a", 61, 61, 0.0, product);

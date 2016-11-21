@@ -12,18 +12,18 @@ public class RadToReflCalibratorTest {
 
     @Before
     public void setUp() {
-        calibrator = new RadToReflCalibrator(10.0, 15.0, 20.0);
+        calibrator = new RadToReflCalibrator(15.0);
     }
 
     @Test
     public void testGetConversionFactor() {
-        assertEquals(0.0000375, calibrator.getConversionFactor(), 1e-8);
+        assertEquals(0.20943951023931953, calibrator.getConversionFactor(), 1e-8);
     }
 
     @Test
     public void testCalibrate() {
         final float calibrated = calibrator.calibrate(2000.f);
 
-        assertEquals(5.3333332E7, calibrated, 1e-8);
+        assertEquals(418.8790283203125, calibrated, 1e-8);
     }
 }
