@@ -178,9 +178,9 @@ var CAR_Tool = function() {
     }
 
     function set_values_from_default_table() {
-        var default_keys = _car_keys.get_figure_defaults();
-        for (var key in default_keys) {
-            var fig_name = default_keys[key];
+        var figure_defaults = _car_keys.get_figure_defaults();
+        for (var key in figure_defaults) {
+            var fig_name = figure_defaults[key];
             _car_session.setProperty(key, fig_name);
             key = key.replace('.default', '');
             _car_session.setProperty(key, fig_name);
@@ -189,6 +189,13 @@ var CAR_Tool = function() {
         for (var key in scalings) {
             var val = scalings[key];
             _car_session.setProperty(key, val);
+        }
+        var text_defaults = _car_keys.get_text_defaults();
+        for (var key in text_defaults) {
+            var text = text_defaults[key];
+            _car_session.setProperty(key, text);
+            key = key.replace('.default', '');
+            _car_session.setProperty(key, text);
         }
     }
 

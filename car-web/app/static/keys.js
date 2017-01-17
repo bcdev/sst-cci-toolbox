@@ -32,13 +32,23 @@ var CAR_Keys = function(key_properties) {
     _.get_text_keys = function() {
         var text_keys = _.get_comment_keys();
         for (var key in _properties) {
-            if (key.match('^paragraph.')) {
+            if ((key.match('^paragraph.') || key.match('^word.')) && !key.match('.default$')) {
                 text_keys.push(key);
             }
         }
         return text_keys;
     };
-    
+
+    _.get_text_defaults = function() {
+        var text_defaults = {};
+        for (var key in _properties) {
+            if ((key.match('^paragraph.') || key.match('^word.')) && key.match('.default$')) {
+                text_defaults[key] = _properties[key];
+            }
+        }
+        return text_defaults;
+    };
+
     _.get_figure_defaults = function() {
         var figure_defaults = {};
         for (var key in _properties) {

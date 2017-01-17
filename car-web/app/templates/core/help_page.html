@@ -163,6 +163,32 @@
         Each uploaded Default Table file is saved in the server sided user directory.<br>
         Each uploaded Default Table is available as selection to any user of the CAR tool.
     </div>
+    <br><br>
+    <p> Default Table Example:
+    <pre>
+    # placeholder in template document ${word.coauthor}
+    word.coauthor =
+    word.coauthor.default = &lt;name of coauthor&gt;
+
+    # placeholder in template document ${comment.Figure_2}
+    comment.Figure_2 =
+    comment.Figure_2.default = &lt;any default text&gt;
+
+    # placeholder in template document ${paragraph.summary_text}
+    paragraph.summary_text =
+    paragraph.summary_text.default = &lt;any default text&gt;
+
+    # placeholder in template document ${figure.dependence}
+    figure.dependence =
+    figure.dependence.scale = 0.45
+    figure.dependence.default = Figure_1.png
+
+    # placeholder in template document ${figures.series_2}
+    figures.series_2 =
+    figures.series_2.scale = 0.22
+    figures.series_2.default = &lt;name_1&gt;.png;&lt;name_2&gt;.png;&lt;name_3&gt;.png;&lt;name_4&gt;.png;&lt;name_5&gt;.png</pre>
+    <br><br>
+
 </div>
 
 
@@ -187,7 +213,7 @@
         consists of a functional description, the name and an optional suffix, separated by a dot '.'.
 
     <p> Example:<br>
-    <code>description.name.suffix</code>
+        <code>description.name.suffix</code>
 
     <p><u>The functional descriptions are:</u>
 
@@ -205,13 +231,20 @@
         <code>paragraph.summary_text</code><br><br>
     </div>
 
+    <p> - word<br>
+    <div class="i">
+        Replaces the variable occurrence with the variable text value.<br><br>
+        Example:<br>
+        <code>word.coauthor</code><br><br>
+    </div>
+
 
     <p> - figure<br>
     <div class="i">
         Replaces the variable occurrence with a figure. The variable value must be an existing<br>
         image file in PNG format, stored in the directory defined by 'figures.directory'<br><br>
         Example:<br>
-        <code>figure.dependence = &lt;name&gt;.png</code><br><br>
+        <code>figure.dependence</code><br><br>
     </div>
 
 
@@ -220,7 +253,7 @@
         Replaces the variable occurrence with multiple figures. The variable value must be a '<code>;</code>' separated<br>
         number of images, stored in the directory defined by 'figures.directory'<br><br>
         Example:<br>
-        <code>figures.plot_lag_corr = &lt;name_1&gt;.png;&lt;name_2&gt;.png;&lt;name_3&gt;.png;&lt;name_4&gt;.png;&lt;name_5&gt;.png</code><br><br>
+        <code>figures.series_2</code><br><br>
     </div>
 
 
@@ -231,7 +264,8 @@
         Allows to supply an optional scaling factor for the 'figure' and 'figures' descriptors. The default value is
         0.2.<br><br>
         Example:<br>
-        <code>figure.dependence.scale = 0.45</code><br><br>
+        <code>figure.dependence.scale = 0.45</code><br>
+        <code>figures.series_2.scale = 0.22</code><br><br>
     </div>
 
 
@@ -239,8 +273,12 @@
     <div class="i">
         Allows to supply a default value for any variable whichs is used in case the variable is not set. This is an optional
         suffix.<br><br>
-        Example:<br>
-        <code>figure.dependence.default = &lt;default_filename&gt;.png</code><br><br>
+        Examples:<br>
+        <code>comment.Figure_2.default = &lt;any default text&gt;</code><br>
+        <code>paragraph.summary_text.default = &lt;any default text&gt;</code><br>
+        <code>word.coauthor.default = &lt;any default text&gt;</code><br>
+        <code>figure.dependence.default = &lt;default_filename&gt;.png</code><br>
+        <code>figures.series_2.default = &lt;name_1&gt;.png;&lt;name_2&gt;.png;&lt;name_3&gt;.png;&lt;name_4&gt;.png;&lt;name_5&gt;.png</code><br><br>
     </div>
 
 </div>
