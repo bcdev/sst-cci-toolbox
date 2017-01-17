@@ -22,7 +22,7 @@ var CAR_Keys = function(key_properties) {
     _.get_comment_keys = function() {
         var comment_keys = [];
         for (var key in _properties) {
-            if (key.match('^comment.')) {
+            if (key.match('^comment.') && !key.match('.default$')) {
                 comment_keys.push(key);
             }
         }
@@ -42,7 +42,7 @@ var CAR_Keys = function(key_properties) {
     _.get_text_defaults = function() {
         var text_defaults = {};
         for (var key in _properties) {
-            if ((key.match('^paragraph.') || key.match('^word.')) && key.match('.default$')) {
+            if ((key.match('^comment.') || key.match('^paragraph.') || key.match('^word.')) && key.match('.default$')) {
                 text_defaults[key] = _properties[key];
             }
         }
@@ -69,7 +69,7 @@ var CAR_Keys = function(key_properties) {
         return scaling;
     };
 
-    _.getCommentKeyFor = function(name_part){
+    _.getCommentKeyFor = function(name_part) {
         var commentKeys = _.get_comment_keys();
         var expr = name_part + '$';
         for (var i in commentKeys) {
