@@ -381,6 +381,7 @@ var CAR_Tool = function() {
             var $clone = _$figures_ThumbJQModel.clone();
             $clone.removeAttr('id');
             $clone.find('img').attr('src', thumb_url);
+            $clone.find('a').attr('href', url);
             var $input = $clone.find('input');
             $input.val(url);
             $input.change(function() {
