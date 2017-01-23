@@ -28,7 +28,7 @@
 
     <name>SST-CCI Product Assessment Tools</name>
     <artifactId>sst-cci-assessment</artifactId>
-    <version>1.2</version>
+    <version>1.2.1</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
