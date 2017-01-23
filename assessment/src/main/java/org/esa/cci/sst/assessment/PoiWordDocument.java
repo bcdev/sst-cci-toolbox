@@ -120,7 +120,7 @@ class PoiWordDocument {
         final XWPFRun firstRun = runs.get(0);
         firstRun.setText(paragraphText, 0);
 
-        clearRunText(runs, 1, runs.size());
+        clearRunText(runs, 0, runs.size());
     }
 
 

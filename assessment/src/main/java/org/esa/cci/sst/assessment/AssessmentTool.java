@@ -99,8 +99,8 @@ class AssessmentTool {
     }
 
     private void replaceVariables(PoiWordDocument wordDocument, TemplateVariables templateVariables) throws IOException, InvalidFormatException {
-        replaceWordVariables(wordDocument, templateVariables);
         replaceParagraphVariables(wordDocument, templateVariables);
+        replaceWordVariables(wordDocument, templateVariables);
         replaceFigureVariables(wordDocument, templateVariables);
         replaceMultipleFigureVariables(wordDocument, templateVariables);
 
