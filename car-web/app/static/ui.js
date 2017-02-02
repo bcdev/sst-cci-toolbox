@@ -110,16 +110,16 @@ var CAR_COMMON_UI = function() {
         }
 
         _yesButton.click(function() {
+            close();
             if (dict != null && dict['yesAction'] != null) {
                 dict['yesAction']();
             }
-            close();
         });
         _noButton.click(function() {
+            close();
             if (dict != null && dict['noAction'] != null) {
                 dict['noAction']();
             }
-            close();
         });
         _.show_overlay();
         _$yesNoBox_div.find('pre').text(msg);

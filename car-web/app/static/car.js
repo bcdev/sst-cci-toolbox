@@ -276,6 +276,7 @@ var CAR_Tool = function() {
 
     function ajax_render_document() {
         function todo_after_dialog() {
+            _ui_common.show_overlay();
             var formData = new FormData(_$generalForm[0]);
             formData.append('session', JSON.stringify(_car_session.getProperties()));
             $.ajax({
