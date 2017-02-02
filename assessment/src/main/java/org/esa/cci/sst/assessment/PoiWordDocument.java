@@ -204,8 +204,8 @@ class PoiWordDocument {
     private void addImageToRun(File image, double scale, XWPFRun run) throws IOException, InvalidFormatException {
         FileInputStream inputStream = new FileInputStream(image);
         final BufferedImage bufferedImage = ImageIO.read(inputStream);
-        final int width = (int) Math.ceil(Units.pixelToEMU(bufferedImage.getWidth()) * scale);
-        final int height = (int) Math.ceil(Units.pixelToEMU(bufferedImage.getHeight()) * scale);
+        final int width = (int) Math.ceil(Units.toEMU(bufferedImage.getWidth() * scale));
+        final int height = (int) Math.ceil(Units.toEMU(bufferedImage.getHeight() * scale));
         inputStream.close();
 
         run.setText("", 0);
