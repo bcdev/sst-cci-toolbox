@@ -2,11 +2,17 @@ package org.esa.cci.sst.assessment;
 
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.util.Units;
+import org.apache.poi.xwpf.usermodel.LineSpacingRule;
 import org.apache.poi.xwpf.usermodel.PositionInParagraph;
 import org.apache.poi.xwpf.usermodel.TextSegement;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
+import org.apache.poi.xwpf.usermodel.XWPFPicture;
 import org.apache.poi.xwpf.usermodel.XWPFRun;
+import org.apache.xmlbeans.XmlOptions;
+import org.apache.xmlbeans.XmlOptionsBean;
+import org.openxmlformats.schemas.drawingml.x2006.picture.CTPicture;
+import org.openxmlformats.schemas.drawingml.x2006.picture.impl.CTPictureImpl;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -95,13 +101,7 @@ class PoiWordDocument {
     }
 
     public void replaceWithFigures(String variable, File[] figureFiles) throws IOException, InvalidFormatException {
-        final List<XWPFParagraph> paragraphs = document.getParagraphs();
-        for (XWPFParagraph paragraph : paragraphs) {
-            final TextSegement textSegement = paragraph.searchText(variable, new PositionInParagraph());
-            if (textSegement != null) {
-                replaceVariable(figureFiles, paragraph, textSegement, DEFAULT_SCALE);
-            }
-        }
+        replaceWithFigures(variable, figureFiles, DEFAULT_SCALE);
     }
 
     public void replaceWithFigures(String variable, File[] figureFiles, double scale) throws IOException, InvalidFormatException {
@@ -174,6 +174,11 @@ class PoiWordDocument {
 
     private void replaceVariable(File[] figureFiles, XWPFParagraph paragraph, TextSegement textSegement, double scale) throws IOException, InvalidFormatException {
         final List<XWPFRun> runs = paragraph.getRuns();
+        paragraph.setSpacingLineRule(LineSpacingRule.EXACT);
+        paragraph.setSpacingBefore(0);
+        paragraph.setSpacingBeforeLines(0);
+        paragraph.setSpacingAfter(0);
+        paragraph.setSpacingAfterLines(0);
         final int beginRun = textSegement.getBeginRun();
         final int endRun = textSegement.getEndRun();
 
@@ -199,8 +204,8 @@ class PoiWordDocument {
     private void addImageToRun(File image, double scale, XWPFRun run) throws IOException, InvalidFormatException {
         FileInputStream inputStream = new FileInputStream(image);
         final BufferedImage bufferedImage = ImageIO.read(inputStream);
-        final int width = Units.toEMU(bufferedImage.getWidth() * scale);
-        final int height = Units.toEMU(bufferedImage.getHeight() * scale);
+        final int width = (int) Math.ceil(Units.pixelToEMU(bufferedImage.getWidth()) * scale);
+        final int height = (int) Math.ceil(Units.pixelToEMU(bufferedImage.getHeight()) * scale);
         inputStream.close();
 
         run.setText("", 0);
