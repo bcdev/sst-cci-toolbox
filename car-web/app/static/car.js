@@ -421,11 +421,13 @@ var CAR_Tool = function() {
 
     function getImageInfos(names) {
         var array = [];
-        for (var i in _images) {
-            var info = _images[i];
-            var infoName = info['name'];
-            if (names.indexOf(infoName) >= 0) {
-                array.push(info);
+        for (var i in names) {
+            var name = names[i];
+            for (var j in _images) {
+                var info = _images[j];
+                if(name == info['name']) {
+                    array.push(info)
+                }
             }
         }
         return array;
