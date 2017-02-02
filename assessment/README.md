@@ -48,3 +48,4 @@ accompanying LICENSE.txt file.
 
 * Ralf Quast (ralf.quast@brockmann-consult.de)
 * Tom Block (tom.block@brockmann-consult.de)
+* Sabine Embacher(sabine.embacher@brockmann-consult.de)

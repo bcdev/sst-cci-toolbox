@@ -117,6 +117,12 @@ Example:
 CHANGELOG
 =========
 
+version 1.2.2
+- fixed bug : multi figure replacement : image overlaps the next image
+
+version 1.2.1
+- fixed bug where a paragraph was not replaced entirely by images
+
 version 1.2
 - introduced default values
 
