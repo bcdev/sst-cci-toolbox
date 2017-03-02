@@ -83,7 +83,7 @@ submit_job() {
     hrs=$2
     jobname=$3
     command=$4
-    bsubmit="bsub -R rusage[mem=${mem}] -m lotus241 -n 1 -W ${hrs} -P esacci_sst_svr -cwd ${MMS_INST} -oo ${MMS_LOG}/${jobname}.out -eo ${MMS_LOG}/${jobname}.err -J ${jobname} ${mms.home}/bin/${command} ${@:5}"
+    bsubmit="bsub -R rusage[mem=${mem}] -q short-serial -n 1 -W ${hrs} -P esacci_sst_svr -cwd ${MMS_INST} -oo ${MMS_LOG}/${jobname}.out -eo ${MMS_LOG}/${jobname}.err -J ${jobname} ${mms.home}/bin/${command} ${@:5}"
 
     rm -f ${MMS_LOG}/${jobname}.out
     rm -f ${MMS_LOG}/${jobname}.err
