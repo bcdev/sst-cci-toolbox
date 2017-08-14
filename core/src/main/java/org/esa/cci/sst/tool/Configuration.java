@@ -75,6 +75,8 @@ public class Configuration {
     public static final String KEY_MMS_SAMPLING_MIZ_ONLY = "mms.sampling.mizonly";
     public static final String KEY_MMS_SAMPLING_OVERLAPPING_WANTED = "mms.sampling.overlappingwanted";
     public static final String KEY_MMS_SAMPLING_MAX_SAMPLE_COUNT = "mms.sampling.maxsamplecount";
+    public static final String KEY_MMS_SAMPLING_MIN_LAT = "mms.sampling.minlatitude";
+    public static final String KEY_MMS_SAMPLING_MAX_LAT = "mms.sampling.maxlatitude";
 
     public static final String KEY_MMS_MAPPLOT_STATEGY = "mms.mapplot.strategy";
     public static final String KEY_MMS_MAPPLOT_TARGET_DIR = "mms.mapplot.target.dir";

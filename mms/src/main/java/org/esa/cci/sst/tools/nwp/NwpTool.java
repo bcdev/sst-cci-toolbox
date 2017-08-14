@@ -259,7 +259,8 @@ class NwpTool extends BasicTool {
             final String sensorBasename = getSensorBasename(sensorName);
             final int nx = Integer.parseInt(dimensions.getProperty(sensorBasename + ".nx"));
             final int ny = Integer.parseInt(dimensions.getProperty(sensorBasename + ".ny"));
-            final int nwpNx = Integer.parseInt(dimensions.getProperty(sensorBasename + ".nwp.nx"));
+            final int nwpNx = Integer.parseInt(dimensions.getProperty(sensorBasename + "." +
+                    "nwp.nx"));
             final int nwpNy = Integer.parseInt(dimensions.getProperty(sensorBasename + ".nwp.ny"));
 
             final int strideX = calculateStride(nx, nwpNx);
