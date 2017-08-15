@@ -15,8 +15,8 @@ public class LatitudeRemoverTest {
         final LatitudeRemover latitudeRemover = new LatitudeRemover(45.8, Double.NaN);
         final List<SamplingPoint> samples = new ArrayList<>();
 
-        final List<SamplingPoint> removed = latitudeRemover.remove(samples);
-        assertEquals(0, removed.size());
+        latitudeRemover.remove(samples);
+        assertEquals(0, samples.size());
     }
 
     @Test
@@ -29,11 +29,11 @@ public class LatitudeRemoverTest {
         samples.add(new SamplingPoint(111.9, -69.5, 0, 0)); // remove
         samples.add(new SamplingPoint(113.0, -82.5, 0, 0)); // keep
 
-        final List<SamplingPoint> removed = latitudeRemover.remove(samples);
-        assertEquals(2, removed.size());
+        latitudeRemover.remove(samples);
+        assertEquals(2, samples.size());
 
-        assertEquals(-78.6, removed.get(0).getLat(), 1e-8);
-        assertEquals(-82.5, removed.get(1).getLat(), 1e-8);
+        assertEquals(-78.6, samples.get(0).getLat(), 1e-8);
+        assertEquals(-82.5, samples.get(1).getLat(), 1e-8);
     }
 
     @Test
@@ -46,11 +46,11 @@ public class LatitudeRemoverTest {
         samples.add(new SamplingPoint(111.9, -69.5, 0, 0)); // remove
         samples.add(new SamplingPoint(113.0, -12.5, 0, 0)); // remove
 
-        final List<SamplingPoint> removed = latitudeRemover.remove(samples);
-        assertEquals(2, removed.size());
+        latitudeRemover.remove(samples);
+        assertEquals(2, samples.size());
 
-        assertEquals(64.5, removed.get(0).getLat(), 1e-8);
-        assertEquals(78.6, removed.get(1).getLat(), 1e-8);
+        assertEquals(64.5, samples.get(0).getLat(), 1e-8);
+        assertEquals(78.6, samples.get(1).getLat(), 1e-8);
     }
 
     @Test
@@ -63,11 +63,11 @@ public class LatitudeRemoverTest {
         samples.add(new SamplingPoint(111.9, -12.5, 0, 0)); // remove
         samples.add(new SamplingPoint(113.0, -62.5, 0, 0)); // keep
 
-        final List<SamplingPoint> removed = latitudeRemover.remove(samples);
-        assertEquals(3, removed.size());
+        latitudeRemover.remove(samples);
+        assertEquals(3, samples.size());
 
-        assertEquals(64.5, removed.get(0).getLat(), 1e-8);
-        assertEquals(-72.5, removed.get(1).getLat(), 1e-8);
-        assertEquals(-62.5, removed.get(2).getLat(), 1e-8);
+        assertEquals(64.5, samples.get(0).getLat(), 1e-8);
+        assertEquals(-72.5, samples.get(1).getLat(), 1e-8);
+        assertEquals(-62.5, samples.get(2).getLat(), 1e-8);
     }
 }

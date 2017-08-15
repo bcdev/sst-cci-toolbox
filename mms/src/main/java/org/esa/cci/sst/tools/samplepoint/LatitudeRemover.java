@@ -20,7 +20,7 @@ public class LatitudeRemover {
         removeMax = !Double.isNaN(maxLat);
     }
 
-    public List<SamplingPoint> remove(List<SamplingPoint> samples) {
+    public void remove(List<SamplingPoint> samples) {
         final List<SamplingPoint> clearedSamples = new ArrayList<>(samples.size());
 
         for (final SamplingPoint point : samples) {
@@ -48,6 +48,7 @@ public class LatitudeRemover {
                 clearedSamples.add(point);
             }
         }
-        return clearedSamples;
+        samples.clear();
+        samples.addAll(clearedSamples);
     }
 }

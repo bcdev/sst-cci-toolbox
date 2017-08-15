@@ -1,41 +1,20 @@
 package org.esa.cci.sst.tools;
 
-import org.esa.cci.sst.data.Coincidence;
-import org.esa.cci.sst.data.DataFile;
-import org.esa.cci.sst.data.InsituObservation;
-import org.esa.cci.sst.data.Matchup;
-import org.esa.cci.sst.data.Observation;
-import org.esa.cci.sst.data.ReferenceObservation;
-import org.esa.cci.sst.data.RelatedObservation;
-import org.esa.cci.sst.data.Sensor;
+import org.esa.cci.sst.data.*;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.orm.Storage;
 import org.esa.cci.sst.tool.Configuration;
 import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.tools.mmdgeneration.DimensionConfigurationInitializer;
-import org.esa.cci.sst.tools.samplepoint.DirtySubsceneRemover;
-import org.esa.cci.sst.tools.samplepoint.OverlapRemover;
-import org.esa.cci.sst.tools.samplepoint.SamplePointImporter;
-import org.esa.cci.sst.tools.samplepoint.TimeDeltaPointRemover;
-import org.esa.cci.sst.tools.samplepoint.TimeRange;
-import org.esa.cci.sst.util.ConfigUtil;
-import org.esa.cci.sst.util.GeometryUtil;
-import org.esa.cci.sst.util.SamplingPoint;
-import org.esa.cci.sst.util.SensorNames;
-import org.esa.cci.sst.util.TimeUtil;
+import org.esa.cci.sst.tools.samplepoint.*;
+import org.esa.cci.sst.util.*;
 import org.postgis.PGgeometry;
 
 import javax.persistence.EntityTransaction;
 import javax.persistence.Query;
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Stack;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -53,6 +32,9 @@ public class MatchupGenerator extends BasicTool {
     private String referenceSensorName;
     private int maxSampleCount;
     private int matchupDeltaTime;
+    private boolean processLatBoundaries;
+    private double minLatitude;
+    private double maxLatitude;
 
     public MatchupGenerator() {
         super("matchup-generator", "1.0");
@@ -95,13 +77,11 @@ public class MatchupGenerator extends BasicTool {
         referenceSensorPattern = config.getPattern(referenceSensorName, 0);
         matchupDeltaTime = config.getIntValue("mms.sampling.deltatime", -1);
 
-        final Set<String> dimensionNames = new TreeSet<>();
-        dimensionNames.add(SensorNames.getDimensionNameX(sensorName1));
-        dimensionNames.add(SensorNames.getDimensionNameY(sensorName1));
-        if (sensorName2 != null) {
-            dimensionNames.add(SensorNames.getDimensionNameX(sensorName2));
-            dimensionNames.add(SensorNames.getDimensionNameY(sensorName2));
-        }
+        minLatitude = config.getDoubleValue(Configuration.KEY_MMS_SAMPLING_MIN_LAT, Double.NaN);
+        maxLatitude = config.getDoubleValue(Configuration.KEY_MMS_SAMPLING_MAX_LAT, Double.NaN);
+        processLatBoundaries = !(Double.isNaN(minLatitude) && Double.isNaN(maxLatitude));
+
+        final Set<String> dimensionNames = getDimensionNames();
 
         final Map<String, Integer> map = DimensionConfigurationInitializer.initialize(dimensionNames, getConfig());
         subSceneWidth1 = map.get(SensorNames.getDimensionNameX(sensorName1));
@@ -115,7 +95,7 @@ public class MatchupGenerator extends BasicTool {
     private void run() throws IOException {
         cleanupIfRequested();
 
-        final List<SamplingPoint> samples = loadSamplePoints(logger);
+        List<SamplingPoint> samples = loadSamplePoints(logger);
         removeDirtySamples(logger, samples, true);
 
         if (sensorName2 != null) {
@@ -130,6 +110,10 @@ public class MatchupGenerator extends BasicTool {
             removeWrongTimeSamples(samples);
         }
 
+        if (processLatBoundaries) {
+            removeOutOfLatBoundaryPixels(samples);
+        }
+
         int w = overlappingWanted ? 1 : subSceneWidth1;
         int h = overlappingWanted ? 1 : subSceneHeight1;
         do {
@@ -139,9 +123,7 @@ public class MatchupGenerator extends BasicTool {
         createMatchups(logger, samples);
     }
 
-
-
-    static void createMatchups(List<SamplingPoint> samples, String referenceSensorName, String primarySensorName,
+    private static void createMatchups(List<SamplingPoint> samples, String referenceSensorName, String primarySensorName,
                                String secondarySensorName, long referenceSensorPattern, PersistenceManager pm,
                                Storage storage, Logger logger) {
         if (samples.isEmpty()) {
@@ -155,8 +137,8 @@ public class MatchupGenerator extends BasicTool {
             rollbackStack.push(pm.transaction());
             final String sensorShortName = createSensorShortName(referenceSensorName, primarySensorName);
             final List<ReferenceObservation> referenceObservations = createReferenceObservations(samples,
-                                                                                                 sensorShortName,
-                                                                                                 storage);
+                    sensorShortName,
+                    storage);
             pm.commit();
             logInfo(logger, "Finished creating reference observations");
 
@@ -166,7 +148,7 @@ public class MatchupGenerator extends BasicTool {
 
             logInfo(logger, "Starting creating matchup pattern ...");
             final long matchupPattern = defineMatchupPattern(primarySensorName, secondarySensorName,
-                                                             referenceSensorPattern, pm, rollbackStack);
+                    referenceSensorPattern, pm, rollbackStack);
             logInfo(logger, MessageFormat.format("Matchup pattern: {0}", Long.toHexString(matchupPattern)));
 
             // create matchups and coincidences
@@ -314,7 +296,7 @@ public class MatchupGenerator extends BasicTool {
         r.setSensor(referenceSensorName);
 
         final PGgeometry location = GeometryUtil.createPointGeometry(samplingPoint.getReferenceLon(),
-                                                                     samplingPoint.getReferenceLat());
+                samplingPoint.getReferenceLat());
         r.setLocation(location);
         r.setPoint(location);
 
@@ -374,7 +356,6 @@ public class MatchupGenerator extends BasicTool {
         }
     }
 
-
     private void cleanup() {
         getPersistenceManager().transaction();
 
@@ -394,8 +375,8 @@ public class MatchupGenerator extends BasicTool {
         getPersistenceManager().transaction();
 
         final TimeRange timeRange = ConfigUtil.getTimeRange(Configuration.KEY_MMS_SAMPLING_START_TIME,
-                                                            Configuration.KEY_MMS_SAMPLING_STOP_TIME,
-                                                            getConfig());
+                Configuration.KEY_MMS_SAMPLING_STOP_TIME,
+                getConfig());
         final Date startDate = timeRange.getStartDate();
         final Date stopDate = timeRange.getStopDate();
         Query delete = getPersistenceManager().createNativeQuery(
@@ -423,7 +404,7 @@ public class MatchupGenerator extends BasicTool {
     private void createMatchups(Logger logger, List<SamplingPoint> samples) {
         logInfo(logger, "Starting creating matchups...");
         createMatchups(samples, referenceSensorName, sensorName1, sensorName2, referenceSensorPattern,
-                       getPersistenceManager(), getStorage(), logger);
+                getPersistenceManager(), getStorage(), logger);
         logInfo(logger, "Finished creating matchups...");
     }
 
@@ -440,6 +421,13 @@ public class MatchupGenerator extends BasicTool {
         final TimeDeltaPointRemover timeDeltaPointRemover = new TimeDeltaPointRemover();
         timeDeltaPointRemover.removeSamples(samples, matchupDeltaTime);
         logInfo(logger, "Finished removing overlapping samples (" + samples.size() + " samples left)");
+    }
+
+    private void removeOutOfLatBoundaryPixels(List<SamplingPoint> samples) {
+        logInfo(logger, "Starting removing out of latitude bounds samples...");
+        final LatitudeRemover latitudeRemover = new LatitudeRemover(maxLatitude, minLatitude);
+        latitudeRemover.remove(samples);
+        logInfo(logger, "Finished removing out of latitude bounds samples (" + samples.size() + " samples left)");
     }
 
     private void removeDirtySamples(Logger logger, List<SamplingPoint> samples, boolean primary) {
@@ -472,5 +460,16 @@ public class MatchupGenerator extends BasicTool {
         final List<SamplingPoint> samples = samplePointImporter.load();
         logInfo(logger, "Finished loading samples: (" + samples.size() + " loaded).");
         return samples;
+    }
+
+    private Set<String> getDimensionNames() {
+        final Set<String> dimensionNames = new TreeSet<>();
+        dimensionNames.add(SensorNames.getDimensionNameX(sensorName1));
+        dimensionNames.add(SensorNames.getDimensionNameY(sensorName1));
+        if (sensorName2 != null) {
+            dimensionNames.add(SensorNames.getDimensionNameX(sensorName2));
+            dimensionNames.add(SensorNames.getDimensionNameY(sensorName2));
+        }
+        return dimensionNames;
     }
 }
