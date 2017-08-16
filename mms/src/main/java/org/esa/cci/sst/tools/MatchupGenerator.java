@@ -28,6 +28,7 @@ public class MatchupGenerator extends BasicTool {
     private int subSceneHeight2;
     private double dirtyPixelFraction;
     private boolean overlappingWanted;
+    private boolean landWanted;
     private long referenceSensorPattern;
     private String referenceSensorName;
     private int maxSampleCount;
@@ -81,6 +82,8 @@ public class MatchupGenerator extends BasicTool {
         maxLatitude = config.getDoubleValue(Configuration.KEY_MMS_SAMPLING_MAX_LAT, Double.NaN);
         processLatBoundaries = !(Double.isNaN(minLatitude) && Double.isNaN(maxLatitude));
 
+        landWanted = config.getBooleanValue(Configuration.KEY_MMS_SAMPLING_LAND_WANTED, false);
+
         final Set<String> dimensionNames = getDimensionNames();
 
         final Map<String, Integer> map = DimensionConfigurationInitializer.initialize(dimensionNames, getConfig());
@@ -112,6 +115,10 @@ public class MatchupGenerator extends BasicTool {
 
         if (processLatBoundaries) {
             removeOutOfLatBoundaryPixels(samples);
+        }
+
+        if (!landWanted)  {
+            removeLandPixels(samples);
         }
 
         int w = overlappingWanted ? 1 : subSceneWidth1;
@@ -428,6 +435,13 @@ public class MatchupGenerator extends BasicTool {
         final LatitudeRemover latitudeRemover = new LatitudeRemover(maxLatitude, minLatitude);
         latitudeRemover.remove(samples);
         logInfo(logger, "Finished removing out of latitude bounds samples (" + samples.size() + " samples left)");
+    }
+
+    private void removeLandPixels(List<SamplingPoint> samples) {
+        logInfo(logger, "Starting removing land samples...");
+        final LandPointRemover landPointRemover = new LandPointRemover();
+        landPointRemover.removeSamples(samples);
+        logInfo(logger, "Finished removing land samples (" + samples.size() + " samples left)");
     }
 
     private void removeDirtySamples(Logger logger, List<SamplingPoint> samples, boolean primary) {
