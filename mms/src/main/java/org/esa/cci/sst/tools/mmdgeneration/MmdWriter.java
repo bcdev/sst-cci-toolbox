@@ -1,7 +1,6 @@
 package org.esa.cci.sst.tools.mmdgeneration;
 
 import org.esa.cci.sst.data.Item;
-import org.esa.cci.sst.log.SstLogging;
 import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.util.IoUtil;
 import ucar.ma2.Array;
@@ -17,6 +16,9 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static org.esa.cci.sst.tools.Constants.ATTRIBUTE_CREATION_DATE_NAME;
+import static org.esa.cci.sst.tools.Constants.ATTRIBUTE_NUM_MATCHUPS_NAME;
 
 class MmdWriter implements Closeable {
 
@@ -58,8 +60,8 @@ class MmdWriter implements Closeable {
         fileWriter.addGroupAttribute(null, new Attribute("title", "SST CCI multi-sensor match-up dataset (MMD)"));
         fileWriter.addGroupAttribute(null, new Attribute("institution", "Brockmann Consult"));
         fileWriter.addGroupAttribute(null, new Attribute("contact", "Ralf Quast (ralf.quast@brockmann-consult.de)"));
-        fileWriter.addGroupAttribute(null, new Attribute("creation_date", Calendar.getInstance().getTime().toString()));
-        fileWriter.addGroupAttribute(null, new Attribute("total_number_of_matchups", matchupCount));
+        fileWriter.addGroupAttribute(null, new Attribute(ATTRIBUTE_CREATION_DATE_NAME, Calendar.getInstance().getTime().toString()));
+        fileWriter.addGroupAttribute(null, new Attribute(ATTRIBUTE_NUM_MATCHUPS_NAME, matchupCount));
     }
 
     private void addDimensions(int matchupCount, Map<String, Integer> dimensionConfig) {

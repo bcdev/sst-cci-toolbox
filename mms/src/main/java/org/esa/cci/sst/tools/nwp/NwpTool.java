@@ -21,6 +21,7 @@ import org.esa.cci.sst.tool.Configuration;
 import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tools.Constants;
+import org.esa.cci.sst.util.NetCDFUtil;
 import org.esa.cci.sst.util.ProcessRunner;
 import org.esa.cci.sst.util.SensorNames;
 import ucar.ma2.Array;
@@ -177,7 +178,7 @@ class NwpTool extends BasicTool {
 
     String createAnalysisFile(String mmdFileLocation) throws IOException, InterruptedException {
         final NetcdfFile mmdFile = NetcdfFile.open(mmdFileLocation);
-        final Variable timeVariable = NwpUtil.findVariable(mmdFile, "matchup.time");
+        final Variable timeVariable = NetCDFUtil.findVariable(mmdFile, "matchup.time");
         final List<String> subDirectories = NwpUtil.getRelevantNwpDirs(timeVariable, logger);
 
         try {
@@ -211,7 +212,7 @@ class NwpTool extends BasicTool {
 
     String createForecastFile(String mmdFileLocation) throws IOException, InterruptedException {
         final NetcdfFile mmdFile = NetcdfFile.open(mmdFileLocation);
-        final Variable timeVariable = NwpUtil.findVariable(mmdFile, "matchup.time");
+        final Variable timeVariable = NetCDFUtil.findVariable(mmdFile, "matchup.time");
         final List<String> subDirectories = NwpUtil.getRelevantNwpDirs(timeVariable, logger);
 
         try {
@@ -252,7 +253,7 @@ class NwpTool extends BasicTool {
     void writeSensorNwpFile(String mmdFileLocation, Properties dimensions) throws IOException, InterruptedException {
         final NetcdfFile mmdFile = NetcdfFile.open(mmdFileLocation);
         try {
-            final Variable timeVariable = NwpUtil.findVariable(mmdFile, sensorName + ".time");
+            final Variable timeVariable = NetCDFUtil.findVariable(mmdFile, sensorName + ".time");
             logger.info("Looking for relevant NWP sub-directories...");
             final List<String> subDirectories = NwpUtil.getRelevantNwpDirs(timeVariable, logger);
             logger.info("Found NWP sub-directories: " + Arrays.toString(subDirectories.toArray(new String[subDirectories.size()])));
@@ -370,7 +371,7 @@ class NwpTool extends BasicTool {
             // create forecast variables
             final Map<Variable, Variable> fcMap = new HashMap<>();
             NwpUtil.copyVariables(forecastFile, targetMmd, fcMap, "fc");
-            final Variable mmdTime = NwpUtil.findVariable(sourceMmd, "matchup.time");
+            final Variable mmdTime = NetCDFUtil.findVariable(sourceMmd, "matchup.time");
             final Variable fcT0 = addCenterTimeVariable(targetMmd, mmdTime, "fc");
 
             // create analysis variables
@@ -391,7 +392,7 @@ class NwpTool extends BasicTool {
 
             // write forecast data
             final Array targetTimes = mmdTime.read();
-            final Array fcSourceTimes = NwpUtil.findVariable(forecastFile, "time", "t").read();
+            final Array fcSourceTimes = NetCDFUtil.findVariable(forecastFile, "time", "t").read();
             final int[] fcSourceShape = {targetFcTimeStepCount, 1, gy, gx};
             final int fcPastTimeStepCount = NwpTool.computePastTimeStepCount(targetFcTimeStepCount);
             final int fcFutureTimeStepCount = NwpTool.computeFutureTimeStepCount(targetFcTimeStepCount);
@@ -409,7 +410,7 @@ class NwpTool extends BasicTool {
             targetMmd.write(fcT0, Array.factory(centerTimes));
 
             // write analysis data
-            final Array anSourceTimes = NwpUtil.findVariable(analysisFile, "time", "t").read();
+            final Array anSourceTimes = NetCDFUtil.findVariable(analysisFile, "time", "t").read();
             final int[] anSourceShape = {targetAnTimeStepCount, 1, gy, gx};
             final int anPastTimeStepCount = NwpTool.computePastTimeStepCount(targetAnTimeStepCount);
             final int anFutureTimeStepCount = NwpTool.computeFutureTimeStepCount(targetAnTimeStepCount);
@@ -473,12 +474,12 @@ class NwpTool extends BasicTool {
     private static void copyVariableData(String name, NetcdfFile sourceMmd, NetcdfFileWriter targetMmd) throws
             IOException,
             InvalidRangeException {
-        final Array data = NwpUtil.findVariable(sourceMmd, name).read();
+        final Array data = NetCDFUtil.findVariable(sourceMmd, name).read();
         targetMmd.write(targetMmd.findVariable(NetcdfFile.makeValidPathName(name)), data);
     }
 
     private static void addVariable(String name, NetcdfFile source, NetcdfFileWriter target) throws IOException {
-        final Variable s = NwpUtil.findVariable(source, name);
+        final Variable s = NetCDFUtil.findVariable(source, name);
         final Variable t = target.addVariable(null, s.getShortName(), s.getDataType(), s.getDimensionsString());
         for (final Attribute a : s.getAttributes()) {
             t.addAttribute(a);
@@ -505,7 +506,7 @@ class NwpTool extends BasicTool {
             targetMmd.addDimension(null,
                     sourceMatchupDimension.getShortName(),
                     matchupCount);
-            final Variable sourceMatchupId = NwpUtil.findVariable(sourceMmd, "matchup.id");
+            final Variable sourceMatchupId = NetCDFUtil.findVariable(sourceMmd, "matchup.id");
             final Variable targetMatchupId = targetMmd.addVariable(null,
                     sourceMatchupId.getShortName(),
                     sourceMatchupId.getDataType(),
@@ -548,11 +549,11 @@ class NwpTool extends BasicTool {
             targetMmd.create();
 
             // copy MMD matchup IDs
-            targetMmd.write(targetMatchupId, NwpUtil.findVariable(sourceMmd, "matchup.id").read());
+            targetMmd.write(targetMatchupId, NetCDFUtil.findVariable(sourceMmd, "matchup.id").read());
 
             //copy NWP data;
-            final Variable targetTimesVariable = NwpUtil.findVariable(sourceMmd, sensorName + ".time");
-            final Array sourceTimes = NwpUtil.findVariable(sourceNwp, "time", "t").read();
+            final Variable targetTimesVariable = NetCDFUtil.findVariable(sourceMmd, sensorName + ".time");
+            final Array sourceTimes = NetCDFUtil.findVariable(sourceNwp, "time", "t").read();
             final Array targetTimes = targetTimesVariable.read();
             final float targetTimeFillValue = NwpUtil.getAttribute(targetTimesVariable, "_FillValue",
                     Integer.MIN_VALUE);
@@ -638,7 +639,7 @@ class NwpTool extends BasicTool {
             final Dimension nyDimension = NwpUtil.findDimension(sourceMmd, sensorBasename + ".ny");
             final Dimension nxDimension = NwpUtil.findDimension(sourceMmd, sensorBasename + ".nx");
 
-            final Array sensorPatterns = NwpUtil.findVariable(sourceMmd, Constants.MATCHUP_DATASET_ID).read();
+            final Array sensorPatterns = NetCDFUtil.findVariable(sourceMmd, Constants.MATCHUP_DATASET_ID).read();
             final int matchupCount = getMatchupCount(sensorPatterns, sensorPattern);
             if (matchupCount == 0) {
                 return null;
@@ -653,13 +654,13 @@ class NwpTool extends BasicTool {
             targetMmd.addDimension(null, nyDimension.getShortName(), ny);
             targetMmd.addDimension(null, nxDimension.getShortName(), nx);
 
-            NwpUtil.addVariable(targetMmd, NwpUtil.findVariable(sourceMmd, Constants.MATCHUP_ID));
-            NwpUtil.addVariable(targetMmd, NwpUtil.findVariable(sourceMmd, Constants.MATCHUP_TIME));
-            NwpUtil.addVariable(targetMmd, NwpUtil.findVariable(sourceMmd, Constants.MATCHUP_LATITUDE));
-            NwpUtil.addVariable(targetMmd, NwpUtil.findVariable(sourceMmd, Constants.MATCHUP_LONGITUDE));
-            NwpUtil.addVariable(targetMmd, NwpUtil.findVariable(sourceMmd, sensorName + ".latitude"));
-            NwpUtil.addVariable(targetMmd, NwpUtil.findVariable(sourceMmd, sensorName + ".longitude"));
-            NwpUtil.addVariable(targetMmd, NwpUtil.findVariable(sourceMmd, sensorName + ".time"));
+            NwpUtil.addVariable(targetMmd, NetCDFUtil.findVariable(sourceMmd, Constants.MATCHUP_ID));
+            NwpUtil.addVariable(targetMmd, NetCDFUtil.findVariable(sourceMmd, Constants.MATCHUP_TIME));
+            NwpUtil.addVariable(targetMmd, NetCDFUtil.findVariable(sourceMmd, Constants.MATCHUP_LATITUDE));
+            NwpUtil.addVariable(targetMmd, NetCDFUtil.findVariable(sourceMmd, Constants.MATCHUP_LONGITUDE));
+            NwpUtil.addVariable(targetMmd, NetCDFUtil.findVariable(sourceMmd, sensorName + ".latitude"));
+            NwpUtil.addVariable(targetMmd, NetCDFUtil.findVariable(sourceMmd, sensorName + ".longitude"));
+            NwpUtil.addVariable(targetMmd, NetCDFUtil.findVariable(sourceMmd, sensorName + ".time"));
 
             targetMmd.create();
             try {
@@ -740,8 +741,8 @@ class NwpTool extends BasicTool {
             final int[] targetShape = {1};
             final Array maskData = Array.factory(DataType.INT, targetShape);
 
-            final Variable sourceLat = NwpUtil.findVariable(mmd, Constants.MATCHUP_LATITUDE);
-            final Variable sourceLon = NwpUtil.findVariable(mmd, Constants.MATCHUP_LONGITUDE);
+            final Variable sourceLat = NetCDFUtil.findVariable(mmd, Constants.MATCHUP_LATITUDE);
+            final Variable sourceLon = NetCDFUtil.findVariable(mmd, Constants.MATCHUP_LONGITUDE);
 
             for (int i = 0; i < matchupCount; i++) {
                 sourceStart[0] = i;
@@ -823,8 +824,8 @@ class NwpTool extends BasicTool {
             final int[] targetShape = {gy * gx};
             final Array maskData = Array.factory(DataType.INT, targetShape);
 
-            final Variable sourceLat = NwpUtil.findVariable(mmd, sensorName + ".latitude");
-            final Variable sourceLon = NwpUtil.findVariable(mmd, sensorName + ".longitude");
+            final Variable sourceLat = NetCDFUtil.findVariable(mmd, sensorName + ".latitude");
+            final Variable sourceLon = NetCDFUtil.findVariable(mmd, sensorName + ".longitude");
 
             for (int i = 0; i < matchupCount; i++) {
                 sourceStart[0] = i;

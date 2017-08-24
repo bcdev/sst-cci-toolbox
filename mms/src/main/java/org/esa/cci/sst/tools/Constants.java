@@ -86,6 +86,10 @@ public class Constants {
     public static final String MATCHUP_INSITU_DATASET = "matchup.insitu.dataset";
     public static final String MATCHUP_REFERENCE_FLAG = "matchup.reference_flag";
 
+    public static final String ATTRIBUTE_NUM_MATCHUPS_NAME = "total_number_of_matchups";
+    public static final String ATTRIBUTE_CREATION_DATE_NAME = "creation_date";
+
+
     private Constants() {
     }
 }
