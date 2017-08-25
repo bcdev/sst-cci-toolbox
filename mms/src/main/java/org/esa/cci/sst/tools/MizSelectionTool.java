@@ -20,7 +20,7 @@ import org.esa.cci.sst.tool.Configuration;
 import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.util.NetCDFUtil;
 import ucar.ma2.Array;
-import ucar.ma2.DataType;
+import ucar.ma2.InvalidRangeException;
 import ucar.nc2.*;
 
 import java.io.IOException;
@@ -75,10 +75,11 @@ public class MizSelectionTool extends BasicTool {
         referenceSensor = sensors[0];
     }
 
-    private void run() throws IOException {
+    private void run() throws IOException, InvalidRangeException {
 
         final NetcdfFile sourceMmd = NetcdfFile.open(sourceMmdLocation);
-        final NetcdfFileWriteable netcdfFile = NetcdfFileWriteable.createNew(targetMmdLocation);
+        final NetcdfFileWriter targetMmd = createTargetMmdWriter();
+
         try {
             final Array lonArray = NetCDFUtil.findVariable(sourceMmd, referenceSensor + ".longitude").read();
             final Array latArray = NetCDFUtil.findVariable(sourceMmd, referenceSensor + ".latitude").read();
@@ -101,7 +102,7 @@ public class MizSelectionTool extends BasicTool {
                 }
 
                 // ---- remove this later ------
-                // just a simple fake code to randomly narrow down the macthups - tb 2017-08-24
+                // just a simple fake code to randomly narrow down the matchups - tb 2017-08-24
                 final double random = Math.random();
                 if (random > 0.7) {
                     matchIndexToKeep.add(matchup);
@@ -109,15 +110,9 @@ public class MizSelectionTool extends BasicTool {
                 // ---- remove this later ------
             }
 
-            // create target MMD
-            final Group rootGroup = sourceMmd.getRootGroup();
-            copyHeader(netcdfFile, rootGroup, null, matchIndexToKeep.size());
-            netcdfFile.create();
-            netcdfFile.flush();
+            createTargetMMD(sourceMmd, targetMmd, matchIndexToKeep);
 
-
-            // update dimensions
-            // copy selected data
+            transferSelectedData(sourceMmd, targetMmd, matchIndexToKeep);
 
         /*
         TODO - implement what is defined below: include only those sub-scenes that satisfy both 1) and 2)
@@ -134,13 +129,49 @@ public class MizSelectionTool extends BasicTool {
 
         } finally {
             sourceMmd.close();
-            netcdfFile.close();
+            targetMmd.close();
         }
     }
 
-    private void copyHeader(NetcdfFileWriteable netcdfFile, Group group, Group parent, int numMatchups) {
-        final Group newGroup = new Group(netcdfFile, parent, group.getShortName());
-        final Group addedGroup = netcdfFile.addGroup(parent, newGroup);
+    private void transferSelectedData(NetcdfFile sourceMmd, NetcdfFileWriter targetMmd, List<Integer> matchIndexToKeep) throws IOException, InvalidRangeException {
+        final List<Variable> variables = sourceMmd.getVariables();
+        for (final Variable variable : variables) {
+            final int[] writeShape = variable.getShape();
+            writeShape[0] = 1;
+
+            final int[] origin = new int[writeShape.length];
+            for (int i = 0; i < writeShape.length; i++) {
+                origin[i] = 0;
+            }
+
+            final Variable targetVariable = targetMmd.findVariable(variable.getFullNameEscaped());
+            int writeIndex = 0;
+            for (Integer matchup : matchIndexToKeep) {
+                origin[0] = matchup;
+                final Array data = variable.read(origin, writeShape);
+
+                origin[0] = writeIndex;
+                targetMmd.write(targetVariable, origin, data);
+                ++writeIndex;
+            }
+        }
+    }
+
+    private void createTargetMMD(NetcdfFile sourceMmd, NetcdfFileWriter targetMmd, List<Integer> matchIndexToKeep) throws IOException {
+        final Group rootGroup = sourceMmd.getRootGroup();
+        copyHeader(targetMmd, rootGroup, null, matchIndexToKeep.size());
+        targetMmd.create();
+    }
+
+    private NetcdfFileWriter createTargetMmdWriter() throws IOException {
+        final NetcdfFileWriter targetMmd = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf3, targetMmdLocation);
+        targetMmd.setLargeFile(true);
+        targetMmd.setFill(true);
+        return targetMmd;
+    }
+
+    private void copyHeader(NetcdfFileWriter targetMmd, Group group, Group parent, int numMatchups) {
+        final Group addedGroup = targetMmd.addGroup(parent, group.getShortName());
 
         for (Attribute attribute : group.getAttributes()) {
             if (attribute.getShortName().equals(ATTRIBUTE_NUM_MATCHUPS_NAME)) {
@@ -161,25 +192,20 @@ public class MizSelectionTool extends BasicTool {
                 length = numMatchups;
             }
 
-            final Dimension newDimension = new Dimension(dimensionName, length, true, dim.isUnlimited(), dim.isVariableLength());
-            netcdfFile.addDimension(addedGroup, newDimension);
+            targetMmd.addDimension(addedGroup, dimensionName, length, true, dim.isUnlimited(), dim.isVariableLength());
         }
 
-        netcdfFile.addVariable(addedGroup, "bla", DataType.FLOAT, "matchup");
-
-//        for (Variable v : group.getVariables()) {
-//
-//            final String shortName = v.getShortName();
-//            final Variable nv = netcdfFile.addVariable(newGroup, shortName, v.getDataType(), v.getDimensionsString());
-////            for (Attribute att : v.getAttributes()) {
-////                netcdfFile.addVariableAttribute(nv, att);
-////            }
-//            break;
-//        }
+        for (Variable v : group.getVariables()) {
+            final String shortName = v.getShortName();
+            final Variable nv = targetMmd.addVariable(addedGroup, shortName, v.getDataType(), v.getDimensionsString());
+            for (Attribute att : v.getAttributes()) {
+                targetMmd.addVariableAttribute(nv, att);
+            }
+        }
 
         // recurse
         for (Group g : group.getGroups()) {
-            copyHeader(netcdfFile, g, newGroup, numMatchups);
+            copyHeader(targetMmd, g, addedGroup, numMatchups);
         }
     }
 }
