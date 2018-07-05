@@ -1,0 +1,15 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.esa-sst-cci</groupId>
+        <artifactId>sst-cci-toolbox</artifactId>
+        <version>1</version>
+    </parent>
+
+    <name>SST-CCI Quality ASSESMENT tOOLS</name>
+    <artifactId>sst-cci-qa</artifactId>
+    <version>2.0-SNAPSHOT</version>
+</project>

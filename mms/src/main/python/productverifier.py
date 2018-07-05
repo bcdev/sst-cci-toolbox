@@ -222,16 +222,16 @@ class ProductVerifier:
 
     def verify(self):
         try:
-            print ProductVerifier.get_current_time(), 'checking source pathname'
+            print (ProductVerifier.get_current_time(), 'checking source pathname')
             self._check_source_pathname()
-            print ProductVerifier.get_current_time(), 'checking source filename'
+            print (ProductVerifier.get_current_time(), 'checking source filename')
             product_type = self._check_source_filename()
-            print ProductVerifier.get_current_time(), 'checking dataset can be opened'
+            print (ProductVerifier.get_current_time(), 'checking dataset can be opened')
             dataset = self._check_product_can_be_opened()
-            print ProductVerifier.get_current_time(), 'checking dataset'
+            print (ProductVerifier.get_current_time(), 'checking dataset')
             self._check_dataset(dataset, product_type)
         except VerificationError:
-            print 'Verification error:', self.source_pathname
+            print ('Verification error:', self.source_pathname)
         finally:
             ProductVerifier.ensure_correct_integer_types(self.report)
             ProductVerifier.dump_report(self.report, self.report_pathname)
@@ -546,7 +546,7 @@ class ProductVerifier:
         :type report_pathname: str
         """
         if report_pathname is None:
-            print json.dumps(report, indent=1, sort_keys=True)
+            print (json.dumps(report, indent=1, sort_keys=True))
         else:
             report_dirname = os.path.dirname(report_pathname)
             if not os.path.exists(report_dirname):
@@ -611,9 +611,9 @@ def ensure_availability_of_imports():
     try:
         import netCDF4
 
-        print ProductVerifier.get_current_time(), 'The netCDF4 module is available'
+        print (ProductVerifier.get_current_time(), 'The netCDF4 module is available')
     except:
-        print ProductVerifier.get_current_time(), 'The netCDF4 module is not available. Please install netCDF4.'
+        print (ProductVerifier.get_current_time(), 'The netCDF4 module is not available. Please install netCDF4.')
         sys.exit(1)
 
 
@@ -630,7 +630,7 @@ if __name__ == "__main__":
     elif argument_count == 3:
         verifier = ProductVerifier(sys.argv[1], sys.argv[2])
     else:
-        print 'usage:', sys.argv[0], '<source pathname> <report pathname>'
+        print ('usage:', sys.argv[0], '<source pathname> <report pathname>')
         sys.exit(1)
 
     ensure_availability_of_imports()
@@ -640,5 +640,5 @@ if __name__ == "__main__":
         verifier.verify()
         sys.exit()
     except Exception as e:
-        print "Error {0}".format(e.message)
+        print ("Error {0}".format(e.message))
         sys.exit(1)
