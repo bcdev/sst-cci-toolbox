@@ -223,7 +223,7 @@ class ProductVerifier:
     def verify(self):
         try:
             print (ProductVerifier.get_current_time(), 'checking source pathname')
-            self._check_source_pathname()
+            #self._check_source_pathname()
             print (ProductVerifier.get_current_time(), 'checking source filename')
             product_type = self._check_source_filename()
             print (ProductVerifier.get_current_time(), 'checking dataset can be opened')
@@ -239,9 +239,9 @@ class ProductVerifier:
     def _check_source_pathname(self):
         ok = os.path.isfile(self.source_pathname)
         if ok:
-            self.report['source_pathname_check'] = 0
+            self.report['source_pathname_check'] = float(0)
         else:
-            self.report['source_pathname_check'] = 1
+            self.report['source_pathname_check'] = float(1)
             self.report['source_pathname_check_failed_for'] = self.source_pathname
             raise VerificationError
 
@@ -259,10 +259,10 @@ class ProductVerifier:
                 break
 
         if product_type is not None:
-            self.report['source_filename_check'] = 0
+            self.report['source_filename_check'] = float(0)
             return product_type
         else:
-            self.report['source_filename_check'] = 1
+            self.report['source_filename_check'] = float(1)
             filename = os.path.basename(self.source_pathname)
             self.report['source_filename_check_failed_for'] = filename
             raise VerificationError
@@ -275,9 +275,9 @@ class ProductVerifier:
         """
         for variable_name in product_type.get_variable_names():
             if variable_name in dataset.variables:
-                self.report[variable_name + '.existence_check'] = 0
+                self.report[variable_name + '.existence_check'] = float(0)
             else:
-                self.report[variable_name + '.existence_check'] = 1
+                self.report[variable_name + '.existence_check'] = float(1)
                 filename = os.path.basename(self.source_pathname)
                 self.report[variable_name + '.existence_check_failed_for'] = filename
 
@@ -374,20 +374,20 @@ class ProductVerifier:
         """
         for variable_name in dataset.variables:
             variable = dataset.variables[variable_name]
-            self.report[variable_name + '.count.total'] = variable.size
+            self.report[variable_name + '.count.total'] = float(variable.size)
 
             data = ProductVerifier.__get_masked_data(variable)
-            self.report[variable_name + '.count.valid'] = data.count()
+            self.report[variable_name + '.count.valid'] = float(data.count())
 
             try:
                 valid_max = variable.getncattr('valid_max')
                 invalid_data = ma.masked_less_equal(data, valid_max)
                 invalid_data_count = invalid_data.count()
                 if invalid_data_count == 0:
-                    self.report[variable_name + '.valid_max_check'] = invalid_data_count
+                    self.report[variable_name + '.valid_max_check'] = float(invalid_data_count)
                 else:
                     variable.getncattr('_FillValue')
-                    self.report[variable_name + '.valid_max_check'] = invalid_data_count
+                    self.report[variable_name + '.valid_max_check'] = float(invalid_data_count)
                     filename = os.path.basename(self.source_pathname)
                     self.report[variable_name + '.valid_max_check_failed_for'] = filename
             except AttributeError:
@@ -396,12 +396,12 @@ class ProductVerifier:
                 valid_min = variable.getncattr('valid_min')
                 invalid_data = ma.masked_greater_equal(data, valid_min)
                 invalid_data_count = invalid_data.count()
-                self.report[variable_name + '.valid_min_check'] = invalid_data_count
+                self.report[variable_name + '.valid_min_check'] = float(invalid_data_count)
                 if invalid_data_count == 0:
-                    self.report[variable_name + '.valid_min_check'] = invalid_data_count
+                    self.report[variable_name + '.valid_min_check'] = float(invalid_data_count)
                 else:
                     variable.getncattr('_FillValue')
-                    self.report[variable_name + '.valid_min_check'] = invalid_data_count
+                    self.report[variable_name + '.valid_min_check'] = float(invalid_data_count)
                     filename = os.path.basename(self.source_pathname)
                     self.report[variable_name + '.valid_min_check_failed_for'] = filename
             except AttributeError:
@@ -421,14 +421,14 @@ class ProductVerifier:
             # count pixels with differences less than the minimum
             suspicious_data = ma.masked_greater_equal(d, spec[2])
             suspicious_data_count = suspicious_data.count()
-            self.report['geophysical_minimum_check'] = suspicious_data_count
+            self.report['geophysical_minimum_check'] = float(suspicious_data_count)
             if suspicious_data_count > 0:
                 filename = os.path.basename(self.source_pathname)
                 self.report['geophysical_minimum_check_failed_for'] = filename
             # count pixels with differences greater than the maximum
             suspicious_data = ma.masked_less_equal(d, spec[3])
             suspicious_data_count = suspicious_data.count()
-            self.report['geophysical_maximum_check'] = suspicious_data_count
+            self.report['geophysical_maximum_check'] = float(suspicious_data_count)
             if suspicious_data_count > 0:
                 filename = os.path.basename(self.source_pathname)
                 self.report['geophysical_maximum_check_failed_for'] = filename
@@ -437,7 +437,7 @@ class ProductVerifier:
         # noinspection PyNoneFunctionAssignment,PyUnresolvedReferences
         false_negatives = ma.masked_equal(np.logical_or(np.logical_not(reference_mask), objective_mask), True)
         false_negatives_count = false_negatives.count()
-        self.report[check_name] = false_negatives_count
+        self.report[check_name] = float(false_negatives_count)
         if false_negatives_count > 0:
             filename = os.path.basename(self.source_pathname)
             self.report[check_name + '_failed_for'] = filename
@@ -446,7 +446,7 @@ class ProductVerifier:
         # noinspection PyNoneFunctionAssignment,PyUnresolvedReferences
         false_positives = ma.masked_equal(np.logical_or(np.logical_not(objective_mask), reference_mask), True)
         false_positives_count = false_positives.count()
-        self.report[check_name] = false_positives_count
+        self.report[check_name] = float(false_positives_count)
         if false_positives_count > 0:
             filename = os.path.basename(self.source_pathname)
             self.report[check_name + '_failed_for'] = filename
@@ -488,10 +488,10 @@ class ProductVerifier:
         try:
             dataset = Dataset(self.source_pathname)
             dataset.set_auto_maskandscale(False)
-            self.report['product_can_be_opened_check'] = 0
+            self.report['product_can_be_opened_check'] = float(0)
             return dataset
         except:
-            self.report['product_can_be_opened_check'] = 1
+            self.report['product_can_be_opened_check'] = float(1)
             filename = os.path.basename(self.source_pathname)
             self.report['product_can_be_opened_check_failed_for'] = filename
             raise VerificationError
@@ -598,9 +598,9 @@ class ProductVerifier:
             else:
                 ok = False
         if ok:
-            self.report['corruptness_check'] = 0
+            self.report['corruptness_check'] = float(0)
         else:
-            self.report['corruptness_check'] = 1
+            self.report['corruptness_check'] = float(1)
             filename = os.path.basename(self.source_pathname)
             self.report['corruptness_check_failed_for'] = filename
             raise VerificationError
@@ -642,5 +642,5 @@ if __name__ == "__main__":
         verifier.verify()
         sys.exit()
     except Exception as e:
-        print ("Error {0}".format(e.message))
+        print ("Error {0}".format(e.args))
         sys.exit(1)

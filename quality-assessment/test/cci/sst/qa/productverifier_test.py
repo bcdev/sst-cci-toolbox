@@ -35,6 +35,8 @@ class ProductVerifierTests(unittest.TestCase):
         self.assertEquals(0, report['source_filename_check'])
 
     def test_verify(self):
+        self.maxDiff = None # allows checking strings beyond the limit tb 2018-07-06
+
         verifier = ProductVerifier('test/cci/sst/qa/testdata/20100505121116-ESACCI-L2P_GHRSST-SSTskin-AVHRRMTA_G-EXP1.2-v02.0-fv1.0.nc')
         verifier.verify()
 
