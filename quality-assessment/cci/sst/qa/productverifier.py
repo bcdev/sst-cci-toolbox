@@ -61,25 +61,22 @@ class L2P(ProductType):
     def __init__(self):
         ProductType.__init__(self,
                              [
-                                 'lat',
-                                 'lon',
-                                 'time',
-                                 'sst_dtime',
-                                 'sea_surface_temperature',
-                                 'sea_surface_temperature_depth',
-                                 'wind_speed',
-                                 'quality_level',
-                                 'sses_standard_deviation',
-                                 'sst_depth_total_uncertainty',
-                                 'large_scale_correlated_uncertainty',
-                                 'synoptically_correlated_uncertainty',
-                                 'uncorrelated_uncertainty',
                                  'adjustment_uncertainty',
                                  'l2p_flags',
+                                 'large_scale_correlated_uncertainty',
+                                 'lat',
+                                 'lon',
+                                 'quality_level',
+                                 'sea_surface_temperature',
+                                 'sea_surface_temperature_depth',
                                  'sses_bias',
-                                 'aerosol_dynamic_indicator',
-                                 'probability_clear',
-                                 'sensitivity'
+                                 'sses_standard_deviation',
+                                 'sst_depth_total_uncertainty',
+                                 'sst_dtime',
+                                 'synoptically_correlated_uncertainty',
+                                 'time',
+                                 'uncorrelated_uncertainty',
+                                 'wind_speed',
                              ],
                              ['sea_surface_temperature', 'sea_surface_temperature_depth', -5.0, 10.0],
                              [
@@ -223,7 +220,7 @@ class ProductVerifier:
     def verify(self):
         try:
             print (ProductVerifier.get_current_time(), 'checking source pathname')
-            #self._check_source_pathname()
+            self._check_source_pathname()
             print (ProductVerifier.get_current_time(), 'checking source filename')
             product_type = self._check_source_filename()
             print (ProductVerifier.get_current_time(), 'checking dataset can be opened')
