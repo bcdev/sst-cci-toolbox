@@ -22,6 +22,19 @@ class ReportPlotterTests(unittest.TestCase):
         plotter = ReportPlotter('l2p', 'AATSR', ProductVerifier.load_report(report_file))
         plotter.plot()
 
+    def tearDown(self):
+        if os.path.isfile("l2p-AATSR-figure1.pdf"):
+            os.remove("l2p-AATSR-figure1.pdf")
+
+        if os.path.isfile("l2p-AATSR-figure2.pdf"):
+            os.remove("l2p-AATSR-figure2.pdf")
+
+        if os.path.isfile("l2p-AVHRR16_G-figure1.pdf"):
+            os.remove("l2p-AVHRR16_G-figure1.pdf")
+
+        if os.path.isfile("l2p-AVHRR16_G-figure2.pdf"):
+            os.remove("l2p-AVHRR16_G-figure2.pdf")
+
 
 if __name__ == '__main__':
     unittest.main()
