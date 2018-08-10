@@ -33,9 +33,9 @@ class ProductVerifierTests(unittest.TestCase):
         self.assertIsInstance(product_type, L2P)
 
         report = verifier.get_report()
-        self.assertEquals(0, report['source_filename_check'])
+        self.assertEqual(0, report['source_filename_check'])
 
-    def test_verify(self):
+    def test_verify_l2p_v1_2(self):
         self.maxDiff = None  # allows checking strings beyond the limit tb 2018-07-06
         data_dir = TestDataUtils.get_test_data_dir()
 
@@ -43,7 +43,19 @@ class ProductVerifierTests(unittest.TestCase):
         verifier = ProductVerifier(test_product_path)
         verifier.verify()
 
-        expected_report_path = os.path.join(data_dir, "report.json")
+        expected_report_path = os.path.join(data_dir, "report_l2p_v01_2.json")
+        expected_report = ProductVerifier.load_report(expected_report_path)
+        self.assertEqual(expected_report, verifier.get_report())
+
+    def test_verify_l2p_v2_0(self):
+        self.maxDiff = None  # allows checking strings beyond the limit tb 2018-08-10
+        data_dir = TestDataUtils.get_test_data_dir()
+
+        test_product_path = os.path.join(data_dir, "20050606101532-ESACCI-L2P_GHRSST-SSTskin-AATSR-CDR2.0-v02.0-fv01.0.nc")
+        verifier = ProductVerifier(test_product_path)
+        verifier.verify()
+
+        expected_report_path = os.path.join(data_dir, "report_l2p_v02_0.json")
         expected_report = ProductVerifier.load_report(expected_report_path)
         self.assertEquals(expected_report, verifier.get_report())
 
