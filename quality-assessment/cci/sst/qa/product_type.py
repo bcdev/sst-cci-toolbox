@@ -88,22 +88,44 @@ class L2P(ProductType):
 
 
 class L3U(ProductType):
-    l3_variable_names = {"1.2": ['lat', 'lat_bnds', 'lon', 'lon_bnds', 'time', 'time_bnds', 'sst_dtime', 'sea_surface_temperature', 'sea_surface_temperature_depth', 'wind_speed', 'quality_level',
-                                 'sses_standard_deviation', 'sst_depth_total_uncertainty', 'large_scale_correlated_uncertainty', 'synoptically_correlated_uncertainty', 'uncorrelated_uncertainty',
-                                 'adjustment_uncertainty', 'l2p_flags', 'sses_bias', 'aerosol_dynamic_indicator', 'sensitivity']}
+    l3_variable_names = {
+        "1.2": ['lat', 'lat_bnds', 'lon', 'lon_bnds', 'time', 'time_bnds', 'sst_dtime', 'sea_surface_temperature', 'sea_surface_temperature_depth', 'wind_speed', 'quality_level',
+                'sses_standard_deviation', 'sst_depth_total_uncertainty', 'large_scale_correlated_uncertainty', 'synoptically_correlated_uncertainty', 'uncorrelated_uncertainty',
+                'adjustment_uncertainty', 'l2p_flags', 'sses_bias', 'aerosol_dynamic_indicator', 'sensitivity'],
+        "2.0": ['adjustment_uncertainty', 'aerosol_dynamic_indicator', 'l2p_flags', 'large_scale_correlated_uncertainty', 'lat', 'lat_bnds', 'lon', 'lon_bnds', 'quality_level',
+                'sea_surface_temperature', 'sea_surface_temperature_depth', 'sensitivity', 'sses_bias', 'sses_standard_deviation', 'sst_depth_dtime', 'sst_depth_total_uncertainty',
+                'sst_dtime', 'synoptically_correlated_uncertainty', 'time', 'time_bnds', 'uncorrelated_uncertainty', 'wind_speed']
+    }
 
-    l3_geophysical_checks = {"1.2": ['sea_surface_temperature', 'sea_surface_temperature_depth', -5.0, 10.0]}
+    l3_geophysical_checks = {
+        "1.2": ['sea_surface_temperature', 'sea_surface_temperature_depth', -5.0, 10.0],
+        "2.0": ['sea_surface_temperature', 'sea_surface_temperature_depth', -5.0, 10.0]
+    }
 
-    l3_mask_checks = {"1.2": [['sea_surface_temperature', 'quality_level', 'quality_level', [0, 2, 3, 4, 5]], ['sea_surface_temperature', 'sses_bias', 'quality_level', range(0, 6)],
-                              ['sea_surface_temperature', 'sses_standard_deviation', 'quality_level', range(0, 6)],
-                              ['sea_surface_temperature', 'large_scale_correlated_uncertainty', 'quality_level', range(0, 6)],
-                              ['sea_surface_temperature', 'synoptically_correlated_uncertainty', 'quality_level', range(0, 6)],
-                              ['sea_surface_temperature', 'uncorrelated_uncertainty', 'quality_level', range(0, 6)],
-                              ['sea_surface_temperature', 'adjustment_uncertainty', 'quality_level', range(0, 6)],
-                              ['sea_surface_temperature', 'sea_surface_temperature_depth', 'quality_level', range(0, 6)],
-                              ['sea_surface_temperature_depth', 'sst_depth_total_uncertainty', 'quality_level', range(0, 6)]]}
+    l3_mask_checks = {
+        "1.2": [['sea_surface_temperature', 'quality_level', 'quality_level', [0, 2, 3, 4, 5]], ['sea_surface_temperature', 'sses_bias', 'quality_level', range(0, 6)],
+                ['sea_surface_temperature', 'sses_standard_deviation', 'quality_level', range(0, 6)],
+                ['sea_surface_temperature', 'large_scale_correlated_uncertainty', 'quality_level', range(0, 6)],
+                ['sea_surface_temperature', 'synoptically_correlated_uncertainty', 'quality_level', range(0, 6)],
+                ['sea_surface_temperature', 'uncorrelated_uncertainty', 'quality_level', range(0, 6)],
+                ['sea_surface_temperature', 'adjustment_uncertainty', 'quality_level', range(0, 6)],
+                ['sea_surface_temperature', 'sea_surface_temperature_depth', 'quality_level', range(0, 6)],
+                ['sea_surface_temperature_depth', 'sst_depth_total_uncertainty', 'quality_level', range(0, 6)]],
+        "2.0": [['sea_surface_temperature', 'quality_level', 'quality_level', [0, 2, 3, 4, 5]], ['sea_surface_temperature', 'sses_bias', 'quality_level', range(0, 6)],
+                ['sea_surface_temperature', 'sensitivity', 'quality_level', range(0, 6)],
+                ['sea_surface_temperature', 'sses_standard_deviation', 'quality_level', range(0, 6)],
+                ['sea_surface_temperature', 'large_scale_correlated_uncertainty', 'quality_level', range(0, 6)],
+                ['sea_surface_temperature', 'synoptically_correlated_uncertainty', 'quality_level', range(0, 6)],
+                ['sea_surface_temperature', 'uncorrelated_uncertainty', 'quality_level', range(0, 6)],
+                ['sea_surface_temperature', 'adjustment_uncertainty', 'quality_level', range(0, 6)],
+                ['sea_surface_temperature', 'sea_surface_temperature_depth', 'quality_level', range(0, 6)],
+                ['sea_surface_temperature_depth', 'sst_depth_total_uncertainty', 'quality_level', range(0, 6)]]
+    }
 
-    l3_sst_variable_names = {"1.2": ['sea_surface_temperature', 'sea_surface_temperature_depth']}
+    l3_sst_variable_names = {
+        "1.2": ['sea_surface_temperature', 'sea_surface_temperature_depth'],
+        "2.0": ['sea_surface_temperature', 'sea_surface_temperature_depth']
+    }
 
     def __init__(self):
         ProductType.__init__(self, self.l3_variable_names, self.l3_geophysical_checks, self.l3_mask_checks, self.l3_sst_variable_names)
