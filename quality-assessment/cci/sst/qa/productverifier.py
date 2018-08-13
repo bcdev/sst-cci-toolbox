@@ -60,6 +60,7 @@ class ProductVerifier:
             dataset = verifier.check_product_can_be_opened(self.source_pathname)
 
             version = dataset.getncattr("product_version")
+            product_type.set_version(version)
 
             print(ProductVerifier.get_current_time(), 'checking dataset')
             self._check_dataset(dataset, product_type, version)
@@ -69,14 +70,13 @@ class ProductVerifier:
             ProductVerifier.ensure_correct_integer_types(self.report)
             ProductVerifier.dump_report(self.report, self.report_pathname)
 
-    def _check_variable_existence(self, dataset, product_type, version):
+    def _check_variable_existence(self, dataset, product_type):
         """
 
         :type dataset: Dataset
         :type product_type: ProductType
-        :type version: str
         """
-        for variable_name in product_type.get_variable_names(version):
+        for variable_name in product_type.get_variable_names():
             if variable_name in dataset.variables:
                 self.report[variable_name + '.existence_check'] = float(0)
             else:
@@ -210,14 +210,13 @@ class ProductVerifier:
             except AttributeError:
                 pass
 
-    def _check_geophysical(self, dataset, product_type, version):
+    def _check_geophysical(self, dataset, product_type):
         """
 
         :type dataset: Dataset
         :type product_type: ProductType
-        :type version: str
         """
-        spec = product_type.get_geophysical_check_spec(version)
+        spec = product_type.get_geophysical_check_spec()
         if len(spec) == 4:
             a = ProductVerifier.__get_data(dataset, spec[0], scale=True)
             b = ProductVerifier.__get_data(dataset, spec[1], scale=True)
@@ -255,14 +254,13 @@ class ProductVerifier:
             filename = os.path.basename(self.source_pathname)
             self.report[check_name + '_failed_for'] = filename
 
-    def _check_mask_consistency(self, dataset, product_type, version):
+    def _check_mask_consistency(self, dataset, product_type):
         """
 
         :type dataset: Dataset
         :type product_type: ProductType
-        :type version: str
         """
-        for spec in product_type.get_mask_consistency_check_specs(version):
+        for spec in product_type.get_mask_consistency_check_specs():
             reference_variable_name = spec[0]
             objective_variable_name = spec[1]
             quality_variable_name = spec[2]
@@ -297,11 +295,11 @@ class ProductVerifier:
         :type version: str
         """
         try:
-            self._check_variable_existence(dataset, product_type, version)
+            self._check_variable_existence(dataset, product_type)
             self._check_variable_limits(dataset)
-            self._check_geophysical(dataset, product_type, version)
-            self._check_mask_consistency(dataset, product_type, version)
-            self._check_corruptness(dataset, product_type, version)
+            self._check_geophysical(dataset, product_type)
+            self._check_mask_consistency(dataset, product_type)
+            self._check_corruptness(dataset, product_type)
         finally:
             try:
                 dataset.close()
@@ -359,15 +357,14 @@ class ProductVerifier:
     def get_current_time():
         return strftime("%Y-%m-%dT%H:%M:%S%Z", gmtime())
 
-    def _check_corruptness(self, dataset, product_type, version):
+    def _check_corruptness(self, dataset, product_type):
         """
 
         :type dataset: Dataset
         :type product_type: ProductType
-        :type version: str
         """
         ok = True
-        for variable_name in product_type.get_sst_variable_names(version):
+        for variable_name in product_type.get_sst_variable_names():
             if variable_name in dataset.variables:
                 variable = dataset.variables[variable_name]
 

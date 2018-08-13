@@ -11,34 +11,35 @@ class ProductType:
         self.geophysical_check_spec = geophysical_check_spec
         self.mask_consistency_check_specs = mask_consistency_check_specs
         self.sst_variable_names = sst_variable_names
+        self.version = None
 
-    def get_variable_names(self, version):
+    def get_variable_names(self):
         """
 
         :rtype : list
         """
-        return self.variable_names[version]
+        return self.variable_names[self.version]
 
-    def get_geophysical_check_spec(self, version):
+    def get_geophysical_check_spec(self):
         """
 
         :rtype : list
         """
-        return self.geophysical_check_spec[version]
+        return self.geophysical_check_spec[self.version]
 
-    def get_mask_consistency_check_specs(self, version):
+    def get_mask_consistency_check_specs(self):
         """
 
         :rtype : list
         """
-        return self.mask_consistency_check_specs[version]
+        return self.mask_consistency_check_specs[self.version]
 
-    def get_sst_variable_names(self, version):
+    def get_sst_variable_names(self):
         """
 
         :rtype : list
         """
-        return self.sst_variable_names[version]
+        return self.sst_variable_names[self.version]
 
     def set_version(self, version):
         self.version = version
