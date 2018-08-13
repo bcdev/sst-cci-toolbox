@@ -31,7 +31,7 @@ class ProductVerifierTests(unittest.TestCase):
 
         expected_report_path = os.path.join(data_dir, "report_l2p_v02_0.json")
         expected_report = ProductVerifier.load_report(expected_report_path)
-        self.assertEquals(expected_report, verifier.get_report())
+        self.assertEqual(expected_report, verifier.get_report())
 
     def test_verify_l3u_v2_0(self):
         self.maxDiff = None  # allows checking strings beyond the limit tb 2018-08-10
@@ -43,7 +43,7 @@ class ProductVerifierTests(unittest.TestCase):
 
         expected_report_path = os.path.join(data_dir, "report_l3u_v02_0.json")
         expected_report = ProductVerifier.load_report(expected_report_path)
-        self.assertEquals(expected_report, verifier.get_report())
+        self.assertEqual(expected_report, verifier.get_report())
 
     @staticmethod
     def create_new_file(pathname):

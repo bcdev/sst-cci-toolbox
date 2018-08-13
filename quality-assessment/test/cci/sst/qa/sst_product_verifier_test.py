@@ -13,27 +13,27 @@ class SstProductVerifierTest(unittest.TestCase):
 
     def test_check_source_pathname_success(self):
         report = {}
-        verifier = SstProductVerifier(report)
+        verifier = SstProductVerifier(report, self.test_path)
         try:
-            verifier.check_source_pathname(self.test_path)
+            verifier.check_source_pathname()
             self.fail()
         except VerificationError:
             self.assertEqual(1, report['source_pathname_check'])
 
     def test_check_source_pathname_error(self):
         report = {}
-        verifier = SstProductVerifier(report)
+        verifier = SstProductVerifier(report, self.test_path)
         self._create_new_file(self.test_path)
         try:
-            verifier.check_source_pathname(self.test_path)
+            verifier.check_source_pathname()
             self.assertEqual(0, report['source_pathname_check'])
         finally:
             os.remove(self.test_path)
 
     def test_check_source_filename(self):
         report = {}
-        verifier = SstProductVerifier(report)
-        product_type = verifier.check_source_filename('20100505121116-ESACCI-L2P_GHRSST-SSTskin-AVHRRMTA_G-EXP1.2-v02.0-fv1.0.nc')
+        verifier = SstProductVerifier(report, self.test_path)
+        product_type = verifier.check_source_filename()
         self.assertIsInstance(product_type, L2P)
 
         self.assertEqual(0, report['source_filename_check'])
