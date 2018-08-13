@@ -1,19 +1,16 @@
 from cci.sst.qa.product_type import L2P, L3U, L4
+from cci.sst.qa.sst_product_verifier import SstProductVerifier
+from cci.sst.qa.verification_error import VerificationError
 
 __author__ = 'Ralf Quast'
 
 import json
 import os
-import re
 from time import gmtime, strftime
 
 import numpy as np
 import numpy.ma as ma
 from netCDF4 import Dataset
-
-
-class VerificationError(Exception):
-    exit_code = 2
 
 
 class ProductVerifier:
@@ -51,14 +48,16 @@ class ProductVerifier:
 
     def verify(self):
         try:
+            verifier = SstProductVerifier(self.report)
+
             print(ProductVerifier.get_current_time(), 'checking source pathname')
-            self._check_source_pathname()
+            verifier.check_source_pathname(self.source_pathname)
 
             print(ProductVerifier.get_current_time(), 'checking source filename')
-            product_type = self._check_source_filename()
+            product_type = verifier.check_source_filename(self.source_pathname)
 
             print(ProductVerifier.get_current_time(), 'checking dataset can be opened')
-            dataset = self._check_product_can_be_opened()
+            dataset = verifier.check_product_can_be_opened(self.source_pathname)
 
             version = dataset.getncattr("product_version")
 
@@ -69,37 +68,6 @@ class ProductVerifier:
         finally:
             ProductVerifier.ensure_correct_integer_types(self.report)
             ProductVerifier.dump_report(self.report, self.report_pathname)
-
-    def _check_source_pathname(self):
-        ok = os.path.isfile(self.source_pathname)
-        if ok:
-            self.report['source_pathname_check'] = float(0)
-        else:
-            self.report['source_pathname_check'] = float(1)
-            self.report['source_pathname_check_failed_for'] = self.source_pathname
-            raise VerificationError
-
-    def _check_source_filename(self):
-        """
-
-        :rtype : ProductType
-        """
-        product_type = None
-
-        filename = os.path.basename(self.source_pathname)
-        for p, t in self.filename_patterns.items():
-            if re.match(p, filename):
-                product_type = t
-                break
-
-        if product_type is not None:
-            self.report['source_filename_check'] = float(0)
-            return product_type
-        else:
-            self.report['source_filename_check'] = float(1)
-            filename = os.path.basename(self.source_pathname)
-            self.report['source_filename_check_failed_for'] = filename
-            raise VerificationError
 
     def _check_variable_existence(self, dataset, product_type, version):
         """
@@ -320,18 +288,6 @@ class ProductVerifier:
                 # false positives: element is masked in a, but not masked in b
                 check_name = objective_variable_name + '.' + 'mask_false_positive_check'
                 self.__check_false_positives(a, b, check_name)
-
-    def _check_product_can_be_opened(self):
-        try:
-            dataset = Dataset(self.source_pathname)
-            dataset.set_auto_maskandscale(False)
-            self.report['product_can_be_opened_check'] = float(0)
-            return dataset
-        except:
-            self.report['product_can_be_opened_check'] = float(1)
-            filename = os.path.basename(self.source_pathname)
-            self.report['product_can_be_opened_check_failed_for'] = filename
-            raise VerificationError
 
     def _check_dataset(self, dataset, product_type, version):
         """
