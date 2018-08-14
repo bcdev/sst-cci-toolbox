@@ -14,11 +14,7 @@ class SstProductVerifier:
     def __init__(self, report, source_pathname):
         self.report = report
         self.source_pathname = source_pathname
-        self.filename_patterns = {
-            '[0-9]{14}-ESACCI-L2P_GHRSST-.*\\.nc': L2P(),
-            '[0-9]{14}-ESACCI-L3U_GHRSST-.*\\.nc': L3U(),
-            '[0-9]{14}-ESACCI-L4_GHRSST-.*\\.nc': L4(),
-        }
+        self.filename_patterns = {'[0-9]{14}-ESACCI-L2P_GHRSST-.*\\.nc': L2P(), '[0-9]{14}-ESACCI-L3U_GHRSST-.*\\.nc': L3U(), '[0-9]{14}-ESACCI-L4_GHRSST-.*\\.nc': L4(), }
 
     def check_source_pathname(self):
         ok = os.path.isfile(self.source_pathname)
@@ -189,17 +185,29 @@ class SstProductVerifier:
         :type dataset: Dataset
         :type product_type: ProductType
         """
-        for spec in product_type.get_mask_consistency_check_specs():
+
+        consistency_check_specs = product_type.get_mask_consistency_check_specs()
+        if len(consistency_check_specs) == 0:
+            return
+
+        quality_variable_name = consistency_check_specs[0][2]
+        quality_data = dataset.variables[quality_variable_name][:]
+        quality_masks = {}
+        for level in range(0, 6):
+            level_mask = ma.masked_not_equal(quality_data, level).mask
+            quality_masks.update({level: level_mask})
+
+        for spec in consistency_check_specs:
             reference_variable_name = spec[0]
             objective_variable_name = spec[1]
             quality_variable_name = spec[2]
 
             if quality_variable_name in dataset.variables:
-                quality_data = dataset.variables[quality_variable_name][:]
                 quality_levels = spec[3]
                 for l in quality_levels:
-                    a = SstProductVerifier.__get_data_of_quality(dataset, reference_variable_name, quality_data, l).mask
-                    b = SstProductVerifier.__get_data_of_quality(dataset, objective_variable_name, quality_data, l).mask
+                    level_mask = quality_masks[l]
+                    a = SstProductVerifier.__get_data_of_quality(dataset, reference_variable_name, level_mask).mask
+                    b = SstProductVerifier.__get_data_of_quality(dataset, objective_variable_name, level_mask).mask
                     # false negatives: element is not masked in a, but masked in b
                     check_name = objective_variable_name + '.' + 'mask_false_negative_check_' + str(l)
                     self.__check_false_negatives(a, b, check_name)
@@ -281,62 +289,42 @@ class SstProductVerifier:
         variable = dataset.variables[variable_name]
         data = SstProductVerifier.__get_masked_data(variable)
         if scale:
-            try:
-                scale_factor = variable.getncattr('scale_factor')
-                if scale_factor != 1.0:
-                    data = data * scale_factor
-            except AttributeError:
-                pass
-            try:
-                add_offset = variable.getncattr('add_offset')
-                if add_offset != 0.0:
-                    data = data + add_offset
-            except AttributeError:
-                pass
+            scale_factor, add_offset = SstProductVerifier._get_scale_and_offset(variable)
+            if scale_factor != 1.0 or add_offset != 0.0:
+                data = data * scale_factor + add_offset
         return data
 
     @staticmethod
-    def __get_data_of_quality(dataset, variable_name, quality_data, quality_level, scale=False):
+    def __get_data_of_quality(dataset, variable_name, level_mask, scale=False):
         """
 
         :type dataset: Dataset
         :type variable_name: str
-        :type quality_data: Object
-        :type quality_level: int
+        :type level_mask: Object
         :type scale: bool
         :rtype : ma.MaskedArray
         """
         variable = dataset.variables[variable_name]
-        data = SstProductVerifier.__get_masked_data_of_quality(variable, quality_data, quality_level)
+        data = SstProductVerifier.__get_masked_data_of_quality(variable, level_mask)
         if scale:
-            try:
-                scale_factor = variable.getncattr('scale_factor')
-                if scale_factor != 1.0:
-                    data = data * scale_factor
-            except AttributeError:
-                pass
-            try:
-                add_offset = variable.getncattr('add_offset')
-                if add_offset != 0.0:
-                    data = data + add_offset
-            except AttributeError:
-                pass
+            scale_factor, add_offset = SstProductVerifier._get_scale_and_offset(variable)
+            if scale_factor != 1.0 or add_offset != 0.0:
+                data = data * scale_factor + add_offset
+
         return data
 
     @staticmethod
-    def __get_masked_data_of_quality(variable, quality_data, level):
+    def __get_masked_data_of_quality(variable, level_mask):
         """
 
         :type variable: Variable
-        :type quality_data: Object
-        :type level: int
+        :type level_mask: Object
         :rtype : ma.MaskedArray
         """
-        mask = ma.masked_not_equal(quality_data, level).mask
-        data = ma.array(variable[:], mask=mask)
+        data = ma.array(variable[:], mask=level_mask)
         try:
             fill_value = variable.getncattr('_FillValue')
-            return ma.array(data, mask=ma.masked_equal(data, fill_value).mask)
+            return ma.masked_equal(data, fill_value)
         except AttributeError:
             return data
 
@@ -357,3 +345,17 @@ class SstProductVerifier:
         if false_positives_count > 0:
             filename = os.path.basename(self.source_pathname)
             self.report[check_name + '_failed_for'] = filename
+
+    @staticmethod
+    def _get_scale_and_offset(variable):
+        try:
+            scale_factor = variable.getncattr('scale_factor')
+        except AttributeError:
+            scale_factor = 1.0
+
+        try:
+            add_offset = variable.getncattr('add_offset')
+        except AttributeError:
+            add_offset = 0.0
+
+        return scale_factor, add_offset
