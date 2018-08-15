@@ -91,6 +91,7 @@ class SstProductVerifier:
             self._check_variable_existence(dataset, product_type)
             self._check_variable_limits(dataset)
             self._check_geophysical(dataset, product_type)
+            self._check_sst_quality(dataset, product_type)
             self._check_mask_consistency(dataset, product_type)
             self._check_corruptness(dataset, product_type)
         finally:
@@ -178,6 +179,29 @@ class SstProductVerifier:
             if suspicious_data_count > 0:
                 filename = os.path.basename(self.source_pathname)
                 self.report['geophysical_maximum_check_failed_for'] = filename
+
+    def _check_sst_quality(self, dataset, product_type):
+        mask_specs = product_type.get_mask_consistency_check_specs()
+        if len(mask_specs) == 0:
+            return
+
+        quality_variable_name = mask_specs[0][2]
+        quality_data = dataset.variables[quality_variable_name][:]
+        # any data with quality less than tw0 is suspicious
+        low_quality_mask = ma.masked_less(quality_data, 2)
+
+        flag_data = dataset.variables["l2p_flags"][:]
+        flags_mask = ma.masked_where((flag_data & 62) == 0, flag_data)
+        failed_retrieval_mask = ma.array(flags_mask, mask=low_quality_mask)
+        self.report["sst_failed_retrieval"] = float(failed_retrieval_mask.count())
+
+        variable = dataset.variables["sea_surface_temperature"]
+        sst_quality_one_data = SstProductVerifier.__get_masked_data_of_quality(variable, 1)
+        masked_sst_quality_one_data = ma.array(sst_quality_one_data, mask=flags_mask)
+        valid_max = variable.getncattr('valid_max')
+        valid_min = variable.getncattr('valid_min')
+        bad_retrieval_mask = ma.masked_inside(masked_sst_quality_one_data, valid_min, valid_max)
+        self.report["sst_bad_retrieval"] = float(bad_retrieval_mask.count())
 
     def _check_mask_consistency(self, dataset, product_type):
         """

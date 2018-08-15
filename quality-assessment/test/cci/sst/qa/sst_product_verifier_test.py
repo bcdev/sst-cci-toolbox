@@ -1,14 +1,12 @@
+import os
 import unittest
 
-import os
-
+from cci.sst.qa.product_type import L2P
 from cci.sst.qa.sst_product_verifier import SstProductVerifier
 from cci.sst.qa.verification_error import VerificationError
-from cci.sst.qa.product_type import L2P
 
 
 class SstProductVerifierTest(unittest.TestCase):
-
     test_path = '20100505121116-ESACCI-L2P_GHRSST-SSTskin-AVHRRMTA_G-EXP1.2-v02.0-fv1.0.nc'
 
     def test_check_source_pathname_success(self):
