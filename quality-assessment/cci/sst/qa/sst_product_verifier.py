@@ -187,21 +187,18 @@ class SstProductVerifier:
 
         quality_variable_name = mask_specs[0][2]
         quality_data = dataset.variables[quality_variable_name][:]
-        # any data with quality less than tw0 is suspicious
-        low_quality_mask = ma.masked_less(quality_data, 2)
 
-        flag_data = dataset.variables["l2p_flags"][:]
-        flags_mask = ma.masked_where((flag_data & 62) == 0, flag_data)
-        failed_retrieval_mask = ma.array(flags_mask, mask=low_quality_mask)
+        valid_retrieval_mask = ma.masked_less(quality_data, 2)
+        self.report["sst_valid_retrieval"] = float(valid_retrieval_mask.count())
+
+        failed_retrieval_mask = ma.masked_not_equal(quality_data, 1)
         self.report["sst_failed_retrieval"] = float(failed_retrieval_mask.count())
 
-        variable = dataset.variables["sea_surface_temperature"]
-        sst_quality_one_data = SstProductVerifier.__get_masked_data_of_quality(variable, 1)
-        masked_sst_quality_one_data = ma.array(sst_quality_one_data, mask=flags_mask)
-        valid_max = variable.getncattr('valid_max')
-        valid_min = variable.getncattr('valid_min')
-        bad_retrieval_mask = ma.masked_inside(masked_sst_quality_one_data, valid_min, valid_max)
-        self.report["sst_bad_retrieval"] = float(bad_retrieval_mask.count())
+        no_data_mask = ma.masked_not_equal(quality_data, 0)
+        self.report["sst_no_data"] = float(no_data_mask.count())
+
+        # # any data with quality less than two is suspicious  # low_quality_mask = ma.masked_less(quality_data, 2)  #  # flag_data = dataset.variables["l2p_flags"][:]  # flags_mask = ma.masked_where((flag_data & 62) == 0, flag_data)  # failed_retrieval_mask = ma.array(flags_mask, mask=low_quality_mask)  # self.report["sst_failed_retrieval"] = float(failed_retrieval_mask.count())  #  # variable = dataset.variables["sea_surface_temperature"]  # sst_quality_one_data = SstProductVerifier.__get_masked_data_of_quality(variable, 1)  # masked_sst_quality_one_data = ma.array(sst_quality_one_data, mask=flags_mask)  # valid_max = variable.getncattr('valid_max')  # valid_min = variable.getncattr('valid_min')  # bad_retrieval_mask = ma.masked_inside(masked_sst_quality_one_data, valid_min, valid_max)  # self.report["sst_bad_retrieval"] = float(bad_retrieval_mask.count())
+
 
     def _check_mask_consistency(self, dataset, product_type):
         """
@@ -248,6 +245,7 @@ class SstProductVerifier:
                 check_name = objective_variable_name + '.' + 'mask_false_positive_check'
                 self.__check_false_positives(a, b, check_name)
 
+
     def _check_corruptness(self, dataset, product_type):
         """
 
@@ -287,6 +285,7 @@ class SstProductVerifier:
             self.report['corruptness_check_failed_for'] = filename
             raise VerificationError
 
+
     @staticmethod
     def __get_masked_data(variable):
         """
@@ -300,6 +299,7 @@ class SstProductVerifier:
             return ma.masked_equal(data, fill_value)
         except AttributeError:
             return ma.array(data)
+
 
     @staticmethod
     def __get_data(dataset, variable_name, scale=False):
@@ -317,6 +317,7 @@ class SstProductVerifier:
             if scale_factor != 1.0 or add_offset != 0.0:
                 data = data * scale_factor + add_offset
         return data
+
 
     @staticmethod
     def __get_data_of_quality(dataset, variable_name, level_mask, scale=False):
@@ -337,6 +338,7 @@ class SstProductVerifier:
 
         return data
 
+
     @staticmethod
     def __get_masked_data_of_quality(variable, level_mask):
         """
@@ -352,6 +354,7 @@ class SstProductVerifier:
         except AttributeError:
             return data
 
+
     def __check_false_negatives(self, reference_mask, objective_mask, check_name):
         # noinspection PyNoneFunctionAssignment,PyUnresolvedReferences
         false_negatives = ma.masked_equal(np.logical_or(np.logical_not(reference_mask), objective_mask), True)
@@ -361,6 +364,7 @@ class SstProductVerifier:
             filename = os.path.basename(self.source_pathname)
             self.report[check_name + '_failed_for'] = filename
 
+
     def __check_false_positives(self, reference_mask, objective_mask, check_name):
         # noinspection PyNoneFunctionAssignment,PyUnresolvedReferences
         false_positives = ma.masked_equal(np.logical_or(np.logical_not(objective_mask), reference_mask), True)
@@ -369,6 +373,7 @@ class SstProductVerifier:
         if false_positives_count > 0:
             filename = os.path.basename(self.source_pathname)
             self.report[check_name + '_failed_for'] = filename
+
 
     @staticmethod
     def _get_scale_and_offset(variable):
