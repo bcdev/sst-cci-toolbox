@@ -24,9 +24,9 @@ import os
 import sys
 import threading
 import time
-import cci.sst.qa.threadpool
 import subprocess
 import traceback
+
 
 class PMonitor:
     """
@@ -61,10 +61,12 @@ class PMonitor:
         name = None
         capacity = None
         load = None
-        def __init__(self,name,capacity):
+
+        def __init__(self, name, capacity):
             self.name = name
             self.capacity = capacity
             self.load = 0
+
         def __cmp__(self, other):
             if self.load > other.load:
                 return 1
@@ -72,20 +74,26 @@ class PMonitor:
                 return -1
             else:
                 return 0
+
         def __eq__(self, other):
             return self.load == other.load
+
         def __ne__(self, other):
             return self.load != other.load
+
         def __lt__(self, other):
             return self.load < other.load
+
         def __le__(self, other):
             return self.load <= other.load
+
         def __gt__(self, other):
             return self.load > other.load
+
         def __ge__(self, other):
             return self.load >= other.load
 
-    def __init__(self, inputs, request='', hosts=[('localhost',4)], types=[], weights=[], swd=None, cache=None, logdir='.', simulation=False, delay=None, fair=True, script=None):
+    def __init__(self, inputs, request='', hosts=[('localhost', 4)], types=[], weights=[], swd=None, cache=None, logdir='.', simulation=False, delay=None, fair=True, script=None):
         """
         Initiates monitor, marks inputs, reads report, creates thread pool
         inputs: the apriori conditions
@@ -102,9 +110,9 @@ class PMonitor:
         script: generic step execution script to be used as prefix of each command line, defaults to None for the different steps being executable scripts themselves
         """
         self._mutex = threading.RLock()
-        #print '... mutex 1 acquiring'
+        # print '... mutex 1 acquiring'
         with self._mutex:
-            #print '... mutex 1 acquired'
+            # print '... mutex 1 acquired'
             self._backlog = []
             self._running = []
             self._failed = []
@@ -134,17 +142,17 @@ class PMonitor:
             os.system('mkdir -p ' + logdir)
             self._status = open(request + '.status', 'w')
             self._maybe_read_report(request + '.report')
-        #print '... mutex 1 released'
+        # print '... mutex 1 released'
 
     def execute(self, call, inputs, outputs, parameters=[], priority=1, collating=True, logprefix=None):
         """
         Schedules task `call parameters inputs outputs`, either a single collating call or one call per input
         """
-        #print '... mutex 2 acquiring'
+        # print '... mutex 2 acquiring'
         with self._mutex:
-            #print '... mutex 2 acquired'
+            # print '... mutex 2 acquired'
             if logprefix is None:
-                logprefix = call[call.rfind('/')+1:]
+                logprefix = call[call.rfind('/') + 1:]
                 if logprefix.endswith('.sh'):
                     logprefix = logprefix[:-3]
             self._created += 1
@@ -154,7 +162,7 @@ class PMonitor:
                     self._counts[o] += 1
                 else:
                     self._counts[o] = 1
-            
+
             if self._all_inputs_available(inputs) and self._constraints_fulfilled(request):
                 input_paths = self._paths_of(inputs)
                 if collating:
@@ -171,7 +179,7 @@ class PMonitor:
                         else:
                             self._created += 1
                             request = threadpool.WorkRequest(self._process_step,
-                                                             [call, self._created, parameters, input_paths[i:i+1], outputs, None, logprefix],
+                                                             [call, self._created, parameters, input_paths[i:i + 1], outputs, None, logprefix],
                                                              priority=priority, requestID=self._created)
                             for o in outputs:
                                 self._counts[o] += 1
@@ -188,38 +196,37 @@ class PMonitor:
                     request.callable = self._expand_step
                 request.args[3] = inputs
                 self._backlog.append(request)
-        #print '... mutex 2 released'
+        # print '... mutex 2 released'
 
     def wait_for_completion(self):
         """
         Waits until all scheduled tasks are run, then returns
         """
-        #print '... mutex 3 acquiring'
+        # print '... mutex 3 acquiring'
         with self._mutex:
-            #print '... mutex 3 acquired'
+            # print '... mutex 3 acquired'
             self._write_status(with_backlog=False)
-            #print '... mutex 3 released'
+            # print '... mutex 3 released'
         while True:
             self._pool.wait()
-            #print '... mutex 3 acquiring'
+            # print '... mutex 3 acquiring'
             with self._mutex:
-                #print '... mutex 3 acquired'
+                # print '... mutex 3 acquired'
                 if not self._pool.workRequests:
                     break
-            #print '... mutex 3 released'
-        #print '... mutex 3 acquiring'
+            # print '... mutex 3 released'
+        # print '... mutex 3 acquiring'
         with self._mutex:
-            #print '... mutex 3 acquired'
+            # print '... mutex 3 acquired'
             self._write_status(with_backlog=True)
-            #print '... mutex 3 released'
-        #self._status.close()
+            # print '... mutex 3 released'
+        # self._status.close()
         return int(bool(self._failed or self._backlog))
 
     def wait_for_completion_and_terminate(self):
         exit_code = self.wait_for_completion()
         self._status.close()
         return exit_code
-
 
     def wait_for_idle(self, calls):
         """
@@ -228,26 +235,25 @@ class PMonitor:
         if not self._backlog_condition:
             self._backlog_condition = threading.Condition()
         while True:
-            #print '... mutex 3 acquiring'
+            # print '... mutex 3 acquiring'
             with self._mutex:
-                #print '... mutex 3 acquired'
+                # print '... mutex 3 acquired'
                 in_backlog = None
                 for type in self._typeConstraints:
-                    #print 'type constraint ' + type.name + ' ' + str(type.load) + '/' + str(type.capacity)
+                    # print 'type constraint ' + type.name + ' ' + str(type.load) + '/' + str(type.capacity)
                     if type.name in calls:
                         if type.load >= type.capacity:
                             in_backlog = type.name
                             break
                 if not in_backlog:
-                    #print "no more backlog, return from waiting"
+                    # print "no more backlog, return from waiting"
                     break;
-                #print "waiting for " + in_backlog
-            #print '... mutex 3 released'
+                # print "waiting for " + in_backlog
+            # print '... mutex 3 released'
             with self._backlog_condition:
-                #print '... backlog condition wait'
+                # print '... backlog condition wait'
                 self._backlog_condition.wait()
-                #print '... backlog condition resume'
-
+                # print '... backlog condition resume'
 
     @staticmethod
     def _constraints_of(config):
@@ -279,9 +285,9 @@ class PMonitor:
 
     def _write_status(self, with_backlog=False):
         self._status.seek(0)
-        #pending = len(self._pool.workRequests) - len(self._running)
-        self._status.write('{0} created, {1} running, {2} backlog, {3} processed, {4} failed\n'.\
-        format(self._created, len(self._running), len(self._backlog), self._processed, len(self._failed)))
+        # pending = len(self._pool.workRequests) - len(self._running)
+        self._status.write('{0} created, {1} running, {2} backlog, {3} processed, {4} failed\n'. \
+                           format(self._created, len(self._running), len(self._backlog), self._processed, len(self._failed)))
         for l in self._failed:
             self._status.write('f {0}\n'.format(l))
         for l in self._running:
@@ -328,11 +334,11 @@ class PMonitor:
                     code = 0
                 self._finalise_step(call, code, command, host, output_paths, outputs)
                 self._observe_step(call, inputs, outputs, parameters, code)
-                #print '... mutex 6 acquiring'
+                # print '... mutex 6 acquiring'
                 with self._mutex:
-                    #print '... mutex 6 acquired'
+                    # print '... mutex 6 acquired'
                     self._write_status()
-                #print '... mutex 6 released'
+                # print '... mutex 6 released'
         except Exception as e:
             print("internal error: " + str(e))
             traceback.print_exc(file=sys.stdout)
@@ -341,26 +347,26 @@ class PMonitor:
         """
         Marks outputs of step and schedules mature tasks
         """
-        #print '... mutex 4 acquiring'
+        # print '... mutex 4 acquiring'
         with self._mutex:
-            #print '... mutex 4 acquired'
+            # print '... mutex 4 acquired'
             sys.__stdout__.write('skipping {0}\n'.format(command))
             self._release_constraint(call, host)
             self._mark_outputs(outputs)
             self._check_for_mature_tasks()
             self._processed += 1
-        #print '... mutex 4 released'
+        # print '... mutex 4 released'
 
     def _prepare_step(self, command):
         """
         Updates status, selects host and returns it
         """
-        #print '... mutex 5 acquiring'
+        # print '... mutex 5 acquiring'
         with self._mutex:
-            #print '... mutex 5 acquired'
+            # print '... mutex 5 acquired'
             self._running.append(command)
             self._write_status()
-        #print '... mutex 5 released'
+        # print '... mutex 5 released'
 
     def _run_step(self, task_id, host, command, output_paths, log_prefix):
         """
@@ -379,9 +385,9 @@ class PMonitor:
         """
         releases host and type resources, updates report, schedules mature steps, handles failure
         """
-        #print '... mutex 6 acquiring'
+        # print '... mutex 6 acquiring'
         with self._mutex:
-            #print '... mutex 6 acquired'
+            # print '... mutex 6 acquired'
             self._release_constraint(call, host)
             self._running.remove(command)
             if code == 0:
@@ -393,7 +399,7 @@ class PMonitor:
                 self._failed.append(command)
                 sys.__stderr__.write('failed {0}\n'.format(command))
             self._check_for_mature_tasks()
-        #print '... mutex 6 released'
+        # print '... mutex 6 released'
 
     def _observe_step(self, call, inputs, outputs, parameters, code):
         pass
@@ -465,7 +471,7 @@ class PMonitor:
                             else:
                                 self._created += 1
                                 task = threadpool.WorkRequest(self._process_step, \
-                                    [task.args[0], self._created, task.args[2], input_paths[i:i+1], task.args[4], None, task.args[6]], \
+                                                              [task.args[0], self._created, task.args[2], input_paths[i:i + 1], task.args[4], None, task.args[6]], \
                                                               priority=task.priority, requestID=self._created)
                                 self._counts[task.args[4][0]] += 1
                             if i == 0 or self._constraints_fulfilled(task):
@@ -476,7 +482,7 @@ class PMonitor:
                                 new_tasks.insert(0, task)
                         if len(new_tasks) > 0:
                             for newTask in new_tasks:
-                                self._backlog.insert(pos+1, newTask)
+                                self._backlog.insert(pos + 1, newTask)
                             if self._fair:
                                 break
                 else:
@@ -534,7 +540,6 @@ class PMonitor:
             with self._backlog_condition:
                 self._backlog_condition.notify()
         raise Exception('cannot find ' + hostname + ' in ' + str(self._hostConstraints))
-
 
     def _all_inputs_available(self, inputs):
         """
