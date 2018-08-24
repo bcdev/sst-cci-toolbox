@@ -1,0 +1,21 @@
+#!/bin/bash
+
+if [ -z "$MMS_INST" ]; then
+    MMS_INST=`pwd`
+fi
+
+if [ -z "$1" ]; then
+    echo "usage  : pmshutdown <workflow>"
+    echo "example: pmshutdown mms2.py"
+    exit 1
+fi
+
+workflow=$(basename ${1%.py})
+
+if [ ! -e $MMS_INST/$workflow.pid ]; then
+    echo "missing $workflow.pid file in $MMS_INST"
+    ps -elf|grep python
+    exit 1
+fi
+
+kill $(cat $MMS_INST/$workflow.pid)
