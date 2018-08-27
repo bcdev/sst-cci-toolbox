@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. ${mms.home}/bin/mms-env-svr.sh
+. ${MMS_HOME}/bin/mms-env-svr.sh
 
 sensor=$1
 report_dirpath=$2

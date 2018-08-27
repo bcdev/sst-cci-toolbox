@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # MMS function definitions
-# useage ${mms.home}/bin/mms-env.sh  (in xxx-start.sh and xxx-run.sh)
+# usage ${MMS_HOME}/bin/mms-env-svr.sh  (in xxx-start.sh and xxx-run.sh)
 
 export SVR_PYTHON_EXEC=/group_workspaces/cems2/esacci_sst/software/miniconda3/envs/sst_cci_qa/bin/python
-export MMS_HOME=/group_workspaces/cems2/esacci_sst/software/miniconda3/envs/sst_cci_qa/bin/python
+export MMS_HOME=/group_workspaces/cems2/esacci_sst/mms/software/quality_assessment
 
 set -e
 

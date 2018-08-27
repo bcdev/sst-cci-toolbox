@@ -23,7 +23,7 @@ then
     fi
 fi
 
-nohup ${SVR_PYTHON_EXEC} ${mms.home}/python/$workflow.py > $MMS_INST/$workflow.out 2>&1 &
+nohup ${SVR_PYTHON_EXEC} ${MMS_HOME}/cci/sst/qa/$workflow.py > $MMS_INST/$workflow.out 2>&1 &
 echo $! > $MMS_INST/$workflow.pid
 sleep 8
 cat $MMS_INST/$workflow.status
