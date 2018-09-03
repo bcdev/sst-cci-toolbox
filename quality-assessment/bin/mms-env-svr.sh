@@ -7,6 +7,7 @@ export SVR_PYTHON_EXEC=/group_workspaces/cems2/esacci_sst/software/miniconda3/en
 export MMS_HOME=/group_workspaces/cems2/esacci_sst/mms/software/quality_assessment
 
 export PATH=$MMS_HOME/bin:$PATH
+export PYTHONPATH=$MMS_HOME:$PYTHONPATH
 
 set -e
 
@@ -84,11 +85,10 @@ wait_for_task_jobs_completion() {
 }
 
 submit_job() {
-    mem=$1
-    hrs=$2
-    jobname=$3
-    command=$4
-    bsubmit="bsub -R rusage[mem=${mem}] -q short-serial -n 1 -W ${hrs} -P esacci_sst_svr -cwd ${MMS_INST} -oo ${MMS_LOG}/${jobname}.out -eo ${MMS_LOG}/${jobname}.err -J ${jobname} ${mms.home}/bin/${command} ${@:5}"
+    hrs=$1
+    jobname=$2
+    command=$3
+    bsubmit="bsub -R rusage[mem=8192] -M 8192 -q short-serial -n 1 -W ${hrs} -P esacci_sst_svr -cwd ${MMS_INST} -oo ${MMS_LOG}/${jobname}.out -eo ${MMS_LOG}/${jobname}.err -J ${jobname} ${MMS_HOME}/bin/${command} ${@:4}"
 
     rm -f ${MMS_LOG}/${jobname}.out
     rm -f ${MMS_LOG}/${jobname}.err
