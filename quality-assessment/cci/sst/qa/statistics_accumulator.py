@@ -7,8 +7,7 @@ from sst.qa.svrrunner import SvrRunner
 
 class StatisticsAccumulator():
 
-    def __init__(self, report_dir_pathname, summary_report_pathname=None,
-                 report_filename_pattern=SvrRunner.get_report_filename_pattern()):
+    def __init__(self, report_dir_pathname, summary_report_pathname=None, report_filename_pattern=SvrRunner.get_report_filename_pattern()):
 
         """
 
@@ -19,9 +18,10 @@ class StatisticsAccumulator():
         self.report_dir_pathname = report_dir_pathname
         self.summary_report_pathname = summary_report_pathname
         self.report_filename_pattern = report_filename_pattern
-        self.summary_report = {'statistics_report.count': 0}
+        self.summary_report = {'files.count': 0}
 
     def accumulate(self):
+        total_vector = [0, 0, 0, 0, 0]
         try:
             for root, dirnames, filenames in os.walk(self.report_dir_pathname):
                 for filename in filenames:
@@ -37,14 +37,33 @@ class StatisticsAccumulator():
                         else:
                             self.summary_report[date_key] = month_vector
 
-
                         report = ProductVerifier.load_report(report_pathname)
+                        total_count = int(report["lon.count.total"])
+                        month_vector[0] += total_count
+                        total_vector[0] += total_count
+
+                        not_ocean = int(report["not_ocean"])
+                        month_vector[1] += not_ocean
+                        total_vector[1] += not_ocean
+
+                        failed_retrieval = int(report["sst_failed_retrieval"])
+                        month_vector[2] += failed_retrieval
+                        total_vector[2] += failed_retrieval
+
+                        invalid_retrieval = int(report["sst_invalid_retrieval"])
+                        month_vector[3] += invalid_retrieval
+                        total_vector[3] += invalid_retrieval
+
+                        valid_retrieval = int(report["sst_valid_retrieval"])
+                        month_vector[4] += valid_retrieval
+                        total_vector[4] += valid_retrieval
 
                         self.summary_report[date_key] = month_vector
-                        
-                        self.summary_report['statistics_report.count'] += 1
+
+                        self.summary_report['files.count'] += 1
 
         finally:
+            self.summary_report["total"] = total_vector
             ProductVerifier.dump_report(self.summary_report, self.summary_report_pathname)
 
 
@@ -68,6 +87,6 @@ if __name__ == "__main__":
     try:
         accumulator.accumulate()
     except:
-        sys.exit(1)
+        pass  # sys.exit(1)
 
     sys.exit()
