@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. ${MMS_HOME}/bin/mms-env-svr.sh
+. /group_workspaces/cems2/esacci_sst/mms/software/quality-assessment/bin/mms-env-svr.sh
 
 usecase=$1
 sensor=$2
