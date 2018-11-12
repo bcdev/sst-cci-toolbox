@@ -1,29 +1,31 @@
 #!/bin/bash
 
+echo "pmstart"
+
 if [ -z "$1" ]; then
-    echo "call   : pmstartup <workflow>"
-    echo "example: pmstartup modis.py"
+    echo "call   : pmstart.sh <workflow>"
+    echo "example: pmstart.sh usecase-17.py"
     exit 1
 fi
 
-if [ -z "$MMS_INST" ]; then
-    MMS_INST=`pwd`
-fi
+WORKING_DIR=`pwd`
+echo "working dir: $WORKING_DIR"
 
 workflow=$(basename ${1%.py})
+echo "workflow: $workflow"
 
 if [ -e ${workflow}.pid ]
 then
-    if kill -0 $(cat $workflow.pid) 2> /dev/null
+    if kill -0 $(cat ${workflow}.pid) 2> /dev/null
     then
-        ps -elf | grep $(cat $workflow.pid) | grep -v grep
+        ps -elf | grep $(cat ${workflow}.pid) | grep -v grep
         echo "process already running"
         echo "delete $workflow.pid file if running process is not the workflow"
         exit 1
     fi
 fi
 
-nohup ${SVR_PYTHON_EXEC} ${MMS_HOME}/cci/sst/qa/$workflow.py > $MMS_INST/$workflow.out 2>&1 &
-echo $! > $MMS_INST/$workflow.pid
+nohup ${PM_PYTHON_EXEC} ${PM_EXE_DIR}/python/${workflow}.py > ${WORKING_DIR}/${workflow}.out 2>&1 &
+echo $! > ${WORKING_DIR}/${workflow}.pid
 sleep 8
-cat $MMS_INST/$workflow.status
+cat $WORKING_DIR/$workflow.status

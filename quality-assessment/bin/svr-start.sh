@@ -22,5 +22,3 @@ read_task_jobs $jobname
 if [ -z $jobs ]; then
     submit_job 1:00 $jobname $command
 fi
-
-wait_for_task_jobs_completion $jobname
