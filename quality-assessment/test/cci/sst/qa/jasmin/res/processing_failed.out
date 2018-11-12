@@ -1,0 +1,41 @@
+Sender: LSF System <lsfadmin@host318.jc.rl.ac.uk>
+Subject: Job 1352: <post_processing-usecase-06-pp.xml-2003-281-2003-287> in cluster <lotus> Exited
+
+Job <post_processing-usecase-06-pp.xml-2003-281-2003-287> was submitted from host <cems-sci1-panfs.cems.rl.ac.uk> by user <tblock01> in cluster <lotus> at Fri Mar 16 16:12:10 2018.
+Job was executed on host(s) <host318.jc.rl.ac.uk>, in queue <short-serial>, as user <tblock01> in cluster <lotus> at Fri Mar 16 16:12:11 2018.
+</home/users/tblock01> was used as the home directory.
+</group_workspaces/cems2/esacci_sst/mms_new/work/mmd06c> was used as the working directory.
+Started at Fri Mar 16 16:12:11 2018.
+Terminated at Thu May 24 14:53:40 2018.
+Results reported at Thu May 24 14:54:12 2018.
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+/group_workspaces/cems2/esacci_sst/mms_new/bin/post_processing_run.sh /group_workspaces/cems2/esacci_sst/mms_new/mmd/mmd06c_re01/argo-sst_amsre-aq 2003-281 2003-287 usecase-06-pp.xml /group_workspaces/cems2/esacci_sst/mms_new/config
+------------------------------------------------------------
+
+TERM_ADMIN: job killed by root or an administrator.
+Exited
+The output (if any) follows:
+
+20180316-161211 ingestion 2003-281 - 2003-287 ...
+#
+# A fatal error has been detected by the Java Runtime Environment:
+#
+#  SIGSEGV (0xb) at pc=0x00007f8f8e267fbe, pid=139808, tid=0x00007f8f8e938700
+#
+# JRE version: Java(TM) SE Runtime Environment (8.0_111-b14) (build 1.8.0_111-b14)
+# Java VM: Java HotSpot(TM) 64-Bit Server VM (25.111-b14 mixed mode linux-amd64 compressed oops)
+# Problematic frame:
+# V  [libjvm.so+0x920fbe]  SR_handler(int, siginfo*, ucontext*)+0x3e
+#
+# Core dump written. Default location: /group_workspaces/cems2/esacci_sst/mms_new/work/mmd06c/core or core.139808
+#
+# An error report file with more information is saved as:
+# /group_workspaces/cems2/esacci_sst/mms_new/work/mmd06c/hs_err_pid139808.log
+#
+# If you would like to submit a bug report, please visit:
+#   http://bugreport.java.com/bugreport/crash.jsp
+#

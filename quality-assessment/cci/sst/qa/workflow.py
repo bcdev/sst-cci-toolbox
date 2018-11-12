@@ -499,9 +499,6 @@ class Monitor:
     def wait_for_completion(self):
         self.pm.wait_for_completion()
 
-    def wait_for_completion_and_terminate(self):
-        self.pm.wait_for_completion_and_terminate()
-
 
 # archiving rules
 # mms/archive/atsr.3/v2.1/2003/01/17/ATS_TOA_1P...N1
@@ -627,7 +624,7 @@ class Workflow:
             if miz_only:
                 self._execute_miz_selection(m, chunk, mmdtype, mmdtype.replace('mmd', 'miz', 1))
             date = _next_year_start(date)
-        m.wait_for_completion_and_terminate()
+        m.wait_for_completion()
 
     def _get_primary_sensors(self):
         """
