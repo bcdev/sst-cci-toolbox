@@ -79,7 +79,7 @@ class SvrWorkflow:
             date = _next_year_start(date)
         self._execute_report_accumulation(m)
         self._execute_report_plotting(m)
-        m.wait_for_completion_and_terminate()
+        m.wait_for_completion()
 
     def _get_sensors(self):
         """

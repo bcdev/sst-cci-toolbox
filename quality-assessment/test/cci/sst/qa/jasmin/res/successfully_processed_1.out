@@ -1,0 +1,37 @@
+successfully_processed.outSender: LSF System <lsfadmin@host184.jc.rl.ac.uk>
+Subject: Job 6237288: <svr-1980-05-31-AVHRR06_G-l3u> in cluster <lotus> Done
+
+Job <svr-1980-05-31-AVHRR06_G-l3u> was submitted from host <lotus.jc.rl.ac.uk> by user <tblock01> in cluster <lotus> at Thu Oct 18 12:43:03 2018.
+Job was executed on host(s) <host184.jc.rl.ac.uk>, in queue <short-serial>, as user <tblock01> in cluster <lotus> at Thu Oct 18 12:45:26 2018.
+</home/users/tblock01> was used as the home directory.
+</group_workspaces/cems2/esacci_sst/mms/inst/svr> was used as the working directory.
+Started at Thu Oct 18 12:45:26 2018.
+Terminated at Thu Oct 18 13:13:02 2018.
+Results reported at Thu Oct 18 13:13:02 2018.
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+/group_workspaces/cems2/esacci_sst/mms/software/quality-assessment/bin/svr-run.sh 1980 05 31 AVHRR06_G l3u CDR2.0 /group_workspaces/cems2/esacci_sst/output /group_workspaces/cems2/esacci_sst/mms/svr
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   8484.71 sec.
+    Max Memory :                                 921 MB
+    Average Memory :                             559.78 MB
+    Total Requested Memory :                     8192.00 MB
+    Delta Memory :                               7271.00 MB
+    Max Swap :                                   2540 MB
+    Max Processes :                              4
+    Max Threads :                                20
+    Run time :                                   1624 sec.
+    Turnaround time :                            1799 sec.
+
+The output (if any) follows:
+
+2018-10-18T11:45:27GMT found 14 source files in '/group_workspaces/cems2/esacci_sst/output/CDR2.0/l3u/AVHRR06_G/1980/05/31'
+2018-10-18T11:45:27GMT source pathname: /group_workspaces/cems2/esacci_sst/output/CDR2.0/l3u/AVHRR06_G/1980/05/31/19800531012300-ESACCI-L3U_GHRSST-SSTskin-AVHRR06_G-CDR2.0-v02.0-fv01.0.nc

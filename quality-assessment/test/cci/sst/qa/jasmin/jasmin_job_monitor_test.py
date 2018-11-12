@@ -2,8 +2,8 @@ import os
 import unittest
 from io import StringIO
 
-from lib.jasmin.jasmin_job_monitor import JasminJobMonitor
-from lib.status_codes import StatusCodes
+from cci.sst.qa.jasmin.jasmin_job_monitor import JasminJobMonitor
+from cci.sst.qa.jasmin.status_codes import StatusCodes
 
 
 class JasminJobMonitorTest(unittest.TestCase):

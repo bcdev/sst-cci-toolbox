@@ -2,7 +2,7 @@ import os
 import subprocess
 import sys
 
-from lib.status_codes import StatusCodes
+from cci.sst.qa.jasmin.status_codes import StatusCodes
 
 
 class JasminJobMonitor:
@@ -152,6 +152,7 @@ class JasminJobMonitor:
 
     def _format_and_write(self, results, stream):
         key_list = list(results.keys())
+        key_list.sort()
 
         num_items = len(key_list)
         for i in range(0, num_items):

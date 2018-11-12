@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """Workflow engine and dispatcher for processing requests"""
-from sst.qa.threadpool import ThreadPool, WorkRequest
+from cci.sst.qa.threadpool import ThreadPool, WorkRequest
 
 __author__ = "Martin Böttcher, Brockmann Consult GmbH"
 __copyright__ = "Copyright 2016, Brockmann Consult GmbH"
