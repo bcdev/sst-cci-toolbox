@@ -25,7 +25,7 @@ then
     fi
 fi
 
-nohup ${PM_PYTHON_EXEC} ${PM_EXE_DIR}/python/${workflow}.py > ${WORKING_DIR}/${workflow}.out 2>&1 &
+nohup ${PM_PYTHON_EXEC} ${PM_EXE_DIR}/cci/sst/qa/${workflow}.py > ${WORKING_DIR}/${workflow}.out 2>&1 &
 echo $! > ${WORKING_DIR}/${workflow}.pid
 sleep 8
 cat $WORKING_DIR/$workflow.status

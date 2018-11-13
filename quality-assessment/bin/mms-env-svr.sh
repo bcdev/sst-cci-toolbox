@@ -3,10 +3,10 @@
 # project name (to identify the job groups on the cluster)
 export PROJECT=esacci_sst_svr
 
-export PM_EXE_DIR=/group_workspaces/cems2/esacci_sst/mms/software/quality_assessment/bin
+export PM_EXE_DIR='/group_workspaces/cems2/esacci_sst/mms/software/quality-assessment'
 export PM_PYTHON_EXEC='/group_workspaces/cems2/esacci_sst/software/miniconda3/envs/sst_cci_qa/bin/python'
 
-export PATH=${PM_EXE_DIR}:$PATH
+export PATH=${PM_EXE_DIR}/bin:$PATH
 
 # ensure that processes exit
 set -e
@@ -21,7 +21,7 @@ submit_job() {
     jobname=$1
     command=$2
 
-     bsubmit="bsub -R rusage[mem=2048] -M 2048 -q short-serial -n 1 -W 1:00 -P ${PROJECT} -cwd ${WORKING_DIR} -oo ${PM_LOG_DIR}/${jobname}.out -eo ${PM_LOG_DIR}/${jobname}.err -J ${jobname} ${PM_EXE_DIR}/${command} ${@:4}"
+     bsubmit="bsub -R rusage[mem=2048] -M 2048 -q short-serial -n 1 -W 1:00 -P ${PROJECT} -cwd ${WORKING_DIR} -oo ${PM_LOG_DIR}/${jobname}.out -eo ${PM_LOG_DIR}/${jobname}.err -J ${jobname} ${PM_EXE_DIR}/bin/${command} ${@}"
 
     rm -f ${PM_LOG_DIR}/${jobname}.out
     rm -f ${PM_LOG_DIR}/${jobname}.err
