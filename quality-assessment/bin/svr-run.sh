@@ -12,4 +12,4 @@ version=$6
 archive_root=$7
 report_root=$8
 
-${SVR_PYTHON_EXEC} ${MMS_HOME}/cci/sst/qa/svrrunner.py $year $month $day $sensor $usecase $version $archive_root $report_root
+${PM_PYTHON_EXEC} ${PM_EXE_DIR}/cci/sst/qa/svrrunner.py $year $month $day $sensor $usecase $version $archive_root $report_root
