@@ -51,11 +51,17 @@ class L2P(ProductType):
                 'sses_standard_deviation', 'sst_depth_total_uncertainty', 'sst_dtime', 'synoptically_correlated_uncertainty', 'time', 'uncorrelated_uncertainty', 'wind_speed'],
         "2.0": ["adjustment_uncertainty", "aerosol_dynamic_indicator", "l2p_flags", "large_scale_correlated_uncertainty", "lat", "lon", "probability_clear", "quality_level", "sea_surface_temperature",
                 "sea_surface_temperature_depth", "sensitivity", "sses_bias", "sses_standard_deviation", "sst_depth_dtime", "sst_depth_total_uncertainty", "sst_dtime",
-                "synoptically_correlated_uncertainty", "time", "uncorrelated_uncertainty", "wind_speed"]}
+                "synoptically_correlated_uncertainty", "time", "uncorrelated_uncertainty", "wind_speed"],
+        "2.1": ["adjustment_alt", "alt_sst_retrieval_type", "depth_adjustment", "empirical_adjustment", "l2p_flags", "lat", "lon", "quality_level", "sea_surface_temperature",
+                "sea_surface_temperature_depth", "sea_surface_temperature_depth_anomaly", "sea_surface_temperature_depth_total_uncertainty", "sea_surface_temperature_retrieval_type",
+                "sea_surface_temperature_total_uncertainty", "sses_bias", "sses_standard_deviation", "sst_depth_dtime", "sst_dtime", "sst_sensitivity", "time", "uncertainty_correlated",
+                "uncertainty_correlated_alt", "uncertainty_correlated_time_and_depth_adjustment", "uncertainty_random", "uncertainty_random_alt", "uncertainty_systematic",
+                "uncertainty_systematic_alt", "wind_speed"]}
 
     l2_geophysical_checks = {
         "1.2": ['sea_surface_temperature', 'sea_surface_temperature_depth', -5.0, 10.0],
-        "2.0": ['sea_surface_temperature', 'sea_surface_temperature_depth', -5.0, 10.0]
+        "2.0": ['sea_surface_temperature', 'sea_surface_temperature_depth', -5.0, 10.0],
+        "2.1": ['sea_surface_temperature', 'sea_surface_temperature_depth', -5.0, 10.0]
     }
 
     l2_mask_checks = {"1.2": [['sea_surface_temperature', 'quality_level', 'quality_level', [0, 2, 3, 4, 5]],
