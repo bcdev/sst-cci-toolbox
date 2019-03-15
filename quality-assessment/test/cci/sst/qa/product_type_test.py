@@ -64,6 +64,37 @@ class ProductTypeTest(unittest.TestCase):
         self.assertEqual("sea_surface_temperature", sst_variable_names[0])
         self.assertEqual("sea_surface_temperature_depth", sst_variable_names[1])
 
+    def test_get_variable_names_L2P_v2_1(self):
+        product_type = L2P()
+
+        product_type.set_version("2.1")
+
+        variable_names = product_type.get_variable_names()
+        self.assertEqual(27, len(variable_names))
+        self.assertEqual("depth_adjustment", variable_names[2])
+        self.assertEqual("quality_level", variable_names[7])
+        self.assertEqual("sea_surface_temperature_retrieval_type", variable_names[12])
+        self.assertEqual("sst_sensitivity", variable_names[17])
+
+        geophysical_spec = product_type.get_geophysical_check_spec()
+        self.assertEqual(4, len(geophysical_spec))
+        self.assertEqual(-5.0, geophysical_spec[2])
+
+        # @todo 1 tb/tb continue here 2019-03-14
+
+        # mask_specs = product_type.get_mask_consistency_check_specs()
+        # self.assertEqual(10, len(mask_specs))
+        # mask_spec = mask_specs[3]
+        # self.assertEqual("sea_surface_temperature", mask_spec[0])
+        # self.assertEqual("sses_standard_deviation", mask_spec[1])
+        # self.assertEqual("quality_level", mask_spec[2])
+        # self.assertEqual(range(0, 6), mask_spec[3])
+        #
+        # sst_variable_names = product_type.get_sst_variable_names()
+        # self.assertEqual(2, len(sst_variable_names))
+        # self.assertEqual("sea_surface_temperature", sst_variable_names[0])
+        # self.assertEqual("sea_surface_temperature_depth", sst_variable_names[1])
+
     def test_get_variable_names_L3U_v1_2(self):
         product_type = L3U()
 
