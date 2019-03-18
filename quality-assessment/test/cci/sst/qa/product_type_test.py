@@ -70,11 +70,11 @@ class ProductTypeTest(unittest.TestCase):
         product_type.set_version("2.1")
 
         variable_names = product_type.get_variable_names()
-        self.assertEqual(27, len(variable_names))
+        self.assertEqual(28, len(variable_names))
         self.assertEqual("depth_adjustment", variable_names[2])
         self.assertEqual("quality_level", variable_names[7])
         self.assertEqual("sea_surface_temperature_retrieval_type", variable_names[12])
-        self.assertEqual("sst_sensitivity", variable_names[17])
+        self.assertEqual("sst_dtime", variable_names[17])
 
         geophysical_spec = product_type.get_geophysical_check_spec()
         self.assertEqual(4, len(geophysical_spec))
