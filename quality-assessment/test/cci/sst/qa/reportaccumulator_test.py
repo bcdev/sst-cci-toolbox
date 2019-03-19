@@ -13,10 +13,10 @@ class ReportAccumulatorTests(unittest.TestCase):
 
         accumulator.accumulate()
 
-        self.assertEqual(6069611.0, accumulator.summary_report["not_ocean"])
+        self.assertEqual(9432346.0, accumulator.summary_report["not_ocean"])
         self.assertEqual(3048183.0, accumulator.summary_report["adjustment_uncertainty.count.valid"])
-        self.assertEqual(25526728.0, accumulator.summary_report["lat.count.total"])
-        self.assertEqual(25526728.0, accumulator.summary_report["lon.count.total"])
-        self.assertEqual(25526728.0, accumulator.summary_report["sea_surface_temperature.count.total"])
+        self.assertEqual(38242248.0, accumulator.summary_report["lat.count.total"])
+        self.assertEqual(38242248.0, accumulator.summary_report["lon.count.total"])
+        self.assertEqual(38242248.0, accumulator.summary_report["sea_surface_temperature.count.total"])
 
         
