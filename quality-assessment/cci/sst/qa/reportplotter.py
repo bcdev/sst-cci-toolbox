@@ -13,10 +13,85 @@ matplotlib.use('PDF')
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import numpy as np
-#import pylab
 import os
 
 from cci.sst.qa.productverifier import ProductVerifier
+FIG_1_CHECKS = {
+    'Is File': ['source_pathname_check'],
+    'Filename': ['source_filename_check'],
+    'Can Open': ['product_can_be_opened_check'],
+    'Has Version': ['product_has_version_check'],
+    'Lat Exists': ['lat.existence_check'],
+    'Lon Exists': ['lon.existence_check'],
+    'SST Exists': ['sea_surface_temperature.existence_check'],
+    'Time Exists': ['time.existence_check'],
+    'SST DTime Exists': ['sst_dtime.existence_check'],
+    'SSES Bias Exists': ['sses_bias.existence_check'],
+    'SSES St Dev Exists': ['sses_standard_deviation.existence_check'],
+    'Large Scale Unc Exists': ['large_scale_correlated_uncertainty.existence_check'],
+    'Correlated Unc Exists': ['uncertainty_correlated.existence_check'],
+    'Uncorrelated Unc Exists': ['uncorrelated_uncertainty.existence_check'],
+    'Random Unc Exists': ['uncertainty_random.existence_check'],
+    'Synoptic Unc Exists': ['synoptically_correlated_uncertainty.existence_check'],
+    'Systematic Unc Exists': ['uncertainty_systematic.existence_check'],
+    'SST Depth Exists': ['sea_surface_temperature_depth.existence_check'],
+    'SST Depth Unc Exists': ['sst_depth_total_uncertainty.existence_check'],
+    'SST Depth DTime Exists': ['sst_depth_dtime.existence_check'],
+    'Wind Speed Exists': ['wind_speed.existence_check'],
+    'L2P Flags Exist': ['l2p_flags.existence_check'],
+    'Quality Level Exists': ['quality_level.existence_check'],
+    'Adj Alt Exists': ['adjustment_alt.existence_check'],
+    'Alt SST Retr Exists': ['alt_sst_retrieval_type.existence_check'],
+    'Depth Adj Exists': ['depth_adjustment.existence_check'],
+    'Emp Adj Exists': ['empirical_adjustment.existence_check'],
+    'SST Depth Anom Exists': ['sea_surface_temperature_depth_anomaly.existence_check'],
+    'SST Ret Type Exists': ['sea_surface_temperature_retrieval_type.existence_check'],
+    'SST Total Unc Exists': ['sea_surface_temperature_total_uncertainty.existence_check'],
+    'SST Sens Exists': ['sensitivity.existence_check'],
+    'Unc Corr Alt Exists': ['uncertainty_correlated_alt.existence_check'],
+    'Unc Corr TD Exists': ['uncertainty_correlated_time_and_depth_adjustment.existence_check'],
+    'Unc Rand Alt Exists': ['uncertainty_random_alt.existence_check'],
+    'Unc Sys Alt Exists': ['uncertainty_systematic_alt.existence_check'],
+    'SST Corrupt': ['corruptness_check'],
+    'Adjustment Unc Exists': ['adjustment_uncertainty.existence_check'],
+    'Aerosol Dyn Ind Exists': ['aerosol_dynamic_indicator.existence_check'],
+    'Probability Clear Exists': ['probability_clear.existence_check'],
+    'Lat Bnds Exists': ['lat_bnds.existence_check'],
+    'Lon Bnds Exists': ['lon_bnds.existence_check'],
+    'Time Bnds Exists': ['time_bnds.existence_check'],
+}
+
+
+FIG_1_LABELS = [
+    'Is File',
+    'Filename',
+    'Can Open',
+    'Has Version'
+    'Lat Exists',
+    'Lon Exists',
+    'SST Exists',
+    'Time Exists',
+    'SST DTime Exists',
+    'SSES Bias Exists',
+    'SSES St Dev Exists',
+    'Large Scale Unc Exists',
+    'Adjustment Unc Exists',
+    'Synoptic Unc Exists',
+    'Uncorrelated Unc Exists',
+    'SST Depth Exists',
+    'SST Depth Unc Exists',
+    'Wind Speed Exists',
+    'L2P Flags Exist',
+    'Quality Level Exists',
+    'SST Corrupt',
+    'Aerosol Dyn Ind Exists',
+    'Probability Clear Exists',
+    'Sensitivity Exists',
+    'Lat Bnds Exists',
+    'Lon Bnds Exists',
+    'Time Bnds Exists',
+]
+
 
 
 class ReportPlotter:
@@ -66,69 +141,13 @@ class ReportPlotter:
         self.plot_figure_2()
 
     def plot_figure_1(self):
-        checks = {
-            'Is File': ['source_pathname_check'],
-            'Filename': ['source_filename_check'],
-            'Can Open': ['product_can_be_opened_check'],
-            'SST Corrupt': ['corruptness_check'],
-            'Adjustment Unc Exists': ['adjustment_uncertainty.existence_check'],
-            'L2P Flags Exist': ['l2p_flags.existence_check'],
-            'Large Scale Unc Exists': ['large_scale_correlated_uncertainty.existence_check'],
-            'Lat Exists': ['lat.existence_check'],
-            'Lon Exists': ['lon.existence_check'],
-            'Quality Level Exists': ['quality_level.existence_check'],
-            'SST Exists': ['sea_surface_temperature.existence_check'],
-            'SST Depth Exists': ['sea_surface_temperature_depth.existence_check'],
-            'SSES Bias Exists': ['sses_bias.existence_check'],
-            'SSES St Dev Exists': ['sses_standard_deviation.existence_check'],
-            'SST Depth Unc Exists': ['sst_depth_total_uncertainty.existence_check'],
-            'SST DTime Exists': ['sst_dtime.existence_check'],
-            'Synoptic Unc Exists': ['synoptically_correlated_uncertainty.existence_check'],
-            'Time Exists': ['time.existence_check'],
-            'Uncorrelated Unc Exists': ['uncorrelated_uncertainty.existence_check'],
-            'Wind Speed Exists': ['wind_speed.existence_check'],
-            'Aerosol Dyn Ind Exists': ['aerosol_dynamic_indicator.existence_check'],
-            'Probability Clear Exists': ['probability_clear.existence_check'],
-            'Sensitivity Exists': ['sensitivity.existence_check'],
-            'Lat Bnds Exists': ['lat_bnds.existence_check'],
-            'Lon Bnds Exists': ['lon_bnds.existence_check'],
-            'Time Bnds Exists': ['time_bnds.existence_check'],
-        }
-        check_labels = [
-            'Is File',
-            'Filename',
-            'Can Open',
-            'Lat Exists',
-            'Lon Exists',
-            'SST Exists',
-            'Time Exists',
-            'SST DTime Exists',
-            'SSES Bias Exists',
-            'SSES St Dev Exists',
-            'Large Scale Unc Exists',
-            'Adjustment Unc Exists',
-            'Synoptic Unc Exists',
-            'Uncorrelated Unc Exists',
-            'SST Depth Exists',
-            'SST Depth Unc Exists',
-            'Wind Speed Exists',
-            'L2P Flags Exist',
-            'Quality Level Exists',
-            'SST Corrupt',
-            'Aerosol Dyn Ind Exists',
-            'Probability Clear Exists',
-            'Sensitivity Exists',
-            'Lat Bnds Exists',
-            'Lon Bnds Exists',
-            'Time Bnds Exists',
-        ]
         report = self.get_report()
         reference_counts = report['summary_report.count']
         plot_title = self.get_usecase().upper() + ' ' + self.get_sensor().replace('_', '-')
         plot_label = 'Failure Permillage (for ' + '{:,}'.format(reference_counts) + ' files in total)'
         filename = self.get_usecase().lower() + '-' + self.get_sensor() + "-figure1.pdf"
         filepath = os.path.join(self.get_figure_dirpath(), filename)
-        ReportPlotter.plot_report(report, checks, check_labels, reference_counts, plot_title, plot_label, filepath)
+        ReportPlotter.plot_report(report, FIG_1_CHECKS, FIG_1_LABELS, reference_counts, plot_title, plot_label, filepath)
 
     def plot_figure_2(self):
         checks = {
