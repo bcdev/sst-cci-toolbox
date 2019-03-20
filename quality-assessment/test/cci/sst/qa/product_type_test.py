@@ -81,9 +81,9 @@ class ProductTypeTest(unittest.TestCase):
         self.assertEqual(-5.0, geophysical_spec[2])
 
         mask_specs = product_type.get_mask_consistency_check_specs()
-        self.assertEqual(19, len(mask_specs))
+        self.assertEqual(18, len(mask_specs))
         mask_spec = mask_specs[3]
-        self.assertEqual("sea_surface_temperature", mask_spec[0])
+        self.assertEqual("alt_sst_retrieval_type", mask_spec[0])
         self.assertEqual("adjustment_alt", mask_spec[1])
         self.assertEqual("quality_level", mask_spec[2])
         self.assertEqual(range(0, 6), mask_spec[3])
@@ -167,20 +167,18 @@ class ProductTypeTest(unittest.TestCase):
         self.assertEqual(4, len(geophysical_spec))
         self.assertEqual('sea_surface_temperature', geophysical_spec[0])
 
-        # @todo 1 tb/tb continue here 2019-03-19
+        mask_specs = product_type.get_mask_consistency_check_specs()
+        self.assertEqual(18, len(mask_specs))
+        mask_spec = mask_specs[5]
+        self.assertEqual("sea_surface_temperature", mask_spec[0])
+        self.assertEqual("sea_surface_temperature_depth", mask_spec[1])
+        self.assertEqual("quality_level", mask_spec[2])
+        self.assertEqual(range(0, 6), mask_spec[3])
 
-        # mask_specs = product_type.get_mask_consistency_check_specs()
-        # self.assertEqual(10, len(mask_specs))
-        # mask_spec = mask_specs[4]
-        # self.assertEqual("sea_surface_temperature", mask_spec[0])
-        # self.assertEqual("large_scale_correlated_uncertainty", mask_spec[1])
-        # self.assertEqual("quality_level", mask_spec[2])
-        # self.assertEqual(range(0, 6), mask_spec[3])
-        #
-        # sst_variable_names = product_type.get_sst_variable_names()
-        # self.assertEqual(2, len(sst_variable_names))
-        # self.assertEqual("sea_surface_temperature", sst_variable_names[0])
-        # self.assertEqual("sea_surface_temperature_depth", sst_variable_names[1])
+        sst_variable_names = product_type.get_sst_variable_names()
+        self.assertEqual(2, len(sst_variable_names))
+        self.assertEqual("sea_surface_temperature", sst_variable_names[0])
+        self.assertEqual("sea_surface_temperature_depth", sst_variable_names[1])
 
     def test_get_variable_names_L4_v1_2(self):
         product_type = L4()

@@ -57,6 +57,18 @@ class ProductVerifierTests(unittest.TestCase):
         expected_report = ProductVerifier.load_report(expected_report_path)
         self.assertEqual(expected_report, verifier.get_report())
 
+    def test_verify_l3u_v2_1(self):
+        self.maxDiff = None  # allows checking strings beyond the limit tb 2019-03-20
+        data_dir = TestDataUtils.get_test_data_dir()
+
+        test_product_path = os.path.join(data_dir, "20041108023827-ESACCI-L3U_GHRSST-SSTskin-AVHRR17_G-CDR2.1-v02.0-fv01.0.nc")
+        verifier = ProductVerifier(test_product_path)
+        verifier.verify()
+
+        expected_report_path = os.path.join(data_dir, "report_l3u_v02_1.json")
+        expected_report = ProductVerifier.load_report(expected_report_path)
+        self.assertEqual(expected_report, verifier.get_report())
+
     @staticmethod
     def create_new_file(pathname):
         source_file = open(pathname, 'w')
