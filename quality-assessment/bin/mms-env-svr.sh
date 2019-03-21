@@ -3,8 +3,8 @@
 # project name (to identify the job groups on the cluster)
 export PROJECT=esacci_sst_svr
 
-export PM_EXE_DIR='/group_workspaces/cems2/esacci_sst/mms/software/quality-assessment'
-export PM_PYTHON_EXEC='/group_workspaces/cems2/esacci_sst/software/miniconda3/envs/sst_cci_qa/bin/python'
+export PM_EXE_DIR='/gws/nopw/j04/esacci_sst/mms/software/quality-assessment'
+export PM_PYTHON_EXEC='/gws/nopw/j04/esacci_sst/software/miniconda3/envs/sst_cci_qa/bin/python'
 
 export PATH=${PM_EXE_DIR}/bin:$PATH
 
