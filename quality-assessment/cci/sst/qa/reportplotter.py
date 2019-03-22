@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
-from cci.sst.qa.productverifier import ProductVerifier
+from .productverifier import ProductVerifier
 
 FIG_1_CHECKS = {
     'Is File': ['source_pathname_check'],

@@ -4,12 +4,12 @@ import calendar
 import datetime
 import os
 
-from cci.sst.qa.svrrunner import SvrRunner
-from cci.sst.qa.workflow import Job
-from cci.sst.qa.workflow import Monitor
-from cci.sst.qa.workflow import MultiPeriod
-from cci.sst.qa.workflow import Period
-from cci.sst.qa.workflow import Sensor
+from .svrrunner import SvrRunner
+from .workflow import Job
+from .workflow import Monitor
+from .workflow import MultiPeriod
+from .workflow import Period
+from .workflow import Sensor
 
 
 # TODO - move this and related code to a new 'svr' module (rquast-2015-06-02)

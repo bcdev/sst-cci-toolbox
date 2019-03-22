@@ -28,7 +28,7 @@ import sys
 import time
 from six.moves import reduce
 
-from cci.sst.qa.threadpool import ThreadPool, WorkRequest, NoResultsPending
+from .threadpool import ThreadPool, WorkRequest, NoResultsPending
 
 
 class PMonitor:

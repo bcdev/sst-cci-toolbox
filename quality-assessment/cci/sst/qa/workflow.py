@@ -2,7 +2,7 @@ __author__ = 'Ralf Quast'
 
 import datetime
 
-from cci.sst.qa.pmonitor import PMonitor
+from .pmonitor import PMonitor
 
 
 class Period:

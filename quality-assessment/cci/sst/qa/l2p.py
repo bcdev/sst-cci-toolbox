@@ -1,6 +1,6 @@
 __author__ = 'Ralf Quast'
 
-from cci.sst.qa.svrworkflow import SvrWorkflow
+from .svrworkflow import SvrWorkflow
 
 usecase = 'l2p'
 version = 'v2.2.0'

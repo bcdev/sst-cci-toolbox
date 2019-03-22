@@ -1,8 +1,8 @@
 import os
 import re
 
-from cci.sst.qa.productverifier import ProductVerifier
-from cci.sst.qa.svrrunner import SvrRunner
+from .productverifier import ProductVerifier
+from .svrrunner import SvrRunner
 
 
 class StatisticsAccumulator():
