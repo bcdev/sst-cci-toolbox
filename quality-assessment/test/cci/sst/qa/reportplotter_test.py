@@ -64,13 +64,59 @@ class ReportPlotterTests(unittest.TestCase):
         labels = ReportPlotter._extract_labels_plot_1(report)
         self.assertIsNotNone(labels)
         self.assertEqual(7, len(labels))
-        self.assertEqual("SST DTime Exists", labels[0])
-        self.assertEqual("SSES Bias Exists", labels[1])
+        self.assertEqual("Adjustment Unc Exists", labels[0])
+        self.assertEqual("Aerosol Dyn Ind Exists", labels[1])
         self.assertEqual("Large Scale Unc Exists", labels[2])
-        self.assertEqual("SST Sens Exists", labels[3])
-        self.assertEqual("Adjustment Unc Exists", labels[4])
-        self.assertEqual("Aerosol Dyn Ind Exists", labels[5])
-        self.assertEqual("Probability Clear Exists", labels[6])
+        self.assertEqual("Probability Clear Exists", labels[3])
+        self.assertEqual("SSES Bias Exists", labels[4])
+        self.assertEqual("SST DTime Exists", labels[5])
+        self.assertEqual("SST Sens Exists", labels[6])
+
+    def test_extract_labels_plot_2_three_labels(self):
+        report = {"uncertainty_random.mask_false_positive_check_3": 0.0,
+                  "uncertainty_random.mask_false_positive_check_4": 0.0,
+                  "uncertainty_random.mask_false_positive_check_5": 0.0,
+                  "uncertainty_random.valid_max_check": 0.0,
+                  "uncertainty_random.valid_min_check": 0.0,
+                  "uncertainty_random_alt.count.total": 25920000.0,
+                  "uncertainty_random_alt.count.valid": 152224.0,
+                  "uncertainty_random_alt.existence_check": 0.0}
+
+        labels = ReportPlotter._extract_labels_plot_2(report)
+        self.assertIsNotNone(labels)
+        self.assertEqual(3, len(labels))
+        self.assertEqual("Random Unc Max", labels[0])
+        self.assertEqual("Random Unc Min", labels[1])
+        self.assertEqual("Unc Rand Mask P", labels[2])
+
+    def test_extract_labels_plot_2_more_labels(self):
+        report = {"sea_surface_temperature.valid_min_check": 0.0,
+                  "sea_surface_temperature_depth.count.total": 51840000.0,
+                  "sea_surface_temperature_depth.count.valid": 357279.0,
+                  "sea_surface_temperature_depth.existence_check": 0.0,
+                  "sea_surface_temperature_depth.mask_false_negative_check_0": 0.0,
+                  "sea_surface_temperature_depth.mask_false_negative_check_1": 120.0,
+                  "sea_surface_temperature_depth.mask_false_negative_check_1_failed_for": "20041108023827-ESACCI-L3U_GHRSST-SSTskin-AVHRR17_G-CDR2.1-v02.0-fv01.0.nc 20011114100024-ESACCI-L3U_GHRSST-SSTskin-ATSR2-CDR2.0-v02.0-fv01.0.nc",
+                  "sea_surface_temperature_depth.mask_false_negative_check_2": 0.0,
+                  "sea_surface_temperature_depth.mask_false_negative_check_3": 0.0,
+                  "sea_surface_temperature_depth.mask_false_negative_check_4": 0.0,
+                  "sea_surface_temperature_depth.mask_false_negative_check_5": 0.0,
+                  "sea_surface_temperature_depth.mask_false_positive_check_0": 0.0,
+                  "sea_surface_temperature_depth.mask_false_positive_check_1": 398.0,
+                  "sea_surface_temperature_depth.mask_false_positive_check_1_failed_for": "20041108023827-ESACCI-L3U_GHRSST-SSTskin-AVHRR17_G-CDR2.1-v02.0-fv01.0.nc 20011114100024-ESACCI-L3U_GHRSST-SSTskin-ATSR2-CDR2.0-v02.0-fv01.0.nc",
+                  "sea_surface_temperature_depth.mask_false_positive_check_2": 0.0,
+                  "sea_surface_temperature_depth.mask_false_positive_check_3": 0.0,
+                  "sea_surface_temperature_depth.mask_false_positive_check_4": 0.0,
+                  "sea_surface_temperature_depth.mask_false_positive_check_5": 0.0,
+                  "sea_surface_temperature_depth.valid_max_check": 0.0, }
+
+        labels = ReportPlotter._extract_labels_plot_2(report)
+        self.assertIsNotNone(labels)
+        self.assertEqual(4, len(labels))
+        self.assertEqual("SST Depth Max", labels[0])
+        self.assertEqual("SST Min", labels[1])
+        self.assertEqual("SST Depth Mask N", labels[2])
+        self.assertEqual("SST Depth Mask P", labels[3])
 
     def tearDown(self):
         if os.path.isfile("l2p-AATSR-figure1.pdf"):
@@ -84,6 +130,12 @@ class ReportPlotterTests(unittest.TestCase):
 
         if os.path.isfile("l2p-AVHRR16_G-figure2.pdf"):
             os.remove("l2p-AVHRR16_G-figure2.pdf")
+
+        if os.path.isfile("l3u-AVHRR17_G-figure1.pdf"):
+            os.remove("l3u-AVHRR17_G-figure1.pdf")
+
+        if os.path.isfile("l3u-AVHRR17_G-figure2.pdf"):
+            os.remove("l3u-AVHRR17_G-figure2.pdf")
 
 
 if __name__ == '__main__':
