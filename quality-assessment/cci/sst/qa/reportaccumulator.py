@@ -1,10 +1,10 @@
+from cci.sst.qa.productverifier import ProductVerifier
+from cci.sst.qa.svrrunner import SvrRunner
+
 __author__ = 'Ralf Quast'
 
 import os
 import re
-
-from .productverifier import ProductVerifier
-from .svrrunner import SvrRunner
 
 
 class ReportAccumulator:

@@ -3,7 +3,7 @@ __author__ = 'Ralf Quast'
 from os import path
 from os import walk
 
-from .productverifier import ProductVerifier
+from cci.sst.qa.productverifier import ProductVerifier
 
 
 class SvrRunner:

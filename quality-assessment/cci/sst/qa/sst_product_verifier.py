@@ -5,8 +5,8 @@ import numpy as np
 import numpy.ma as ma
 from netCDF4._netCDF4 import Dataset
 
-from .product_type import L2P, L3U, L4
-from .verification_error import VerificationError
+from cci.sst.qa.product_type import L2P, L3U, L4
+from cci.sst.qa.verification_error import VerificationError
 
 
 class SstProductVerifier:
