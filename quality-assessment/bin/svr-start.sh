@@ -17,8 +17,6 @@ command="$task-run.sh $year $month $day $sensor $usecase $version $archive_root 
 
 echo "`date -u +%Y%m%d-%H%M%S` submitting job '$jobname'"
 
-read_task_jobs $jobname
-
 if [ -z $jobs ]; then
     submit_job $jobname $command
 fi

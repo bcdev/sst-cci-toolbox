@@ -7,6 +7,7 @@ export PM_EXE_DIR='/gws/nopw/j04/esacci_sst/mms/software/quality-assessment'
 export PM_PYTHON_EXEC='/gws/nopw/j04/esacci_sst/software/miniconda3/envs/sst_cci_qa/bin/python'
 
 export PATH=${PM_EXE_DIR}/bin:$PATH
+export PYTHONPATH=$PM_EXE_DIR:$PYTHONPATH
 
 # ensure that processes exit
 set -e
@@ -21,7 +22,7 @@ submit_job() {
     jobname=$1
     command=$2
 
-     bsubmit="bsub -R rusage[mem=2048] -M 2048 -q short-serial -n 1 -W 1:00 -P ${PROJECT} -cwd ${WORKING_DIR} -oo ${PM_LOG_DIR}/${jobname}.out -eo ${PM_LOG_DIR}/${jobname}.err -J ${jobname} ${PM_EXE_DIR}/bin/${command} ${@}"
+     bsubmit="bsub -R rusage[mem=2048] -M 2048 -q short-serial -n 1 -W 1:00 -P ${PROJECT} -cwd ${WORKING_DIR} -oo ${PM_LOG_DIR}/${jobname}.out -eo ${PM_LOG_DIR}/${jobname}.err -J ${jobname} ${PM_EXE_DIR}/bin/${command} ${@:3}"
 
     rm -f ${PM_LOG_DIR}/${jobname}.out
     rm -f ${PM_LOG_DIR}/${jobname}.err

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-. /group_workspaces/cems2/esacci_sst/mms/software/quality-assessment/bin/mms-env-svr.sh
+. /gws/nopw/j04/esacci_sst/mms/software/quality-assessment/bin/mms-env-svr.sh
 
 sensor=$1
 report_dirpath=$2
