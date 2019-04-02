@@ -499,9 +499,8 @@ class ReportPlotter:
                     count = report[check]
                     permillage = count / (0.001 * reference_counts)
                     total_count += count
-                else:
-                    permillage = 0.0
-                permillages[label].append(permillage)
+                    permillages[label].append(permillage)
+
             labels.append(label)
             counts.append('{:,}'.format(total_count))
 
