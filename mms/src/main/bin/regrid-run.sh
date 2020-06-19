@@ -6,6 +6,7 @@ set -e
 # Example usage:
 #   - regrid-run.sh 2007 06 AAVHRMTA_G
 #   - regrid-run.sh 2005 10 AATSR
+#   - regrid-run.sh 2015 05 all_sensors
 
 # Note: this has some hardcoded parts, such as the L2/L3 version numbers
 # that need to be regridded.  Adapt as needed.
@@ -29,9 +30,14 @@ case "${sensor:0:5}" in
         version="v01.1"
         type="L3U"
         ;;
-    'AVHRR')
+    'AVHRR' )
         sensortype="AVHRR"
         version="v01.0"
+        type="L2P"
+        ;;
+    'all_s' )
+        sensortype=""
+        version=""
         type="L2P"
         ;;
 esac
