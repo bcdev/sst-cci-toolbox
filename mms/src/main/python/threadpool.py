@@ -69,7 +69,7 @@ class NoWorkersAvailable(Exception):
 
 
 # internal module helper functions
-def _handle_thread_exception(exc_info):
+def _handle_thread_exception(wr, exc_info):
     """Default exception handler callback function.
 
     This just prints the exception info via ``traceback.print_exception``.
